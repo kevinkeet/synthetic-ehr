@@ -121,8 +121,8 @@ const SimulationEngine = {
 
         // Generate opening nurse message based on scenario
         let openingMessage = '';
-        if (scenario.id === 'SCENARIO_CHF_001' || scenario.name?.includes('CHF')) {
-            openingMessage = `Dr. ${this.getRandomDoctorName()}, this is Sarah, the RN taking care of Mr. Morrison in room 412. He was just admitted about an hour ago for shortness of breath. He looks pretty uncomfortable - using his accessory muscles to breathe and can't lie flat. His vitals are: BP 158/92, HR 102 irregular, RR 24, SpO2 92% on 2L NC. He says he ran out of his Lasix about 5 days ago. His admission labs are pending. What would you like me to do?`;
+        if (scenario.id === 'SCENARIO_SOB_001' || scenario.name?.includes('Shortness of Breath')) {
+            openingMessage = `Dr. ${this.getRandomDoctorName()}, this is Sarah, the RN taking care of Mr. Morrison in room 412. He just came up from the ED - chief complaint is shortness of breath. He's a bit uncomfortable but stable. Vitals are BP 158/92, HR 102 irregular, RR 24, SpO2 92% on 2L nasal cannula. The ED didn't have much history - his wife brought him in and said he's "just not been himself." Admission labs are pending. He's yours whenever you're ready to see him.`;
         } else {
             openingMessage = `Doctor, I'm calling about your new admission. The patient just arrived on the floor and is getting settled. Initial vitals have been obtained. Let me know if you have any orders or would like to come evaluate.`;
         }

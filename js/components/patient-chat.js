@@ -68,7 +68,7 @@ const PatientChat = {
 
         if (scenario) {
             // Add scenario-specific info
-            if (scenario.id === 'SCENARIO_CHF_001' || scenario.name?.includes('CHF')) {
+            if (scenario.id === 'SCENARIO_SOB_001' || scenario.id === 'SCENARIO_CHF_001' || scenario.name?.includes('Shortness of Breath') || scenario.name?.includes('CHF')) {
                 context += ` male who was admitted to the hospital. You're not entirely sure why you're here - you've just been feeling "off" lately and your wife Patricia insisted you come in.
 
 === CRITICAL INSTRUCTIONS FOR REALISTIC PATIENT SIMULATION ===

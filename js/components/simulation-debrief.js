@@ -120,7 +120,7 @@ const SimulationDebrief = {
         }
 
         // CHF-specific evaluation
-        if (scenario?.id === 'SCENARIO_CHF_001' || scenario?.name?.includes('CHF')) {
+        if (scenario?.id === 'SCENARIO_SOB_001' || scenario?.id === 'SCENARIO_CHF_001' || scenario?.name?.includes('Shortness of Breath') || scenario?.name?.includes('CHF')) {
             const hasDiuretic = interventions.some(i =>
                 i.name?.toLowerCase().includes('furosemide') ||
                 i.name?.toLowerCase().includes('lasix') ||
@@ -297,7 +297,7 @@ const SimulationDebrief = {
         const suggestions = [];
 
         // CHF-specific suggestions
-        if (scenario?.id === 'SCENARIO_CHF_001' || scenario?.name?.includes('CHF')) {
+        if (scenario?.id === 'SCENARIO_SOB_001' || scenario?.id === 'SCENARIO_CHF_001' || scenario?.name?.includes('Shortness of Breath') || scenario?.name?.includes('CHF')) {
             const hasDiuretic = interventions.some(i =>
                 i.name?.toLowerCase().includes('furosemide') ||
                 i.name?.toLowerCase().includes('lasix')

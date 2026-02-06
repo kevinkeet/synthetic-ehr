@@ -1,15 +1,15 @@
 {
-  "id": "SCENARIO_CHF_001",
-  "name": "Acute CHF Exacerbation",
-  "description": "72-year-old male with HFrEF presenting with acute decompensated heart failure due to diuretic non-compliance",
-  "difficulty": "intermediate",
+  "id": "SCENARIO_SOB_001",
+  "name": "Shortness of Breath",
+  "description": "72-year-old male presenting with progressive shortness of breath",
+  "difficulty": "challenging",
   "estimatedDuration": "2-4 hours simulation time",
   "learningObjectives": [
-    "Recognize signs and symptoms of acute decompensated heart failure",
-    "Initiate appropriate diuretic therapy",
-    "Monitor for cardiorenal syndrome",
-    "Balance diuresis with renal function preservation",
-    "Recognize when patient is improving vs worsening"
+    "Take a thorough history from a vague historian",
+    "Recognize subtle clues pointing to the underlying diagnosis",
+    "Identify contraindications before initiating treatment",
+    "Navigate complex decision-making with incomplete information",
+    "Balance competing risks in anticoagulation decisions"
   ],
 
   "patient": {
@@ -112,7 +112,7 @@
       "type": "time",
       "atMinutes": 45,
       "action": "nurseAlert",
-      "message": "Doctor, Mr. Morrison's heart rate just jumped up to 142 and he's feeling his heart racing. The monitor is showing an irregular rhythm - looks like A-fib with rapid ventricular response. He's a bit more short of breath now too. Blood pressure is 138/88. What would you like me to do?",
+      "message": "Doctor, Mr. Morrison's heart rate just jumped up to 142 and he's feeling his heart racing. The monitor is showing an irregular rhythm - looks like A-fib with rapid ventricular response. He's a bit more short of breath now too. Blood pressure is 138/88. Do you want me to start him on a heparin drip for the A-fib? I know he's got a high stroke risk with his history. Let me know what you'd like to do.",
       "priority": "urgent",
       "stateChanges": {
         "vitals": {
