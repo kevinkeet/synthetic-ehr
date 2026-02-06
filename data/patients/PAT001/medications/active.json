@@ -87,15 +87,27 @@
     },
     {
       "id": "MED008",
-      "name": "Eliquis",
-      "genericName": "Apixaban",
-      "dose": "5 mg",
+      "name": "Aspirin",
+      "genericName": "Acetylsalicylic Acid",
+      "dose": "81 mg",
       "route": "PO",
-      "frequency": "BID",
-      "startDate": "2017-04-01",
+      "frequency": "Daily",
+      "startDate": "2023-09-20",
       "prescriber": "Dr. James Wilson",
-      "indication": "Atrial Fibrillation, Stroke Prevention",
-      "instructions": "Do not stop without consulting physician"
+      "indication": "Atrial Fibrillation (stroke risk reduction)",
+      "instructions": "Take with food. Replaces anticoagulation per GI recommendation."
+    },
+    {
+      "id": "MED013",
+      "name": "Pantoprazole",
+      "genericName": "Pantoprazole Sodium",
+      "dose": "40 mg",
+      "route": "PO",
+      "frequency": "Daily",
+      "startDate": "2023-09-15",
+      "prescriber": "Dr. Amanda Foster",
+      "indication": "GI protection, history of peptic ulcer",
+      "instructions": "Take 30 minutes before breakfast"
     },
     {
       "id": "MED009",

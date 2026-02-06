@@ -1,6 +1,15 @@
 {
   "problems": [
     {
+      "id": "PRB-R000",
+      "name": "Upper Gastrointestinal Hemorrhage",
+      "icd10": "K92.0",
+      "onsetDate": "2023-09-12",
+      "resolvedDate": "2023-09-20",
+      "diagnosedBy": "Dr. Michael Torres",
+      "notes": "Major upper GI bleed requiring ICU admission and 4 units pRBC. EGD showed large gastric ulcer with visible vessel. H. pylori positive, treated. Anticoagulation held and NOT restarted per GI recommendation due to high rebleeding risk. Patient was on warfarin for A-fib at the time. Discussed with cardiology - decision made to avoid anticoagulation given severity of bleed and recurrence risk."
+    },
+    {
       "id": "PRB-R001",
       "name": "Community-Acquired Pneumonia",
       "icd10": "J18.9",

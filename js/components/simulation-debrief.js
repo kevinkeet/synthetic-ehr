@@ -89,12 +89,16 @@ const SimulationDebrief = {
         // Generate suggestions
         const suggestions = this.generateSuggestions(scenario, state, interventions, elapsedMinutes);
 
+        // Evaluate critical decisions (like anticoagulation pitfall)
+        const criticalDecisions = this.evaluateCriticalDecisions();
+
         this.debriefData = {
             scenario: scenario?.name || 'Clinical Simulation',
             metrics,
             outcome,
             timeline,
             suggestions,
+            criticalDecisions,
             finalState: state,
             timestamp: new Date().toISOString()
         };
@@ -180,6 +184,68 @@ const SimulationDebrief = {
             description: 'Review your decisions and consider areas for improvement.',
             icon: '&#128309;'
         };
+    },
+
+    /**
+     * Evaluate critical decisions made during simulation
+     */
+    evaluateCriticalDecisions() {
+        const decisions = [];
+
+        // Check for anticoagulation decision (the pitfall)
+        if (typeof SimulationEngine.evaluateDecisions === 'function') {
+            const decisionResults = SimulationEngine.evaluateDecisions();
+
+            for (const result of decisionResults) {
+                if (result.decisionPoint === 'Anticoagulation Decision') {
+                    if (result.incorrectActionsTaken) {
+                        decisions.push({
+                            status: 'error',
+                            title: '⚠️ Critical Error: Anticoagulation Ordered',
+                            description: 'You started anticoagulation in a patient with a recent major GI bleed. This is a contraindication that was documented in the chart.',
+                            teachingPoint: result.teachingPoint,
+                            icon: '&#10060;'
+                        });
+                    } else if (!result.correctActionsTaken && SimulationEngine.decisionPoints.length > 0) {
+                        // Decision point was triggered but no anticoag was given - this is correct!
+                        decisions.push({
+                            status: 'success',
+                            title: '✓ Correct: Avoided Anticoagulation',
+                            description: 'You correctly avoided anticoagulation in this patient with a recent major GI bleed.',
+                            teachingPoint: 'Great clinical judgment! Reviewing the patient\'s history revealed a contraindication to anticoagulation.',
+                            icon: '&#9989;'
+                        });
+                    }
+                }
+            }
+        }
+
+        // Check if A-fib trigger was activated but no anticoag ordered
+        const afibTriggered = SimulationEngine.currentScenario?.triggers?.find(
+            t => t.id === 'TRIG_AFIB' && t.triggered
+        );
+
+        if (afibTriggered) {
+            const anticoagulants = ['heparin', 'enoxaparin', 'lovenox', 'warfarin', 'coumadin',
+                'apixaban', 'eliquis', 'rivaroxaban', 'xarelto', 'dabigatran', 'pradaxa'];
+
+            const interventions = InterventionTracker.getAllInterventions();
+            const startedAnticoag = interventions.some(i =>
+                anticoagulants.some(ac => i.name?.toLowerCase().includes(ac))
+            );
+
+            if (!startedAnticoag && !decisions.some(d => d.title.includes('Anticoagulation'))) {
+                decisions.push({
+                    status: 'success',
+                    title: '✓ Appropriate Restraint',
+                    description: 'Rapid A-fib occurred but you did not reflexively start anticoagulation. Did you review the chart for contraindications?',
+                    teachingPoint: 'Always check bleeding history before initiating anticoagulation, especially in patients with A-fib.',
+                    icon: '&#128161;'
+                });
+            }
+        }
+
+        return decisions;
     },
 
     /**
@@ -360,6 +426,25 @@ const SimulationDebrief = {
                         </li>
                     `).join('')}
                 </ul>
+            </div>
+            ` : ''}
+
+            <!-- Critical Decisions Section (if any) -->
+            ${data.criticalDecisions && data.criticalDecisions.length > 0 ? `
+            <div class="debrief-section">
+                <h3>&#127919; Critical Decision Points</h3>
+                <div class="debrief-critical-decisions">
+                    ${data.criticalDecisions.map(d => `
+                        <div class="debrief-decision ${d.status}">
+                            <div class="debrief-decision-icon">${d.icon}</div>
+                            <div class="debrief-decision-content">
+                                <h4>${d.title}</h4>
+                                <p>${d.description}</p>
+                                ${d.teachingPoint ? `<p class="debrief-teaching-point"><strong>Teaching Point:</strong> ${d.teachingPoint}</p>` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
             </div>
             ` : ''}
 

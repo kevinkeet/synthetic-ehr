@@ -1,10 +1,105 @@
 {
   "id": "NOTE100",
-  "type": "Telephone Encounter",
-  "date": "2021-03-14T15:22:18.416Z",
-  "author": "Dr. Jennifer Adams",
-  "department": "Internal Medicine",
-  "encounter": "ENC077",
-  "content": "Patient called regarding appointment scheduling.\n\nPatient reports mild increase in leg swelling. Advised to elevate legs, monitor weight, call if worsens.\n\nPlan: Continue current management.",
-  "attestation": "Telephone encounter documented.\n\nElectronically signed by: Dr. Jennifer Adams\nDate: 3/14/2021"
+  "type": "Consultation Note",
+  "date": "2023-09-18T14:30:00.000Z",
+  "author": "Dr. Amanda Foster",
+  "department": "Gastroenterology",
+  "encounter": "ENC-GI-001",
+  "chiefComplaint": "Upper GI hemorrhage",
+  "hpi": "72-year-old male with history of atrial fibrillation on warfarin, HFrEF, CKD stage 3b, and DM2 admitted to ICU on 9/12/2023 with hematemesis and melena. INR on admission was 4.2. Hemoglobin dropped from baseline 10.5 to 5.8 g/dL requiring transfusion of 4 units packed red blood cells. EGD performed on 9/13 showed large 2.5cm gastric antral ulcer with visible vessel, successfully treated with epinephrine injection and bipolar cautery. H. pylori testing positive.",
+  "reviewOfSystems": {
+    "Constitutional": "Weakness, fatigue, lightheadedness",
+    "Cardiovascular": "No chest pain, palpitations noted (known A-fib)",
+    "Respiratory": "Mild dyspnea at baseline due to CHF",
+    "GI": "Hematemesis x2 on day of admission, melena for 2 days prior, epigastric discomfort for 1 week prior to bleed",
+    "GU": "No hematuria",
+    "Hematologic": "Required 4 units pRBC, FFP given to reverse coagulopathy"
+  },
+  "vitals": {
+    "bp": "92/58 mmHg on admission, now 118/72",
+    "hr": "104 bpm on admission, now 78",
+    "rr": "18/min",
+    "temp": "98.2°F",
+    "spo2": "96% on 2L NC"
+  },
+  "physicalExam": {
+    "General": "Pale, tired-appearing male, improved from admission",
+    "HEENT": "Pale conjunctivae improving",
+    "Cardiovascular": "Irregularly irregular, no murmurs",
+    "Respiratory": "Clear bilaterally",
+    "Abdomen": "Soft, mild epigastric tenderness, no rebound, no guarding, bowel sounds present",
+    "Rectal": "Melena present, no bright red blood",
+    "Extremities": "Trace edema bilaterally"
+  },
+  "procedures": [
+    {
+      "name": "EGD with hemostasis",
+      "date": "2023-09-13",
+      "findings": "Large 2.5cm gastric antral ulcer with visible vessel (Forrest IIa). No esophageal varices. Mild gastritis. Duodenum normal.",
+      "intervention": "Epinephrine injection (4 quadrants) + bipolar cautery. Hemostasis achieved.",
+      "complications": "None"
+    }
+  ],
+  "labResults": {
+    "admission": {
+      "hemoglobin": "5.8 g/dL",
+      "hematocrit": "17.2%",
+      "platelets": "165,000",
+      "INR": "4.2",
+      "BUN": "68",
+      "creatinine": "2.8"
+    },
+    "postTransfusion": {
+      "hemoglobin": "9.2 g/dL",
+      "hematocrit": "27.8%",
+      "INR": "1.4 (after FFP)"
+    },
+    "hPylori": "Positive (CLO test and histology)"
+  },
+  "assessment": [
+    {
+      "diagnosis": "Acute upper gastrointestinal hemorrhage",
+      "icd10": "K92.0",
+      "notes": "Due to gastric ulcer, likely NSAID and/or anticoagulation related. Complicated by supratherapeutic INR."
+    },
+    {
+      "diagnosis": "Gastric ulcer with hemorrhage",
+      "icd10": "K25.4",
+      "notes": "Large 2.5cm antral ulcer, Forrest IIa. High risk for rebleeding."
+    },
+    {
+      "diagnosis": "Helicobacter pylori infection",
+      "icd10": "B96.81",
+      "notes": "Contributing factor to ulcer. Will treat."
+    },
+    {
+      "diagnosis": "Atrial fibrillation",
+      "icd10": "I48.1",
+      "notes": "Warfarin held. CRITICAL DECISION POINT regarding anticoagulation."
+    }
+  ],
+  "plan": [
+    {
+      "problem": "GI Hemorrhage",
+      "action": "Continue IV PPI (pantoprazole 40mg BID). NPO initially, advance diet slowly. Serial hemoglobin checks. Transfuse for Hgb < 7 g/dL."
+    },
+    {
+      "problem": "Gastric Ulcer",
+      "action": "High-risk ulcer (Forrest IIa). Continue high-dose PPI. Repeat EGD in 8 weeks to confirm healing. Strict NSAID avoidance."
+    },
+    {
+      "problem": "H. pylori",
+      "action": "Triple therapy after acute phase: clarithromycin 500mg BID + amoxicillin 1g BID + PPI x14 days. Confirm eradication in 4 weeks."
+    },
+    {
+      "problem": "Anticoagulation - CRITICAL",
+      "action": "WARFARIN HELD. Given severity of hemorrhage (Hgb drop to 5.8, required 4 units pRBC), high-risk ulcer characteristics, and patient's multiple bleeding risk factors (age >65, CKD, prior supratherapeutic INR), I am recommending AGAINST resuming anticoagulation. The risk of recurrent life-threatening GI hemorrhage outweighs stroke prevention benefit in this patient. Discussed with Dr. Wilson (Cardiology) who concurs. Will use aspirin 81mg daily for modest stroke risk reduction. Patient and wife counseled extensively about this decision and understand the trade-offs."
+    },
+    {
+      "problem": "Follow-up",
+      "action": "GI follow-up in 2 weeks. Repeat EGD in 8 weeks. Call immediately if any signs of rebleeding (black stools, vomiting blood, lightheadedness)."
+    }
+  ],
+  "discussionNote": "MULTIDISCIPLINARY DISCUSSION: Extensive discussion held with patient, his wife Patricia, Dr. Wilson (Cardiology), and Dr. Torres (Nephrology). Patient's CHA2DS2-VASc score is 5 (high stroke risk), but HAS-BLED score is also very high given this major bleed, age, CKD, and prior labile INR. The severity of this hemorrhage (requiring ICU, 4 units blood, hemodynamic instability) tips the balance against anticoagulation. All parties agree that the bleeding risk currently outweighs stroke benefit. This may be revisited in 6-12 months if ulcer heals completely and no further bleeding, but for now anticoagulation is CONTRAINDICATED. Decision documented and communicated to PCP.",
+  "attestation": "I personally evaluated this patient during his ICU admission and performed the EGD. I have reviewed all data and agree with the above findings and recommendations.\n\nElectronically signed by: Dr. Amanda Foster, MD\nGastroenterology\nDate: 9/18/2023"
 }

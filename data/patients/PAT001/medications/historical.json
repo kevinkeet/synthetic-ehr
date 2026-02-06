@@ -73,10 +73,10 @@
       "route": "PO",
       "frequency": "Daily",
       "startDate": "2017-03-25",
-      "endDate": "2017-04-01",
+      "endDate": "2023-09-12",
       "prescriber": "Dr. James Wilson",
       "indication": "Atrial Fibrillation",
-      "discontinuedReason": "Switched to apixaban for easier management"
+      "discontinuedReason": "HELD due to major upper GI hemorrhage - see GI consult note 9/18/2023. Per GI recommendation, anticoagulation NOT restarted due to high rebleed risk. Replaced with aspirin 81mg."
     },
     {
       "id": "MED-H007",

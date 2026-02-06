@@ -107,6 +107,38 @@
 
   "triggers": [
     {
+      "id": "TRIG_AFIB",
+      "name": "Rapid Atrial Fibrillation",
+      "type": "time",
+      "atMinutes": 45,
+      "action": "nurseAlert",
+      "message": "Doctor, Mr. Morrison's heart rate just jumped up to 142 and he's feeling his heart racing. The monitor is showing an irregular rhythm - looks like A-fib with rapid ventricular response. He's a bit more short of breath now too. Blood pressure is 138/88. What would you like me to do?",
+      "priority": "urgent",
+      "stateChanges": {
+        "vitals": {
+          "heartRate": 142,
+          "systolic": 138,
+          "diastolic": 88
+        },
+        "symptoms": {
+          "palpitations": true,
+          "dyspnea": 8
+        },
+        "events": {
+          "rapidAfib": true,
+          "rapidAfibTime": "auto"
+        }
+      },
+      "decisionPoint": {
+        "id": "DECISION_ANTICOAG",
+        "name": "Anticoagulation Decision",
+        "description": "Patient with A-fib and high stroke risk - but has recent major GI bleed making anticoagulation contraindicated",
+        "correctActions": ["rate control without anticoagulation", "review chart for bleeding history", "consult cardiology"],
+        "incorrectActions": ["start heparin", "start enoxaparin", "start warfarin", "start apixaban", "start rivaroxaban", "start any anticoagulant"],
+        "teachingPoint": "Always review a patient's bleeding history before initiating anticoagulation. This patient had a major upper GI bleed 5 months ago with GI recommending against anticoagulation due to high rebleed risk."
+      }
+    },
+    {
       "id": "TRIG_001",
       "name": "Critical Hypoxia",
       "type": "state",

@@ -345,19 +345,130 @@ const SimulationEngine = {
     executeTriggerAction(trigger) {
         console.log('Trigger activated:', trigger.name);
 
+        // Apply state changes if specified
+        if (trigger.stateChanges) {
+            this.applyStateChanges(trigger.stateChanges);
+        }
+
         if (trigger.action === 'modifyState') {
             Object.assign(this.patientState, trigger.stateChanges);
         }
 
         if (trigger.action === 'nurseAlert') {
             this.emit('nurseAlert', { message: trigger.message, priority: trigger.priority });
+
+            // Add to nurse chat
+            if (typeof NurseChat !== 'undefined') {
+                NurseChat.messages.push({ role: 'assistant', content: trigger.message });
+                NurseChat.saveHistory();
+                if (typeof AIPanel !== 'undefined') {
+                    // Switch to nurse tab and show the message
+                    AIPanel.switchTab('nurse');
+                    AIPanel.expand();
+                    AIPanel.addMessage('nurse', 'assistant', trigger.message);
+                }
+            }
+
+            // Show toast notification
+            if (typeof App !== 'undefined') {
+                const icon = trigger.priority === 'urgent' ? '🚨' : '📞';
+                App.showToast(`${icon} Urgent call from the nurse!`, trigger.priority === 'urgent' ? 'error' : 'warning');
+            }
         }
 
         if (trigger.action === 'labResult') {
             this.emit('labResult', { labs: trigger.labs });
         }
 
+        // Track decision points
+        if (trigger.decisionPoint) {
+            this.trackDecisionPoint(trigger.decisionPoint);
+        }
+
         this.emit('triggerActivated', { trigger });
+    },
+
+    /**
+     * Apply nested state changes
+     */
+    applyStateChanges(changes) {
+        for (const [key, value] of Object.entries(changes)) {
+            if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                if (!this.patientState[key]) {
+                    this.patientState[key] = {};
+                }
+                Object.assign(this.patientState[key], value);
+            } else {
+                this.patientState[key] = value;
+            }
+        }
+    },
+
+    // Decision point tracking
+    decisionPoints: [],
+    userDecisions: [],
+
+    /**
+     * Track a decision point for later evaluation
+     */
+    trackDecisionPoint(decisionPoint) {
+        decisionPoint.triggeredAt = this.simulatedTime;
+        this.decisionPoints.push(decisionPoint);
+        console.log('Decision point active:', decisionPoint.name);
+    },
+
+    /**
+     * Record a user decision
+     */
+    recordDecision(decisionId, action, details) {
+        this.userDecisions.push({
+            decisionId,
+            action,
+            details,
+            timestamp: this.simulatedTime
+        });
+        console.log('Decision recorded:', decisionId, action);
+    },
+
+    /**
+     * Get evaluation of user decisions
+     */
+    evaluateDecisions() {
+        const results = [];
+
+        for (const dp of this.decisionPoints) {
+            const relatedDecisions = this.userDecisions.filter(d =>
+                d.timestamp >= dp.triggeredAt
+            );
+
+            // Check for incorrect actions
+            const incorrectActions = relatedDecisions.filter(d =>
+                dp.incorrectActions?.some(ia =>
+                    d.action.toLowerCase().includes(ia.toLowerCase())
+                )
+            );
+
+            // Check for correct actions
+            const correctActions = relatedDecisions.filter(d =>
+                dp.correctActions?.some(ca =>
+                    d.action.toLowerCase().includes(ca.toLowerCase())
+                )
+            );
+
+            results.push({
+                decisionPoint: dp.name,
+                description: dp.description,
+                teachingPoint: dp.teachingPoint,
+                incorrectActionsTaken: incorrectActions.length > 0,
+                correctActionsTaken: correctActions.length > 0,
+                details: {
+                    incorrect: incorrectActions,
+                    correct: correctActions
+                }
+            });
+        }
+
+        return results;
     },
 
     /**

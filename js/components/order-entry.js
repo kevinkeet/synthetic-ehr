@@ -488,6 +488,24 @@ const OrderEntry = {
                     orderId: order.id
                 };
                 SimulationEngine.applyIntervention(intervention);
+
+                // Track anticoagulation decisions for scenario evaluation
+                const medNameLower = order.name.toLowerCase();
+                const anticoagulants = ['heparin', 'enoxaparin', 'lovenox', 'warfarin', 'coumadin',
+                    'apixaban', 'eliquis', 'rivaroxaban', 'xarelto', 'dabigatran', 'pradaxa',
+                    'edoxaban', 'savaysa', 'fondaparinux', 'arixtra'];
+
+                if (anticoagulants.some(ac => medNameLower.includes(ac))) {
+                    // Record that anticoagulation was ordered
+                    if (typeof SimulationEngine.recordDecision === 'function') {
+                        SimulationEngine.recordDecision('DECISION_ANTICOAG', 'started_anticoagulation', {
+                            medication: order.name,
+                            dose: this.formData.dose,
+                            indication: this.formData.indication
+                        });
+                    }
+                    console.log('⚠️ ANTICOAGULATION ORDERED:', order.name);
+                }
             } else {
                 // Other order types
                 const intervention = {
