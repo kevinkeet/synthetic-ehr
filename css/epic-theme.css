@@ -1861,8 +1861,8 @@ html, body {
 /* AI Panel Tabs */
 .ai-panel-tabs {
     display: flex;
-    background: var(--bg-light);
-    border-bottom: 1px solid var(--border-light);
+    background: var(--primary);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     flex-shrink: 0;
 }
 
