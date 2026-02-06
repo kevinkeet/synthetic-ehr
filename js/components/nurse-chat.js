@@ -74,15 +74,17 @@ COMMUNICATION STYLE:
 - Confirm back verbal orders appropriately
 - Don't be afraid to push back if something seems wrong (wrong dose, contraindicated, etc.)`;
 
-        if (scenario && (scenario.id === 'SCENARIO_CHF_001' || scenario.name?.includes('CHF'))) {
+        if (scenario && (scenario.id === 'SCENARIO_SOB_001' || scenario.id === 'SCENARIO_CHF_001' || scenario.name?.includes('Shortness of Breath') || scenario.name?.includes('CHF'))) {
             context += `
 
 PATIENT CONTEXT:
-- ${patientName} is a 72-year-old male admitted for acute CHF exacerbation
-- History: Heart failure (EF 32%), diabetes, CKD, A.fib on warfarin
+- ${patientName} is a 72-year-old male admitted for shortness of breath
+- History: Heart problems, diabetes, kidney issues, irregular heartbeat
 - Allergies: Penicillin (rash)
-- He ran out of his Lasix about 5 days ago and got progressively more short of breath
-- Currently on telemetry, 2L nasal cannula, strict I&Os`;
+- Wife brought him in saying he's "not been himself" - not sure exactly what's going on yet
+- Currently on telemetry, 2L nasal cannula
+
+NOTE: You don't have the full picture yet - let the doctor figure out what's going on through their assessment.`;
         }
 
         // Add current patient status

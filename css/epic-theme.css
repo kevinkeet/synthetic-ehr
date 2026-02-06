@@ -1950,17 +1950,31 @@ html, body {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: var(--primary-lighter);
+    background: #e0e7ff;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 16px;
     flex-shrink: 0;
+    border: 2px solid #6366f1;
+}
+
+/* Patient avatar - blue/purple theme */
+#patient-chat .chat-message.assistant .chat-avatar {
+    background: #dbeafe;
+    border-color: #3b82f6;
+}
+
+/* Nurse avatar - green theme */
+#nurse-chat .chat-message.assistant .chat-avatar {
+    background: #dcfce7;
+    border-color: #22c55e;
 }
 
 .chat-message.user .chat-avatar {
     background: var(--primary);
     color: white;
+    border-color: var(--primary-dark);
 }
 
 .chat-bubble {
@@ -2390,6 +2404,26 @@ html, body {
 .chat-welcome .welcome-avatar {
     font-size: 48px;
     margin-bottom: 16px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0f9ff;
+    border: 3px solid #3b82f6;
+}
+
+/* Patient welcome avatar */
+#patient-chat .chat-welcome .welcome-avatar {
+    background: #dbeafe;
+    border-color: #3b82f6;
+}
+
+/* Nurse welcome avatar */
+#nurse-chat .chat-welcome .welcome-avatar {
+    background: #dcfce7;
+    border-color: #22c55e;
 }
 
 .chat-welcome h3 {

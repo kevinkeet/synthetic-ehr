@@ -40,7 +40,7 @@ const SimulationControls = {
                         <div class="sim-scenario">
                             <label>Scenario</label>
                             <select id="sim-scenario-select" onchange="SimulationControls.onScenarioChange()">
-                                <option value="chf-exacerbation">CHF Exacerbation</option>
+                                <option value="chf-exacerbation">Shortness of Breath</option>
                             </select>
                         </div>
                         <div class="sim-time-display">
