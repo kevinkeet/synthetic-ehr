@@ -121,8 +121,11 @@ const SimulationEngine = {
 
         // Generate opening nurse message based on scenario
         let openingMessage = '';
+        let startWithPatient = false;
+
         if (scenario.id === 'SCENARIO_SOB_001' || scenario.name?.includes('Shortness of Breath')) {
-            openingMessage = `Dr. ${this.getRandomDoctorName()}, this is Sarah, the RN taking care of Mr. Morrison in room 412. He just came up from the ED - chief complaint is shortness of breath. He's a bit uncomfortable but stable. Vitals are BP 158/92, HR 102 irregular, RR 24, SpO2 92% on 2L nasal cannula. The ED didn't have much history - his wife brought him in and said he's "just not been himself." Admission labs are pending. He's yours whenever you're ready to see him.`;
+            openingMessage = `You have a new patient to admit in room 412 - Mr. Robert Morrison, a 72-year-old male. His wife brought him to the ED with a chief complaint of "not feeling well." The ED is slammed and didn't get much history. Vitals on arrival: BP 158/92, HR 102 irregular, RR 24, SpO2 92% on 2L NC. He's been placed on telemetry. No admission orders have been placed yet - you'll need to evaluate him, gather history, and write your admission orders. He's ready for you to see him now.`;
+            startWithPatient = true;
         } else {
             openingMessage = `Doctor, I'm calling about your new admission. The patient just arrived on the floor and is getting settled. Initial vitals have been obtained. Let me know if you have any orders or would like to come evaluate.`;
         }
@@ -148,8 +151,12 @@ const SimulationEngine = {
                     AIPanel.addMessage('nurse', 'assistant', openingMessage);
                 }
 
-                // Switch to nurse tab and expand panel
-                AIPanel.switchTab('nurse');
+                // Switch to patient tab to prompt history taking
+                if (startWithPatient) {
+                    AIPanel.switchTab('patient');
+                } else {
+                    AIPanel.switchTab('nurse');
+                }
                 AIPanel.expand();
 
                 // Speak if voice output is enabled
@@ -160,7 +167,7 @@ const SimulationEngine = {
 
             // Show toast notification
             if (typeof App !== 'undefined') {
-                App.showToast('📞 Incoming call from the nurse...', 'info');
+                App.showToast('🏥 New admission ready - go interview the patient', 'info');
             }
         }, 100);
     },
@@ -378,6 +385,27 @@ const SimulationEngine = {
 
         if (trigger.action === 'labResult') {
             this.emit('labResult', { labs: trigger.labs });
+        }
+
+        if (trigger.action === 'patientAlert') {
+            this.emit('patientAlert', { message: trigger.message, priority: trigger.priority });
+
+            // Add to patient chat - patient speaks directly
+            if (typeof PatientChat !== 'undefined') {
+                PatientChat.messages.push({ role: 'assistant', content: trigger.message });
+                PatientChat.saveHistory();
+                if (typeof AIPanel !== 'undefined') {
+                    // Switch to patient tab and show the message
+                    AIPanel.switchTab('patient');
+                    AIPanel.expand();
+                    AIPanel.addMessage('patient', 'assistant', trigger.message);
+                }
+            }
+
+            // Show toast notification
+            if (typeof App !== 'undefined') {
+                App.showToast('😰 Patient needs your attention...', 'warning');
+            }
         }
 
         // Track decision points

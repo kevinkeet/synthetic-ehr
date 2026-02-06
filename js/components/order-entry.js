@@ -119,6 +119,30 @@ const OrderEntry = {
                 { name: 'duration', label: 'Duration', type: 'text', required: false, placeholder: 'e.g., Until discharge, 24 hours' },
                 { name: 'notes', label: 'Special Instructions', type: 'textarea', required: false }
             ]
+        },
+        admission: {
+            label: 'Admission Orders',
+            icon: '&#128203;',
+            isOrderSet: true,
+            fields: [
+                { name: 'admitTo', label: 'Admit To', type: 'select', required: true, options: ['General Medicine', 'Telemetry', 'ICU', 'Step-Down Unit', 'Cardiology', 'Observation'] },
+                { name: 'condition', label: 'Condition', type: 'select', required: true, options: ['Stable', 'Guarded', 'Serious', 'Critical'] },
+                { name: 'diagnosis', label: 'Admitting Diagnosis', type: 'text', required: true, placeholder: 'e.g., Acute on chronic heart failure exacerbation' },
+                { name: 'codeStatus', label: 'Code Status', type: 'select', required: true, options: ['Full Code', 'DNR/DNI', 'DNR Only', 'Comfort Care', 'Discuss with Patient'] },
+                { name: 'activity', label: 'Activity', type: 'select', required: true, options: ['Bed Rest', 'Bed Rest with BRP', 'Up to Chair', 'Ambulate with Assistance', 'Ambulate Ad Lib'] },
+                { name: 'diet', label: 'Diet', type: 'select', required: true, options: ['NPO', 'Clear Liquids', 'Full Liquids', 'Cardiac/Low Sodium (<2g)', 'Diabetic', 'Renal', 'Regular', 'Other'] },
+                { name: 'ivFluids', label: 'IV Fluids', type: 'select', required: true, options: ['None - Saline Lock', 'NS at 75 mL/hr', 'NS at 125 mL/hr', 'D5 1/2NS at 75 mL/hr', 'LR at 75 mL/hr', 'Other'] },
+                { name: 'vitals', label: 'Vital Signs', type: 'select', required: true, options: ['Q4H', 'Q4H with Neuro Checks', 'Q2H', 'Q1H', 'Continuous Monitoring'] },
+                { name: 'oxygen', label: 'Oxygen', type: 'select', required: true, options: ['Room Air', 'NC 2L to keep SpO2 >92%', 'NC titrate to SpO2 >94%', 'Non-rebreather', 'Other'] },
+                { name: 'telemetry', label: 'Telemetry', type: 'select', required: true, options: ['Yes', 'No'] },
+                { name: 'io', label: 'I&O Monitoring', type: 'select', required: true, options: ['Strict I&O', 'Routine I&O', 'Not Required'] },
+                { name: 'dailyWeight', label: 'Daily Weights', type: 'select', required: true, options: ['Yes', 'No'] },
+                { name: 'fallRisk', label: 'Fall Precautions', type: 'select', required: true, options: ['Standard', 'High Risk', 'Not Required'] },
+                { name: 'vte', label: 'VTE Prophylaxis', type: 'select', required: true, options: ['SCDs Only', 'Heparin 5000 units SC Q8H', 'Enoxaparin 40mg SC Daily', 'Contraindicated - SCDs Only', 'Patient Already Anticoagulated'] },
+                { name: 'foley', label: 'Foley Catheter', type: 'select', required: false, options: ['None', 'Insert for Strict I&O', 'Already in Place'] },
+                { name: 'labsOnAdmission', label: 'Admission Labs', type: 'multiselect', required: false, options: ['CBC', 'BMP', 'CMP', 'Troponin', 'BNP', 'PT/INR', 'Urinalysis', 'Blood Cultures x2'] },
+                { name: 'additionalNotes', label: 'Additional Orders/Notes', type: 'textarea', required: false, placeholder: 'Any additional admission orders or instructions' }
+            ]
         }
     },
 
@@ -293,6 +317,18 @@ const OrderEntry = {
                 input = `<textarea class="form-textarea" name="${field.name}"
                          placeholder="${field.placeholder || ''}" rows="3"
                          ${field.required ? 'required' : ''}>${value}</textarea>`;
+                break;
+            case 'multiselect':
+                const selectedValues = Array.isArray(value) ? value : (value ? [value] : []);
+                input = `<div class="multiselect-container" data-name="${field.name}">
+                    ${field.options.map(opt => `
+                        <label class="multiselect-option">
+                            <input type="checkbox" name="${field.name}" value="${opt}"
+                                   ${selectedValues.includes(opt) ? 'checked' : ''}>
+                            <span>${opt}</span>
+                        </label>
+                    `).join('')}
+                </div>`;
                 break;
         }
 

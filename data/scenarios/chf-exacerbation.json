@@ -107,6 +107,30 @@
 
   "triggers": [
     {
+      "id": "TRIG_EMOTIONAL",
+      "name": "Patient Emotional Distress",
+      "type": "time",
+      "atMinutes": 25,
+      "action": "patientAlert",
+      "message": "Doctor... I'm scared. I can't breathe right and nobody's telling me what's wrong with me. Am I dying? My wife is worried sick out there and I don't know what to tell her. I just... I don't want to end up like my brother - he died in the hospital, you know. They kept poking and prodding him and he never came home.",
+      "priority": "emotional",
+      "stateChanges": {
+        "emotional": {
+          "distressed": true,
+          "anxious": true,
+          "needsReassurance": true
+        }
+      },
+      "decisionPoint": {
+        "id": "DECISION_EMPATHY",
+        "name": "Empathy Response",
+        "description": "Patient is scared and needs emotional support",
+        "correctActions": ["acknowledge feelings", "provide reassurance", "explain plan", "show empathy", "address fears"],
+        "incorrectActions": ["ignore emotions", "only give medical facts", "dismiss concerns", "rush through"],
+        "teachingPoint": "Patients who are scared need emotional validation before they can process medical information. Taking a moment to acknowledge their fear and provide reassurance builds trust and improves outcomes."
+      }
+    },
+    {
       "id": "TRIG_AFIB",
       "name": "Rapid Atrial Fibrillation",
       "type": "time",

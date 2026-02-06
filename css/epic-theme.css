@@ -1739,6 +1739,43 @@ html, body {
     display: none;
 }
 
+/* Multiselect for order forms */
+.multiselect-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+    border: 1px solid var(--border-medium);
+    border-radius: 6px;
+    background: var(--bg-white);
+}
+
+.multiselect-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: var(--bg-light);
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.multiselect-option:hover {
+    background: var(--bg-hover);
+}
+
+.multiselect-option input[type="checkbox"] {
+    margin: 0;
+    cursor: pointer;
+}
+
+.multiselect-option input[type="checkbox"]:checked + span {
+    color: var(--primary);
+    font-weight: 500;
+}
+
 /* Order Review */
 .order-review {
     background: var(--bg-light);
@@ -3905,6 +3942,142 @@ html, body {
 .debrief-suggestion-icon {
     font-size: 16px;
     flex-shrink: 0;
+}
+
+/* Performance Scores */
+.debrief-scores {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.debrief-score-overall {
+    flex-shrink: 0;
+}
+
+.score-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid;
+}
+
+.score-circle.score-excellent {
+    background: #ecfdf5;
+    border-color: #22c55e;
+}
+
+.score-circle.score-good {
+    background: #f0fdf4;
+    border-color: #84cc16;
+}
+
+.score-circle.score-fair {
+    background: #fffbeb;
+    border-color: #f59e0b;
+}
+
+.score-circle.score-poor {
+    background: #fef2f2;
+    border-color: #ef4444;
+}
+
+.score-circle .score-value {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.score-circle .score-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.debrief-score-categories {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.score-category {
+    background: var(--bg-subtle);
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.score-category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.score-category-name {
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.score-category-value {
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.score-progress-bar {
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.score-progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.score-progress-fill.score-excellent {
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+}
+
+.score-progress-fill.score-good {
+    background: linear-gradient(90deg, #84cc16, #65a30d);
+}
+
+.score-progress-fill.score-fair {
+    background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.score-progress-fill.score-poor {
+    background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.score-details {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0 0;
+    font-size: 11px;
+}
+
+.score-details li {
+    padding: 3px 0;
+    color: var(--text-secondary);
+}
+
+.score-details li.earned {
+    color: #16a34a;
+}
+
+.score-details li.missed {
+    color: #dc2626;
+}
+
+.score-details li.neutral {
+    color: var(--text-muted);
 }
 
 .debrief-footer {
