@@ -1,0 +1,80 @@
+{
+  "id": "NOTE064",
+  "type": "Progress Note",
+  "date": "2023-07-08T15:22:18.416Z",
+  "author": "Dr. Sarah Chen",
+  "department": "Primary Care",
+  "encounter": "ENC042",
+  "chiefComplaint": "Shortness of breath",
+  "hpi": "Patient presents for shortness of breath. Weight stable. Following low-sodium diet. Monitoring blood pressure at home.",
+  "reviewOfSystems": {
+    "Constitutional": "Weight stable",
+    "Cardiovascular": "No chest pain or palpitations",
+    "Respiratory": "No cough or wheezing",
+    "GI": "No nausea or vomiting",
+    "GU": "Nocturia x2",
+    "Neurologic": "No new weakness"
+  },
+  "vitals": {
+    "bp": "147/81 mmHg",
+    "hr": "69 bpm",
+    "rr": "20/min",
+    "temp": "97.6°F",
+    "spo2": "98% RA",
+    "weight": "97.1 kg"
+  },
+  "physicalExam": {
+    "General": "Alert, oriented, no acute distress",
+    "HEENT": "Normocephalic, PERRL, oropharynx clear",
+    "Cardiovascular": "Irregularly irregular, no murmurs, JVP not elevated",
+    "Respiratory": "Clear to auscultation bilaterally",
+    "Abdomen": "Soft, non-tender, non-distended",
+    "Extremities": "No edema, warm and well-perfused",
+    "Neurologic": "Alert and oriented, decreased sensation bilateral feet"
+  },
+  "assessment": [
+    {
+      "diagnosis": "Type 2 Diabetes Mellitus",
+      "icd10": "E11.65",
+      "notes": "HbA1c 7.0%. On insulin and metformin."
+    },
+    {
+      "diagnosis": "Chronic Kidney Disease Stage 3b",
+      "icd10": "N18.32",
+      "notes": "eGFR 33. Stable."
+    },
+    {
+      "diagnosis": "Heart Failure with Reduced EF",
+      "icd10": "I50.22",
+      "notes": "NYHA Class II. On GDMT."
+    },
+    {
+      "diagnosis": "Atrial Fibrillation",
+      "icd10": "I48.1",
+      "notes": "Rate controlled. On anticoagulation."
+    }
+  ],
+  "plan": [
+    {
+      "problem": "Diabetes",
+      "action": "Continue current regimen. Recheck HbA1c in 3 months."
+    },
+    {
+      "problem": "CKD",
+      "action": "Monitor renal function. Avoid nephrotoxins."
+    },
+    {
+      "problem": "Heart Failure",
+      "action": "Continue GDMT. Daily weights. Low sodium diet."
+    },
+    {
+      "problem": "Atrial Fibrillation",
+      "action": "Continue anticoagulation. Rate control adequate."
+    },
+    {
+      "problem": "Follow-up",
+      "action": "Return in 6 weeks or sooner if needed."
+    }
+  ],
+  "attestation": "I personally saw and examined the patient. I agree with the documented findings and plan.\n\nElectronically signed by: Dr. Sarah Chen\nDate: 7/8/2023"
+}

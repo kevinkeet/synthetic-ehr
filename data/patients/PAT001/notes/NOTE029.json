@@ -1,0 +1,80 @@
+{
+  "id": "NOTE029",
+  "type": "Progress Note",
+  "date": "2024-09-20T15:22:18.416Z",
+  "author": "Dr. Robert Kim",
+  "department": "Urology",
+  "encounter": "ENC022",
+  "chiefComplaint": "Medication refills",
+  "hpi": "Patient presents for medication refills. Reports overall stable condition since last visit. Compliant with medications. No new symptoms.",
+  "reviewOfSystems": {
+    "Constitutional": "No fever, chills, or weight loss",
+    "Cardiovascular": "No orthopnea",
+    "Respiratory": "No cough or wheezing",
+    "GI": "No nausea or vomiting",
+    "GU": "Nocturia x2",
+    "Neurologic": "Baseline neuropathy"
+  },
+  "vitals": {
+    "bp": "146/83 mmHg",
+    "hr": "70 bpm",
+    "rr": "14/min",
+    "temp": "98.7°F",
+    "spo2": "95% RA",
+    "weight": "100.4 kg"
+  },
+  "physicalExam": {
+    "General": "Alert, oriented, no acute distress",
+    "HEENT": "Normocephalic, PERRL, oropharynx clear",
+    "Cardiovascular": "Regular rate and rhythm, no murmurs",
+    "Respiratory": "Mild crackles at bases",
+    "Abdomen": "Soft, non-tender, non-distended",
+    "Extremities": "No edema, warm and well-perfused",
+    "Neurologic": "Alert and oriented, decreased sensation bilateral feet"
+  },
+  "assessment": [
+    {
+      "diagnosis": "Type 2 Diabetes Mellitus",
+      "icd10": "E11.65",
+      "notes": "HbA1c 7.5%. On insulin and metformin."
+    },
+    {
+      "diagnosis": "Chronic Kidney Disease Stage 3b",
+      "icd10": "N18.32",
+      "notes": "eGFR 32. Stable."
+    },
+    {
+      "diagnosis": "Heart Failure with Reduced EF",
+      "icd10": "I50.22",
+      "notes": "NYHA Class II. On GDMT."
+    },
+    {
+      "diagnosis": "Atrial Fibrillation",
+      "icd10": "I48.1",
+      "notes": "Rate controlled. On anticoagulation."
+    }
+  ],
+  "plan": [
+    {
+      "problem": "Diabetes",
+      "action": "Continue current regimen. Recheck HbA1c in 3 months."
+    },
+    {
+      "problem": "CKD",
+      "action": "Monitor renal function. Avoid nephrotoxins."
+    },
+    {
+      "problem": "Heart Failure",
+      "action": "Continue GDMT. Daily weights. Low sodium diet."
+    },
+    {
+      "problem": "Atrial Fibrillation",
+      "action": "Continue anticoagulation. Rate control adequate."
+    },
+    {
+      "problem": "Follow-up",
+      "action": "Return in 10 weeks or sooner if needed."
+    }
+  ],
+  "attestation": "I personally saw and examined the patient. I agree with the documented findings and plan.\n\nElectronically signed by: Dr. Robert Kim\nDate: 9/20/2024"
+}

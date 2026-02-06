@@ -1,0 +1,18 @@
+{
+  "id": "LAB208",
+  "name": "Hemoglobin A1c",
+  "collectedDate": "2025-10-26T15:22:18.416Z",
+  "receivedDate": "2025-10-26T15:52:18.416Z",
+  "reportedDate": "2025-10-26T16:52:18.416Z",
+  "orderedBy": "Dr. Sarah Chen",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "HbA1c",
+      "value": 8.41,
+      "unit": "%",
+      "referenceRange": "4.0-5.6"
+    }
+  ]
+}

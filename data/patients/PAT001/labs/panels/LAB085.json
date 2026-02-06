@@ -1,0 +1,66 @@
+{
+  "id": "LAB085",
+  "name": "Basic Metabolic Panel",
+  "collectedDate": "2020-12-27T16:22:18.416Z",
+  "receivedDate": "2020-12-27T16:52:18.416Z",
+  "reportedDate": "2020-12-27T17:52:18.416Z",
+  "orderedBy": "Dr. James Wilson",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "Sodium",
+      "value": 140,
+      "unit": "mEq/L",
+      "referenceRange": "136-145"
+    },
+    {
+      "name": "Potassium",
+      "value": 4.78,
+      "unit": "mEq/L",
+      "referenceRange": "3.5-5.0"
+    },
+    {
+      "name": "Chloride",
+      "value": 100,
+      "unit": "mEq/L",
+      "referenceRange": "98-106"
+    },
+    {
+      "name": "CO2",
+      "value": 23.4,
+      "unit": "mEq/L",
+      "referenceRange": "23-29"
+    },
+    {
+      "name": "BUN",
+      "value": 19.3,
+      "unit": "mg/dL",
+      "referenceRange": "7-20"
+    },
+    {
+      "name": "Creatinine",
+      "value": 1.78,
+      "unit": "mg/dL",
+      "referenceRange": "0.7-1.3"
+    },
+    {
+      "name": "Glucose",
+      "value": 175,
+      "unit": "mg/dL",
+      "referenceRange": "70-100"
+    },
+    {
+      "name": "Calcium",
+      "value": 8.88,
+      "unit": "mg/dL",
+      "referenceRange": "8.5-10.5"
+    },
+    {
+      "name": "eGFR",
+      "value": 40.7,
+      "unit": "mL/min/1.73m2",
+      "referenceRange": ">90"
+    }
+  ]
+}

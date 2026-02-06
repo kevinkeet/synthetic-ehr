@@ -1,0 +1,70 @@
+{
+  "id": "NOTE032",
+  "type": "Progress Note",
+  "date": "2024-09-13T15:22:18.416Z",
+  "author": "Dr. Emily Brown",
+  "department": "Emergency Medicine",
+  "encounter": "ENC023",
+  "chiefComplaint": "Fatigue",
+  "hpi": "Patient presents for fatigue. Weight stable. Following low-sodium diet. Monitoring blood pressure at home.",
+  "reviewOfSystems": {
+    "Constitutional": "Reports fatigue",
+    "Cardiovascular": "No chest pain or palpitations",
+    "Respiratory": "No cough or wheezing",
+    "GI": "No nausea or vomiting",
+    "GU": "Nocturia x2",
+    "Neurologic": "No dizziness"
+  },
+  "vitals": {
+    "bp": "131/86 mmHg",
+    "hr": "74 bpm",
+    "rr": "16/min",
+    "temp": "99.0°F",
+    "spo2": "97% RA",
+    "weight": "98.8 kg"
+  },
+  "physicalExam": {
+    "General": "Mildly fatigued-appearing",
+    "HEENT": "Normocephalic, PERRL, oropharynx clear",
+    "Cardiovascular": "S1/S2 normal, mild peripheral edema",
+    "Respiratory": "No wheezes or rhonchi",
+    "Abdomen": "Soft, non-tender, non-distended",
+    "Extremities": "No edema, warm and well-perfused",
+    "Neurologic": "Alert and oriented, decreased sensation bilateral feet"
+  },
+  "assessment": [
+    {
+      "diagnosis": "Type 2 Diabetes Mellitus",
+      "icd10": "E11.65",
+      "notes": "HbA1c 7.4%. On insulin and metformin."
+    },
+    {
+      "diagnosis": "Chronic Kidney Disease Stage 3b",
+      "icd10": "N18.32",
+      "notes": "eGFR 40. Stable."
+    }
+  ],
+  "plan": [
+    {
+      "problem": "Diabetes",
+      "action": "Continue current regimen. Recheck HbA1c in 3 months."
+    },
+    {
+      "problem": "CKD",
+      "action": "Monitor renal function. Avoid nephrotoxins."
+    },
+    {
+      "problem": "Heart Failure",
+      "action": "Continue GDMT. Daily weights. Low sodium diet."
+    },
+    {
+      "problem": "Atrial Fibrillation",
+      "action": "Continue anticoagulation. Rate control adequate."
+    },
+    {
+      "problem": "Follow-up",
+      "action": "Return in 12 weeks or sooner if needed."
+    }
+  ],
+  "attestation": "I personally saw and examined the patient. I agree with the documented findings and plan.\n\nElectronically signed by: Dr. Emily Brown\nDate: 9/13/2024"
+}

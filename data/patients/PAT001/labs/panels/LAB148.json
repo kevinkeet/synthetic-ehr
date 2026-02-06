@@ -1,0 +1,102 @@
+{
+  "id": "LAB148",
+  "name": "Comprehensive Metabolic Panel",
+  "collectedDate": "2023-04-21T15:22:18.416Z",
+  "receivedDate": "2023-04-21T15:52:18.416Z",
+  "reportedDate": "2023-04-21T16:52:18.416Z",
+  "orderedBy": "Dr. Lisa Martinez",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "Sodium",
+      "value": 144,
+      "unit": "mEq/L",
+      "referenceRange": "136-145"
+    },
+    {
+      "name": "Potassium",
+      "value": 4.71,
+      "unit": "mEq/L",
+      "referenceRange": "3.5-5.0"
+    },
+    {
+      "name": "Chloride",
+      "value": 105,
+      "unit": "mEq/L",
+      "referenceRange": "98-106"
+    },
+    {
+      "name": "CO2",
+      "value": 27.3,
+      "unit": "mEq/L",
+      "referenceRange": "23-29"
+    },
+    {
+      "name": "BUN",
+      "value": 39.6,
+      "unit": "mg/dL",
+      "referenceRange": "7-20"
+    },
+    {
+      "name": "Creatinine",
+      "value": 1.55,
+      "unit": "mg/dL",
+      "referenceRange": "0.7-1.3"
+    },
+    {
+      "name": "Glucose",
+      "value": 117,
+      "unit": "mg/dL",
+      "referenceRange": "70-100"
+    },
+    {
+      "name": "Calcium",
+      "value": 8.41,
+      "unit": "mg/dL",
+      "referenceRange": "8.5-10.5"
+    },
+    {
+      "name": "Total Protein",
+      "value": 6.91,
+      "unit": "g/dL",
+      "referenceRange": "6.0-8.3"
+    },
+    {
+      "name": "Albumin",
+      "value": 4.27,
+      "unit": "g/dL",
+      "referenceRange": "3.5-5.0"
+    },
+    {
+      "name": "Total Bilirubin",
+      "value": 0.74,
+      "unit": "mg/dL",
+      "referenceRange": "0.1-1.2"
+    },
+    {
+      "name": "ALP",
+      "value": 56.8,
+      "unit": "U/L",
+      "referenceRange": "44-147"
+    },
+    {
+      "name": "AST",
+      "value": 31.9,
+      "unit": "U/L",
+      "referenceRange": "10-40"
+    },
+    {
+      "name": "ALT",
+      "value": 24.8,
+      "unit": "U/L",
+      "referenceRange": "7-56"
+    },
+    {
+      "name": "eGFR",
+      "value": 37,
+      "unit": "mL/min/1.73m2",
+      "referenceRange": ">90"
+    }
+  ]
+}

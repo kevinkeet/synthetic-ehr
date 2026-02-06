@@ -1,0 +1,36 @@
+{
+  "id": "LAB069",
+  "name": "Urinalysis",
+  "collectedDate": "2020-05-13T15:22:18.416Z",
+  "receivedDate": "2020-05-13T15:52:18.416Z",
+  "reportedDate": "2020-05-13T16:52:18.416Z",
+  "orderedBy": "Dr. Michael Torres",
+  "status": "Final",
+  "specimen": "Urine",
+  "results": [
+    {
+      "name": "Urine pH",
+      "value": 5.76,
+      "unit": "",
+      "referenceRange": "4.5-8.0"
+    },
+    {
+      "name": "Specific Gravity",
+      "value": 1.03,
+      "unit": "",
+      "referenceRange": "1.005-1.030"
+    },
+    {
+      "name": "Urine Protein",
+      "value": 9.5,
+      "unit": "mg/dL",
+      "referenceRange": "Negative"
+    },
+    {
+      "name": "Urine Glucose",
+      "value": 94.4,
+      "unit": "mg/dL",
+      "referenceRange": "Negative"
+    }
+  ]
+}

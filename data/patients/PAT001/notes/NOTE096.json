@@ -1,0 +1,10 @@
+{
+  "id": "NOTE096",
+  "type": "Telephone Encounter",
+  "date": "2021-07-15T15:22:18.416Z",
+  "author": "Dr. Michael Torres",
+  "department": "Nephrology",
+  "encounter": "ENC073",
+  "content": "Patient called regarding medication question.\n\nPatient reports mild increase in leg swelling. Advised to elevate legs, monitor weight, call if worsens.\n\nPlan: Schedule follow-up appointment.",
+  "attestation": "Telephone encounter documented.\n\nElectronically signed by: Dr. Michael Torres\nDate: 7/15/2021"
+}

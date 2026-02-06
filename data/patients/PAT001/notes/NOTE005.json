@@ -1,0 +1,10 @@
+{
+  "id": "NOTE005",
+  "type": "Telephone Encounter",
+  "date": "2025-11-16T16:22:18.416Z",
+  "author": "Dr. Jennifer Adams",
+  "department": "Internal Medicine",
+  "encounter": "ENC005",
+  "content": "Patient called regarding symptom update.\n\nPatient asking about lab results. Reviewed recent values - stable kidney function, A1c improving.\n\nPlan: Advised to come to office if symptoms worsen.",
+  "attestation": "Telephone encounter documented.\n\nElectronically signed by: Dr. Jennifer Adams\nDate: 11/16/2025"
+}

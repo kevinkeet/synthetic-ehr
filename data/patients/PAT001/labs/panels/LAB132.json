@@ -1,0 +1,18 @@
+{
+  "id": "LAB132",
+  "name": "Hemoglobin A1c",
+  "collectedDate": "2022-05-29T15:22:18.416Z",
+  "receivedDate": "2022-05-29T15:52:18.416Z",
+  "reportedDate": "2022-05-29T16:52:18.416Z",
+  "orderedBy": "Dr. Sarah Chen",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "HbA1c",
+      "value": 8.43,
+      "unit": "%",
+      "referenceRange": "4.0-5.6"
+    }
+  ]
+}

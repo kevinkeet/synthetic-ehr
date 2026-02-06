@@ -1,0 +1,30 @@
+{
+  "id": "LAB094",
+  "name": "Coagulation Panel",
+  "collectedDate": "2021-03-08T16:22:18.416Z",
+  "receivedDate": "2021-03-08T16:52:18.416Z",
+  "reportedDate": "2021-03-08T17:52:18.416Z",
+  "orderedBy": "Dr. Jennifer Adams",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "PT",
+      "value": 12.7,
+      "unit": "seconds",
+      "referenceRange": "11-13.5"
+    },
+    {
+      "name": "INR",
+      "value": 0.93,
+      "unit": "",
+      "referenceRange": "0.8-1.2"
+    },
+    {
+      "name": "PTT",
+      "value": 29.9,
+      "unit": "seconds",
+      "referenceRange": "25-35"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "id": "NOTE086",
+  "type": "Telephone Encounter",
+  "date": "2022-02-15T16:22:18.416Z",
+  "author": "Dr. David Park",
+  "department": "Pulmonology",
+  "encounter": "ENC063",
+  "content": "Patient called regarding medication question.\n\nPharmacy called regarding prior authorization for medication. Completed PA form.\n\nPlan: Schedule follow-up appointment.",
+  "attestation": "Telephone encounter documented.\n\nElectronically signed by: Dr. David Park\nDate: 2/15/2022"
+}

@@ -1,0 +1,18 @@
+{
+  "id": "LAB005",
+  "name": "Troponin",
+  "collectedDate": "2018-02-26T16:22:18.416Z",
+  "receivedDate": "2018-02-26T16:52:18.416Z",
+  "reportedDate": "2018-02-26T17:52:18.416Z",
+  "orderedBy": "Dr. Robert Kim",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "Troponin I",
+      "value": 0,
+      "unit": "ng/mL",
+      "referenceRange": "<0.04"
+    }
+  ]
+}

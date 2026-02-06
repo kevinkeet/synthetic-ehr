@@ -1,0 +1,66 @@
+{
+  "id": "LAB175",
+  "name": "Complete Blood Count",
+  "collectedDate": "2024-05-03T15:22:18.416Z",
+  "receivedDate": "2024-05-03T15:52:18.416Z",
+  "reportedDate": "2024-05-03T16:52:18.416Z",
+  "orderedBy": "Dr. Jennifer Adams",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "WBC",
+      "value": 8.79,
+      "unit": "K/uL",
+      "referenceRange": "4.5-11.0"
+    },
+    {
+      "name": "RBC",
+      "value": 4.14,
+      "unit": "M/uL",
+      "referenceRange": "4.5-5.5"
+    },
+    {
+      "name": "Hemoglobin",
+      "value": 13.7,
+      "unit": "g/dL",
+      "referenceRange": "12.0-17.5"
+    },
+    {
+      "name": "Hematocrit",
+      "value": 41.4,
+      "unit": "%",
+      "referenceRange": "36-50"
+    },
+    {
+      "name": "MCV",
+      "value": 90.3,
+      "unit": "fL",
+      "referenceRange": "80-100"
+    },
+    {
+      "name": "MCH",
+      "value": 27.5,
+      "unit": "pg",
+      "referenceRange": "27-33"
+    },
+    {
+      "name": "MCHC",
+      "value": 34.8,
+      "unit": "g/dL",
+      "referenceRange": "32-36"
+    },
+    {
+      "name": "RDW",
+      "value": 14.5,
+      "unit": "%",
+      "referenceRange": "11.5-14.5"
+    },
+    {
+      "name": "Platelets",
+      "value": 263,
+      "unit": "K/uL",
+      "referenceRange": "150-400"
+    }
+  ]
+}

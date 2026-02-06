@@ -1,0 +1,1060 @@
+{
+  "encounters": [
+    {
+      "id": "ENC001",
+      "date": "2026-02-05T16:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Internal Medicine",
+      "provider": "Dr. Jennifer Adams",
+      "chiefComplaint": "Fatigue",
+      "diagnoses": [
+        "Acute Kidney Injury",
+        "Type 2 Diabetes Mellitus",
+        "Heart Failure with Reduced EF"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC002",
+      "date": "2026-01-27T16:22:18.416Z",
+      "type": "Procedure",
+      "department": "Endocrinology",
+      "provider": "Dr. Lisa Martinez",
+      "chiefComplaint": "Fatigue",
+      "diagnoses": [
+        "Acute Kidney Injury",
+        "Volume Overload",
+        "Chronic Kidney Disease Stage 3b",
+        "Atrial Fibrillation"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC003",
+      "date": "2026-01-18T16:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Radiology",
+      "provider": "Dr. Patricia Lee",
+      "chiefComplaint": "Leg swelling",
+      "diagnoses": [
+        "Hypertension",
+        "Acute Kidney Injury"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC004",
+      "date": "2025-12-18T16:22:18.416Z",
+      "type": "Procedure",
+      "department": "Pulmonology",
+      "provider": "Dr. David Park",
+      "chiefComplaint": "Fatigue",
+      "diagnoses": [
+        "Type 2 Diabetes Mellitus",
+        "Acute Kidney Injury",
+        "Atrial Fibrillation"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC005",
+      "date": "2025-11-16T16:22:18.416Z",
+      "type": "Telehealth",
+      "department": "Internal Medicine",
+      "provider": "Dr. Jennifer Adams",
+      "chiefComplaint": "Dizziness",
+      "diagnoses": [
+        "Type 2 Diabetes Mellitus",
+        "Hyperkalemia",
+        "Diabetic Neuropathy",
+        "Acute Kidney Injury"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC006",
+      "date": "2025-10-02T15:22:18.416Z",
+      "type": "Telehealth",
+      "department": "Emergency Department",
+      "provider": "Dr. Emily Brown",
+      "chiefComplaint": "Palpitations",
+      "diagnoses": [
+        "Heart Failure with Reduced EF",
+        "Atrial Fibrillation",
+        "Hypertension",
+        "Diabetic Neuropathy"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC007",
+      "date": "2025-09-14T15:22:18.416Z",
+      "type": "Inpatient",
+      "department": "Cardiology",
+      "provider": "Dr. James Wilson",
+      "chiefComplaint": "Blood pressure check",
+      "diagnoses": [
+        "Acute Kidney Injury"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC008",
+      "date": "2025-09-10T15:22:18.416Z",
+      "type": "Inpatient",
+      "department": "Primary Care",
+      "provider": "Dr. Sarah Chen",
+      "chiefComplaint": "Diabetes follow-up",
+      "diagnoses": [
+        "Hypertension",
+        "Hyperkalemia",
+        "Chronic Kidney Disease Stage 3b",
+        "Acute Kidney Injury"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC009",
+      "date": "2025-09-05T15:22:18.416Z",
+      "type": "Telehealth",
+      "department": "Pulmonology",
+      "provider": "Dr. David Park",
+      "chiefComplaint": "Shortness of breath",
+      "diagnoses": [
+        "Chronic Kidney Disease Stage 3b",
+        "Type 2 Diabetes Mellitus",
+        "Hyperkalemia"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC010",
+      "date": "2025-08-06T15:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Nephrology",
+      "provider": "Dr. Michael Torres",
+      "chiefComplaint": "Weight gain",
+      "diagnoses": [
+        "Heart Failure with Reduced EF"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC011",
+      "date": "2025-06-26T15:22:18.416Z",
+      "type": "Procedure",
+      "department": "Nephrology",
+      "provider": "Dr. Michael Torres",
+      "chiefComplaint": "Joint pain",
+      "diagnoses": [
+        "Hypertension",
+        "Atrial Fibrillation",
+        "Type 2 Diabetes Mellitus"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC012",
+      "date": "2025-05-14T15:22:18.416Z",
+      "type": "Emergency",
+      "department": "Endocrinology",
+      "provider": "Dr. Lisa Martinez",
+      "chiefComplaint": "Lab review",
+      "diagnoses": [
+        "Atrial Fibrillation"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC013",
+      "date": "2025-04-09T15:22:18.416Z",
+      "type": "Emergency",
+      "department": "Endocrinology",
+      "provider": "Dr. Lisa Martinez",
+      "chiefComplaint": "Lab review",
+      "diagnoses": [
+        "Atrial Fibrillation"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC014",
+      "date": "2025-03-20T15:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Internal Medicine",
+      "provider": "Dr. Jennifer Adams",
+      "chiefComplaint": "Neuropathy symptoms",
+      "diagnoses": [
+        "Volume Overload"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC015",
+      "date": "2025-02-18T16:22:18.416Z",
+      "type": "Emergency",
+      "department": "Cardiology",
+      "provider": "Dr. James Wilson",
+      "chiefComplaint": "Heart failure follow-up",
+      "diagnoses": [
+        "Volume Overload"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC016",
+      "date": "2025-02-09T16:22:18.416Z",
+      "type": "Emergency",
+      "department": "Nephrology",
+      "provider": "Dr. Michael Torres",
+      "chiefComplaint": "Lab review",
+      "diagnoses": [
+        "Atrial Fibrillation",
+        "Chronic Kidney Disease Stage 3b",
+        "Acute Kidney Injury"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC017",
+      "date": "2025-02-01T16:22:18.416Z",
+      "type": "Telehealth",
+      "department": "Urology",
+      "provider": "Dr. Robert Kim",
+      "chiefComplaint": "Leg swelling",
+      "diagnoses": [
+        "Hyperlipidemia",
+        "Atrial Fibrillation",
+        "Volume Overload"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC018",
+      "date": "2025-01-22T16:22:18.416Z",
+      "type": "Emergency",
+      "department": "Pulmonology",
+      "provider": "Dr. David Park",
+      "chiefComplaint": "Weight gain",
+      "diagnoses": [
+        "Hyperlipidemia",
+        "Heart Failure with Reduced EF"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC019",
+      "date": "2024-12-13T16:22:18.416Z",
+      "type": "Procedure",
+      "department": "Gastroenterology",
+      "provider": "Dr. William Thompson",
+      "chiefComplaint": "Dizziness",
+      "diagnoses": [
+        "Volume Overload",
+        "Type 2 Diabetes Mellitus"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC020",
+      "date": "2024-11-25T16:22:18.416Z",
+      "type": "Telehealth",
+      "department": "Urology",
+      "provider": "Dr. Robert Kim",
+      "chiefComplaint": "Joint pain",
+      "diagnoses": [
+        "Type 2 Diabetes Mellitus"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC021",
+      "date": "2024-10-29T15:22:18.416Z",
+      "type": "Procedure",
+      "department": "Primary Care",
+      "provider": "Dr. Sarah Chen",
+      "chiefComplaint": "Annual wellness visit",
+      "diagnoses": [
+        "Heart Failure with Reduced EF",
+        "Volume Overload"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC022",
+      "date": "2024-09-20T15:22:18.416Z",
+      "type": "Procedure",
+      "department": "Urology",
+      "provider": "Dr. Robert Kim",
+      "chiefComplaint": "Weight gain",
+      "diagnoses": [
+        "Diabetic Neuropathy"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC023",
+      "date": "2024-09-11T15:22:18.416Z",
+      "type": "Inpatient",
+      "department": "Emergency Department",
+      "provider": "Dr. Emily Brown",
+      "chiefComplaint": "Annual wellness visit",
+      "diagnoses": [
+        "Hypertension",
+        "Atrial Fibrillation",
+        "Diabetic Neuropathy",
+        "Hyperkalemia"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC024",
+      "date": "2024-09-08T15:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Internal Medicine",
+      "provider": "Dr. Jennifer Adams",
+      "chiefComplaint": "Blood pressure check",
+      "diagnoses": [
+        "Chronic Kidney Disease Stage 3b"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC025",
+      "date": "2024-08-08T15:22:18.416Z",
+      "type": "Procedure",
+      "department": "Endocrinology",
+      "provider": "Dr. Lisa Martinez",
+      "chiefComplaint": "Urinary symptoms",
+      "diagnoses": [
+        "Volume Overload",
+        "Chronic Kidney Disease Stage 3b"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC026",
+      "date": "2024-06-26T15:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Radiology",
+      "provider": "Dr. Patricia Lee",
+      "chiefComplaint": "Leg swelling",
+      "diagnoses": [
+        "Atrial Fibrillation",
+        "Hypertension",
+        "Hyperlipidemia"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC027",
+      "date": "2024-05-23T15:22:18.416Z",
+      "type": "Telehealth",
+      "department": "Cardiology",
+      "provider": "Dr. James Wilson",
+      "chiefComplaint": "Medication refills",
+      "diagnoses": [
+        "Hyperlipidemia",
+        "Acute Kidney Injury"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC028",
+      "date": "2024-04-08T15:22:18.416Z",
+      "type": "Emergency",
+      "department": "Cardiology",
+      "provider": "Dr. James Wilson",
+      "chiefComplaint": "Urinary symptoms",
+      "diagnoses": [
+        "Hyperkalemia"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC029",
+      "date": "2024-02-24T16:22:18.416Z",
+      "type": "Telehealth",
+      "department": "Endocrinology",
+      "provider": "Dr. Lisa Martinez",
+      "chiefComplaint": "Heart failure follow-up",
+      "diagnoses": [
+        "Atrial Fibrillation"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC030",
+      "date": "2024-02-07T16:22:18.416Z",
+      "type": "Inpatient",
+      "department": "Urology",
+      "provider": "Dr. Robert Kim",
+      "chiefComplaint": "Urinary symptoms",
+      "diagnoses": [
+        "Hyperlipidemia",
+        "Chronic Kidney Disease Stage 3b",
+        "Volume Overload"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC031",
+      "date": "2024-02-06T16:22:18.416Z",
+      "type": "Inpatient",
+      "department": "Cardiology",
+      "provider": "Dr. James Wilson",
+      "chiefComplaint": "Cough",
+      "diagnoses": [
+        "Hypertension",
+        "Chronic Kidney Disease Stage 3b"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC032",
+      "date": "2024-02-02T16:22:18.416Z",
+      "type": "Emergency",
+      "department": "Pulmonology",
+      "provider": "Dr. David Park",
+      "chiefComplaint": "Urinary symptoms",
+      "diagnoses": [
+        "Hyperkalemia"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC033",
+      "date": "2024-01-12T16:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Urology",
+      "provider": "Dr. Robert Kim",
+      "chiefComplaint": "Back pain",
+      "diagnoses": [
+        "Heart Failure with Reduced EF",
+        "Acute Kidney Injury",
+        "Diabetic Neuropathy"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC034",
+      "date": "2023-12-16T16:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Emergency Department",
+      "provider": "Dr. Emily Brown",
+      "chiefComplaint": "Cough",
+      "diagnoses": [
+        "Heart Failure with Reduced EF"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC035",
+      "date": "2023-11-26T16:22:18.416Z",
+      "type": "Emergency",
+      "department": "Endocrinology",
+      "provider": "Dr. Lisa Martinez",
+      "chiefComplaint": "Annual wellness visit",
+      "diagnoses": [
+        "Atrial Fibrillation",
+        "Diabetic Neuropathy"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC036",
+      "date": "2023-11-05T16:22:18.416Z",
+      "type": "Procedure",
+      "department": "Urology",
+      "provider": "Dr. Robert Kim",
+      "chiefComplaint": "Diabetes follow-up",
+      "diagnoses": [
+        "Hyperlipidemia"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC037",
+      "date": "2023-10-22T15:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Radiology",
+      "provider": "Dr. Patricia Lee",
+      "chiefComplaint": "Blood pressure check",
+      "diagnoses": [
+        "Hypertension",
+        "Volume Overload",
+        "Acute Kidney Injury",
+        "Chronic Kidney Disease Stage 3b"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC038",
+      "date": "2023-09-29T15:22:18.416Z",
+      "type": "Emergency",
+      "department": "Endocrinology",
+      "provider": "Dr. Lisa Martinez",
+      "chiefComplaint": "Neuropathy symptoms",
+      "diagnoses": [
+        "Hypertension",
+        "Heart Failure with Reduced EF"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC039",
+      "date": "2023-09-02T15:22:18.416Z",
+      "type": "Inpatient",
+      "department": "Radiology",
+      "provider": "Dr. Patricia Lee",
+      "chiefComplaint": "Back pain",
+      "diagnoses": [
+        "Acute Kidney Injury",
+        "Chronic Kidney Disease Stage 3b",
+        "Hypertension"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC040",
+      "date": "2023-08-30T15:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Internal Medicine",
+      "provider": "Dr. Jennifer Adams",
+      "chiefComplaint": "Heart failure follow-up",
+      "diagnoses": [
+        "Atrial Fibrillation",
+        "Hyperlipidemia",
+        "Hypertension"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC041",
+      "date": "2023-08-19T15:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Emergency Department",
+      "provider": "Dr. Emily Brown",
+      "chiefComplaint": "Palpitations",
+      "diagnoses": [
+        "Volume Overload",
+        "Heart Failure with Reduced EF"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC042",
+      "date": "2023-07-05T15:22:18.416Z",
+      "type": "Inpatient",
+      "department": "Primary Care",
+      "provider": "Dr. Sarah Chen",
+      "chiefComplaint": "Heart failure follow-up",
+      "diagnoses": [
+        "Type 2 Diabetes Mellitus",
+        "Atrial Fibrillation"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC043",
+      "date": "2023-07-01T15:22:18.416Z",
+      "type": "Telehealth",
+      "department": "Urology",
+      "provider": "Dr. Robert Kim",
+      "chiefComplaint": "Chest discomfort",
+      "diagnoses": [
+        "Hypertension",
+        "Volume Overload"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC044",
+      "date": "2023-05-30T15:22:18.416Z",
+      "type": "Procedure",
+      "department": "Internal Medicine",
+      "provider": "Dr. Jennifer Adams",
+      "chiefComplaint": "Dizziness",
+      "diagnoses": [
+        "Acute Kidney Injury",
+        "Heart Failure with Reduced EF"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC045",
+      "date": "2023-05-07T15:22:18.416Z",
+      "type": "Procedure",
+      "department": "Gastroenterology",
+      "provider": "Dr. William Thompson",
+      "chiefComplaint": "Dizziness",
+      "diagnoses": [
+        "Volume Overload",
+        "Chronic Kidney Disease Stage 3b",
+        "Heart Failure with Reduced EF"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC046",
+      "date": "2023-04-21T15:22:18.416Z",
+      "type": "Procedure",
+      "department": "Cardiology",
+      "provider": "Dr. James Wilson",
+      "chiefComplaint": "Joint pain",
+      "diagnoses": [
+        "Volume Overload",
+        "Hyperlipidemia",
+        "Diabetic Neuropathy"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC047",
+      "date": "2023-03-31T15:22:18.416Z",
+      "type": "Telehealth",
+      "department": "Urology",
+      "provider": "Dr. Robert Kim",
+      "chiefComplaint": "Leg swelling",
+      "diagnoses": [
+        "Heart Failure with Reduced EF",
+        "Diabetic Neuropathy",
+        "Acute Kidney Injury"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC048",
+      "date": "2023-03-12T15:22:18.416Z",
+      "type": "Telehealth",
+      "department": "Gastroenterology",
+      "provider": "Dr. William Thompson",
+      "chiefComplaint": "Back pain",
+      "diagnoses": [
+        "Heart Failure with Reduced EF"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC049",
+      "date": "2023-01-31T16:22:18.416Z",
+      "type": "Emergency",
+      "department": "Cardiology",
+      "provider": "Dr. James Wilson",
+      "chiefComplaint": "Heart failure follow-up",
+      "diagnoses": [
+        "Volume Overload",
+        "Chronic Kidney Disease Stage 3b",
+        "Hyperkalemia"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC050",
+      "date": "2023-01-10T16:22:18.416Z",
+      "type": "Telehealth",
+      "department": "Pulmonology",
+      "provider": "Dr. David Park",
+      "chiefComplaint": "Urinary symptoms",
+      "diagnoses": [
+        "Heart Failure with Reduced EF",
+        "Atrial Fibrillation"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC051",
+      "date": "2022-12-16T16:22:18.416Z",
+      "type": "Procedure",
+      "department": "Primary Care",
+      "provider": "Dr. Sarah Chen",
+      "chiefComplaint": "Weight gain",
+      "diagnoses": [
+        "Hyperlipidemia",
+        "Diabetic Neuropathy"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC052",
+      "date": "2022-11-25T16:22:18.416Z",
+      "type": "Telehealth",
+      "department": "Gastroenterology",
+      "provider": "Dr. William Thompson",
+      "chiefComplaint": "Blood pressure check",
+      "diagnoses": [
+        "Chronic Kidney Disease Stage 3b",
+        "Heart Failure with Reduced EF"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC053",
+      "date": "2022-11-10T16:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Cardiology",
+      "provider": "Dr. James Wilson",
+      "chiefComplaint": "Diabetes follow-up",
+      "diagnoses": [
+        "Acute Kidney Injury",
+        "Volume Overload"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC054",
+      "date": "2022-10-01T15:22:18.416Z",
+      "type": "Emergency",
+      "department": "Pulmonology",
+      "provider": "Dr. David Park",
+      "chiefComplaint": "Weight gain",
+      "diagnoses": [
+        "Heart Failure with Reduced EF",
+        "Chronic Kidney Disease Stage 3b",
+        "Hyperlipidemia"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC055",
+      "date": "2022-08-26T15:22:18.416Z",
+      "type": "Procedure",
+      "department": "Nephrology",
+      "provider": "Dr. Michael Torres",
+      "chiefComplaint": "Dizziness",
+      "diagnoses": [
+        "Atrial Fibrillation",
+        "Hyperkalemia"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC056",
+      "date": "2022-07-15T15:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Radiology",
+      "provider": "Dr. Patricia Lee",
+      "chiefComplaint": "Routine follow-up",
+      "diagnoses": [
+        "Hyperkalemia",
+        "Type 2 Diabetes Mellitus",
+        "Atrial Fibrillation",
+        "Volume Overload"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC057",
+      "date": "2022-06-25T15:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Emergency Department",
+      "provider": "Dr. Emily Brown",
+      "chiefComplaint": "Routine follow-up",
+      "diagnoses": [
+        "Hyperkalemia",
+        "Hypertension",
+        "Diabetic Neuropathy"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC058",
+      "date": "2022-05-27T15:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Internal Medicine",
+      "provider": "Dr. Jennifer Adams",
+      "chiefComplaint": "Routine follow-up",
+      "diagnoses": [
+        "Hyperkalemia"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC059",
+      "date": "2022-05-20T15:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Endocrinology",
+      "provider": "Dr. Lisa Martinez",
+      "chiefComplaint": "Weight gain",
+      "diagnoses": [
+        "Atrial Fibrillation",
+        "Chronic Kidney Disease Stage 3b"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC060",
+      "date": "2022-05-06T15:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Gastroenterology",
+      "provider": "Dr. William Thompson",
+      "chiefComplaint": "Weight gain",
+      "diagnoses": [
+        "Hyperkalemia",
+        "Acute Kidney Injury",
+        "Hypertension"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC061",
+      "date": "2022-04-16T15:22:18.416Z",
+      "type": "Emergency",
+      "department": "Nephrology",
+      "provider": "Dr. Michael Torres",
+      "chiefComplaint": "CKD management",
+      "diagnoses": [
+        "Type 2 Diabetes Mellitus"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC062",
+      "date": "2022-03-14T15:22:18.416Z",
+      "type": "Emergency",
+      "department": "Primary Care",
+      "provider": "Dr. Sarah Chen",
+      "chiefComplaint": "Diabetes follow-up",
+      "diagnoses": [
+        "Hypertension",
+        "Type 2 Diabetes Mellitus"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC063",
+      "date": "2022-02-15T16:22:18.416Z",
+      "type": "Telehealth",
+      "department": "Pulmonology",
+      "provider": "Dr. David Park",
+      "chiefComplaint": "Chest discomfort",
+      "diagnoses": [
+        "Heart Failure with Reduced EF",
+        "Type 2 Diabetes Mellitus",
+        "Hyperlipidemia",
+        "Diabetic Neuropathy"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC064",
+      "date": "2022-01-16T16:22:18.416Z",
+      "type": "Inpatient",
+      "department": "Radiology",
+      "provider": "Dr. Patricia Lee",
+      "chiefComplaint": "Urinary symptoms",
+      "diagnoses": [
+        "Atrial Fibrillation",
+        "Acute Kidney Injury",
+        "Diabetic Neuropathy"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC065",
+      "date": "2022-01-15T16:22:18.416Z",
+      "type": "Telehealth",
+      "department": "Nephrology",
+      "provider": "Dr. Michael Torres",
+      "chiefComplaint": "Palpitations",
+      "diagnoses": [
+        "Acute Kidney Injury",
+        "Hypertension",
+        "Type 2 Diabetes Mellitus",
+        "Chronic Kidney Disease Stage 3b"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC066",
+      "date": "2021-12-24T16:22:18.416Z",
+      "type": "Emergency",
+      "department": "Nephrology",
+      "provider": "Dr. Michael Torres",
+      "chiefComplaint": "Heart failure follow-up",
+      "diagnoses": [
+        "Hyperkalemia",
+        "Volume Overload",
+        "Type 2 Diabetes Mellitus"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC067",
+      "date": "2021-11-19T16:22:18.416Z",
+      "type": "Inpatient",
+      "department": "Radiology",
+      "provider": "Dr. Patricia Lee",
+      "chiefComplaint": "Chest discomfort",
+      "diagnoses": [
+        "Type 2 Diabetes Mellitus",
+        "Chronic Kidney Disease Stage 3b"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC068",
+      "date": "2021-11-14T16:22:18.416Z",
+      "type": "Inpatient",
+      "department": "Gastroenterology",
+      "provider": "Dr. William Thompson",
+      "chiefComplaint": "Annual wellness visit",
+      "diagnoses": [
+        "Type 2 Diabetes Mellitus",
+        "Volume Overload"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC069",
+      "date": "2021-11-12T16:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Internal Medicine",
+      "provider": "Dr. Jennifer Adams",
+      "chiefComplaint": "Chest discomfort",
+      "diagnoses": [
+        "Type 2 Diabetes Mellitus",
+        "Hyperkalemia",
+        "Acute Kidney Injury"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC070",
+      "date": "2021-10-30T15:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Internal Medicine",
+      "provider": "Dr. Jennifer Adams",
+      "chiefComplaint": "Fatigue",
+      "diagnoses": [
+        "Heart Failure with Reduced EF",
+        "Hyperlipidemia"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC071",
+      "date": "2021-09-24T15:22:18.416Z",
+      "type": "Procedure",
+      "department": "Emergency Department",
+      "provider": "Dr. Emily Brown",
+      "chiefComplaint": "Medication refills",
+      "diagnoses": [
+        "Acute Kidney Injury",
+        "Hypertension"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC072",
+      "date": "2021-08-20T15:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Urology",
+      "provider": "Dr. Robert Kim",
+      "chiefComplaint": "Weight gain",
+      "diagnoses": [
+        "Atrial Fibrillation"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC073",
+      "date": "2021-07-15T15:22:18.416Z",
+      "type": "Procedure",
+      "department": "Nephrology",
+      "provider": "Dr. Michael Torres",
+      "chiefComplaint": "Heart failure follow-up",
+      "diagnoses": [
+        "Acute Kidney Injury"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC074",
+      "date": "2021-06-01T15:22:18.416Z",
+      "type": "Procedure",
+      "department": "Pulmonology",
+      "provider": "Dr. David Park",
+      "chiefComplaint": "Back pain",
+      "diagnoses": [
+        "Diabetic Neuropathy",
+        "Volume Overload"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC075",
+      "date": "2021-05-16T15:22:18.416Z",
+      "type": "Procedure",
+      "department": "Radiology",
+      "provider": "Dr. Patricia Lee",
+      "chiefComplaint": "Back pain",
+      "diagnoses": [
+        "Type 2 Diabetes Mellitus"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC076",
+      "date": "2021-04-08T15:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Urology",
+      "provider": "Dr. Robert Kim",
+      "chiefComplaint": "Lab review",
+      "diagnoses": [
+        "Hypertension"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC077",
+      "date": "2021-03-14T15:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Internal Medicine",
+      "provider": "Dr. Jennifer Adams",
+      "chiefComplaint": "CKD management",
+      "diagnoses": [
+        "Chronic Kidney Disease Stage 3b",
+        "Type 2 Diabetes Mellitus"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC078",
+      "date": "2021-01-31T16:22:18.416Z",
+      "type": "Procedure",
+      "department": "Primary Care",
+      "provider": "Dr. Sarah Chen",
+      "chiefComplaint": "Blood pressure check",
+      "diagnoses": [
+        "Atrial Fibrillation"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC079",
+      "date": "2021-01-10T16:22:18.416Z",
+      "type": "Inpatient",
+      "department": "Emergency Department",
+      "provider": "Dr. Emily Brown",
+      "chiefComplaint": "Leg swelling",
+      "diagnoses": [
+        "Atrial Fibrillation",
+        "Volume Overload"
+      ],
+      "status": "Completed"
+    },
+    {
+      "id": "ENC080",
+      "date": "2021-01-05T16:22:18.416Z",
+      "type": "Office Visit",
+      "department": "Urology",
+      "provider": "Dr. Robert Kim",
+      "chiefComplaint": "Weight gain",
+      "diagnoses": [
+        "Hyperlipidemia"
+      ],
+      "status": "Completed"
+    }
+  ]
+}

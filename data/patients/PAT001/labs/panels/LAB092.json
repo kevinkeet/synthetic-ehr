@@ -1,0 +1,18 @@
+{
+  "id": "LAB092",
+  "name": "BNP",
+  "collectedDate": "2021-03-08T16:22:18.416Z",
+  "receivedDate": "2021-03-08T16:52:18.416Z",
+  "reportedDate": "2021-03-08T17:52:18.416Z",
+  "orderedBy": "Dr. Jennifer Adams",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "BNP",
+      "value": 605,
+      "unit": "pg/mL",
+      "referenceRange": "0-100"
+    }
+  ]
+}

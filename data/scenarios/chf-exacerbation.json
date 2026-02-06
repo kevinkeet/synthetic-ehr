@@ -1,0 +1,279 @@
+{
+  "id": "SCENARIO_CHF_001",
+  "name": "Acute CHF Exacerbation",
+  "description": "72-year-old male with HFrEF presenting with acute decompensated heart failure due to diuretic non-compliance",
+  "difficulty": "intermediate",
+  "estimatedDuration": "2-4 hours simulation time",
+  "learningObjectives": [
+    "Recognize signs and symptoms of acute decompensated heart failure",
+    "Initiate appropriate diuretic therapy",
+    "Monitor for cardiorenal syndrome",
+    "Balance diuresis with renal function preservation",
+    "Recognize when patient is improving vs worsening"
+  ],
+
+  "patient": {
+    "id": "PAT001",
+    "name": "Robert Morrison",
+    "age": 72,
+    "sex": "Male"
+  },
+
+  "startTime": "2022-08-15T14:00:00.000Z",
+
+  "initialState": {
+    "demographics": {
+      "age": 72,
+      "sex": "Male"
+    },
+
+    "vitals": {
+      "systolic": 158,
+      "diastolic": 92,
+      "heartRate": 92,
+      "respiratoryRate": 22,
+      "temperature": 98.4,
+      "oxygenSaturation": 91,
+      "weight": 98.5
+    },
+
+    "physiology": {
+      "baseHeartRate": 75,
+      "baseSystolic": 135,
+      "baseDiastolic": 82,
+      "cardiacOutput": 3.2,
+      "ejectionFraction": 32,
+      "fluidOverload": 4.5,
+      "dryWeight": 94,
+      "gfr": 35,
+      "sympatheticTone": 3,
+      "urineOutput": 25
+    },
+
+    "labs": {
+      "sodium": 134,
+      "potassium": 5.1,
+      "chloride": 100,
+      "bicarbonate": 22,
+      "bun": 45,
+      "creatinine": 2.4,
+      "glucose": 165,
+      "bnp": 1850,
+      "troponin": 0.08,
+      "hemoglobin": 10.2,
+      "wbc": 7.8,
+      "platelets": 185,
+      "inr": 2.3
+    },
+
+    "symptoms": {
+      "dyspnea": 7,
+      "orthopnea": true,
+      "orthopneaPillows": 3,
+      "pnd": true,
+      "fatigue": 6,
+      "edema": 3,
+      "edemaDescription": "2+ pitting edema to mid-shin",
+      "appetiteLoss": true,
+      "weightGain": true,
+      "chestDiscomfort": false
+    },
+
+    "exam": {
+      "jvp": "elevated to angle of jaw",
+      "lungSounds": "bibasilar crackles 1/3 up",
+      "heartSounds": "S3 gallop, 2/6 systolic murmur at apex",
+      "abdomen": "hepatomegaly 3cm below costal margin",
+      "extremities": "3+ pitting edema bilateral LE"
+    },
+
+    "trajectory": "worsening"
+  },
+
+  "naturalProgression": {
+    "description": "Without treatment, patient will continue to accumulate fluid and worsen",
+    "cardiac": {
+      "ratePerHour": 1,
+      "outputChangePerHour": -0.02
+    },
+    "fluid": {
+      "overloadRatePerHour": 0.15
+    },
+    "renal": {
+      "creatinineChangePerHour": 0.02,
+      "potassiumChangePerHour": 0.01
+    }
+  },
+
+  "triggers": [
+    {
+      "id": "TRIG_001",
+      "name": "Critical Hypoxia",
+      "type": "state",
+      "condition": {
+        "parameter": "vitals.oxygenSaturation",
+        "operator": "<",
+        "value": 88
+      },
+      "action": "nurseAlert",
+      "message": "Patient's oxygen saturation has dropped to critical levels. Respiratory is being called.",
+      "priority": "urgent"
+    },
+    {
+      "id": "TRIG_002",
+      "name": "Severe Fluid Overload",
+      "type": "state",
+      "condition": {
+        "parameter": "physiology.fluidOverload",
+        "operator": ">",
+        "value": 7
+      },
+      "action": "nurseAlert",
+      "message": "Patient appears significantly more volume overloaded. Having increased difficulty breathing.",
+      "priority": "urgent"
+    },
+    {
+      "id": "TRIG_003",
+      "name": "Acute Kidney Injury Worsening",
+      "type": "state",
+      "condition": {
+        "parameter": "labs.creatinine",
+        "operator": ">",
+        "value": 3.5
+      },
+      "action": "nurseAlert",
+      "message": "Creatinine continues to rise. Nephrology may need to be consulted.",
+      "priority": "routine"
+    },
+    {
+      "id": "TRIG_004",
+      "name": "Hyperkalemia Alert",
+      "type": "state",
+      "condition": {
+        "parameter": "labs.potassium",
+        "operator": ">",
+        "value": 5.8
+      },
+      "action": "nurseAlert",
+      "message": "Potassium level is critically elevated. ECG changes may be present.",
+      "priority": "urgent"
+    },
+    {
+      "id": "TRIG_005",
+      "name": "Hypokalemia Alert",
+      "type": "state",
+      "condition": {
+        "parameter": "labs.potassium",
+        "operator": "<",
+        "value": 3.2
+      },
+      "action": "nurseAlert",
+      "message": "Potassium level is low after diuresis. May need replacement.",
+      "priority": "routine"
+    },
+    {
+      "id": "TRIG_006",
+      "name": "Hypotension",
+      "type": "state",
+      "condition": {
+        "parameter": "vitals.systolic",
+        "operator": "<",
+        "value": 95
+      },
+      "action": "nurseAlert",
+      "message": "Blood pressure has dropped significantly. Patient feeling lightheaded.",
+      "priority": "urgent"
+    },
+    {
+      "id": "TRIG_007",
+      "name": "Bradycardia",
+      "type": "state",
+      "condition": {
+        "parameter": "vitals.heartRate",
+        "operator": "<",
+        "value": 55
+      },
+      "action": "nurseAlert",
+      "message": "Heart rate has dropped below 55. Please assess need to hold beta-blocker.",
+      "priority": "routine"
+    },
+    {
+      "id": "TRIG_008",
+      "name": "Good Diuresis Response",
+      "type": "state",
+      "condition": {
+        "parameter": "physiology.fluidOverload",
+        "operator": "<",
+        "value": 2
+      },
+      "action": "nurseAlert",
+      "message": "Patient has had good urine output. Weight down significantly. Symptoms improving.",
+      "priority": "info"
+    }
+  ],
+
+  "expectedInterventions": [
+    {
+      "name": "IV Furosemide",
+      "importance": "critical",
+      "timing": "within first 30 minutes",
+      "rationale": "First-line treatment for acute decompensated heart failure"
+    },
+    {
+      "name": "Oxygen therapy",
+      "importance": "high",
+      "timing": "if SpO2 < 94%",
+      "rationale": "Maintain adequate oxygenation"
+    },
+    {
+      "name": "Hold nephrotoxic medications",
+      "importance": "high",
+      "timing": "on admission",
+      "rationale": "Protect renal function during acute illness"
+    },
+    {
+      "name": "Daily weights and I/O",
+      "importance": "high",
+      "timing": "nursing order",
+      "rationale": "Monitor response to diuresis"
+    },
+    {
+      "name": "Basic metabolic panel",
+      "importance": "high",
+      "timing": "every 12-24 hours",
+      "rationale": "Monitor electrolytes and renal function"
+    }
+  ],
+
+  "scoringCriteria": {
+    "timeToFirstDiuretic": {
+      "excellent": 15,
+      "good": 30,
+      "acceptable": 60,
+      "unit": "minutes"
+    },
+    "appropriateDiureticDose": {
+      "minimum": 40,
+      "optimal": 80,
+      "unit": "mg furosemide equivalent"
+    },
+    "monitoringFrequency": {
+      "labs": "at least every 24 hours",
+      "vitals": "at least every 4 hours"
+    }
+  },
+
+  "successCriteria": {
+    "fluidOverload": { "target": "< 2", "description": "Near dry weight" },
+    "creatinine": { "target": "stable or improving", "description": "No significant AKI worsening" },
+    "oxygenSaturation": { "target": "> 94% on RA", "description": "Adequate oxygenation" },
+    "symptoms": { "target": "dyspnea < 3", "description": "Significant symptom improvement" }
+  },
+
+  "failureCriteria": {
+    "severeHypotension": "Systolic < 80 for > 30 minutes",
+    "respiratoryFailure": "SpO2 < 85% requiring intubation",
+    "severeAKI": "Creatinine > 5 or need for dialysis",
+    "death": "Cardiac arrest"
+  }
+}

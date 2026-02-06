@@ -1,0 +1,36 @@
+{
+  "id": "LAB130",
+  "name": "Urinalysis",
+  "collectedDate": "2022-05-01T15:22:18.416Z",
+  "receivedDate": "2022-05-01T15:52:18.416Z",
+  "reportedDate": "2022-05-01T16:52:18.416Z",
+  "orderedBy": "Dr. William Thompson",
+  "status": "Final",
+  "specimen": "Urine",
+  "results": [
+    {
+      "name": "Urine pH",
+      "value": 6.51,
+      "unit": "",
+      "referenceRange": "4.5-8.0"
+    },
+    {
+      "name": "Specific Gravity",
+      "value": 1,
+      "unit": "",
+      "referenceRange": "1.005-1.030"
+    },
+    {
+      "name": "Urine Protein",
+      "value": 1.8,
+      "unit": "mg/dL",
+      "referenceRange": "Negative"
+    },
+    {
+      "name": "Urine Glucose",
+      "value": 62.3,
+      "unit": "mg/dL",
+      "referenceRange": "Negative"
+    }
+  ]
+}

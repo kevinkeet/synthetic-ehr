@@ -1,0 +1,36 @@
+{
+  "id": "LAB070",
+  "name": "Iron Studies",
+  "collectedDate": "2020-05-22T15:22:18.416Z",
+  "receivedDate": "2020-05-22T15:52:18.416Z",
+  "reportedDate": "2020-05-22T16:52:18.416Z",
+  "orderedBy": "Dr. Patricia Lee",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "Iron",
+      "value": 96.1,
+      "unit": "mcg/dL",
+      "referenceRange": "60-170"
+    },
+    {
+      "name": "TIBC",
+      "value": 261,
+      "unit": "mcg/dL",
+      "referenceRange": "250-370"
+    },
+    {
+      "name": "Ferritin",
+      "value": 173,
+      "unit": "ng/mL",
+      "referenceRange": "12-300"
+    },
+    {
+      "name": "Transferrin Saturation",
+      "value": 28.7,
+      "unit": "%",
+      "referenceRange": "20-50"
+    }
+  ]
+}

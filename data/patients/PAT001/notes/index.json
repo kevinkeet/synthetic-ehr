@@ -1,0 +1,971 @@
+{
+  "notes": [
+    {
+      "id": "NOTE_NEPH001",
+      "type": "Consult Note",
+      "title": "Nephrology Consultation - CKD Stage 3b Management",
+      "date": "2024-03-20T14:00:00.000Z",
+      "author": "Dr. Michael Torres",
+      "department": "Nephrology",
+      "encounter": "ENC_NEPH001",
+      "preview": "Chronic kidney disease stage 3b management, proteinuria evaluation, medication optimization. CKD likely secondary to diabetic nephropathy and hypertensive nephrosclerosis..."
+    },
+    {
+      "id": "NOTE_CARD001",
+      "type": "Consult Note",
+      "title": "Cardiology Consultation - Heart Failure Management",
+      "date": "2023-11-15T10:30:00.000Z",
+      "author": "Dr. James Wilson",
+      "department": "Cardiology",
+      "encounter": "ENC_CARD001",
+      "preview": "Heart failure management, optimization of guideline-directed medical therapy. NYHA Class II. Discussing ICD for primary prevention..."
+    },
+    {
+      "id": "NOTE_DC001",
+      "type": "Discharge Summary",
+      "title": "Discharge Summary - CHF Exacerbation",
+      "date": "2022-08-19T11:30:00.000Z",
+      "author": "Dr. Emily Brown",
+      "department": "Hospital Medicine",
+      "encounter": "ENC_ADM001",
+      "preview": "4-day hospitalization for acute decompensated heart failure triggered by diuretic non-compliance. Discharged on increased furosemide with close follow-up..."
+    },
+    {
+      "id": "NOTE_HP001",
+      "type": "H&P",
+      "title": "Hospital Admission H&P - CHF Exacerbation",
+      "date": "2022-08-15T14:30:00.000Z",
+      "author": "Dr. Emily Brown",
+      "department": "Hospital Medicine",
+      "encounter": "ENC_ADM001",
+      "preview": "72-year-old male with HFrEF, T2DM, CKD3b, atrial fibrillation presenting with acute decompensated heart failure. Dyspnea, orthopnea, bilateral LE edema. Triggered by missed furosemide doses..."
+    },
+    {
+      "id": "NOTE001",
+      "type": "Telephone Encounter",
+      "date": "2026-02-05T16:22:18.416Z",
+      "author": "Dr. Jennifer Adams",
+      "department": "Internal Medicine",
+      "encounter": "ENC001",
+      "preview": "Patient called regarding prescription refill.\n\nPatient asking about lab results. Reviewed recent val..."
+    },
+    {
+      "id": "NOTE002",
+      "type": "Progress Note",
+      "date": "2026-01-27T16:22:18.416Z",
+      "author": "Dr. Lisa Martinez",
+      "department": "Endocrinology",
+      "encounter": "ENC002",
+      "preview": "Patient presents for leg swelling. Reports overall stable condition since last visit. Compliant with..."
+    },
+    {
+      "id": "NOTE003",
+      "type": "Progress Note",
+      "date": "2026-01-18T16:22:18.416Z",
+      "author": "Dr. Patricia Lee",
+      "department": "Radiology",
+      "encounter": "ENC003",
+      "preview": "Patient presents for shortness of breath. Doing well on current regimen. Blood sugars well-controlle..."
+    },
+    {
+      "id": "NOTE004",
+      "type": "Progress Note",
+      "date": "2025-12-18T16:22:18.416Z",
+      "author": "Dr. David Park",
+      "department": "Pulmonology",
+      "encounter": "ENC004",
+      "preview": "Patient presents for neuropathy symptoms. Doing well on current regimen. Blood sugars well-controlle..."
+    },
+    {
+      "id": "NOTE005",
+      "type": "Telephone Encounter",
+      "date": "2025-11-16T16:22:18.416Z",
+      "author": "Dr. Jennifer Adams",
+      "department": "Internal Medicine",
+      "encounter": "ENC005",
+      "preview": "Patient called regarding symptom update.\n\nPatient asking about lab results. Reviewed recent values -..."
+    },
+    {
+      "id": "NOTE006",
+      "type": "Telephone Encounter",
+      "date": "2025-10-02T15:22:18.416Z",
+      "author": "Dr. Emily Brown",
+      "department": "Emergency Medicine",
+      "encounter": "ENC006",
+      "preview": "Patient called regarding symptom update.\n\nPatient reports mild increase in leg swelling. Advised to ..."
+    },
+    {
+      "id": "NOTE007",
+      "type": "H&P",
+      "date": "2025-09-14T15:22:18.416Z",
+      "author": "Dr. James Wilson",
+      "department": "Cardiology",
+      "encounter": "ENC007",
+      "preview": "72-year-old male with history of Type 2 Diabetes Mellitus, CKD Stage 3b, HFrEF (EF 35%), and atrial ..."
+    },
+    {
+      "id": "NOTE008",
+      "type": "Progress Note",
+      "date": "2025-09-15T15:22:18.416Z",
+      "author": "Dr. James Wilson",
+      "department": "Cardiology",
+      "encounter": "ENC007",
+      "preview": "Patient presents for shortness of breath. Doing well on current regimen. Blood sugars well-controlle..."
+    },
+    {
+      "id": "NOTE009",
+      "type": "Progress Note",
+      "date": "2025-09-16T15:22:18.416Z",
+      "author": "Dr. James Wilson",
+      "department": "Cardiology",
+      "encounter": "ENC007",
+      "preview": "Patient presents for weight gain. Reports overall stable condition since last visit. Compliant with ..."
+    },
+    {
+      "id": "NOTE010",
+      "type": "Progress Note",
+      "date": "2025-09-17T15:22:18.416Z",
+      "author": "Dr. James Wilson",
+      "department": "Cardiology",
+      "encounter": "ENC007",
+      "preview": "Patient presents for dizziness. Reports some shortness of breath with exertion, at baseline. No ches..."
+    },
+    {
+      "id": "NOTE011",
+      "type": "Progress Note",
+      "date": "2025-09-18T15:22:18.416Z",
+      "author": "Dr. James Wilson",
+      "department": "Cardiology",
+      "encounter": "ENC007",
+      "preview": "Patient presents for dizziness. Reports overall stable condition since last visit. Compliant with me..."
+    },
+    {
+      "id": "NOTE012",
+      "type": "Discharge Summary",
+      "date": "2025-09-10T15:22:18.416Z",
+      "author": "Dr. Sarah Chen",
+      "department": "Primary Care",
+      "encounter": "ENC008",
+      "preview": "Community-acquired pneumonia..."
+    },
+    {
+      "id": "NOTE013",
+      "type": "Progress Note",
+      "date": "2025-09-11T15:22:18.416Z",
+      "author": "Dr. Sarah Chen",
+      "department": "Primary Care",
+      "encounter": "ENC008",
+      "preview": "Patient presents for routine follow-up. Presents with mild worsening of baseline symptoms. Reports i..."
+    },
+    {
+      "id": "NOTE014",
+      "type": "Progress Note",
+      "date": "2025-09-12T15:22:18.416Z",
+      "author": "Dr. Sarah Chen",
+      "department": "Primary Care",
+      "encounter": "ENC008",
+      "preview": "Patient presents for routine follow-up. Presents with mild worsening of baseline symptoms. Reports i..."
+    },
+    {
+      "id": "NOTE015",
+      "type": "Progress Note",
+      "date": "2025-09-13T15:22:18.416Z",
+      "author": "Dr. Sarah Chen",
+      "department": "Primary Care",
+      "encounter": "ENC008",
+      "preview": "Patient presents for fatigue. Reports overall stable condition since last visit. Compliant with medi..."
+    },
+    {
+      "id": "NOTE016",
+      "type": "Progress Note",
+      "date": "2025-09-05T15:22:18.416Z",
+      "author": "Dr. David Park",
+      "department": "Pulmonology",
+      "encounter": "ENC009",
+      "preview": "Patient presents for cough. Doing well on current regimen. Blood sugars well-controlled. No hypoglyc..."
+    },
+    {
+      "id": "NOTE017",
+      "type": "Telephone Encounter",
+      "date": "2025-08-06T15:22:18.416Z",
+      "author": "Dr. Michael Torres",
+      "department": "Nephrology",
+      "encounter": "ENC010",
+      "preview": "Patient called regarding prescription refill.\n\nPatient asking about lab results. Reviewed recent val..."
+    },
+    {
+      "id": "NOTE018",
+      "type": "Progress Note",
+      "date": "2025-06-26T15:22:18.416Z",
+      "author": "Dr. Michael Torres",
+      "department": "Nephrology",
+      "encounter": "ENC011",
+      "preview": "Patient presents for joint pain. Doing well on current regimen. Blood sugars well-controlled. No hyp..."
+    },
+    {
+      "id": "NOTE019",
+      "type": "H&P",
+      "date": "2025-05-14T15:22:18.416Z",
+      "author": "Dr. Lisa Martinez",
+      "department": "Endocrinology",
+      "encounter": "ENC012",
+      "preview": "72-year-old male with history of Type 2 Diabetes Mellitus, CKD Stage 3b, HFrEF (EF 35%), and atrial ..."
+    },
+    {
+      "id": "NOTE020",
+      "type": "H&P",
+      "date": "2025-04-09T15:22:18.416Z",
+      "author": "Dr. Lisa Martinez",
+      "department": "Endocrinology",
+      "encounter": "ENC013",
+      "preview": "72-year-old male with history of Type 2 Diabetes Mellitus, CKD Stage 3b, HFrEF (EF 35%), and atrial ..."
+    },
+    {
+      "id": "NOTE021",
+      "type": "Telephone Encounter",
+      "date": "2025-03-20T15:22:18.416Z",
+      "author": "Dr. Jennifer Adams",
+      "department": "Internal Medicine",
+      "encounter": "ENC014",
+      "preview": "Patient called regarding appointment scheduling.\n\nPatient reports feeling well. Blood sugars in targ..."
+    },
+    {
+      "id": "NOTE022",
+      "type": "H&P",
+      "date": "2025-02-18T16:22:18.416Z",
+      "author": "Dr. James Wilson",
+      "department": "Cardiology",
+      "encounter": "ENC015",
+      "preview": "72-year-old male with history of Type 2 Diabetes Mellitus, CKD Stage 3b, HFrEF (EF 35%), and atrial ..."
+    },
+    {
+      "id": "NOTE023",
+      "type": "H&P",
+      "date": "2025-02-09T16:22:18.416Z",
+      "author": "Dr. Michael Torres",
+      "department": "Nephrology",
+      "encounter": "ENC016",
+      "preview": "72-year-old male with history of Type 2 Diabetes Mellitus, CKD Stage 3b, HFrEF (EF 35%), and atrial ..."
+    },
+    {
+      "id": "NOTE024",
+      "type": "Telephone Encounter",
+      "date": "2025-02-01T16:22:18.416Z",
+      "author": "Dr. Robert Kim",
+      "department": "Urology",
+      "encounter": "ENC017",
+      "preview": "Patient called regarding prescription refill.\n\nPatient reports mild increase in leg swelling. Advise..."
+    },
+    {
+      "id": "NOTE025",
+      "type": "H&P",
+      "date": "2025-01-22T16:22:18.416Z",
+      "author": "Dr. David Park",
+      "department": "Pulmonology",
+      "encounter": "ENC018",
+      "preview": "72-year-old male with history of Type 2 Diabetes Mellitus, CKD Stage 3b, HFrEF (EF 35%), and atrial ..."
+    },
+    {
+      "id": "NOTE026",
+      "type": "Progress Note",
+      "date": "2024-12-13T16:22:18.416Z",
+      "author": "Dr. William Thompson",
+      "department": "Gastroenterology",
+      "encounter": "ENC019",
+      "preview": "Patient presents for urinary symptoms. Presents with mild worsening of baseline symptoms. Reports in..."
+    },
+    {
+      "id": "NOTE027",
+      "type": "Progress Note",
+      "date": "2024-11-25T16:22:18.416Z",
+      "author": "Dr. Robert Kim",
+      "department": "Urology",
+      "encounter": "ENC020",
+      "preview": "Patient presents for lab review. Presents with mild worsening of baseline symptoms. Reports increase..."
+    },
+    {
+      "id": "NOTE028",
+      "type": "Progress Note",
+      "date": "2024-10-29T15:22:18.416Z",
+      "author": "Dr. Sarah Chen",
+      "department": "Primary Care",
+      "encounter": "ENC021",
+      "preview": "Patient presents for lab review. Weight stable. Following low-sodium diet. Monitoring blood pressure..."
+    },
+    {
+      "id": "NOTE029",
+      "type": "Progress Note",
+      "date": "2024-09-20T15:22:18.416Z",
+      "author": "Dr. Robert Kim",
+      "department": "Urology",
+      "encounter": "ENC022",
+      "preview": "Patient presents for medication refills. Reports overall stable condition since last visit. Complian..."
+    },
+    {
+      "id": "NOTE030",
+      "type": "Progress Note",
+      "date": "2024-09-11T15:22:18.416Z",
+      "author": "Dr. Emily Brown",
+      "department": "Emergency Medicine",
+      "encounter": "ENC023",
+      "preview": "Patient presents for heart failure follow-up. Reports overall stable condition since last visit. Com..."
+    },
+    {
+      "id": "NOTE031",
+      "type": "Progress Note",
+      "date": "2024-09-12T15:22:18.416Z",
+      "author": "Dr. Emily Brown",
+      "department": "Emergency Medicine",
+      "encounter": "ENC023",
+      "preview": "Patient presents for blood pressure check. Reports overall stable condition since last visit. Compli..."
+    },
+    {
+      "id": "NOTE032",
+      "type": "Progress Note",
+      "date": "2024-09-13T15:22:18.416Z",
+      "author": "Dr. Emily Brown",
+      "department": "Emergency Medicine",
+      "encounter": "ENC023",
+      "preview": "Patient presents for fatigue. Weight stable. Following low-sodium diet. Monitoring blood pressure at..."
+    },
+    {
+      "id": "NOTE033",
+      "type": "Progress Note",
+      "date": "2024-09-14T15:22:18.416Z",
+      "author": "Dr. Emily Brown",
+      "department": "Emergency Medicine",
+      "encounter": "ENC023",
+      "preview": "Patient presents for cough. Reports overall stable condition since last visit. Compliant with medica..."
+    },
+    {
+      "id": "NOTE034",
+      "type": "Progress Note",
+      "date": "2024-09-15T15:22:18.416Z",
+      "author": "Dr. Emily Brown",
+      "department": "Emergency Medicine",
+      "encounter": "ENC023",
+      "preview": "Patient presents for back pain. Weight stable. Following low-sodium diet. Monitoring blood pressure ..."
+    },
+    {
+      "id": "NOTE035",
+      "type": "Telephone Encounter",
+      "date": "2024-09-08T15:22:18.416Z",
+      "author": "Dr. Jennifer Adams",
+      "department": "Internal Medicine",
+      "encounter": "ENC024",
+      "preview": "Patient called regarding lab results.\n\nPatient asking about lab results. Reviewed recent values - st..."
+    },
+    {
+      "id": "NOTE036",
+      "type": "Progress Note",
+      "date": "2024-08-08T15:22:18.416Z",
+      "author": "Dr. Lisa Martinez",
+      "department": "Endocrinology",
+      "encounter": "ENC025",
+      "preview": "Patient presents for ckd management. Doing well on current regimen. Blood sugars well-controlled. No..."
+    },
+    {
+      "id": "NOTE037",
+      "type": "Telephone Encounter",
+      "date": "2024-06-26T15:22:18.416Z",
+      "author": "Dr. Patricia Lee",
+      "department": "Radiology",
+      "encounter": "ENC026",
+      "preview": "Patient called regarding prescription refill.\n\nPatient asking about lab results. Reviewed recent val..."
+    },
+    {
+      "id": "NOTE038",
+      "type": "Progress Note",
+      "date": "2024-05-23T15:22:18.416Z",
+      "author": "Dr. James Wilson",
+      "department": "Cardiology",
+      "encounter": "ENC027",
+      "preview": "Patient presents for shortness of breath. Doing well on current regimen. Blood sugars well-controlle..."
+    },
+    {
+      "id": "NOTE039",
+      "type": "H&P",
+      "date": "2024-04-08T15:22:18.416Z",
+      "author": "Dr. James Wilson",
+      "department": "Cardiology",
+      "encounter": "ENC028",
+      "preview": "72-year-old male with history of Type 2 Diabetes Mellitus, CKD Stage 3b, HFrEF (EF 35%), and atrial ..."
+    },
+    {
+      "id": "NOTE040",
+      "type": "Progress Note",
+      "date": "2024-02-24T16:22:18.416Z",
+      "author": "Dr. Lisa Martinez",
+      "department": "Endocrinology",
+      "encounter": "ENC029",
+      "preview": "Patient presents for cough. Reports some shortness of breath with exertion, at baseline. No chest pa..."
+    },
+    {
+      "id": "NOTE041",
+      "type": "Discharge Summary",
+      "date": "2024-02-07T16:22:18.416Z",
+      "author": "Dr. Robert Kim",
+      "department": "Urology",
+      "encounter": "ENC030",
+      "preview": "Community-acquired pneumonia..."
+    },
+    {
+      "id": "NOTE042",
+      "type": "Progress Note",
+      "date": "2024-02-08T16:22:18.416Z",
+      "author": "Dr. Robert Kim",
+      "department": "Urology",
+      "encounter": "ENC030",
+      "preview": "Patient presents for leg swelling. Reports some shortness of breath with exertion, at baseline. No c..."
+    },
+    {
+      "id": "NOTE043",
+      "type": "Progress Note",
+      "date": "2024-02-09T16:22:18.416Z",
+      "author": "Dr. Robert Kim",
+      "department": "Urology",
+      "encounter": "ENC030",
+      "preview": "Patient presents for ckd management. Doing well on current regimen. Blood sugars well-controlled. No..."
+    },
+    {
+      "id": "NOTE044",
+      "type": "Progress Note",
+      "date": "2024-02-10T16:22:18.416Z",
+      "author": "Dr. Robert Kim",
+      "department": "Urology",
+      "encounter": "ENC030",
+      "preview": "Patient presents for weight gain. Presents with mild worsening of baseline symptoms. Reports increas..."
+    },
+    {
+      "id": "NOTE045",
+      "type": "Progress Note",
+      "date": "2024-02-11T16:22:18.416Z",
+      "author": "Dr. Robert Kim",
+      "department": "Urology",
+      "encounter": "ENC030",
+      "preview": "Patient presents for leg swelling. Weight stable. Following low-sodium diet. Monitoring blood pressu..."
+    },
+    {
+      "id": "NOTE046",
+      "type": "H&P",
+      "date": "2024-02-06T16:22:18.416Z",
+      "author": "Dr. James Wilson",
+      "department": "Cardiology",
+      "encounter": "ENC031",
+      "preview": "72-year-old male with history of Type 2 Diabetes Mellitus, CKD Stage 3b, HFrEF (EF 35%), and atrial ..."
+    },
+    {
+      "id": "NOTE047",
+      "type": "Progress Note",
+      "date": "2024-02-07T16:22:18.416Z",
+      "author": "Dr. James Wilson",
+      "department": "Cardiology",
+      "encounter": "ENC031",
+      "preview": "Patient presents for joint pain. Weight stable. Following low-sodium diet. Monitoring blood pressure..."
+    },
+    {
+      "id": "NOTE048",
+      "type": "Progress Note",
+      "date": "2024-02-08T16:22:18.416Z",
+      "author": "Dr. James Wilson",
+      "department": "Cardiology",
+      "encounter": "ENC031",
+      "preview": "Patient presents for urinary symptoms. Weight stable. Following low-sodium diet. Monitoring blood pr..."
+    },
+    {
+      "id": "NOTE049",
+      "type": "H&P",
+      "date": "2024-02-02T16:22:18.416Z",
+      "author": "Dr. David Park",
+      "department": "Pulmonology",
+      "encounter": "ENC032",
+      "preview": "72-year-old male with history of Type 2 Diabetes Mellitus, CKD Stage 3b, HFrEF (EF 35%), and atrial ..."
+    },
+    {
+      "id": "NOTE050",
+      "type": "Progress Note",
+      "date": "2024-01-12T16:22:18.416Z",
+      "author": "Dr. Robert Kim",
+      "department": "Urology",
+      "encounter": "ENC033",
+      "preview": "Patient presents for back pain. Weight stable. Following low-sodium diet. Monitoring blood pressure ..."
+    },
+    {
+      "id": "NOTE051",
+      "type": "Progress Note",
+      "date": "2023-12-16T16:22:18.416Z",
+      "author": "Dr. Emily Brown",
+      "department": "Emergency Medicine",
+      "encounter": "ENC034",
+      "preview": "Patient presents for annual wellness visit. Presents with mild worsening of baseline symptoms. Repor..."
+    },
+    {
+      "id": "NOTE052",
+      "type": "H&P",
+      "date": "2023-11-26T16:22:18.416Z",
+      "author": "Dr. Lisa Martinez",
+      "department": "Endocrinology",
+      "encounter": "ENC035",
+      "preview": "72-year-old male with history of Type 2 Diabetes Mellitus, CKD Stage 3b, HFrEF (EF 35%), and atrial ..."
+    },
+    {
+      "id": "NOTE053",
+      "type": "Progress Note",
+      "date": "2023-11-05T16:22:18.416Z",
+      "author": "Dr. Robert Kim",
+      "department": "Urology",
+      "encounter": "ENC036",
+      "preview": "Patient presents for diabetes follow-up. Doing well on current regimen. Blood sugars well-controlled..."
+    },
+    {
+      "id": "NOTE054",
+      "type": "Progress Note",
+      "date": "2023-10-22T15:22:18.416Z",
+      "author": "Dr. Patricia Lee",
+      "department": "Radiology",
+      "encounter": "ENC037",
+      "preview": "Patient presents for blood pressure check. Reports overall stable condition since last visit. Compli..."
+    },
+    {
+      "id": "NOTE055",
+      "type": "H&P",
+      "date": "2023-09-29T15:22:18.416Z",
+      "author": "Dr. Lisa Martinez",
+      "department": "Endocrinology",
+      "encounter": "ENC038",
+      "preview": "72-year-old male with history of Type 2 Diabetes Mellitus, CKD Stage 3b, HFrEF (EF 35%), and atrial ..."
+    },
+    {
+      "id": "NOTE056",
+      "type": "H&P",
+      "date": "2023-09-02T15:22:18.416Z",
+      "author": "Dr. Patricia Lee",
+      "department": "Radiology",
+      "encounter": "ENC039",
+      "preview": "72-year-old male with history of Type 2 Diabetes Mellitus, CKD Stage 3b, HFrEF (EF 35%), and atrial ..."
+    },
+    {
+      "id": "NOTE057",
+      "type": "Progress Note",
+      "date": "2023-09-03T15:22:18.416Z",
+      "author": "Dr. Patricia Lee",
+      "department": "Radiology",
+      "encounter": "ENC039",
+      "preview": "Patient presents for palpitations. Reports overall stable condition since last visit. Compliant with..."
+    },
+    {
+      "id": "NOTE058",
+      "type": "Progress Note",
+      "date": "2023-09-04T15:22:18.416Z",
+      "author": "Dr. Patricia Lee",
+      "department": "Radiology",
+      "encounter": "ENC039",
+      "preview": "Patient presents for neuropathy symptoms. Weight stable. Following low-sodium diet. Monitoring blood..."
+    },
+    {
+      "id": "NOTE059",
+      "type": "Progress Note",
+      "date": "2023-08-30T15:22:18.416Z",
+      "author": "Dr. Jennifer Adams",
+      "department": "Internal Medicine",
+      "encounter": "ENC040",
+      "preview": "Patient presents for blood pressure check. Weight stable. Following low-sodium diet. Monitoring bloo..."
+    },
+    {
+      "id": "NOTE060",
+      "type": "Telephone Encounter",
+      "date": "2023-08-19T15:22:18.416Z",
+      "author": "Dr. Emily Brown",
+      "department": "Emergency Medicine",
+      "encounter": "ENC041",
+      "preview": "Patient called regarding lab results.\n\nPatient requesting refill of maintenance medications. Verifie..."
+    },
+    {
+      "id": "NOTE061",
+      "type": "Progress Note",
+      "date": "2023-07-05T15:22:18.416Z",
+      "author": "Dr. Sarah Chen",
+      "department": "Primary Care",
+      "encounter": "ENC042",
+      "preview": "Patient presents for urinary symptoms. Reports some shortness of breath with exertion, at baseline. ..."
+    },
+    {
+      "id": "NOTE062",
+      "type": "Progress Note",
+      "date": "2023-07-06T15:22:18.416Z",
+      "author": "Dr. Sarah Chen",
+      "department": "Primary Care",
+      "encounter": "ENC042",
+      "preview": "Patient presents for urinary symptoms. Reports overall stable condition since last visit. Compliant ..."
+    },
+    {
+      "id": "NOTE063",
+      "type": "Progress Note",
+      "date": "2023-07-07T15:22:18.416Z",
+      "author": "Dr. Sarah Chen",
+      "department": "Primary Care",
+      "encounter": "ENC042",
+      "preview": "Patient presents for urinary symptoms. Doing well on current regimen. Blood sugars well-controlled. ..."
+    },
+    {
+      "id": "NOTE064",
+      "type": "Progress Note",
+      "date": "2023-07-08T15:22:18.416Z",
+      "author": "Dr. Sarah Chen",
+      "department": "Primary Care",
+      "encounter": "ENC042",
+      "preview": "Patient presents for shortness of breath. Weight stable. Following low-sodium diet. Monitoring blood..."
+    },
+    {
+      "id": "NOTE065",
+      "type": "Progress Note",
+      "date": "2023-07-09T15:22:18.416Z",
+      "author": "Dr. Sarah Chen",
+      "department": "Primary Care",
+      "encounter": "ENC042",
+      "preview": "Patient presents for ckd management. Weight stable. Following low-sodium diet. Monitoring blood pres..."
+    },
+    {
+      "id": "NOTE066",
+      "type": "Progress Note",
+      "date": "2023-07-01T15:22:18.416Z",
+      "author": "Dr. Robert Kim",
+      "department": "Urology",
+      "encounter": "ENC043",
+      "preview": "Patient presents for joint pain. Reports some shortness of breath with exertion, at baseline. No che..."
+    },
+    {
+      "id": "NOTE067",
+      "type": "Progress Note",
+      "date": "2023-05-30T15:22:18.416Z",
+      "author": "Dr. Jennifer Adams",
+      "department": "Internal Medicine",
+      "encounter": "ENC044",
+      "preview": "Patient presents for weight gain. Reports some shortness of breath with exertion, at baseline. No ch..."
+    },
+    {
+      "id": "NOTE068",
+      "type": "Progress Note",
+      "date": "2023-05-07T15:22:18.416Z",
+      "author": "Dr. William Thompson",
+      "department": "Gastroenterology",
+      "encounter": "ENC045",
+      "preview": "Patient presents for shortness of breath. Weight stable. Following low-sodium diet. Monitoring blood..."
+    },
+    {
+      "id": "NOTE069",
+      "type": "Telephone Encounter",
+      "date": "2023-04-21T15:22:18.416Z",
+      "author": "Dr. James Wilson",
+      "department": "Cardiology",
+      "encounter": "ENC046",
+      "preview": "Patient called regarding appointment scheduling.\n\nPharmacy called regarding prior authorization for ..."
+    },
+    {
+      "id": "NOTE070",
+      "type": "Progress Note",
+      "date": "2023-03-31T15:22:18.416Z",
+      "author": "Dr. Robert Kim",
+      "department": "Urology",
+      "encounter": "ENC047",
+      "preview": "Patient presents for annual wellness visit. Reports overall stable condition since last visit. Compl..."
+    },
+    {
+      "id": "NOTE071",
+      "type": "Progress Note",
+      "date": "2023-03-12T15:22:18.416Z",
+      "author": "Dr. William Thompson",
+      "department": "Gastroenterology",
+      "encounter": "ENC048",
+      "preview": "Patient presents for leg swelling. Weight stable. Following low-sodium diet. Monitoring blood pressu..."
+    },
+    {
+      "id": "NOTE072",
+      "type": "H&P",
+      "date": "2023-01-31T16:22:18.416Z",
+      "author": "Dr. James Wilson",
+      "department": "Cardiology",
+      "encounter": "ENC049",
+      "preview": "72-year-old male with history of Type 2 Diabetes Mellitus, CKD Stage 3b, HFrEF (EF 35%), and atrial ..."
+    },
+    {
+      "id": "NOTE073",
+      "type": "Progress Note",
+      "date": "2023-01-10T16:22:18.416Z",
+      "author": "Dr. David Park",
+      "department": "Pulmonology",
+      "encounter": "ENC050",
+      "preview": "Patient presents for routine follow-up. Weight stable. Following low-sodium diet. Monitoring blood p..."
+    },
+    {
+      "id": "NOTE074",
+      "type": "Progress Note",
+      "date": "2022-12-16T16:22:18.416Z",
+      "author": "Dr. Sarah Chen",
+      "department": "Primary Care",
+      "encounter": "ENC051",
+      "preview": "Patient presents for heart failure follow-up. Doing well on current regimen. Blood sugars well-contr..."
+    },
+    {
+      "id": "NOTE075",
+      "type": "Progress Note",
+      "date": "2022-11-25T16:22:18.416Z",
+      "author": "Dr. William Thompson",
+      "department": "Gastroenterology",
+      "encounter": "ENC052",
+      "preview": "Patient presents for fatigue. Doing well on current regimen. Blood sugars well-controlled. No hypogl..."
+    },
+    {
+      "id": "NOTE076",
+      "type": "Progress Note",
+      "date": "2022-11-10T16:22:18.416Z",
+      "author": "Dr. James Wilson",
+      "department": "Cardiology",
+      "encounter": "ENC053",
+      "preview": "Patient presents for annual wellness visit. Reports some shortness of breath with exertion, at basel..."
+    },
+    {
+      "id": "NOTE077",
+      "type": "H&P",
+      "date": "2022-10-01T15:22:18.416Z",
+      "author": "Dr. David Park",
+      "department": "Pulmonology",
+      "encounter": "ENC054",
+      "preview": "72-year-old male with history of Type 2 Diabetes Mellitus, CKD Stage 3b, HFrEF (EF 35%), and atrial ..."
+    },
+    {
+      "id": "NOTE078",
+      "type": "Progress Note",
+      "date": "2022-08-26T15:22:18.416Z",
+      "author": "Dr. Michael Torres",
+      "department": "Nephrology",
+      "encounter": "ENC055",
+      "preview": "Patient presents for palpitations. Presents with mild worsening of baseline symptoms. Reports increa..."
+    },
+    {
+      "id": "NOTE079",
+      "type": "Progress Note",
+      "date": "2022-07-15T15:22:18.416Z",
+      "author": "Dr. Patricia Lee",
+      "department": "Radiology",
+      "encounter": "ENC056",
+      "preview": "Patient presents for fatigue. Presents with mild worsening of baseline symptoms. Reports increased f..."
+    },
+    {
+      "id": "NOTE080",
+      "type": "Progress Note",
+      "date": "2022-06-25T15:22:18.416Z",
+      "author": "Dr. Emily Brown",
+      "department": "Emergency Medicine",
+      "encounter": "ENC057",
+      "preview": "Patient presents for neuropathy symptoms. Reports overall stable condition since last visit. Complia..."
+    },
+    {
+      "id": "NOTE081",
+      "type": "Progress Note",
+      "date": "2022-05-27T15:22:18.416Z",
+      "author": "Dr. Jennifer Adams",
+      "department": "Internal Medicine",
+      "encounter": "ENC058",
+      "preview": "Patient presents for blood pressure check. Reports overall stable condition since last visit. Compli..."
+    },
+    {
+      "id": "NOTE082",
+      "type": "Progress Note",
+      "date": "2022-05-20T15:22:18.416Z",
+      "author": "Dr. Lisa Martinez",
+      "department": "Endocrinology",
+      "encounter": "ENC059",
+      "preview": "Patient presents for shortness of breath. Reports some shortness of breath with exertion, at baselin..."
+    },
+    {
+      "id": "NOTE083",
+      "type": "Progress Note",
+      "date": "2022-05-06T15:22:18.416Z",
+      "author": "Dr. William Thompson",
+      "department": "Gastroenterology",
+      "encounter": "ENC060",
+      "preview": "Patient presents for back pain. Reports overall stable condition since last visit. Compliant with me..."
+    },
+    {
+      "id": "NOTE084",
+      "type": "H&P",
+      "date": "2022-04-16T15:22:18.416Z",
+      "author": "Dr. Michael Torres",
+      "department": "Nephrology",
+      "encounter": "ENC061",
+      "preview": "72-year-old male with history of Type 2 Diabetes Mellitus, CKD Stage 3b, HFrEF (EF 35%), and atrial ..."
+    },
+    {
+      "id": "NOTE085",
+      "type": "H&P",
+      "date": "2022-03-14T15:22:18.416Z",
+      "author": "Dr. Sarah Chen",
+      "department": "Primary Care",
+      "encounter": "ENC062",
+      "preview": "72-year-old male with history of Type 2 Diabetes Mellitus, CKD Stage 3b, HFrEF (EF 35%), and atrial ..."
+    },
+    {
+      "id": "NOTE086",
+      "type": "Telephone Encounter",
+      "date": "2022-02-15T16:22:18.416Z",
+      "author": "Dr. David Park",
+      "department": "Pulmonology",
+      "encounter": "ENC063",
+      "preview": "Patient called regarding medication question.\n\nPharmacy called regarding prior authorization for med..."
+    },
+    {
+      "id": "NOTE087",
+      "type": "Discharge Summary",
+      "date": "2022-01-16T16:22:18.416Z",
+      "author": "Dr. Patricia Lee",
+      "department": "Radiology",
+      "encounter": "ENC064",
+      "preview": "1. Type 2 Diabetes Mellitus\n2. Chronic Kidney Disease Stage 3b\n3. Heart Failure with Reduced EF\n4. A..."
+    },
+    {
+      "id": "NOTE088",
+      "type": "Progress Note",
+      "date": "2022-01-15T16:22:18.416Z",
+      "author": "Dr. Michael Torres",
+      "department": "Nephrology",
+      "encounter": "ENC065",
+      "preview": "Patient presents for joint pain. Weight stable. Following low-sodium diet. Monitoring blood pressure..."
+    },
+    {
+      "id": "NOTE089",
+      "type": "H&P",
+      "date": "2021-12-24T16:22:18.416Z",
+      "author": "Dr. Michael Torres",
+      "department": "Nephrology",
+      "encounter": "ENC066",
+      "preview": "72-year-old male with history of Type 2 Diabetes Mellitus, CKD Stage 3b, HFrEF (EF 35%), and atrial ..."
+    },
+    {
+      "id": "NOTE090",
+      "type": "H&P",
+      "date": "2021-11-19T16:22:18.416Z",
+      "author": "Dr. Patricia Lee",
+      "department": "Radiology",
+      "encounter": "ENC067",
+      "preview": "72-year-old male with history of Type 2 Diabetes Mellitus, CKD Stage 3b, HFrEF (EF 35%), and atrial ..."
+    },
+    {
+      "id": "NOTE091",
+      "type": "H&P",
+      "date": "2021-11-14T16:22:18.416Z",
+      "author": "Dr. William Thompson",
+      "department": "Gastroenterology",
+      "encounter": "ENC068",
+      "preview": "72-year-old male with history of Type 2 Diabetes Mellitus, CKD Stage 3b, HFrEF (EF 35%), and atrial ..."
+    },
+    {
+      "id": "NOTE092",
+      "type": "Progress Note",
+      "date": "2021-11-12T16:22:18.416Z",
+      "author": "Dr. Jennifer Adams",
+      "department": "Internal Medicine",
+      "encounter": "ENC069",
+      "preview": "Patient presents for palpitations. Doing well on current regimen. Blood sugars well-controlled. No h..."
+    },
+    {
+      "id": "NOTE093",
+      "type": "Telephone Encounter",
+      "date": "2021-10-30T15:22:18.416Z",
+      "author": "Dr. Jennifer Adams",
+      "department": "Internal Medicine",
+      "encounter": "ENC070",
+      "preview": "Patient called regarding symptom update.\n\nPatient reports mild increase in leg swelling. Advised to ..."
+    },
+    {
+      "id": "NOTE094",
+      "type": "Progress Note",
+      "date": "2021-09-24T15:22:18.416Z",
+      "author": "Dr. Emily Brown",
+      "department": "Emergency Medicine",
+      "encounter": "ENC071",
+      "preview": "Patient presents for urinary symptoms. Reports some shortness of breath with exertion, at baseline. ..."
+    },
+    {
+      "id": "NOTE095",
+      "type": "Progress Note",
+      "date": "2021-08-20T15:22:18.416Z",
+      "author": "Dr. Robert Kim",
+      "department": "Urology",
+      "encounter": "ENC072",
+      "preview": "Patient presents for lab review. Doing well on current regimen. Blood sugars well-controlled. No hyp..."
+    },
+    {
+      "id": "NOTE096",
+      "type": "Telephone Encounter",
+      "date": "2021-07-15T15:22:18.416Z",
+      "author": "Dr. Michael Torres",
+      "department": "Nephrology",
+      "encounter": "ENC073",
+      "preview": "Patient called regarding medication question.\n\nPatient reports mild increase in leg swelling. Advise..."
+    },
+    {
+      "id": "NOTE097",
+      "type": "Progress Note",
+      "date": "2021-06-01T15:22:18.416Z",
+      "author": "Dr. David Park",
+      "department": "Pulmonology",
+      "encounter": "ENC074",
+      "preview": "Patient presents for lab review. Weight stable. Following low-sodium diet. Monitoring blood pressure..."
+    },
+    {
+      "id": "NOTE098",
+      "type": "Progress Note",
+      "date": "2021-05-16T15:22:18.416Z",
+      "author": "Dr. Patricia Lee",
+      "department": "Radiology",
+      "encounter": "ENC075",
+      "preview": "Patient presents for medication refills. Weight stable. Following low-sodium diet. Monitoring blood ..."
+    },
+    {
+      "id": "NOTE099",
+      "type": "Progress Note",
+      "date": "2021-04-08T15:22:18.416Z",
+      "author": "Dr. Robert Kim",
+      "department": "Urology",
+      "encounter": "ENC076",
+      "preview": "Patient presents for heart failure follow-up. Doing well on current regimen. Blood sugars well-contr..."
+    },
+    {
+      "id": "NOTE100",
+      "type": "Telephone Encounter",
+      "date": "2021-03-14T15:22:18.416Z",
+      "author": "Dr. Jennifer Adams",
+      "department": "Internal Medicine",
+      "encounter": "ENC077",
+      "preview": "Patient called regarding appointment scheduling.\n\nPatient reports mild increase in leg swelling. Adv..."
+    },
+    {
+      "id": "NOTE101",
+      "type": "Progress Note",
+      "date": "2021-01-31T16:22:18.416Z",
+      "author": "Dr. Sarah Chen",
+      "department": "Primary Care",
+      "encounter": "ENC078",
+      "preview": "Patient presents for medication refills. Reports some shortness of breath with exertion, at baseline..."
+    },
+    {
+      "id": "NOTE102",
+      "type": "H&P",
+      "date": "2021-01-10T16:22:18.416Z",
+      "author": "Dr. Emily Brown",
+      "department": "Emergency Medicine",
+      "encounter": "ENC079",
+      "preview": "72-year-old male with history of Type 2 Diabetes Mellitus, CKD Stage 3b, HFrEF (EF 35%), and atrial ..."
+    },
+    {
+      "id": "NOTE103",
+      "type": "Telephone Encounter",
+      "date": "2021-01-05T16:22:18.416Z",
+      "author": "Dr. Robert Kim",
+      "department": "Urology",
+      "encounter": "ENC080",
+      "preview": "Patient called regarding lab results.\n\nPatient asking about lab results. Reviewed recent values - st..."
+    }
+  ]
+}

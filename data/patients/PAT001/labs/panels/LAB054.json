@@ -1,0 +1,66 @@
+{
+  "id": "LAB054",
+  "name": "Complete Blood Count",
+  "collectedDate": "2020-01-25T16:22:18.416Z",
+  "receivedDate": "2020-01-25T16:52:18.416Z",
+  "reportedDate": "2020-01-25T17:52:18.416Z",
+  "orderedBy": "Dr. David Park",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "WBC",
+      "value": 8.8,
+      "unit": "K/uL",
+      "referenceRange": "4.5-11.0"
+    },
+    {
+      "name": "RBC",
+      "value": 4.45,
+      "unit": "M/uL",
+      "referenceRange": "4.5-5.5"
+    },
+    {
+      "name": "Hemoglobin",
+      "value": 9.6,
+      "unit": "g/dL",
+      "referenceRange": "12.0-17.5"
+    },
+    {
+      "name": "Hematocrit",
+      "value": 44,
+      "unit": "%",
+      "referenceRange": "36-50"
+    },
+    {
+      "name": "MCV",
+      "value": 87.6,
+      "unit": "fL",
+      "referenceRange": "80-100"
+    },
+    {
+      "name": "MCH",
+      "value": 33.6,
+      "unit": "pg",
+      "referenceRange": "27-33"
+    },
+    {
+      "name": "MCHC",
+      "value": 33.9,
+      "unit": "g/dL",
+      "referenceRange": "32-36"
+    },
+    {
+      "name": "RDW",
+      "value": 15.1,
+      "unit": "%",
+      "referenceRange": "11.5-14.5"
+    },
+    {
+      "name": "Platelets",
+      "value": 204,
+      "unit": "K/uL",
+      "referenceRange": "150-400"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "id": "NOTE062",
+  "type": "Progress Note",
+  "date": "2023-07-06T15:22:18.416Z",
+  "author": "Dr. Sarah Chen",
+  "department": "Primary Care",
+  "encounter": "ENC042",
+  "chiefComplaint": "Urinary symptoms",
+  "hpi": "Patient presents for urinary symptoms. Reports overall stable condition since last visit. Compliant with medications. No new symptoms.",
+  "reviewOfSystems": {
+    "Constitutional": "Weight stable",
+    "Cardiovascular": "Dyspnea on exertion at baseline",
+    "Respiratory": "No cough or wheezing",
+    "GI": "Appetite fair",
+    "GU": "No hematuria",
+    "Neurologic": "Baseline neuropathy"
+  },
+  "vitals": {
+    "bp": "139/84 mmHg",
+    "hr": "66 bpm",
+    "rr": "14/min",
+    "temp": "98.1°F",
+    "spo2": "94% RA",
+    "weight": "100.6 kg"
+  },
+  "physicalExam": {
+    "General": "Alert, oriented, no acute distress",
+    "HEENT": "Normocephalic, PERRL, oropharynx clear",
+    "Cardiovascular": "Irregularly irregular, no murmurs, JVP not elevated",
+    "Respiratory": "Mild crackles at bases",
+    "Abdomen": "Soft, non-tender, non-distended",
+    "Extremities": "1+ pedal edema bilaterally",
+    "Neurologic": "Alert and oriented, decreased sensation bilateral feet"
+  },
+  "assessment": [
+    {
+      "diagnosis": "Type 2 Diabetes Mellitus",
+      "icd10": "E11.65",
+      "notes": "HbA1c 7.8%. On insulin and metformin."
+    },
+    {
+      "diagnosis": "Chronic Kidney Disease Stage 3b",
+      "icd10": "N18.32",
+      "notes": "eGFR 41. Stable."
+    },
+    {
+      "diagnosis": "Heart Failure with Reduced EF",
+      "icd10": "I50.22",
+      "notes": "NYHA Class II. On GDMT."
+    }
+  ],
+  "plan": [
+    {
+      "problem": "Diabetes",
+      "action": "Continue current regimen. Recheck HbA1c in 3 months."
+    },
+    {
+      "problem": "CKD",
+      "action": "Monitor renal function. Avoid nephrotoxins."
+    },
+    {
+      "problem": "Heart Failure",
+      "action": "Continue GDMT. Daily weights. Low sodium diet."
+    },
+    {
+      "problem": "Atrial Fibrillation",
+      "action": "Continue anticoagulation. Rate control adequate."
+    },
+    {
+      "problem": "Follow-up",
+      "action": "Return in 9 weeks or sooner if needed."
+    }
+  ],
+  "attestation": "I personally saw and examined the patient. I agree with the documented findings and plan.\n\nElectronically signed by: Dr. Sarah Chen\nDate: 7/6/2023"
+}

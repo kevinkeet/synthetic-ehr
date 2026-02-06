@@ -1,0 +1,18 @@
+{
+  "id": "LAB065",
+  "name": "Hemoglobin A1c",
+  "collectedDate": "2020-03-18T15:22:18.416Z",
+  "receivedDate": "2020-03-18T15:52:18.416Z",
+  "reportedDate": "2020-03-18T16:52:18.416Z",
+  "orderedBy": "Dr. William Thompson",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "HbA1c",
+      "value": 6.94,
+      "unit": "%",
+      "referenceRange": "4.0-5.6"
+    }
+  ]
+}

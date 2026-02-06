@@ -1,0 +1,10 @@
+{
+  "id": "NOTE024",
+  "type": "Telephone Encounter",
+  "date": "2025-02-01T16:22:18.416Z",
+  "author": "Dr. Robert Kim",
+  "department": "Urology",
+  "encounter": "ENC017",
+  "content": "Patient called regarding prescription refill.\n\nPatient reports mild increase in leg swelling. Advised to elevate legs, monitor weight, call if worsens.\n\nPlan: Continue current management.",
+  "attestation": "Telephone encounter documented.\n\nElectronically signed by: Dr. Robert Kim\nDate: 2/1/2025"
+}

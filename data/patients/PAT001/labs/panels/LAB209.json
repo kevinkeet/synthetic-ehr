@@ -1,0 +1,42 @@
+{
+  "id": "LAB209",
+  "name": "Lipid Panel",
+  "collectedDate": "2025-10-26T15:22:18.416Z",
+  "receivedDate": "2025-10-26T15:52:18.416Z",
+  "reportedDate": "2025-10-26T16:52:18.416Z",
+  "orderedBy": "Dr. Sarah Chen",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "Total Cholesterol",
+      "value": 164,
+      "unit": "mg/dL",
+      "referenceRange": "<200"
+    },
+    {
+      "name": "LDL",
+      "value": 55.1,
+      "unit": "mg/dL",
+      "referenceRange": "<100"
+    },
+    {
+      "name": "HDL",
+      "value": 48.9,
+      "unit": "mg/dL",
+      "referenceRange": ">40"
+    },
+    {
+      "name": "Triglycerides",
+      "value": 172,
+      "unit": "mg/dL",
+      "referenceRange": "<150"
+    },
+    {
+      "name": "VLDL",
+      "value": 24.9,
+      "unit": "mg/dL",
+      "referenceRange": "<30"
+    }
+  ]
+}

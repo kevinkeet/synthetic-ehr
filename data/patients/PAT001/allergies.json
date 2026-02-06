@@ -1,0 +1,57 @@
+{
+  "allergies": [
+    {
+      "id": "ALG001",
+      "substance": "Penicillin",
+      "type": "Drug",
+      "category": "Antibiotic",
+      "reaction": "Anaphylaxis",
+      "severity": "Severe",
+      "onsetDate": "1985-06-20",
+      "source": "Patient reported",
+      "verifiedBy": "Dr. Sarah Chen",
+      "verifiedDate": "2016-02-20",
+      "notes": "Patient had anaphylactic reaction requiring epinephrine in 1985"
+    },
+    {
+      "id": "ALG002",
+      "substance": "Sulfa drugs",
+      "type": "Drug",
+      "category": "Antibiotic",
+      "reaction": "Rash, hives",
+      "severity": "Moderate",
+      "onsetDate": "1992-03-10",
+      "source": "Patient reported",
+      "verifiedBy": "Dr. Sarah Chen",
+      "verifiedDate": "2016-02-20",
+      "notes": "Developed generalized rash with Bactrim"
+    },
+    {
+      "id": "ALG003",
+      "substance": "Lisinopril",
+      "type": "Drug",
+      "category": "ACE Inhibitor",
+      "reaction": "Angioedema",
+      "severity": "Severe",
+      "onsetDate": "2018-08-15",
+      "source": "Clinical observation",
+      "verifiedBy": "Dr. James Wilson",
+      "verifiedDate": "2018-08-15",
+      "notes": "Lip and tongue swelling within 2 weeks of starting medication. Switched to ARB."
+    },
+    {
+      "id": "ALG004",
+      "substance": "Shellfish",
+      "type": "Food",
+      "category": "Seafood",
+      "reaction": "Hives, GI upset",
+      "severity": "Moderate",
+      "onsetDate": "1970-01-01",
+      "source": "Patient reported",
+      "notes": "Childhood onset, avoids all shellfish"
+    }
+  ],
+  "nkda": false,
+  "lastReviewed": "2024-01-10",
+  "reviewedBy": "Dr. Sarah Chen"
+}

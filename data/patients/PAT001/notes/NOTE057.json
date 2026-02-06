@@ -1,0 +1,75 @@
+{
+  "id": "NOTE057",
+  "type": "Progress Note",
+  "date": "2023-09-03T15:22:18.416Z",
+  "author": "Dr. Patricia Lee",
+  "department": "Radiology",
+  "encounter": "ENC039",
+  "chiefComplaint": "Palpitations",
+  "hpi": "Patient presents for palpitations. Reports overall stable condition since last visit. Compliant with medications. No new symptoms.",
+  "reviewOfSystems": {
+    "Constitutional": "Weight stable",
+    "Cardiovascular": "No orthopnea",
+    "Respiratory": "No cough or wheezing",
+    "GI": "Regular bowel movements",
+    "GU": "No dysuria",
+    "Neurologic": "No new weakness"
+  },
+  "vitals": {
+    "bp": "143/88 mmHg",
+    "hr": "83 bpm",
+    "rr": "16/min",
+    "temp": "98.9°F",
+    "spo2": "97% RA",
+    "weight": "97.0 kg"
+  },
+  "physicalExam": {
+    "General": "Mildly fatigued-appearing",
+    "HEENT": "Normocephalic, PERRL, oropharynx clear",
+    "Cardiovascular": "Regular rate and rhythm, no murmurs",
+    "Respiratory": "Mild crackles at bases",
+    "Abdomen": "Soft, non-tender, non-distended",
+    "Extremities": "1+ pedal edema bilaterally",
+    "Neurologic": "Alert and oriented, decreased sensation bilateral feet"
+  },
+  "assessment": [
+    {
+      "diagnosis": "Type 2 Diabetes Mellitus",
+      "icd10": "E11.65",
+      "notes": "HbA1c 7.2%. On insulin and metformin."
+    },
+    {
+      "diagnosis": "Chronic Kidney Disease Stage 3b",
+      "icd10": "N18.32",
+      "notes": "eGFR 37. Stable."
+    },
+    {
+      "diagnosis": "Heart Failure with Reduced EF",
+      "icd10": "I50.22",
+      "notes": "NYHA Class II. On GDMT."
+    }
+  ],
+  "plan": [
+    {
+      "problem": "Diabetes",
+      "action": "Continue current regimen. Recheck HbA1c in 3 months."
+    },
+    {
+      "problem": "CKD",
+      "action": "Monitor renal function. Avoid nephrotoxins."
+    },
+    {
+      "problem": "Heart Failure",
+      "action": "Continue GDMT. Daily weights. Low sodium diet."
+    },
+    {
+      "problem": "Atrial Fibrillation",
+      "action": "Continue anticoagulation. Rate control adequate."
+    },
+    {
+      "problem": "Follow-up",
+      "action": "Return in 9 weeks or sooner if needed."
+    }
+  ],
+  "attestation": "I personally saw and examined the patient. I agree with the documented findings and plan.\n\nElectronically signed by: Dr. Patricia Lee\nDate: 9/3/2023"
+}

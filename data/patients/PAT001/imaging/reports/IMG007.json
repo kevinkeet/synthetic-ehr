@@ -1,0 +1,48 @@
+{
+  "id": "IMG007",
+  "date": "2021-07-31T16:58:33.604Z",
+  "modality": "MRI",
+  "description": "MRI Brain with/without Contrast",
+  "facility": "Springfield Medical Center",
+  "status": "Final",
+  "radiologist": "Dr. Susan Miller",
+  "orderingProvider": "Dr. Sarah Chen",
+  "indication": "Atrial fibrillation, anticoagulation therapy, evaluate for silent cerebral infarcts",
+  "technique": "Multiplanar, multisequence MRI of the brain was performed before and after the administration of 15 mL Gadavist IV contrast. Sequences include axial T1, T2, FLAIR, DWI, SWI, sagittal T1, and post-contrast axial and coronal T1.",
+  "contrast": {
+    "type": "Gadavist (gadobutrol)",
+    "volume": "15 mL",
+    "route": "IV"
+  },
+  "findings": {
+    "parenchyma": {
+      "grayMatter": "Normal cortical gray matter signal and thickness.",
+      "whiteMatted": "Moderate periventricular and subcortical white matter T2/FLAIR hyperintensities consistent with chronic microvascular ischemic changes. Fazekas grade 2.",
+      "acuteInfarct": "No acute infarct on DWI. No restricted diffusion identified.",
+      "chronicInfarcts": "Small chronic lacunar infarcts in the left basal ganglia (5 mm) and right centrum semiovale (4 mm)."
+    },
+    "ventricles": "Mild ventriculomegaly, likely ex vacuo changes. No hydrocephalus.",
+    "extraAxial": "No extra-axial collections. No subdural or epidural hematoma.",
+    "enhancement": "No abnormal parenchymal enhancement.",
+    "vessels": {
+      "mra": "Not performed on this study.",
+      "flowVoids": "Normal flow voids in the major intracranial arteries."
+    },
+    "posteriorFossa": "Cerebellum and brainstem are unremarkable.",
+    "skull": "No suspicious osseous lesions.",
+    "sinuses": "Mucosal thickening in the maxillary sinuses bilaterally, consistent with chronic sinusitis.",
+    "orbits": "Unremarkable."
+  },
+  "impression": [
+    "Moderate chronic microvascular ischemic white matter changes (Fazekas grade 2).",
+    "Chronic lacunar infarcts in the left basal ganglia and right centrum semiovale, likely related to underlying hypertension and atrial fibrillation.",
+    "No acute infarct or intracranial hemorrhage.",
+    "Mild generalized volume loss appropriate for age.",
+    "Chronic sinusitis."
+  ],
+  "recommendations": [
+    "Continue anticoagulation for stroke prevention in atrial fibrillation",
+    "Optimize cardiovascular risk factor management"
+  ],
+  "comparison": "No prior brain MRI available for comparison."
+}

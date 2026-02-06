@@ -1,0 +1,85 @@
+{
+  "id": "NOTE102",
+  "type": "H&P",
+  "date": "2021-01-10T16:22:18.416Z",
+  "author": "Dr. Emily Brown",
+  "department": "Emergency Medicine",
+  "encounter": "ENC079",
+  "chiefComplaint": "Chest pain",
+  "hpi": "72-year-old male with history of Type 2 Diabetes Mellitus, CKD Stage 3b, HFrEF (EF 35%), and atrial fibrillation who presents with increased leg swelling over the past 4 days.\n\nPatient reports gradual onset of symptoms. Occurs at rest. Denies chest pain. Some dry cough present.\n\nPatient has been compliant with medications. Following low-sodium diet. Last cardiology visit was 2 months ago.",
+  "pastMedicalHistory": "1. Type 2 Diabetes Mellitus with neuropathy (diagnosed 2010)\n2. Chronic Kidney Disease Stage 3b (diagnosed 2018)\n3. Heart Failure with Reduced Ejection Fraction, EF 35% (diagnosed 2019)\n4. Atrial Fibrillation, persistent (diagnosed 2017)\n5. Hypertension (diagnosed 2005)\n6. Hyperlipidemia (diagnosed 2008)\n7. Benign Prostatic Hyperplasia (diagnosed 2016)\n8. History of pneumonia (2021)",
+  "medications": "See medication list in chart.",
+  "allergies": "Penicillin (anaphylaxis), Sulfa drugs (rash), Lisinopril (angioedema), Shellfish (hives)",
+  "socialHistory": "Former smoker (quit 1995, 20 pack-year history). Rare alcohol use. Retired accountant. Lives with wife.",
+  "familyHistory": "Father: MI at 62, HTN. Mother: T2DM. Brother: HTN.",
+  "reviewOfSystems": {
+    "Constitutional": "Reports fatigue",
+    "Cardiovascular": "No orthopnea",
+    "Respiratory": "No hemoptysis",
+    "GI": "Regular bowel movements",
+    "GU": "No dysuria",
+    "Neurologic": "Baseline neuropathy"
+  },
+  "vitals": {
+    "bp": "140/79 mmHg",
+    "hr": "67 bpm",
+    "rr": "16/min",
+    "temp": "97.9°F",
+    "spo2": "97% RA",
+    "weight": "100.0 kg"
+  },
+  "physicalExam": {
+    "General": "Mildly fatigued-appearing",
+    "HEENT": "Normocephalic, PERRL, oropharynx clear",
+    "Cardiovascular": "Irregularly irregular, no murmurs, JVP not elevated",
+    "Respiratory": "Mild crackles at bases",
+    "Abdomen": "Soft, non-tender, non-distended",
+    "Extremities": "1+ pedal edema bilaterally",
+    "Neurologic": "Alert and oriented, decreased sensation bilateral feet"
+  },
+  "assessment": [
+    {
+      "diagnosis": "Type 2 Diabetes Mellitus",
+      "icd10": "E11.65",
+      "notes": "HbA1c 8.5%. On insulin and metformin."
+    },
+    {
+      "diagnosis": "Chronic Kidney Disease Stage 3b",
+      "icd10": "N18.32",
+      "notes": "eGFR 36. Stable."
+    },
+    {
+      "diagnosis": "Heart Failure with Reduced EF",
+      "icd10": "I50.22",
+      "notes": "NYHA Class II. On GDMT."
+    },
+    {
+      "diagnosis": "Atrial Fibrillation",
+      "icd10": "I48.1",
+      "notes": "Rate controlled. On anticoagulation."
+    }
+  ],
+  "plan": [
+    {
+      "problem": "Diabetes",
+      "action": "Continue current regimen. Recheck HbA1c in 3 months."
+    },
+    {
+      "problem": "CKD",
+      "action": "Monitor renal function. Avoid nephrotoxins."
+    },
+    {
+      "problem": "Heart Failure",
+      "action": "Continue GDMT. Daily weights. Low sodium diet."
+    },
+    {
+      "problem": "Atrial Fibrillation",
+      "action": "Continue anticoagulation. Rate control adequate."
+    },
+    {
+      "problem": "Follow-up",
+      "action": "Return in 9 weeks or sooner if needed."
+    }
+  ],
+  "attestation": "I have personally evaluated this patient and agree with the documentation above.\n\nElectronically signed by: Dr. Emily Brown\nDate: 1/10/2021"
+}

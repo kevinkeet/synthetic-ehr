@@ -1,0 +1,18 @@
+{
+  "id": "LAB041",
+  "name": "Hemoglobin A1c",
+  "collectedDate": "2019-07-28T15:22:18.416Z",
+  "receivedDate": "2019-07-28T15:52:18.416Z",
+  "reportedDate": "2019-07-28T16:52:18.416Z",
+  "orderedBy": "Dr. Patricia Lee",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "HbA1c",
+      "value": 8.17,
+      "unit": "%",
+      "referenceRange": "4.0-5.6"
+    }
+  ]
+}

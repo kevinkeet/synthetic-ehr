@@ -1,0 +1,41 @@
+{
+  "id": "IMG005",
+  "date": "2024-09-24T04:43:40.136Z",
+  "modality": "CT",
+  "description": "CT Abdomen/Pelvis with Contrast",
+  "facility": "Springfield Medical Center",
+  "status": "Final",
+  "radiologist": "Dr. Susan Miller",
+  "orderingProvider": "Dr. Michael Torres",
+  "indication": "Chronic kidney disease, evaluate renal parenchyma, rule out nephrolithiasis",
+  "technique": "Helical CT of the abdomen and pelvis was performed following the administration of 100 mL Omnipaque 350 IV contrast. Oral contrast was administered prior to examination.",
+  "contrast": {
+    "type": "Omnipaque 350",
+    "volume": "100 mL",
+    "route": "IV",
+    "premedication": "None required"
+  },
+  "findings": {
+    "liver": "Normal size and attenuation. No focal hepatic lesions. No intrahepatic biliary ductal dilatation.",
+    "gallbladder": "Surgically absent. Surgical clips noted in the gallbladder fossa.",
+    "pancreas": "Unremarkable. No pancreatic ductal dilatation.",
+    "spleen": "Normal size at 11 cm. Homogeneous attenuation.",
+    "adrenals": "Bilateral adrenal glands are normal.",
+    "kidneys": "Both kidneys are small in size. Right kidney measures 9.2 cm, left kidney measures 9.0 cm. Bilateral cortical thinning consistent with chronic kidney disease. No hydronephrosis. No nephrolithiasis. No renal masses.",
+    "ureters": "Not dilated.",
+    "bladder": "Moderately distended. Wall thickness is normal. No intraluminal mass.",
+    "prostate": "Enlarged prostate measuring approximately 45 cc, consistent with benign prostatic hyperplasia.",
+    "bowel": "No evidence of obstruction. No inflammatory changes.",
+    "mesentery": "No lymphadenopathy. No free fluid.",
+    "vasculature": "Atherosclerotic calcification of the abdominal aorta. No aneurysm (aorta measures 2.1 cm).",
+    "musculoskeletal": "Degenerative changes of the lumbar spine. No suspicious osseous lesions."
+  },
+  "impression": [
+    "Bilateral small kidneys with cortical thinning, consistent with chronic kidney disease. No nephrolithiasis or hydronephrosis.",
+    "Benign prostatic hyperplasia.",
+    "Status post cholecystectomy.",
+    "Atherosclerotic disease of the abdominal aorta without aneurysm.",
+    "Degenerative lumbar spine disease."
+  ],
+  "comparison": "No prior CT abdomen available for comparison."
+}

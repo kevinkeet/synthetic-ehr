@@ -1,0 +1,49 @@
+{
+  "problems": [
+    {
+      "id": "PRB-R001",
+      "name": "Community-Acquired Pneumonia",
+      "icd10": "J18.9",
+      "onsetDate": "2021-02-10",
+      "resolvedDate": "2021-03-01",
+      "diagnosedBy": "Dr. Sarah Chen",
+      "notes": "Required hospitalization. Treated with azithromycin and ceftriaxone."
+    },
+    {
+      "id": "PRB-R002",
+      "name": "Acute Heart Failure Exacerbation",
+      "icd10": "I50.21",
+      "onsetDate": "2022-08-15",
+      "resolvedDate": "2022-08-22",
+      "diagnosedBy": "Dr. James Wilson",
+      "notes": "Admitted for volume overload. Responded to IV diuretics. Discharged on increased Lasix dose."
+    },
+    {
+      "id": "PRB-R003",
+      "name": "Hypoglycemia",
+      "icd10": "E16.2",
+      "onsetDate": "2020-06-05",
+      "resolvedDate": "2020-06-06",
+      "diagnosedBy": "Dr. Emily Brown",
+      "notes": "Blood glucose 42. Admitted for observation. Insulin regimen adjusted."
+    },
+    {
+      "id": "PRB-R004",
+      "name": "Urinary Tract Infection",
+      "icd10": "N39.0",
+      "onsetDate": "2023-04-20",
+      "resolvedDate": "2023-04-30",
+      "diagnosedBy": "Dr. Sarah Chen",
+      "notes": "E. coli. Treated with nitrofurantoin x7 days."
+    },
+    {
+      "id": "PRB-R005",
+      "name": "Gout, Left First MTP",
+      "icd10": "M10.071",
+      "onsetDate": "2019-07-10",
+      "resolvedDate": "2019-07-20",
+      "diagnosedBy": "Dr. Sarah Chen",
+      "notes": "Acute flare treated with colchicine. Started allopurinol for prophylaxis (later discontinued due to CKD)."
+    }
+  ]
+}

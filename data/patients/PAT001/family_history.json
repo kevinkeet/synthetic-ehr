@@ -1,0 +1,62 @@
+{
+  "familyHistory": [
+    {
+      "relationship": "Father",
+      "condition": "Coronary Artery Disease / Myocardial Infarction",
+      "ageAtOnset": "62",
+      "deceased": true,
+      "ageAtDeath": "70",
+      "causeOfDeath": "Stroke",
+      "notes": "Had MI at 62, died of stroke at 70"
+    },
+    {
+      "relationship": "Father",
+      "condition": "Hypertension",
+      "ageAtOnset": "50",
+      "deceased": true
+    },
+    {
+      "relationship": "Mother",
+      "condition": "Type 2 Diabetes Mellitus",
+      "ageAtOnset": "55",
+      "deceased": true,
+      "ageAtDeath": "82",
+      "causeOfDeath": "Natural causes"
+    },
+    {
+      "relationship": "Mother",
+      "condition": "Osteoarthritis",
+      "ageAtOnset": "60",
+      "deceased": true
+    },
+    {
+      "relationship": "Brother",
+      "condition": "Hypertension",
+      "ageAtOnset": "55",
+      "deceased": false,
+      "notes": "Currently 70 years old, well-controlled on medications"
+    },
+    {
+      "relationship": "Sister",
+      "condition": "Type 2 Diabetes Mellitus",
+      "ageAtOnset": "58",
+      "deceased": false,
+      "notes": "Currently 68 years old"
+    },
+    {
+      "relationship": "Daughter",
+      "condition": "None known",
+      "deceased": false,
+      "notes": "45 years old, healthy"
+    },
+    {
+      "relationship": "Son",
+      "condition": "Hyperlipidemia",
+      "ageAtOnset": "40",
+      "deceased": false,
+      "notes": "43 years old, on statin therapy"
+    }
+  ],
+  "lastUpdated": "2024-01-10",
+  "updatedBy": "Dr. Sarah Chen"
+}

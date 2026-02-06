@@ -1,0 +1,30 @@
+{
+  "id": "LAB082",
+  "name": "Coagulation Panel",
+  "collectedDate": "2020-11-27T16:22:18.416Z",
+  "receivedDate": "2020-11-27T16:52:18.416Z",
+  "reportedDate": "2020-11-27T17:52:18.416Z",
+  "orderedBy": "Dr. William Thompson",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "PT",
+      "value": 10.9,
+      "unit": "seconds",
+      "referenceRange": "11-13.5"
+    },
+    {
+      "name": "INR",
+      "value": 1.2,
+      "unit": "",
+      "referenceRange": "0.8-1.2"
+    },
+    {
+      "name": "PTT",
+      "value": 37,
+      "unit": "seconds",
+      "referenceRange": "25-35"
+    }
+  ]
+}

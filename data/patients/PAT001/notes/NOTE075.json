@@ -1,0 +1,70 @@
+{
+  "id": "NOTE075",
+  "type": "Progress Note",
+  "date": "2022-11-25T16:22:18.416Z",
+  "author": "Dr. William Thompson",
+  "department": "Gastroenterology",
+  "encounter": "ENC052",
+  "chiefComplaint": "Fatigue",
+  "hpi": "Patient presents for fatigue. Doing well on current regimen. Blood sugars well-controlled. No hypoglycemic episodes.",
+  "reviewOfSystems": {
+    "Constitutional": "No fever, chills, or weight loss",
+    "Cardiovascular": "No orthopnea",
+    "Respiratory": "No cough or wheezing",
+    "GI": "Appetite fair",
+    "GU": "No dysuria",
+    "Neurologic": "Baseline neuropathy"
+  },
+  "vitals": {
+    "bp": "137/82 mmHg",
+    "hr": "80 bpm",
+    "rr": "19/min",
+    "temp": "98.3°F",
+    "spo2": "97% RA",
+    "weight": "97.5 kg"
+  },
+  "physicalExam": {
+    "General": "Comfortable, well-appearing",
+    "HEENT": "Normocephalic, PERRL, oropharynx clear",
+    "Cardiovascular": "S1/S2 normal, mild peripheral edema",
+    "Respiratory": "Clear to auscultation bilaterally",
+    "Abdomen": "Soft, non-tender, non-distended",
+    "Extremities": "No edema, warm and well-perfused",
+    "Neurologic": "Alert and oriented, decreased sensation bilateral feet"
+  },
+  "assessment": [
+    {
+      "diagnosis": "Type 2 Diabetes Mellitus",
+      "icd10": "E11.65",
+      "notes": "HbA1c 7.3%. On insulin and metformin."
+    },
+    {
+      "diagnosis": "Chronic Kidney Disease Stage 3b",
+      "icd10": "N18.32",
+      "notes": "eGFR 40. Stable."
+    }
+  ],
+  "plan": [
+    {
+      "problem": "Diabetes",
+      "action": "Continue current regimen. Recheck HbA1c in 3 months."
+    },
+    {
+      "problem": "CKD",
+      "action": "Monitor renal function. Avoid nephrotoxins."
+    },
+    {
+      "problem": "Heart Failure",
+      "action": "Continue GDMT. Daily weights. Low sodium diet."
+    },
+    {
+      "problem": "Atrial Fibrillation",
+      "action": "Continue anticoagulation. Rate control adequate."
+    },
+    {
+      "problem": "Follow-up",
+      "action": "Return in 5 weeks or sooner if needed."
+    }
+  ],
+  "attestation": "I personally saw and examined the patient. I agree with the documented findings and plan.\n\nElectronically signed by: Dr. William Thompson\nDate: 11/25/2022"
+}

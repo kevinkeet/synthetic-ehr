@@ -1,0 +1,36 @@
+{
+  "id": "LAB028",
+  "name": "Urinalysis",
+  "collectedDate": "2018-12-26T16:22:18.416Z",
+  "receivedDate": "2018-12-26T16:52:18.416Z",
+  "reportedDate": "2018-12-26T17:52:18.416Z",
+  "orderedBy": "Dr. Lisa Martinez",
+  "status": "Final",
+  "specimen": "Urine",
+  "results": [
+    {
+      "name": "Urine pH",
+      "value": 6.59,
+      "unit": "",
+      "referenceRange": "4.5-8.0"
+    },
+    {
+      "name": "Specific Gravity",
+      "value": 1.15,
+      "unit": "",
+      "referenceRange": "1.005-1.030"
+    },
+    {
+      "name": "Urine Protein",
+      "value": 0,
+      "unit": "mg/dL",
+      "referenceRange": "Negative"
+    },
+    {
+      "name": "Urine Glucose",
+      "value": 51.8,
+      "unit": "mg/dL",
+      "referenceRange": "Negative"
+    }
+  ]
+}

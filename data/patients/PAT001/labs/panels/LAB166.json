@@ -1,0 +1,18 @@
+{
+  "id": "LAB166",
+  "name": "Vitamin D",
+  "collectedDate": "2024-01-25T16:22:18.416Z",
+  "receivedDate": "2024-01-25T16:52:18.416Z",
+  "reportedDate": "2024-01-25T17:52:18.416Z",
+  "orderedBy": "Dr. Lisa Martinez",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "Vitamin D, 25-Hydroxy",
+      "value": 21.3,
+      "unit": "ng/mL",
+      "referenceRange": "30-100"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "id": "LAB027",
+  "name": "Lipid Panel",
+  "collectedDate": "2018-11-30T16:22:18.416Z",
+  "receivedDate": "2018-11-30T16:52:18.416Z",
+  "reportedDate": "2018-11-30T17:52:18.416Z",
+  "orderedBy": "Dr. Michael Torres",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "Total Cholesterol",
+      "value": 189,
+      "unit": "mg/dL",
+      "referenceRange": "<200"
+    },
+    {
+      "name": "LDL",
+      "value": 68.8,
+      "unit": "mg/dL",
+      "referenceRange": "<100"
+    },
+    {
+      "name": "HDL",
+      "value": 34.3,
+      "unit": "mg/dL",
+      "referenceRange": ">40"
+    },
+    {
+      "name": "Triglycerides",
+      "value": 225,
+      "unit": "mg/dL",
+      "referenceRange": "<150"
+    },
+    {
+      "name": "VLDL",
+      "value": 34.5,
+      "unit": "mg/dL",
+      "referenceRange": "<30"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "id": "NOTE100",
+  "type": "Telephone Encounter",
+  "date": "2021-03-14T15:22:18.416Z",
+  "author": "Dr. Jennifer Adams",
+  "department": "Internal Medicine",
+  "encounter": "ENC077",
+  "content": "Patient called regarding appointment scheduling.\n\nPatient reports mild increase in leg swelling. Advised to elevate legs, monitor weight, call if worsens.\n\nPlan: Continue current management.",
+  "attestation": "Telephone encounter documented.\n\nElectronically signed by: Dr. Jennifer Adams\nDate: 3/14/2021"
+}

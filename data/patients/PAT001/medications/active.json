@@ -1,0 +1,149 @@
+{
+  "medications": [
+    {
+      "id": "MED001",
+      "name": "Metformin",
+      "genericName": "Metformin HCl",
+      "dose": "500 mg",
+      "route": "PO",
+      "frequency": "BID",
+      "startDate": "2010-05-01",
+      "prescriber": "Dr. Sarah Chen",
+      "indication": "Type 2 Diabetes",
+      "instructions": "Take with meals",
+      "pharmacy": "CVS Pharmacy"
+    },
+    {
+      "id": "MED002",
+      "name": "Lantus",
+      "genericName": "Insulin Glargine",
+      "dose": "24 units",
+      "route": "SubQ",
+      "frequency": "QHS",
+      "startDate": "2018-03-15",
+      "prescriber": "Dr. Sarah Chen",
+      "indication": "Type 2 Diabetes",
+      "instructions": "Inject at bedtime"
+    },
+    {
+      "id": "MED003",
+      "name": "Humalog",
+      "genericName": "Insulin Lispro",
+      "dose": "Sliding scale",
+      "route": "SubQ",
+      "frequency": "TID with meals",
+      "startDate": "2019-06-20",
+      "prescriber": "Dr. Sarah Chen",
+      "indication": "Type 2 Diabetes",
+      "instructions": "Per sliding scale before meals"
+    },
+    {
+      "id": "MED004",
+      "name": "Carvedilol",
+      "genericName": "Carvedilol",
+      "dose": "25 mg",
+      "route": "PO",
+      "frequency": "BID",
+      "startDate": "2019-12-01",
+      "prescriber": "Dr. James Wilson",
+      "indication": "Heart Failure, Atrial Fibrillation",
+      "instructions": "Take with food"
+    },
+    {
+      "id": "MED005",
+      "name": "Entresto",
+      "genericName": "Sacubitril/Valsartan",
+      "dose": "97/103 mg",
+      "route": "PO",
+      "frequency": "BID",
+      "startDate": "2020-02-15",
+      "prescriber": "Dr. James Wilson",
+      "indication": "Heart Failure",
+      "instructions": "Do not take with ACE inhibitors"
+    },
+    {
+      "id": "MED006",
+      "name": "Furosemide",
+      "genericName": "Furosemide",
+      "dose": "40 mg",
+      "route": "PO",
+      "frequency": "Daily",
+      "startDate": "2019-11-15",
+      "prescriber": "Dr. James Wilson",
+      "indication": "Heart Failure, Edema",
+      "instructions": "Take in the morning"
+    },
+    {
+      "id": "MED007",
+      "name": "Spironolactone",
+      "genericName": "Spironolactone",
+      "dose": "25 mg",
+      "route": "PO",
+      "frequency": "Daily",
+      "startDate": "2020-03-10",
+      "prescriber": "Dr. James Wilson",
+      "indication": "Heart Failure",
+      "instructions": "Monitor potassium levels"
+    },
+    {
+      "id": "MED008",
+      "name": "Eliquis",
+      "genericName": "Apixaban",
+      "dose": "5 mg",
+      "route": "PO",
+      "frequency": "BID",
+      "startDate": "2017-04-01",
+      "prescriber": "Dr. James Wilson",
+      "indication": "Atrial Fibrillation, Stroke Prevention",
+      "instructions": "Do not stop without consulting physician"
+    },
+    {
+      "id": "MED009",
+      "name": "Atorvastatin",
+      "genericName": "Atorvastatin Calcium",
+      "dose": "80 mg",
+      "route": "PO",
+      "frequency": "QHS",
+      "startDate": "2015-06-20",
+      "prescriber": "Dr. Sarah Chen",
+      "indication": "Hyperlipidemia, ASCVD Prevention"
+    },
+    {
+      "id": "MED010",
+      "name": "Gabapentin",
+      "genericName": "Gabapentin",
+      "dose": "300 mg",
+      "route": "PO",
+      "frequency": "TID",
+      "startDate": "2020-02-01",
+      "prescriber": "Dr. Sarah Chen",
+      "indication": "Diabetic Neuropathy",
+      "instructions": "May cause drowsiness"
+    },
+    {
+      "id": "MED011",
+      "name": "Tamsulosin",
+      "genericName": "Tamsulosin HCl",
+      "dose": "0.4 mg",
+      "route": "PO",
+      "frequency": "Daily",
+      "startDate": "2016-10-01",
+      "prescriber": "Dr. Robert Kim",
+      "indication": "Benign Prostatic Hyperplasia",
+      "instructions": "Take 30 minutes after same meal each day"
+    },
+    {
+      "id": "MED012",
+      "name": "Vitamin D3",
+      "genericName": "Cholecalciferol",
+      "dose": "2000 IU",
+      "route": "PO",
+      "frequency": "Daily",
+      "startDate": "2019-04-01",
+      "prescriber": "Dr. Sarah Chen",
+      "indication": "Vitamin D Deficiency"
+    }
+  ],
+  "lastReconciled": "2024-01-10",
+  "reconciledBy": "Dr. Sarah Chen"
+}

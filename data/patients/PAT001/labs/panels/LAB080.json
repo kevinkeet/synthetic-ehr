@@ -1,0 +1,18 @@
+{
+  "id": "LAB080",
+  "name": "BNP",
+  "collectedDate": "2020-11-27T16:22:18.416Z",
+  "receivedDate": "2020-11-27T16:52:18.416Z",
+  "reportedDate": "2020-11-27T17:52:18.416Z",
+  "orderedBy": "Dr. William Thompson",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "BNP",
+      "value": 493,
+      "unit": "pg/mL",
+      "referenceRange": "0-100"
+    }
+  ]
+}

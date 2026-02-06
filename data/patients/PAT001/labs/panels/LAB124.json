@@ -1,0 +1,18 @@
+{
+  "id": "LAB124",
+  "name": "Troponin",
+  "collectedDate": "2022-02-21T16:22:18.416Z",
+  "receivedDate": "2022-02-21T16:52:18.416Z",
+  "reportedDate": "2022-02-21T17:52:18.416Z",
+  "orderedBy": "Dr. James Wilson",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "Troponin I",
+      "value": 0,
+      "unit": "ng/mL",
+      "referenceRange": "<0.04"
+    }
+  ]
+}

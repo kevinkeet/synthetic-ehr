@@ -1,0 +1,229 @@
+{
+  "studies": [
+    {
+      "id": "IMG012",
+      "date": "2025-08-08T04:01:17.216Z",
+      "modality": "Ultrasound",
+      "description": "Carotid Ultrasound",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Robert Chang"
+    },
+    {
+      "id": "IMG023",
+      "date": "2025-04-22T02:17:04.999Z",
+      "modality": "Nuclear",
+      "description": "V/Q Scan",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Patricia Lee"
+    },
+    {
+      "id": "IMG005",
+      "date": "2024-09-24T04:43:40.136Z",
+      "modality": "CT",
+      "description": "CT Abdomen/Pelvis with Contrast",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Susan Miller"
+    },
+    {
+      "id": "IMG024",
+      "date": "2024-09-22T14:31:07.842Z",
+      "modality": "Echo",
+      "description": "TEE",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Patricia Lee"
+    },
+    {
+      "id": "IMG017",
+      "date": "2023-10-30T11:06:53.469Z",
+      "modality": "Nuclear",
+      "description": "Renal Scan",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Patricia Lee"
+    },
+    {
+      "id": "IMG004",
+      "date": "2023-05-26T06:42:05.551Z",
+      "modality": "Nuclear",
+      "description": "V/Q Scan",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Patricia Lee"
+    },
+    {
+      "id": "IMG006",
+      "date": "2023-03-11T01:29:17.356Z",
+      "modality": "Ultrasound",
+      "description": "Carotid Ultrasound",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Robert Chang"
+    },
+    {
+      "id": "IMG015",
+      "date": "2023-01-29T20:06:13.967Z",
+      "modality": "Echo",
+      "description": "Stress Echocardiogram",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Robert Chang"
+    },
+    {
+      "id": "IMG010",
+      "date": "2023-01-23T15:58:02.196Z",
+      "modality": "X-Ray",
+      "description": "KUB",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Robert Chang"
+    },
+    {
+      "id": "IMG014",
+      "date": "2022-05-29T10:01:37.785Z",
+      "modality": "CT",
+      "description": "CTA Chest",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Susan Miller"
+    },
+    {
+      "id": "IMG009",
+      "date": "2022-03-10T07:25:00.105Z",
+      "modality": "MRI",
+      "description": "MRA Head and Neck",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Robert Chang"
+    },
+    {
+      "id": "IMG018",
+      "date": "2022-01-20T01:58:17.462Z",
+      "modality": "Echo",
+      "description": "Stress Echocardiogram",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Susan Miller"
+    },
+    {
+      "id": "IMG019",
+      "date": "2022-01-11T13:02:10.621Z",
+      "modality": "Nuclear",
+      "description": "Myocardial Perfusion Imaging",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Patricia Lee"
+    },
+    {
+      "id": "IMG007",
+      "date": "2021-07-31T16:58:33.604Z",
+      "modality": "MRI",
+      "description": "MRI Brain with/without Contrast",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Susan Miller"
+    },
+    {
+      "id": "IMG008",
+      "date": "2021-05-18T05:08:23.484Z",
+      "modality": "Nuclear",
+      "description": "Myocardial Perfusion Imaging",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Patricia Lee"
+    },
+    {
+      "id": "IMG011",
+      "date": "2020-12-24T08:19:14.835Z",
+      "modality": "MRI",
+      "description": "MRA Head and Neck",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Robert Chang"
+    },
+    {
+      "id": "IMG013",
+      "date": "2020-10-25T17:08:51.616Z",
+      "modality": "CT",
+      "description": "CT Head without Contrast",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Patricia Lee"
+    },
+    {
+      "id": "IMG002",
+      "date": "2020-09-21T14:20:12.271Z",
+      "modality": "Echo",
+      "description": "Transthoracic Echocardiogram",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Susan Miller"
+    },
+    {
+      "id": "IMG022",
+      "date": "2020-09-10T07:58:43.999Z",
+      "modality": "MRI",
+      "description": "MRI Lumbar Spine",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Susan Miller"
+    },
+    {
+      "id": "IMG021",
+      "date": "2019-10-07T05:45:05.236Z",
+      "modality": "MRI",
+      "description": "MRA Head and Neck",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Susan Miller"
+    },
+    {
+      "id": "IMG001",
+      "date": "2019-09-16T04:36:09.365Z",
+      "modality": "Echo",
+      "description": "Stress Echocardiogram",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Robert Chang"
+    },
+    {
+      "id": "IMG016",
+      "date": "2019-09-14T12:45:28.882Z",
+      "modality": "X-Ray",
+      "description": "Lumbar Spine X-Ray",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Robert Chang"
+    },
+    {
+      "id": "IMG020",
+      "date": "2019-03-29T22:50:18.579Z",
+      "modality": "Echo",
+      "description": "TEE",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Susan Miller"
+    },
+    {
+      "id": "IMG003",
+      "date": "2018-11-12T08:21:18.585Z",
+      "modality": "Nuclear",
+      "description": "Myocardial Perfusion Imaging",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Patricia Lee"
+    },
+    {
+      "id": "IMG025",
+      "date": "2018-05-15T01:09:46.826Z",
+      "modality": "X-Ray",
+      "description": "KUB",
+      "facility": "Springfield Medical Center",
+      "status": "Final",
+      "radiologist": "Dr. Susan Miller"
+    }
+  ]
+}

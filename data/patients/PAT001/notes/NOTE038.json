@@ -1,0 +1,75 @@
+{
+  "id": "NOTE038",
+  "type": "Progress Note",
+  "date": "2024-05-23T15:22:18.416Z",
+  "author": "Dr. James Wilson",
+  "department": "Cardiology",
+  "encounter": "ENC027",
+  "chiefComplaint": "Shortness of breath",
+  "hpi": "Patient presents for shortness of breath. Doing well on current regimen. Blood sugars well-controlled. No hypoglycemic episodes.",
+  "reviewOfSystems": {
+    "Constitutional": "Reports fatigue",
+    "Cardiovascular": "No chest pain or palpitations",
+    "Respiratory": "Mild dyspnea",
+    "GI": "No nausea or vomiting",
+    "GU": "No dysuria",
+    "Neurologic": "No new weakness"
+  },
+  "vitals": {
+    "bp": "131/88 mmHg",
+    "hr": "67 bpm",
+    "rr": "14/min",
+    "temp": "97.6°F",
+    "spo2": "97% RA",
+    "weight": "97.6 kg"
+  },
+  "physicalExam": {
+    "General": "Mildly fatigued-appearing",
+    "HEENT": "Normocephalic, PERRL, oropharynx clear",
+    "Cardiovascular": "Irregularly irregular, no murmurs, JVP not elevated",
+    "Respiratory": "Clear to auscultation bilaterally",
+    "Abdomen": "Soft, non-tender, non-distended",
+    "Extremities": "1+ pedal edema bilaterally",
+    "Neurologic": "Alert and oriented, decreased sensation bilateral feet"
+  },
+  "assessment": [
+    {
+      "diagnosis": "Type 2 Diabetes Mellitus",
+      "icd10": "E11.65",
+      "notes": "HbA1c 7.8%. On insulin and metformin."
+    },
+    {
+      "diagnosis": "Chronic Kidney Disease Stage 3b",
+      "icd10": "N18.32",
+      "notes": "eGFR 41. Stable."
+    },
+    {
+      "diagnosis": "Heart Failure with Reduced EF",
+      "icd10": "I50.22",
+      "notes": "NYHA Class II. On GDMT."
+    }
+  ],
+  "plan": [
+    {
+      "problem": "Diabetes",
+      "action": "Continue current regimen. Recheck HbA1c in 3 months."
+    },
+    {
+      "problem": "CKD",
+      "action": "Monitor renal function. Avoid nephrotoxins."
+    },
+    {
+      "problem": "Heart Failure",
+      "action": "Continue GDMT. Daily weights. Low sodium diet."
+    },
+    {
+      "problem": "Atrial Fibrillation",
+      "action": "Continue anticoagulation. Rate control adequate."
+    },
+    {
+      "problem": "Follow-up",
+      "action": "Return in 4 weeks or sooner if needed."
+    }
+  ],
+  "attestation": "I personally saw and examined the patient. I agree with the documented findings and plan.\n\nElectronically signed by: Dr. James Wilson\nDate: 5/23/2024"
+}

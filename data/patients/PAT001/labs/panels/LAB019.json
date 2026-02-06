@@ -1,0 +1,24 @@
+{
+  "id": "LAB019",
+  "name": "Thyroid Panel",
+  "collectedDate": "2018-09-25T15:22:18.416Z",
+  "receivedDate": "2018-09-25T15:52:18.416Z",
+  "reportedDate": "2018-09-25T16:52:18.416Z",
+  "orderedBy": "Dr. Michael Torres",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "TSH",
+      "value": 1.67,
+      "unit": "mIU/L",
+      "referenceRange": "0.4-4.0"
+    },
+    {
+      "name": "Free T4",
+      "value": 1.45,
+      "unit": "ng/dL",
+      "referenceRange": "0.8-1.8"
+    }
+  ]
+}

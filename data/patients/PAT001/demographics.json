@@ -1,0 +1,48 @@
+{
+  "id": "PAT001",
+  "mrn": "MRN-78432156",
+  "firstName": "Robert",
+  "middleName": "James",
+  "lastName": "Morrison",
+  "dateOfBirth": "1952-03-15",
+  "sex": "Male",
+  "gender": "Male",
+  "race": "White",
+  "ethnicity": "Non-Hispanic",
+  "preferredLanguage": "English",
+  "maritalStatus": "Married",
+  "ssn": "XXX-XX-4521",
+  "phone": "(555) 234-5678",
+  "email": "rjmorrison@email.com",
+  "address": {
+    "street": "1842 Oak Valley Drive",
+    "city": "Springfield",
+    "state": "IL",
+    "zip": "62704",
+    "country": "USA"
+  },
+  "emergencyContact": {
+    "name": "Patricia Morrison",
+    "relationship": "Spouse",
+    "phone": "(555) 234-5679"
+  },
+  "primaryCareProvider": {
+    "name": "Dr. Sarah Chen",
+    "npi": "1234567890",
+    "phone": "(555) 100-2000"
+  },
+  "insurance": {
+    "name": "Medicare Part A & B",
+    "memberId": "1EG4-TE5-MK72",
+    "groupNumber": "MEDICARE",
+    "policyHolder": "Self"
+  },
+  "advanceDirectives": {
+    "livingWill": true,
+    "healthcareProxy": "Patricia Morrison",
+    "dnr": false,
+    "lastReviewed": "2023-06-15"
+  },
+  "createdAt": "2016-02-20T10:30:00Z",
+  "lastUpdated": "2024-01-15T14:22:00Z"
+}

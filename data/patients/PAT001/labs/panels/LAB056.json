@@ -1,0 +1,66 @@
+{
+  "id": "LAB056",
+  "name": "Complete Blood Count",
+  "collectedDate": "2020-02-08T16:22:18.416Z",
+  "receivedDate": "2020-02-08T16:52:18.416Z",
+  "reportedDate": "2020-02-08T17:52:18.416Z",
+  "orderedBy": "Dr. Michael Torres",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "WBC",
+      "value": 9.64,
+      "unit": "K/uL",
+      "referenceRange": "4.5-11.0"
+    },
+    {
+      "name": "RBC",
+      "value": 4.11,
+      "unit": "M/uL",
+      "referenceRange": "4.5-5.5"
+    },
+    {
+      "name": "Hemoglobin",
+      "value": 12.1,
+      "unit": "g/dL",
+      "referenceRange": "12.0-17.5"
+    },
+    {
+      "name": "Hematocrit",
+      "value": 34.6,
+      "unit": "%",
+      "referenceRange": "36-50"
+    },
+    {
+      "name": "MCV",
+      "value": 94.3,
+      "unit": "fL",
+      "referenceRange": "80-100"
+    },
+    {
+      "name": "MCH",
+      "value": 29.1,
+      "unit": "pg",
+      "referenceRange": "27-33"
+    },
+    {
+      "name": "MCHC",
+      "value": 28.7,
+      "unit": "g/dL",
+      "referenceRange": "32-36"
+    },
+    {
+      "name": "RDW",
+      "value": 16.6,
+      "unit": "%",
+      "referenceRange": "11.5-14.5"
+    },
+    {
+      "name": "Platelets",
+      "value": 201,
+      "unit": "K/uL",
+      "referenceRange": "150-400"
+    }
+  ]
+}

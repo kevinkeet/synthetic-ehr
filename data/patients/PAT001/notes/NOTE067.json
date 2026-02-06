@@ -1,0 +1,75 @@
+{
+  "id": "NOTE067",
+  "type": "Progress Note",
+  "date": "2023-05-30T15:22:18.416Z",
+  "author": "Dr. Jennifer Adams",
+  "department": "Internal Medicine",
+  "encounter": "ENC044",
+  "chiefComplaint": "Weight gain",
+  "hpi": "Patient presents for weight gain. Reports some shortness of breath with exertion, at baseline. No chest pain or palpitations.",
+  "reviewOfSystems": {
+    "Constitutional": "No fever, chills, or weight loss",
+    "Cardiovascular": "No chest pain or palpitations",
+    "Respiratory": "Mild dyspnea",
+    "GI": "Appetite fair",
+    "GU": "No dysuria",
+    "Neurologic": "Baseline neuropathy"
+  },
+  "vitals": {
+    "bp": "136/82 mmHg",
+    "hr": "67 bpm",
+    "rr": "17/min",
+    "temp": "97.6°F",
+    "spo2": "94% RA",
+    "weight": "97.2 kg"
+  },
+  "physicalExam": {
+    "General": "Alert, oriented, no acute distress",
+    "HEENT": "Normocephalic, PERRL, oropharynx clear",
+    "Cardiovascular": "Regular rate and rhythm, no murmurs",
+    "Respiratory": "Mild crackles at bases",
+    "Abdomen": "Soft, non-tender, non-distended",
+    "Extremities": "No edema, warm and well-perfused",
+    "Neurologic": "Alert and oriented, decreased sensation bilateral feet"
+  },
+  "assessment": [
+    {
+      "diagnosis": "Type 2 Diabetes Mellitus",
+      "icd10": "E11.65",
+      "notes": "HbA1c 7.8%. On insulin and metformin."
+    },
+    {
+      "diagnosis": "Chronic Kidney Disease Stage 3b",
+      "icd10": "N18.32",
+      "notes": "eGFR 41. Stable."
+    },
+    {
+      "diagnosis": "Heart Failure with Reduced EF",
+      "icd10": "I50.22",
+      "notes": "NYHA Class II. On GDMT."
+    }
+  ],
+  "plan": [
+    {
+      "problem": "Diabetes",
+      "action": "Continue current regimen. Recheck HbA1c in 3 months."
+    },
+    {
+      "problem": "CKD",
+      "action": "Monitor renal function. Avoid nephrotoxins."
+    },
+    {
+      "problem": "Heart Failure",
+      "action": "Continue GDMT. Daily weights. Low sodium diet."
+    },
+    {
+      "problem": "Atrial Fibrillation",
+      "action": "Continue anticoagulation. Rate control adequate."
+    },
+    {
+      "problem": "Follow-up",
+      "action": "Return in 6 weeks or sooner if needed."
+    }
+  ],
+  "attestation": "I personally saw and examined the patient. I agree with the documented findings and plan.\n\nElectronically signed by: Dr. Jennifer Adams\nDate: 5/30/2023"
+}

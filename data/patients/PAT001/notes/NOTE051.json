@@ -1,0 +1,70 @@
+{
+  "id": "NOTE051",
+  "type": "Progress Note",
+  "date": "2023-12-16T16:22:18.416Z",
+  "author": "Dr. Emily Brown",
+  "department": "Emergency Medicine",
+  "encounter": "ENC034",
+  "chiefComplaint": "Annual wellness visit",
+  "hpi": "Patient presents for annual wellness visit. Presents with mild worsening of baseline symptoms. Reports increased fatigue over the past week.",
+  "reviewOfSystems": {
+    "Constitutional": "No fever, chills, or weight loss",
+    "Cardiovascular": "Dyspnea on exertion at baseline",
+    "Respiratory": "No hemoptysis",
+    "GI": "Appetite fair",
+    "GU": "No dysuria",
+    "Neurologic": "No dizziness"
+  },
+  "vitals": {
+    "bp": "131/89 mmHg",
+    "hr": "72 bpm",
+    "rr": "14/min",
+    "temp": "98.0°F",
+    "spo2": "94% RA",
+    "weight": "97.4 kg"
+  },
+  "physicalExam": {
+    "General": "Comfortable, well-appearing",
+    "HEENT": "Normocephalic, PERRL, oropharynx clear",
+    "Cardiovascular": "Irregularly irregular, no murmurs, JVP not elevated",
+    "Respiratory": "Clear to auscultation bilaterally",
+    "Abdomen": "Soft, non-tender, non-distended",
+    "Extremities": "1+ pedal edema bilaterally",
+    "Neurologic": "Alert and oriented, decreased sensation bilateral feet"
+  },
+  "assessment": [
+    {
+      "diagnosis": "Type 2 Diabetes Mellitus",
+      "icd10": "E11.65",
+      "notes": "HbA1c 8.0%. On insulin and metformin."
+    },
+    {
+      "diagnosis": "Chronic Kidney Disease Stage 3b",
+      "icd10": "N18.32",
+      "notes": "eGFR 33. Stable."
+    }
+  ],
+  "plan": [
+    {
+      "problem": "Diabetes",
+      "action": "Continue current regimen. Recheck HbA1c in 3 months."
+    },
+    {
+      "problem": "CKD",
+      "action": "Monitor renal function. Avoid nephrotoxins."
+    },
+    {
+      "problem": "Heart Failure",
+      "action": "Continue GDMT. Daily weights. Low sodium diet."
+    },
+    {
+      "problem": "Atrial Fibrillation",
+      "action": "Continue anticoagulation. Rate control adequate."
+    },
+    {
+      "problem": "Follow-up",
+      "action": "Return in 9 weeks or sooner if needed."
+    }
+  ],
+  "attestation": "I personally saw and examined the patient. I agree with the documented findings and plan.\n\nElectronically signed by: Dr. Emily Brown\nDate: 12/16/2023"
+}

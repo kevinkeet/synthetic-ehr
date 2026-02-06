@@ -1,0 +1,66 @@
+{
+  "id": "LAB013",
+  "name": "Complete Blood Count",
+  "collectedDate": "2018-05-04T15:22:18.416Z",
+  "receivedDate": "2018-05-04T15:52:18.416Z",
+  "reportedDate": "2018-05-04T16:52:18.416Z",
+  "orderedBy": "Dr. Jennifer Adams",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "WBC",
+      "value": 8.77,
+      "unit": "K/uL",
+      "referenceRange": "4.5-11.0"
+    },
+    {
+      "name": "RBC",
+      "value": 3.32,
+      "unit": "M/uL",
+      "referenceRange": "4.5-5.5"
+    },
+    {
+      "name": "Hemoglobin",
+      "value": 10.1,
+      "unit": "g/dL",
+      "referenceRange": "12.0-17.5"
+    },
+    {
+      "name": "Hematocrit",
+      "value": 38.5,
+      "unit": "%",
+      "referenceRange": "36-50"
+    },
+    {
+      "name": "MCV",
+      "value": 106,
+      "unit": "fL",
+      "referenceRange": "80-100"
+    },
+    {
+      "name": "MCH",
+      "value": 28.1,
+      "unit": "pg",
+      "referenceRange": "27-33"
+    },
+    {
+      "name": "MCHC",
+      "value": 35.1,
+      "unit": "g/dL",
+      "referenceRange": "32-36"
+    },
+    {
+      "name": "RDW",
+      "value": 11.9,
+      "unit": "%",
+      "referenceRange": "11.5-14.5"
+    },
+    {
+      "name": "Platelets",
+      "value": 216,
+      "unit": "K/uL",
+      "referenceRange": "150-400"
+    }
+  ]
+}

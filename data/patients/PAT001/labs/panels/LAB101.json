@@ -1,0 +1,18 @@
+{
+  "id": "LAB101",
+  "name": "Troponin",
+  "collectedDate": "2021-03-26T15:22:18.416Z",
+  "receivedDate": "2021-03-26T15:52:18.416Z",
+  "reportedDate": "2021-03-26T16:52:18.416Z",
+  "orderedBy": "Dr. Patricia Lee",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "Troponin I",
+      "value": 0,
+      "unit": "ng/mL",
+      "referenceRange": "<0.04"
+    }
+  ]
+}

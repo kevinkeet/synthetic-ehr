@@ -1,0 +1,42 @@
+{
+  "id": "LAB112",
+  "name": "Lipid Panel",
+  "collectedDate": "2021-10-01T15:22:18.416Z",
+  "receivedDate": "2021-10-01T15:52:18.416Z",
+  "reportedDate": "2021-10-01T16:52:18.416Z",
+  "orderedBy": "Dr. William Thompson",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "Total Cholesterol",
+      "value": 160,
+      "unit": "mg/dL",
+      "referenceRange": "<200"
+    },
+    {
+      "name": "LDL",
+      "value": 83.9,
+      "unit": "mg/dL",
+      "referenceRange": "<100"
+    },
+    {
+      "name": "HDL",
+      "value": 49.7,
+      "unit": "mg/dL",
+      "referenceRange": ">40"
+    },
+    {
+      "name": "Triglycerides",
+      "value": 209,
+      "unit": "mg/dL",
+      "referenceRange": "<150"
+    },
+    {
+      "name": "VLDL",
+      "value": 27.1,
+      "unit": "mg/dL",
+      "referenceRange": "<30"
+    }
+  ]
+}

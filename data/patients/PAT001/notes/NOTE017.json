@@ -1,0 +1,10 @@
+{
+  "id": "NOTE017",
+  "type": "Telephone Encounter",
+  "date": "2025-08-06T15:22:18.416Z",
+  "author": "Dr. Michael Torres",
+  "department": "Nephrology",
+  "encounter": "ENC010",
+  "content": "Patient called regarding prescription refill.\n\nPatient asking about lab results. Reviewed recent values - stable kidney function, A1c improving.\n\nPlan: Sent prescription to pharmacy.",
+  "attestation": "Telephone encounter documented.\n\nElectronically signed by: Dr. Michael Torres\nDate: 8/6/2025"
+}

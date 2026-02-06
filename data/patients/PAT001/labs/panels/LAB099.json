@@ -1,0 +1,30 @@
+{
+  "id": "LAB099",
+  "name": "Coagulation Panel",
+  "collectedDate": "2021-03-11T16:22:18.416Z",
+  "receivedDate": "2021-03-11T16:52:18.416Z",
+  "reportedDate": "2021-03-11T17:52:18.416Z",
+  "orderedBy": "Dr. David Park",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "PT",
+      "value": 12.2,
+      "unit": "seconds",
+      "referenceRange": "11-13.5"
+    },
+    {
+      "name": "INR",
+      "value": 1.09,
+      "unit": "",
+      "referenceRange": "0.8-1.2"
+    },
+    {
+      "name": "PTT",
+      "value": 25.5,
+      "unit": "seconds",
+      "referenceRange": "25-35"
+    }
+  ]
+}

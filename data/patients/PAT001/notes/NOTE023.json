@@ -1,0 +1,75 @@
+{
+  "id": "NOTE023",
+  "type": "H&P",
+  "date": "2025-02-09T16:22:18.416Z",
+  "author": "Dr. Michael Torres",
+  "department": "Nephrology",
+  "encounter": "ENC016",
+  "chiefComplaint": "Chest pain",
+  "hpi": "72-year-old male with history of Type 2 Diabetes Mellitus, CKD Stage 3b, HFrEF (EF 35%), and atrial fibrillation who presents with worsening shortness of breath over the past 3 days.\n\nPatient reports gradual onset of symptoms. Occurs at rest. Reports mild chest pressure. Some dry cough present.\n\nPatient has been compliant with medications. Following low-sodium diet. Last cardiology visit was 1 months ago.",
+  "pastMedicalHistory": "1. Type 2 Diabetes Mellitus with neuropathy (diagnosed 2010)\n2. Chronic Kidney Disease Stage 3b (diagnosed 2018)\n3. Heart Failure with Reduced Ejection Fraction, EF 35% (diagnosed 2019)\n4. Atrial Fibrillation, persistent (diagnosed 2017)\n5. Hypertension (diagnosed 2005)\n6. Hyperlipidemia (diagnosed 2008)\n7. Benign Prostatic Hyperplasia (diagnosed 2016)\n8. History of pneumonia (2021)",
+  "medications": "See medication list in chart.",
+  "allergies": "Penicillin (anaphylaxis), Sulfa drugs (rash), Lisinopril (angioedema), Shellfish (hives)",
+  "socialHistory": "Former smoker (quit 1995, 20 pack-year history). Rare alcohol use. Retired accountant. Lives with wife.",
+  "familyHistory": "Father: MI at 62, HTN. Mother: T2DM. Brother: HTN.",
+  "reviewOfSystems": {
+    "Constitutional": "No fever, chills, or weight loss",
+    "Cardiovascular": "No chest pain or palpitations",
+    "Respiratory": "Mild dyspnea",
+    "GI": "No nausea or vomiting",
+    "GU": "No hematuria",
+    "Neurologic": "No new weakness"
+  },
+  "vitals": {
+    "bp": "132/82 mmHg",
+    "hr": "84 bpm",
+    "rr": "16/min",
+    "temp": "98.9°F",
+    "spo2": "96% RA",
+    "weight": "100.5 kg"
+  },
+  "physicalExam": {
+    "General": "Alert, oriented, no acute distress",
+    "HEENT": "Normocephalic, PERRL, oropharynx clear",
+    "Cardiovascular": "Irregularly irregular, no murmurs, JVP not elevated",
+    "Respiratory": "No wheezes or rhonchi",
+    "Abdomen": "Soft, non-tender, non-distended",
+    "Extremities": "Trace bilateral ankle edema",
+    "Neurologic": "Alert and oriented, decreased sensation bilateral feet"
+  },
+  "assessment": [
+    {
+      "diagnosis": "Type 2 Diabetes Mellitus",
+      "icd10": "E11.65",
+      "notes": "HbA1c 7.9%. On insulin and metformin."
+    },
+    {
+      "diagnosis": "Chronic Kidney Disease Stage 3b",
+      "icd10": "N18.32",
+      "notes": "eGFR 42. Stable."
+    }
+  ],
+  "plan": [
+    {
+      "problem": "Diabetes",
+      "action": "Continue current regimen. Recheck HbA1c in 3 months."
+    },
+    {
+      "problem": "CKD",
+      "action": "Monitor renal function. Avoid nephrotoxins."
+    },
+    {
+      "problem": "Heart Failure",
+      "action": "Continue GDMT. Daily weights. Low sodium diet."
+    },
+    {
+      "problem": "Atrial Fibrillation",
+      "action": "Continue anticoagulation. Rate control adequate."
+    },
+    {
+      "problem": "Follow-up",
+      "action": "Return in 11 weeks or sooner if needed."
+    }
+  ],
+  "attestation": "I have personally evaluated this patient and agree with the documentation above.\n\nElectronically signed by: Dr. Michael Torres\nDate: 2/9/2025"
+}

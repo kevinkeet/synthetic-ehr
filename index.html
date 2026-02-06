@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SyntheticEHR - Electronic Health Records</title>
+    <link rel="stylesheet" href="css/epic-theme.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Top Header Bar -->
+        <header class="top-header">
+            <div class="header-left">
+                <div class="logo">SyntheticEHR</div>
+                <div class="patient-search">
+                    <input type="text" id="patient-search" placeholder="Search patients..." autocomplete="off">
+                    <div id="search-results" class="search-dropdown"></div>
+                </div>
+                <div class="keyboard-hint" onclick="GlobalSearch.open()" style="cursor: pointer;">
+                    <span>Search Chart</span>
+                    <kbd>Ctrl</kbd><kbd>K</kbd>
+                </div>
+            </div>
+            <div class="header-center" id="patient-banner">
+                <!-- Patient info populated by JS -->
+            </div>
+            <div class="header-right">
+                <span class="current-user">Dr. Sarah Chen, MD</span>
+                <span class="current-time" id="current-time"></span>
+            </div>
+        </header>
+
+        <!-- Allergy Banner -->
+        <div class="allergy-banner" id="allergy-banner">
+            <!-- Allergies populated by JS -->
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="main-container">
+            <!-- Left Navigation -->
+            <nav class="sidebar" id="sidebar">
+                <div class="nav-section">
+                    <div class="nav-section-title">Patient Chart</div>
+                    <a href="#/chart-review" class="nav-item active" data-section="chart-review">
+                        <span class="nav-icon">&#9632;</span>
+                        Chart Review
+                    </a>
+                    <a href="#/encounters" class="nav-item" data-section="encounters">
+                        <span class="nav-icon">&#128197;</span>
+                        Encounters
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Clinical</div>
+                    <a href="#/notes" class="nav-item" data-section="notes">
+                        <span class="nav-icon">&#128196;</span>
+                        Notes
+                    </a>
+                    <a href="#/problems" class="nav-item" data-section="problems">
+                        <span class="nav-icon">&#9733;</span>
+                        Problem List
+                    </a>
+                    <a href="#/medications" class="nav-item" data-section="medications">
+                        <span class="nav-icon">&#128138;</span>
+                        Medications
+                    </a>
+                    <a href="#/allergies" class="nav-item" data-section="allergies">
+                        <span class="nav-icon">&#9888;</span>
+                        Allergies
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Results</div>
+                    <a href="#/labs" class="nav-item" data-section="labs">
+                        <span class="nav-icon">&#128300;</span>
+                        Labs
+                    </a>
+                    <a href="#/imaging" class="nav-item" data-section="imaging">
+                        <span class="nav-icon">&#128444;</span>
+                        Imaging
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Orders</div>
+                    <a href="#/orders" class="nav-item" data-section="orders">
+                        <span class="nav-icon">&#128203;</span>
+                        Orders
+                    </a>
+                    <a href="#/procedures" class="nav-item" data-section="procedures">
+                        <span class="nav-icon">&#128137;</span>
+                        Procedures
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Flowsheets</div>
+                    <a href="#/vitals" class="nav-item" data-section="vitals">
+                        <span class="nav-icon">&#10084;</span>
+                        Vitals
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">History</div>
+                    <a href="#/social-history" class="nav-item" data-section="social-history">
+                        <span class="nav-icon">&#128101;</span>
+                        Social History
+                    </a>
+                    <a href="#/family-history" class="nav-item" data-section="family-history">
+                        <span class="nav-icon">&#128106;</span>
+                        Family History
+                    </a>
+                    <a href="#/immunizations" class="nav-item" data-section="immunizations">
+                        <span class="nav-icon">&#128137;</span>
+                        Immunizations
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Content Area -->
+            <main class="content" id="main-content">
+                <!-- Dynamic content loaded here -->
+                <div class="loading">Loading...</div>
+            </main>
+
+            <!-- AI Simulation Panel -->
+            <aside class="ai-panel" id="ai-panel">
+                <div class="ai-panel-header">
+                    <div class="ai-panel-tabs">
+                        <button class="ai-tab active" data-tab="patient" onclick="AIPanel.switchTab('patient')">
+                            <span class="tab-icon">&#128100;</span>
+                            Patient
+                        </button>
+                        <button class="ai-tab" data-tab="nurse" onclick="AIPanel.switchTab('nurse')">
+                            <span class="tab-icon">&#128105;&#8205;&#9877;</span>
+                            Nurse
+                        </button>
+                    </div>
+                    <div class="ai-panel-header-actions">
+                        <button class="ai-settings-btn-header" onclick="AIPanel.openSettings()" title="AI Settings">
+                            <span>&#9881;</span>
+                        </button>
+                        <button class="ai-panel-toggle" onclick="AIPanel.toggle()" title="Toggle AI Panel">
+                            <span class="toggle-icon">&#10095;</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Patient Chat Tab -->
+                <div class="ai-tab-content active" id="patient-chat-tab">
+                    <div class="chat-header-bar">
+                        <span class="chat-header-title">Patient Simulation</span>
+                        <button class="clear-chat-btn" onclick="PatientChat.clearChat()" title="Clear chat history">
+                            <span>&#128465;</span> Clear
+                        </button>
+                    </div>
+                    <div class="chat-container" id="patient-chat-container">
+                        <div class="chat-messages" id="patient-messages">
+                            <div class="chat-welcome">
+                                <div class="welcome-avatar">&#128100;</div>
+                                <h3>Patient Simulation</h3>
+                                <p>Chat with a simulated patient. Use voice or text to practice clinical communication.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <div class="voice-controls">
+                            <button class="voice-btn" id="patient-voice-btn" onclick="PatientChat.toggleVoiceInput()" title="Voice Input">
+                                <span class="voice-icon">&#127908;</span>
+                            </button>
+                            <button class="voice-output-btn" id="patient-voice-output-btn" onclick="PatientChat.toggleVoiceOutput()" title="Toggle Voice Output">
+                                <span class="speaker-icon">&#128266;</span>
+                            </button>
+                        </div>
+                        <div class="chat-input-wrapper">
+                            <textarea
+                                id="patient-input"
+                                class="chat-input"
+                                placeholder="Type a message or use voice..."
+                                rows="1"
+                                onkeydown="PatientChat.handleKeyDown(event)"
+                            ></textarea>
+                            <button class="send-btn" onclick="PatientChat.sendMessage()" title="Send">
+                                <span>&#10148;</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nurse Chat Tab -->
+                <div class="ai-tab-content" id="nurse-chat-tab">
+                    <div class="chat-header-bar">
+                        <span class="chat-header-title">Nurse Communication</span>
+                        <button class="clear-chat-btn" onclick="NurseChat.clearChat()" title="Clear chat history">
+                            <span>&#128465;</span> Clear
+                        </button>
+                    </div>
+                    <div class="chat-container" id="nurse-chat-container">
+                        <div class="chat-messages" id="nurse-messages">
+                            <div class="chat-welcome">
+                                <div class="welcome-avatar">&#128105;&#8205;&#9877;</div>
+                                <h3>Nurse Communication</h3>
+                                <p>Practice communication with nursing staff for handoffs, clarifications, and coordination.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <div class="chat-input-wrapper" style="margin-left: 0;">
+                            <textarea
+                                id="nurse-input"
+                                class="chat-input"
+                                placeholder="Type a message..."
+                                rows="1"
+                                onkeydown="NurseChat.handleKeyDown(event)"
+                            ></textarea>
+                            <button class="send-btn" onclick="NurseChat.sendMessage()" title="Send">
+                                <span>&#10148;</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Panel (hidden by default) -->
+                <div class="ai-settings-panel" id="ai-settings-panel">
+                    <div class="settings-header">
+                        <h3>AI Settings</h3>
+                        <button class="settings-close" onclick="AIPanel.closeSettings()">&#10005;</button>
+                    </div>
+                    <div class="settings-content">
+                        <div class="settings-group">
+                            <label for="claude-api-key">Anthropic API Key</label>
+                            <input type="password" id="claude-api-key" placeholder="sk-ant-..." onchange="AIPanel.saveApiKey()">
+                            <small>Your API key is stored locally in your browser.</small>
+                        </div>
+                        <div class="settings-group">
+                            <label for="patient-context-url">Patient Context URL</label>
+                            <input type="url" id="patient-context-url" placeholder="https://docs.google.com/document/d/.../pub" onchange="AIPanel.saveContextUrl('patient')">
+                            <small>Published Google Doc URL for patient persona.</small>
+                        </div>
+                        <div class="settings-group">
+                            <label for="nurse-context-url">Nurse Context URL</label>
+                            <input type="url" id="nurse-context-url" placeholder="https://docs.google.com/document/d/.../pub" onchange="AIPanel.saveContextUrl('nurse')">
+                            <small>Published Google Doc URL for nurse persona.</small>
+                        </div>
+                        <div class="settings-group">
+                            <label for="voice-select">Voice for Patient</label>
+                            <select id="voice-select" onchange="AIPanel.saveVoice()">
+                                <option value="">Loading voices...</option>
+                            </select>
+                        </div>
+                        <div class="settings-actions">
+                            <button class="btn btn-sm" onclick="AIPanel.testConnection()">Test API Connection</button>
+                            <button class="btn btn-sm btn-secondary" onclick="AIPanel.clearChatHistory()">Clear Chat History</button>
+                        </div>
+                    </div>
+                </div>
+
+            </aside>
+        </div>
+    </div>
+
+    <!-- AI Panel Toggle Button (shown when panel is collapsed) -->
+    <button class="ai-panel-floating-btn" id="ai-panel-floating-btn" onclick="AIPanel.expand()" title="Open AI Chat">
+        <span>&#128172;</span>
+        <span class="btn-label">Chat</span>
+    </button>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/utils/date-utils.js"></script>
+    <script src="js/utils/lab-utils.js"></script>
+    <script src="js/utils/search.js"></script>
+    <script src="js/data-loader.js"></script>
+    <!-- Simulation Engine -->
+    <script src="js/services/simulation-engine.js"></script>
+    <script src="js/services/physiology-engine.js"></script>
+    <script src="js/services/intervention-tracker.js"></script>
+    <script src="js/services/dynamic-labs.js"></script>
+    <script src="js/services/dynamic-imaging.js"></script>
+    <script src="js/components/patient-header.js"></script>
+    <script src="js/components/navigation.js"></script>
+    <script src="js/components/global-search.js"></script>
+    <script src="js/components/chart-review.js"></script>
+    <script src="js/components/notes-list.js"></script>
+    <script src="js/components/note-viewer.js"></script>
+    <script src="js/components/labs-table.js"></script>
+    <script src="js/components/lab-trending.js"></script>
+    <script src="js/components/medications.js"></script>
+    <script src="js/components/problems.js"></script>
+    <script src="js/components/vitals.js"></script>
+    <script src="js/components/encounters.js"></script>
+    <script src="js/components/allergies.js"></script>
+    <script src="js/components/imaging.js"></script>
+    <script src="js/components/history.js"></script>
+    <script src="js/components/procedures.js"></script>
+    <script src="js/components/orders.js"></script>
+    <script src="js/components/order-entry.js"></script>
+    <!-- AI Panel Components -->
+    <script src="js/services/claude-api.js"></script>
+    <script src="js/services/google-doc-context.js"></script>
+    <script src="js/services/speech-service.js"></script>
+    <script src="js/components/ai-panel.js"></script>
+    <script src="js/components/patient-chat.js"></script>
+    <script src="js/components/nurse-chat.js"></script>
+    <script src="js/components/simulation-controls.js"></script>
+    <script src="js/components/live-vitals-banner.js"></script>
+    <script src="js/components/simulation-log.js"></script>
+    <script src="js/components/simulation-debrief.js"></script>
+    <script src="js/router.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

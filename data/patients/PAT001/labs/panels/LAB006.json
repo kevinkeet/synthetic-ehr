@@ -1,0 +1,30 @@
+{
+  "id": "LAB006",
+  "name": "Coagulation Panel",
+  "collectedDate": "2018-02-26T16:22:18.416Z",
+  "receivedDate": "2018-02-26T16:52:18.416Z",
+  "reportedDate": "2018-02-26T17:52:18.416Z",
+  "orderedBy": "Dr. Robert Kim",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "PT",
+      "value": 15.2,
+      "unit": "seconds",
+      "referenceRange": "11-13.5"
+    },
+    {
+      "name": "INR",
+      "value": 0.92,
+      "unit": "",
+      "referenceRange": "0.8-1.2"
+    },
+    {
+      "name": "PTT",
+      "value": 29.6,
+      "unit": "seconds",
+      "referenceRange": "25-35"
+    }
+  ]
+}

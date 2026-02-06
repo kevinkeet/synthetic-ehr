@@ -1,0 +1,20 @@
+{
+  "id": "IMG001",
+  "date": "2023-08-15T17:30:00Z",
+  "modality": "X-Ray",
+  "description": "Chest X-Ray PA and Lateral",
+  "facility": "Springfield Medical Center",
+  "status": "Final",
+  "radiologist": "Dr. Patricia Lee",
+  "indication": "Shortness of breath, evaluate for pulmonary edema",
+  "technique": "PA and lateral chest radiographs were obtained.",
+  "comparison": "Comparison made to chest x-ray dated June 15, 2023.",
+  "findings": "Heart: Cardiomegaly is present, stable compared to prior.\n\nLungs: There is bilateral perihilar haziness consistent with pulmonary vascular congestion. Small bilateral pleural effusions are present, right greater than left. No focal consolidation to suggest pneumonia. No pneumothorax.\n\nMediastinum: The mediastinal contours are unremarkable. No mediastinal widening.\n\nBony structures: No acute osseous abnormality.",
+  "impression": [
+    "Cardiomegaly, stable",
+    "Pulmonary vascular congestion consistent with congestive heart failure",
+    "Small bilateral pleural effusions, right greater than left",
+    "No evidence of pneumonia"
+  ],
+  "recommendations": "Clinical correlation recommended. Consider echocardiogram if not recently performed."
+}

@@ -1,0 +1,80 @@
+{
+  "id": "NOTE018",
+  "type": "Progress Note",
+  "date": "2025-06-26T15:22:18.416Z",
+  "author": "Dr. Michael Torres",
+  "department": "Nephrology",
+  "encounter": "ENC011",
+  "chiefComplaint": "Joint pain",
+  "hpi": "Patient presents for joint pain. Doing well on current regimen. Blood sugars well-controlled. No hypoglycemic episodes.",
+  "reviewOfSystems": {
+    "Constitutional": "Weight stable",
+    "Cardiovascular": "Dyspnea on exertion at baseline",
+    "Respiratory": "No cough or wheezing",
+    "GI": "Regular bowel movements",
+    "GU": "No dysuria",
+    "Neurologic": "No dizziness"
+  },
+  "vitals": {
+    "bp": "143/79 mmHg",
+    "hr": "84 bpm",
+    "rr": "17/min",
+    "temp": "98.6°F",
+    "spo2": "98% RA",
+    "weight": "100.5 kg"
+  },
+  "physicalExam": {
+    "General": "Mildly fatigued-appearing",
+    "HEENT": "Normocephalic, PERRL, oropharynx clear",
+    "Cardiovascular": "S1/S2 normal, mild peripheral edema",
+    "Respiratory": "Clear to auscultation bilaterally",
+    "Abdomen": "Soft, non-tender, non-distended",
+    "Extremities": "No edema, warm and well-perfused",
+    "Neurologic": "Alert and oriented, decreased sensation bilateral feet"
+  },
+  "assessment": [
+    {
+      "diagnosis": "Type 2 Diabetes Mellitus",
+      "icd10": "E11.65",
+      "notes": "HbA1c 8.5%. On insulin and metformin."
+    },
+    {
+      "diagnosis": "Chronic Kidney Disease Stage 3b",
+      "icd10": "N18.32",
+      "notes": "eGFR 42. Stable."
+    },
+    {
+      "diagnosis": "Heart Failure with Reduced EF",
+      "icd10": "I50.22",
+      "notes": "NYHA Class II. On GDMT."
+    },
+    {
+      "diagnosis": "Atrial Fibrillation",
+      "icd10": "I48.1",
+      "notes": "Rate controlled. On anticoagulation."
+    }
+  ],
+  "plan": [
+    {
+      "problem": "Diabetes",
+      "action": "Continue current regimen. Recheck HbA1c in 3 months."
+    },
+    {
+      "problem": "CKD",
+      "action": "Monitor renal function. Avoid nephrotoxins."
+    },
+    {
+      "problem": "Heart Failure",
+      "action": "Continue GDMT. Daily weights. Low sodium diet."
+    },
+    {
+      "problem": "Atrial Fibrillation",
+      "action": "Continue anticoagulation. Rate control adequate."
+    },
+    {
+      "problem": "Follow-up",
+      "action": "Return in 7 weeks or sooner if needed."
+    }
+  ],
+  "attestation": "I personally saw and examined the patient. I agree with the documented findings and plan.\n\nElectronically signed by: Dr. Michael Torres\nDate: 6/26/2025"
+}

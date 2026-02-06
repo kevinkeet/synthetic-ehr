@@ -1,0 +1,127 @@
+{
+  "id": "NOTE_NEPH001",
+  "type": "Consult Note",
+  "title": "Nephrology Consultation - CKD Stage 3b Management",
+  "date": "2024-03-20T14:00:00.000Z",
+  "author": "Dr. Michael Torres",
+  "department": "Nephrology",
+  "encounter": "ENC_NEPH001",
+  "signedDate": "2024-03-20T17:30:00.000Z",
+  "sections": {
+    "reasonForConsultation": "Chronic kidney disease stage 3b management, proteinuria evaluation, medication optimization",
+    "historyOfPresentIllness": "Mr. Morrison is a 72-year-old male with chronic kidney disease stage 3b (eGFR 35-40 mL/min/1.73m2) in the setting of diabetes and hypertension, referred for nephrology consultation for CKD management and evaluation of proteinuria.\n\nPatient's kidney function has been gradually declining over the past several years. His creatinine 5 years ago was approximately 1.4 mg/dL (eGFR ~50), and current creatinine is 1.9-2.0 mg/dL (eGFR 35-38). Most recent urine albumin-to-creatinine ratio (UACR) was 180 mg/g, indicating moderately increased albuminuria (A2 category).\n\nPatient denies gross hematuria, foamy urine, flank pain, or urinary symptoms. He does have a history of nocturia (2-3 times per night) which is attributed to his BPH and diuretic use. He has never required dialysis or had an episode of acute kidney injury requiring intervention.\n\nHis CKD is presumed to be secondary to diabetic nephropathy and hypertensive nephrosclerosis given his long-standing history of both conditions. Renal ultrasound in 2021 showed bilateral small kidneys (9 cm bilaterally) with increased echogenicity consistent with chronic changes.",
+    "pastMedicalHistory": [
+      "CKD Stage 3b - baseline Cr 1.9-2.0, eGFR 35-38",
+      "Type 2 Diabetes Mellitus - 14 years, with evidence of nephropathy",
+      "Heart Failure with reduced EF (30-35%)",
+      "Atrial Fibrillation on anticoagulation",
+      "Hypertension",
+      "Hyperlipidemia",
+      "Coronary Artery Disease",
+      "Benign Prostatic Hyperplasia"
+    ],
+    "currentMedications": [
+      "Lisinopril 10 mg daily",
+      "Carvedilol 18.75 mg twice daily",
+      "Furosemide 60 mg twice daily",
+      "Spironolactone 25 mg daily",
+      "Empagliflozin 10 mg daily",
+      "Metformin 500 mg twice daily",
+      "Glipizide 5 mg daily",
+      "Warfarin 5 mg daily",
+      "Atorvastatin 40 mg daily",
+      "Aspirin 81 mg daily"
+    ],
+    "laboratoryReview": {
+      "mostRecent": {
+        "date": "2024-03-15",
+        "creatinine": "1.95 mg/dL",
+        "bun": "38 mg/dL",
+        "egfr": "36 mL/min/1.73m2",
+        "sodium": "137 mEq/L",
+        "potassium": "4.9 mEq/L",
+        "chloride": "102 mEq/L",
+        "bicarbonate": "22 mEq/L",
+        "calcium": "9.2 mg/dL",
+        "phosphorus": "4.1 mg/dL",
+        "albumin": "3.6 g/dL",
+        "hemoglobin": "10.8 g/dL",
+        "pth": "89 pg/mL (mildly elevated)",
+        "vitaminD25": "28 ng/mL"
+      },
+      "urinalysis": {
+        "date": "2024-03-15",
+        "protein": "1+",
+        "blood": "Negative",
+        "wbc": "0-2",
+        "rbc": "0-2",
+        "bacteria": "None"
+      },
+      "uacr": "180 mg/g (moderately increased albuminuria, A2)"
+    },
+    "renalUltrasound": {
+      "date": "2021-06-15",
+      "findings": "Bilateral small kidneys (right 9.2 cm, left 9.0 cm) with increased cortical echogenicity. No hydronephrosis or nephrolithiasis."
+    },
+    "physicalExamination": {
+      "vitals": {
+        "bloodPressure": "128/76 mmHg",
+        "heartRate": "74 bpm",
+        "weight": "94.8 kg"
+      },
+      "general": "Well-appearing, comfortable",
+      "cardiovascular": "Irregularly irregular, no murmurs",
+      "lungs": "Clear bilaterally",
+      "abdomen": "Soft, non-tender, no masses or bruits",
+      "extremities": "Trace pedal edema, no asterixis"
+    },
+    "assessment": "72-year-old male with CKD stage 3b (G3bA2), likely secondary to diabetic nephropathy and hypertensive nephrosclerosis. Current eGFR 36 mL/min/1.73m2 with moderately increased albuminuria (UACR 180 mg/g). Rate of decline approximately 2-3 mL/min/year based on historical data, which is consistent with expected progression.\n\nHis current management is appropriate with ACE inhibitor and SGLT2 inhibitor for nephroprotection. He does have several CKD-related complications developing including:\n1. Mild metabolic acidosis (HCO3 22)\n2. Mild anemia of CKD (Hgb 10.8)\n3. Secondary hyperparathyroidism (PTH 89)\n4. Mild hyperkalemia risk (K 4.9 on ACEi, spironolactone, and SGLT2i)",
+    "recommendations": [
+      {
+        "category": "CKD Progression Prevention",
+        "items": [
+          "Continue lisinopril for nephroprotection - current dose appropriate given hyperkalemia risk",
+          "Continue empagliflozin - proven nephroprotective benefits",
+          "Blood pressure goal <130/80 mmHg - currently at goal",
+          "HbA1c goal <8% given CKD and comorbidities",
+          "Continue low-sodium diet (<2g/day)"
+        ]
+      },
+      {
+        "category": "CKD Complications Management",
+        "items": [
+          "Metabolic acidosis: Start sodium bicarbonate 650 mg twice daily to target serum bicarbonate 22-26 mEq/L. This may also help slow CKD progression.",
+          "Anemia: Hemoglobin 10.8 is acceptable. No EPO-stimulating agent needed at this time (target Hgb 10-11.5). Check iron studies - if iron deficient, supplement iron first.",
+          "Secondary hyperparathyroidism: PTH 89, mildly elevated. Vitamin D 28 is borderline. Start cholecalciferol 2000 IU daily. Recheck PTH and vitamin D in 3 months.",
+          "Hyperkalemia risk: Current K 4.9. Continue dietary potassium restriction. Monitor closely given multiple hyperkalemia-inducing medications."
+        ]
+      },
+      {
+        "category": "Medication Adjustments for CKD",
+        "items": [
+          "Metformin: Current dose 500 mg BID is appropriate for eGFR 30-45. If eGFR drops <30, will need to discontinue.",
+          "Gabapentin (if added): Would need dose adjustment for renal function",
+          "Avoid NSAIDs, IV contrast when possible, nephrotoxic medications"
+        ]
+      },
+      {
+        "category": "Monitoring",
+        "items": [
+          "Check BMP, CBC, PTH, vitamin D every 3 months",
+          "Check UACR every 6 months",
+          "If eGFR approaches 20-25, will need to discuss dialysis modalities and access planning"
+        ]
+      },
+      {
+        "category": "Immunizations",
+        "items": [
+          "Ensure pneumococcal vaccination is up to date",
+          "Hepatitis B vaccination if not immune (for potential future dialysis)"
+        ]
+      }
+    ],
+    "patientEducation": "Discussed CKD stage 3b and expected slow progression. Emphasized importance of blood pressure and diabetes control, avoiding nephrotoxic medications (including over-the-counter NSAIDs like ibuprofen and naproxen), staying hydrated, and following low-sodium/low-potassium diet. Discussed that dialysis is not imminent but may be needed in the future (likely years away at current trajectory). Patient voiced understanding and had no additional questions.",
+    "planSummary": "1. Start sodium bicarbonate 650 mg PO BID for metabolic acidosis\n2. Start cholecalciferol 2000 IU daily for vitamin D insufficiency\n3. Check iron studies - if deficient, will supplement\n4. Continue current nephroprotective medications (ACEi, SGLT2i)\n5. Labs in 3 months: BMP, CBC, iron studies, PTH, vitamin D\n6. Follow-up in 3-4 months"
+  },
+  "attestation": "I have personally evaluated this patient, reviewed laboratory data and imaging, and formulated the assessment and plan. I have discussed the findings with the patient.\n\nElectronically signed by: Michael Torres, MD, FASN\nDate/Time: 3/20/2024 5:30 PM"
+}

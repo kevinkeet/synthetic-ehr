@@ -1,0 +1,106 @@
+{
+  "problems": [
+    {
+      "id": "PRB001",
+      "name": "Type 2 Diabetes Mellitus",
+      "icd10": "E11.65",
+      "snomed": "44054006",
+      "onsetDate": "2010-04-15",
+      "diagnosedBy": "Dr. Sarah Chen",
+      "priority": "High",
+      "notes": "Initially controlled with diet, now on metformin and insulin. HbA1c trending 7.2-8.8%"
+    },
+    {
+      "id": "PRB002",
+      "name": "Chronic Kidney Disease, Stage 3b",
+      "icd10": "N18.32",
+      "snomed": "431857002",
+      "onsetDate": "2018-06-20",
+      "diagnosedBy": "Dr. Michael Torres",
+      "priority": "High",
+      "notes": "Likely diabetic nephropathy. eGFR 35-42. Followed by nephrology."
+    },
+    {
+      "id": "PRB003",
+      "name": "Heart Failure with Reduced Ejection Fraction",
+      "icd10": "I50.22",
+      "snomed": "84114007",
+      "onsetDate": "2019-11-08",
+      "diagnosedBy": "Dr. James Wilson",
+      "priority": "High",
+      "notes": "EF 35% on last echo. NYHA Class II. On guideline-directed medical therapy."
+    },
+    {
+      "id": "PRB004",
+      "name": "Atrial Fibrillation, Persistent",
+      "icd10": "I48.1",
+      "snomed": "49436004",
+      "onsetDate": "2017-03-22",
+      "diagnosedBy": "Dr. James Wilson",
+      "priority": "High",
+      "notes": "Rate controlled. On anticoagulation with apixaban. CHA2DS2-VASc score 5."
+    },
+    {
+      "id": "PRB005",
+      "name": "Essential Hypertension",
+      "icd10": "I10",
+      "snomed": "59621000",
+      "onsetDate": "2005-08-10",
+      "diagnosedBy": "Dr. Sarah Chen",
+      "priority": "Medium",
+      "notes": "On multiple agents. Goal BP <130/80."
+    },
+    {
+      "id": "PRB006",
+      "name": "Hyperlipidemia",
+      "icd10": "E78.5",
+      "snomed": "55822004",
+      "onsetDate": "2008-02-14",
+      "diagnosedBy": "Dr. Sarah Chen",
+      "priority": "Medium",
+      "notes": "On high-intensity statin. LDL goal <70 given ASCVD risk."
+    },
+    {
+      "id": "PRB007",
+      "name": "Obesity",
+      "icd10": "E66.9",
+      "snomed": "414916001",
+      "onsetDate": "2010-04-15",
+      "diagnosedBy": "Dr. Sarah Chen",
+      "priority": "Medium",
+      "notes": "BMI 32. Counseled on diet and exercise. Weight loss would benefit multiple conditions."
+    },
+    {
+      "id": "PRB008",
+      "name": "Diabetic Peripheral Neuropathy",
+      "icd10": "E11.42",
+      "snomed": "230572002",
+      "onsetDate": "2020-01-15",
+      "diagnosedBy": "Dr. Sarah Chen",
+      "priority": "Medium",
+      "notes": "Bilateral feet, stocking distribution. On gabapentin for symptom control."
+    },
+    {
+      "id": "PRB009",
+      "name": "Benign Prostatic Hyperplasia",
+      "icd10": "N40.0",
+      "snomed": "266569009",
+      "onsetDate": "2016-09-20",
+      "diagnosedBy": "Dr. Robert Kim",
+      "priority": "Low",
+      "notes": "Mild symptoms controlled with tamsulosin."
+    },
+    {
+      "id": "PRB010",
+      "name": "Vitamin D Deficiency",
+      "icd10": "E55.9",
+      "snomed": "34713006",
+      "onsetDate": "2019-03-10",
+      "diagnosedBy": "Dr. Sarah Chen",
+      "priority": "Low",
+      "notes": "On supplementation. Last level 28 ng/mL."
+    }
+  ],
+  "lastReviewed": "2024-01-10",
+  "reviewedBy": "Dr. Sarah Chen"
+}

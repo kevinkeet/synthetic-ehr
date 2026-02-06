@@ -1,0 +1,22 @@
+{
+  "id": "IMG002",
+  "date": "2023-08-16T10:00:00Z",
+  "modality": "Echo",
+  "description": "Transthoracic Echocardiogram",
+  "facility": "Springfield Medical Center",
+  "status": "Final",
+  "radiologist": "Dr. James Wilson",
+  "indication": "Heart failure exacerbation, assess LV function",
+  "technique": "Complete 2D and Doppler echocardiographic examination performed using standard views.",
+  "comparison": "Comparison made to echocardiogram dated November 20, 2022.",
+  "findings": "LEFT VENTRICLE:\n- The left ventricle is moderately dilated (LVEDD 6.2 cm).\n- Left ventricular systolic function is moderately reduced.\n- Estimated ejection fraction is 30-35% (previously 35%).\n- Regional wall motion abnormalities: Global hypokinesis.\n- No left ventricular thrombus identified.\n\nRIGHT VENTRICLE:\n- The right ventricle is mildly dilated.\n- Right ventricular systolic function is mildly reduced.\n- TAPSE 1.6 cm.\n\nATRIA:\n- The left atrium is moderately dilated (4.8 cm).\n- The right atrium is mildly dilated.\n\nVALVES:\n- Mitral valve: Moderate mitral regurgitation (unchanged).\n- Aortic valve: Mild aortic sclerosis without significant stenosis. Trivial aortic regurgitation.\n- Tricuspid valve: Mild tricuspid regurgitation. Estimated RVSP 45 mmHg.\n- Pulmonic valve: Normal.\n\nPERICARDIUM:\n- No pericardial effusion.\n\nAORTA:\n- The aortic root is normal in size.",
+  "impression": [
+    "Moderately reduced left ventricular systolic function with estimated EF 30-35% (stable compared to prior)",
+    "Moderate left ventricular dilation",
+    "Moderate mitral regurgitation (unchanged)",
+    "Moderate left atrial dilation",
+    "Mildly elevated right ventricular systolic pressure (estimated RVSP 45 mmHg)",
+    "No pericardial effusion"
+  ],
+  "recommendations": "Continue guideline-directed medical therapy for heart failure with reduced ejection fraction."
+}

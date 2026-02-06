@@ -1,0 +1,18 @@
+{
+  "id": "LAB136",
+  "name": "Procalcitonin",
+  "collectedDate": "2022-07-31T15:22:18.416Z",
+  "receivedDate": "2022-07-31T15:52:18.416Z",
+  "reportedDate": "2022-07-31T16:52:18.416Z",
+  "orderedBy": "Dr. Michael Torres",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "Procalcitonin",
+      "value": 0.06,
+      "unit": "ng/mL",
+      "referenceRange": "<0.1"
+    }
+  ]
+}

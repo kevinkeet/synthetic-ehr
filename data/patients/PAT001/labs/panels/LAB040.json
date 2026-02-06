@@ -1,0 +1,66 @@
+{
+  "id": "LAB040",
+  "name": "Basic Metabolic Panel",
+  "collectedDate": "2019-07-28T15:22:18.416Z",
+  "receivedDate": "2019-07-28T15:52:18.416Z",
+  "reportedDate": "2019-07-28T16:52:18.416Z",
+  "orderedBy": "Dr. Patricia Lee",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "Sodium",
+      "value": 115,
+      "unit": "mEq/L",
+      "referenceRange": "136-145"
+    },
+    {
+      "name": "Potassium",
+      "value": 4.31,
+      "unit": "mEq/L",
+      "referenceRange": "3.5-5.0"
+    },
+    {
+      "name": "Chloride",
+      "value": 97,
+      "unit": "mEq/L",
+      "referenceRange": "98-106"
+    },
+    {
+      "name": "CO2",
+      "value": 23,
+      "unit": "mEq/L",
+      "referenceRange": "23-29"
+    },
+    {
+      "name": "BUN",
+      "value": 29.9,
+      "unit": "mg/dL",
+      "referenceRange": "7-20"
+    },
+    {
+      "name": "Creatinine",
+      "value": 2.33,
+      "unit": "mg/dL",
+      "referenceRange": "0.7-1.3"
+    },
+    {
+      "name": "Glucose",
+      "value": 144,
+      "unit": "mg/dL",
+      "referenceRange": "70-100"
+    },
+    {
+      "name": "Calcium",
+      "value": 8.2,
+      "unit": "mg/dL",
+      "referenceRange": "8.5-10.5"
+    },
+    {
+      "name": "eGFR",
+      "value": 47.4,
+      "unit": "mL/min/1.73m2",
+      "referenceRange": ">90"
+    }
+  ]
+}

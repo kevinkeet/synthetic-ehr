@@ -1,0 +1,65 @@
+{
+  "id": "NOTE_DC001",
+  "type": "Discharge Summary",
+  "title": "Discharge Summary - CHF Exacerbation",
+  "date": "2022-08-19T11:30:00.000Z",
+  "author": "Dr. Emily Brown",
+  "department": "Hospital Medicine",
+  "encounter": "ENC_ADM001",
+  "signedDate": "2022-08-19T14:00:00.000Z",
+  "sections": {
+    "admissionDate": "2022-08-15",
+    "dischargeDate": "2022-08-19",
+    "lengthOfStay": "4 days",
+    "admittingDiagnosis": "Acute on chronic systolic heart failure exacerbation",
+    "dischargeDiagnoses": [
+      "Acute on chronic systolic heart failure exacerbation, improved (ICD-10: I50.23)",
+      "Acute kidney injury on chronic kidney disease stage 3b, resolved (ICD-10: N17.9, N18.4)",
+      "Atrial fibrillation with RVR, rate controlled (ICD-10: I48.91)",
+      "Type 2 Diabetes Mellitus (ICD-10: E11.9)",
+      "Hypertension (ICD-10: I10)",
+      "Coronary artery disease (ICD-10: I25.10)"
+    ],
+    "hospitalCourse": "Mr. Morrison is a 72-year-old male with HFrEF (EF 30-35%), CKD3b, atrial fibrillation, and T2DM who was admitted with acute decompensated heart failure triggered by diuretic non-compliance.\n\nHOSPITAL COURSE:\n\nDay 1-2: Patient presented with volume overload evidenced by elevated JVP, bibasilar crackles, bilateral lower extremity edema, and elevated BNP (1,850). Chest X-ray showed cardiomegaly, vascular congestion, and small bilateral pleural effusions. Initiated IV diuresis with furosemide 40 mg IV q12h. Creatinine was elevated at 2.4 (baseline 1.8-2.0) consistent with cardiorenal syndrome. Held metformin and ACE inhibitor. Patient responded well to initial diuresis with 2.5L net negative on day 1.\n\nDay 2-3: Continued diuresis with good response. Net negative 2L daily. Creatinine peaked at 2.6 on day 2, then began trending down. Oxygen requirements improved from 2L NC to room air. Symptoms of dyspnea and orthopnea improved significantly. Weight down 3 kg from admission.\n\nDay 3-4: Transitioned to oral diuretics. Furosemide 60 mg PO BID with good effect. Creatinine improved to 2.1. Ambulating in hallways without dyspnea. Lower extremity edema reduced to 1+. Restarted lisinopril at 5 mg daily (reduced dose). Restarted metformin at half dose (250 mg BID). Heart rate controlled in 70s on carvedilol.\n\nDay 4 (Discharge): Patient at or near dry weight. Tolerating oral medications. Ambulating without dyspnea. Oxygen saturation 95% on room air. Discharge to home with close follow-up arranged.",
+    "procedures": [
+      "Diagnostic paracentesis (500cc transudative fluid, no evidence of SBP)"
+    ],
+    "consultations": [
+      "Cardiology (Dr. James Wilson) - Agreed with diuretic management, recommended outpatient follow-up in 1 week for volume assessment and medication titration"
+    ],
+    "dischargeMedications": [
+      { "name": "Furosemide", "dose": "60 mg", "route": "PO", "frequency": "twice daily", "instructions": "Increased from previous dose of 40 mg BID" },
+      { "name": "Carvedilol", "dose": "12.5 mg", "route": "PO", "frequency": "twice daily", "instructions": "Unchanged" },
+      { "name": "Lisinopril", "dose": "5 mg", "route": "PO", "frequency": "daily", "instructions": "Reduced dose - monitor potassium and creatinine" },
+      { "name": "Spironolactone", "dose": "25 mg", "route": "PO", "frequency": "daily", "instructions": "Unchanged" },
+      { "name": "Metformin", "dose": "250 mg", "route": "PO", "frequency": "twice daily", "instructions": "Reduced dose - can increase to 500 mg BID if creatinine stable" },
+      { "name": "Glipizide", "dose": "5 mg", "route": "PO", "frequency": "daily", "instructions": "Unchanged" },
+      { "name": "Warfarin", "dose": "5 mg", "route": "PO", "frequency": "daily", "instructions": "Goal INR 2-3, check INR in 3 days" },
+      { "name": "Atorvastatin", "dose": "40 mg", "route": "PO", "frequency": "at bedtime", "instructions": "Unchanged" },
+      { "name": "Aspirin", "dose": "81 mg", "route": "PO", "frequency": "daily", "instructions": "Unchanged" },
+      { "name": "Omeprazole", "dose": "20 mg", "route": "PO", "frequency": "daily", "instructions": "Unchanged" },
+      { "name": "Tamsulosin", "dose": "0.4 mg", "route": "PO", "frequency": "at bedtime", "instructions": "Unchanged" }
+    ],
+    "dischargeCondition": "Stable, improved",
+    "dischargeDisposition": "Home with spouse",
+    "followUpAppointments": [
+      { "provider": "Dr. James Wilson (Cardiology)", "timing": "1 week", "reason": "Volume status assessment, medication adjustment" },
+      { "provider": "Dr. Sarah Chen (Primary Care)", "timing": "2 weeks", "reason": "Routine follow-up, lab check" },
+      { "provider": "Anticoagulation Clinic", "timing": "3 days", "reason": "INR check" }
+    ],
+    "dischargeInstructions": [
+      "Weigh yourself every morning before breakfast. Call your doctor if you gain more than 3 pounds in 1 day or 5 pounds in 1 week.",
+      "Continue your low-sodium diet (<2 grams/day) and limit fluids to 1.5 liters per day.",
+      "Take your furosemide (water pill) as directed - the dose has been increased.",
+      "Do NOT skip doses of your heart medications.",
+      "Monitor for symptoms of worsening heart failure: increased shortness of breath, worsening leg swelling, inability to lie flat.",
+      "Keep all follow-up appointments.",
+      "Call your doctor or go to the ER if you have: severe shortness of breath, chest pain, new or worsening swelling, weight gain >3 lbs/day."
+    ],
+    "pendingResults": [
+      "None"
+    ],
+    "codeStatus": "Full Code"
+  },
+  "attestation": "I have reviewed the above discharge summary and confirm its accuracy. The patient and family have been provided with discharge instructions and have verbalized understanding.\n\nElectronically signed by: Emily Brown, MD\nDate/Time: 8/19/2022 2:00 PM"
+}

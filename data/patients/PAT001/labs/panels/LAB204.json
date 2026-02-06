@@ -1,0 +1,66 @@
+{
+  "id": "LAB204",
+  "name": "Basic Metabolic Panel",
+  "collectedDate": "2025-08-29T15:22:18.416Z",
+  "receivedDate": "2025-08-29T15:52:18.416Z",
+  "reportedDate": "2025-08-29T16:52:18.416Z",
+  "orderedBy": "Dr. Robert Kim",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "Sodium",
+      "value": 138,
+      "unit": "mEq/L",
+      "referenceRange": "136-145"
+    },
+    {
+      "name": "Potassium",
+      "value": 4.49,
+      "unit": "mEq/L",
+      "referenceRange": "3.5-5.0"
+    },
+    {
+      "name": "Chloride",
+      "value": 106,
+      "unit": "mEq/L",
+      "referenceRange": "98-106"
+    },
+    {
+      "name": "CO2",
+      "value": 27.1,
+      "unit": "mEq/L",
+      "referenceRange": "23-29"
+    },
+    {
+      "name": "BUN",
+      "value": 36.7,
+      "unit": "mg/dL",
+      "referenceRange": "7-20"
+    },
+    {
+      "name": "Creatinine",
+      "value": 1.87,
+      "unit": "mg/dL",
+      "referenceRange": "0.7-1.3"
+    },
+    {
+      "name": "Glucose",
+      "value": 134,
+      "unit": "mg/dL",
+      "referenceRange": "70-100"
+    },
+    {
+      "name": "Calcium",
+      "value": 8.89,
+      "unit": "mg/dL",
+      "referenceRange": "8.5-10.5"
+    },
+    {
+      "name": "eGFR",
+      "value": 32.5,
+      "unit": "mL/min/1.73m2",
+      "referenceRange": ">90"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "id": "IMG012",
+  "date": "2025-08-08T04:01:17.216Z",
+  "modality": "Ultrasound",
+  "description": "Carotid Ultrasound",
+  "facility": "Springfield Medical Center",
+  "status": "Final",
+  "radiologist": "Dr. Robert Chang",
+  "orderingProvider": "Dr. James Wilson",
+  "indication": "Atrial fibrillation, assessment for carotid stenosis, stroke risk stratification",
+  "technique": "Gray-scale, color flow, and spectral Doppler evaluation of the extracranial carotid arteries and vertebral arteries was performed bilaterally.",
+  "findings": {
+    "rightCarotid": {
+      "cca": "Normal caliber and flow. IMT 0.9 mm.",
+      "ica": "Mild heterogeneous plaque at the origin. Peak systolic velocity 98 cm/s. End diastolic velocity 32 cm/s. ICA/CCA ratio 1.4. Estimated stenosis <50%.",
+      "eca": "Patent with normal flow."
+    },
+    "leftCarotid": {
+      "cca": "Normal caliber and flow. IMT 0.8 mm.",
+      "ica": "Minimal calcified plaque at the bulb. Peak systolic velocity 85 cm/s. End diastolic velocity 28 cm/s. ICA/CCA ratio 1.2. Estimated stenosis <50%.",
+      "eca": "Patent with normal flow."
+    },
+    "vertebralArteries": "Bilateral vertebral arteries demonstrate antegrade flow."
+  },
+  "impression": [
+    "Bilateral mild carotid atherosclerosis with estimated <50% stenosis of both internal carotid arteries.",
+    "No hemodynamically significant stenosis identified.",
+    "Recommend continued medical management with anticoagulation for atrial fibrillation.",
+    "Follow-up carotid ultrasound in 1-2 years given underlying atherosclerosis."
+  ],
+  "comparison": "Carotid ultrasound dated 2023-03-11. Stable findings."
+}

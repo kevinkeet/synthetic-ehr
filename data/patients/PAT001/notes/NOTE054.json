@@ -1,0 +1,70 @@
+{
+  "id": "NOTE054",
+  "type": "Progress Note",
+  "date": "2023-10-22T15:22:18.416Z",
+  "author": "Dr. Patricia Lee",
+  "department": "Radiology",
+  "encounter": "ENC037",
+  "chiefComplaint": "Blood pressure check",
+  "hpi": "Patient presents for blood pressure check. Reports overall stable condition since last visit. Compliant with medications. No new symptoms.",
+  "reviewOfSystems": {
+    "Constitutional": "No fever, chills, or weight loss",
+    "Cardiovascular": "Dyspnea on exertion at baseline",
+    "Respiratory": "Mild dyspnea",
+    "GI": "No nausea or vomiting",
+    "GU": "No hematuria",
+    "Neurologic": "Baseline neuropathy"
+  },
+  "vitals": {
+    "bp": "143/84 mmHg",
+    "hr": "74 bpm",
+    "rr": "15/min",
+    "temp": "98.4°F",
+    "spo2": "98% RA",
+    "weight": "100.3 kg"
+  },
+  "physicalExam": {
+    "General": "Mildly fatigued-appearing",
+    "HEENT": "Normocephalic, PERRL, oropharynx clear",
+    "Cardiovascular": "Irregularly irregular, no murmurs, JVP not elevated",
+    "Respiratory": "Clear to auscultation bilaterally",
+    "Abdomen": "Soft, non-tender, non-distended",
+    "Extremities": "1+ pedal edema bilaterally",
+    "Neurologic": "Alert and oriented, decreased sensation bilateral feet"
+  },
+  "assessment": [
+    {
+      "diagnosis": "Type 2 Diabetes Mellitus",
+      "icd10": "E11.65",
+      "notes": "HbA1c 7.9%. On insulin and metformin."
+    },
+    {
+      "diagnosis": "Chronic Kidney Disease Stage 3b",
+      "icd10": "N18.32",
+      "notes": "eGFR 37. Stable."
+    }
+  ],
+  "plan": [
+    {
+      "problem": "Diabetes",
+      "action": "Continue current regimen. Recheck HbA1c in 3 months."
+    },
+    {
+      "problem": "CKD",
+      "action": "Monitor renal function. Avoid nephrotoxins."
+    },
+    {
+      "problem": "Heart Failure",
+      "action": "Continue GDMT. Daily weights. Low sodium diet."
+    },
+    {
+      "problem": "Atrial Fibrillation",
+      "action": "Continue anticoagulation. Rate control adequate."
+    },
+    {
+      "problem": "Follow-up",
+      "action": "Return in 11 weeks or sooner if needed."
+    }
+  ],
+  "attestation": "I personally saw and examined the patient. I agree with the documented findings and plan.\n\nElectronically signed by: Dr. Patricia Lee\nDate: 10/22/2023"
+}

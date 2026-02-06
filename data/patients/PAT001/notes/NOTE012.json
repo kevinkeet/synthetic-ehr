@@ -1,0 +1,55 @@
+{
+  "id": "NOTE012",
+  "type": "Discharge Summary",
+  "date": "2025-09-10T15:22:18.416Z",
+  "author": "Dr. Sarah Chen",
+  "department": "Primary Care",
+  "encounter": "ENC008",
+  "sections": [
+    {
+      "title": "Admission Date",
+      "content": "9/6/2025"
+    },
+    {
+      "title": "Discharge Date",
+      "content": "9/10/2025"
+    },
+    {
+      "title": "Attending Physician",
+      "content": "Dr. Sarah Chen"
+    },
+    {
+      "title": "Principal Diagnosis",
+      "content": "Community-acquired pneumonia"
+    },
+    {
+      "title": "Secondary Diagnoses",
+      "content": "1. Type 2 Diabetes Mellitus\n2. Chronic Kidney Disease Stage 3b\n3. Heart Failure with Reduced EF\n4. Atrial Fibrillation\n5. Hypertension"
+    },
+    {
+      "title": "Hospital Course",
+      "content": "Patient was admitted for volume overload and treated with IV diuretics. Responded well to treatment with 5 liters of diuresis over 3 days. Symptoms improved, weight decreased from 100 kg to 98 kg. Renal function remained stable. No arrhythmias on telemetry. Patient educated on diet and medication compliance."
+    },
+    {
+      "title": "Discharge Medications",
+      "content": "See medication reconciliation."
+    },
+    {
+      "title": "Discharge Instructions",
+      "content": "1. Take all medications as prescribed\n2. Weigh yourself daily\n3. Follow low-sodium diet (<2g/day)\n4. Limit fluids to 2 liters daily\n5. Call if weight increases >3 lbs in a day or symptoms worsen\n6. Follow up with appointments as scheduled"
+    },
+    {
+      "title": "Follow-Up Appointments",
+      "content": "1. Primary Care: 1 week\n2. Cardiology: 2 weeks\n3. Nephrology: 4 weeks"
+    },
+    {
+      "title": "Discharge Condition",
+      "content": "Stable, improved"
+    },
+    {
+      "title": "Disposition",
+      "content": "Home with family"
+    }
+  ],
+  "attestation": "Discharge summary reviewed and approved.\n\nElectronically signed by: Dr. Sarah Chen\nDate: 9/10/2025"
+}

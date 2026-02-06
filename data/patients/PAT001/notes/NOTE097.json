@@ -1,0 +1,75 @@
+{
+  "id": "NOTE097",
+  "type": "Progress Note",
+  "date": "2021-06-01T15:22:18.416Z",
+  "author": "Dr. David Park",
+  "department": "Pulmonology",
+  "encounter": "ENC074",
+  "chiefComplaint": "Lab review",
+  "hpi": "Patient presents for lab review. Weight stable. Following low-sodium diet. Monitoring blood pressure at home.",
+  "reviewOfSystems": {
+    "Constitutional": "Weight stable",
+    "Cardiovascular": "No orthopnea",
+    "Respiratory": "No cough or wheezing",
+    "GI": "Regular bowel movements",
+    "GU": "Nocturia x2",
+    "Neurologic": "No dizziness"
+  },
+  "vitals": {
+    "bp": "150/77 mmHg",
+    "hr": "85 bpm",
+    "rr": "18/min",
+    "temp": "97.6°F",
+    "spo2": "97% RA",
+    "weight": "98.8 kg"
+  },
+  "physicalExam": {
+    "General": "Comfortable, well-appearing",
+    "HEENT": "Normocephalic, PERRL, oropharynx clear",
+    "Cardiovascular": "Regular rate and rhythm, no murmurs",
+    "Respiratory": "Mild crackles at bases",
+    "Abdomen": "Soft, non-tender, non-distended",
+    "Extremities": "No edema, warm and well-perfused",
+    "Neurologic": "Alert and oriented, decreased sensation bilateral feet"
+  },
+  "assessment": [
+    {
+      "diagnosis": "Type 2 Diabetes Mellitus",
+      "icd10": "E11.65",
+      "notes": "HbA1c 8.2%. On insulin and metformin."
+    },
+    {
+      "diagnosis": "Chronic Kidney Disease Stage 3b",
+      "icd10": "N18.32",
+      "notes": "eGFR 34. Stable."
+    },
+    {
+      "diagnosis": "Heart Failure with Reduced EF",
+      "icd10": "I50.22",
+      "notes": "NYHA Class II. On GDMT."
+    }
+  ],
+  "plan": [
+    {
+      "problem": "Diabetes",
+      "action": "Continue current regimen. Recheck HbA1c in 3 months."
+    },
+    {
+      "problem": "CKD",
+      "action": "Monitor renal function. Avoid nephrotoxins."
+    },
+    {
+      "problem": "Heart Failure",
+      "action": "Continue GDMT. Daily weights. Low sodium diet."
+    },
+    {
+      "problem": "Atrial Fibrillation",
+      "action": "Continue anticoagulation. Rate control adequate."
+    },
+    {
+      "problem": "Follow-up",
+      "action": "Return in 7 weeks or sooner if needed."
+    }
+  ],
+  "attestation": "I personally saw and examined the patient. I agree with the documented findings and plan.\n\nElectronically signed by: Dr. David Park\nDate: 6/1/2021"
+}

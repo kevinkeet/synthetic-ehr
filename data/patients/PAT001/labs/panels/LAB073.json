@@ -1,0 +1,30 @@
+{
+  "id": "LAB073",
+  "name": "Coagulation Panel",
+  "collectedDate": "2020-07-23T15:22:18.416Z",
+  "receivedDate": "2020-07-23T15:52:18.416Z",
+  "reportedDate": "2020-07-23T16:52:18.416Z",
+  "orderedBy": "Dr. Lisa Martinez",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "PT",
+      "value": 13.4,
+      "unit": "seconds",
+      "referenceRange": "11-13.5"
+    },
+    {
+      "name": "INR",
+      "value": 1.36,
+      "unit": "",
+      "referenceRange": "0.8-1.2"
+    },
+    {
+      "name": "PTT",
+      "value": 27.8,
+      "unit": "seconds",
+      "referenceRange": "25-35"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "id": "NOTE073",
+  "type": "Progress Note",
+  "date": "2023-01-10T16:22:18.416Z",
+  "author": "Dr. David Park",
+  "department": "Pulmonology",
+  "encounter": "ENC050",
+  "chiefComplaint": "Routine follow-up",
+  "hpi": "Patient presents for routine follow-up. Weight stable. Following low-sodium diet. Monitoring blood pressure at home.",
+  "reviewOfSystems": {
+    "Constitutional": "Reports fatigue",
+    "Cardiovascular": "Dyspnea on exertion at baseline",
+    "Respiratory": "Mild dyspnea",
+    "GI": "Appetite fair",
+    "GU": "Nocturia x2",
+    "Neurologic": "Baseline neuropathy"
+  },
+  "vitals": {
+    "bp": "139/87 mmHg",
+    "hr": "74 bpm",
+    "rr": "19/min",
+    "temp": "97.5°F",
+    "spo2": "97% RA",
+    "weight": "100.2 kg"
+  },
+  "physicalExam": {
+    "General": "Mildly fatigued-appearing",
+    "HEENT": "Normocephalic, PERRL, oropharynx clear",
+    "Cardiovascular": "Regular rate and rhythm, no murmurs",
+    "Respiratory": "No wheezes or rhonchi",
+    "Abdomen": "Soft, non-tender, non-distended",
+    "Extremities": "1+ pedal edema bilaterally",
+    "Neurologic": "Alert and oriented, decreased sensation bilateral feet"
+  },
+  "assessment": [
+    {
+      "diagnosis": "Type 2 Diabetes Mellitus",
+      "icd10": "E11.65",
+      "notes": "HbA1c 7.4%. On insulin and metformin."
+    },
+    {
+      "diagnosis": "Chronic Kidney Disease Stage 3b",
+      "icd10": "N18.32",
+      "notes": "eGFR 35. Stable."
+    }
+  ],
+  "plan": [
+    {
+      "problem": "Diabetes",
+      "action": "Continue current regimen. Recheck HbA1c in 3 months."
+    },
+    {
+      "problem": "CKD",
+      "action": "Monitor renal function. Avoid nephrotoxins."
+    },
+    {
+      "problem": "Heart Failure",
+      "action": "Continue GDMT. Daily weights. Low sodium diet."
+    },
+    {
+      "problem": "Atrial Fibrillation",
+      "action": "Continue anticoagulation. Rate control adequate."
+    },
+    {
+      "problem": "Follow-up",
+      "action": "Return in 9 weeks or sooner if needed."
+    }
+  ],
+  "attestation": "I personally saw and examined the patient. I agree with the documented findings and plan.\n\nElectronically signed by: Dr. David Park\nDate: 1/10/2023"
+}

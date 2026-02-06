@@ -1,0 +1,18 @@
+{
+  "id": "LAB115",
+  "name": "Procalcitonin",
+  "collectedDate": "2021-11-23T16:22:18.416Z",
+  "receivedDate": "2021-11-23T16:52:18.416Z",
+  "reportedDate": "2021-11-23T17:52:18.416Z",
+  "orderedBy": "Dr. Robert Kim",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "Procalcitonin",
+      "value": 0.08,
+      "unit": "ng/mL",
+      "referenceRange": "<0.1"
+    }
+  ]
+}

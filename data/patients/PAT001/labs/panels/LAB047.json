@@ -1,0 +1,42 @@
+{
+  "id": "LAB047",
+  "name": "Lipid Panel",
+  "collectedDate": "2019-11-27T16:22:18.416Z",
+  "receivedDate": "2019-11-27T16:52:18.416Z",
+  "reportedDate": "2019-11-27T17:52:18.416Z",
+  "orderedBy": "Dr. Jennifer Adams",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "Total Cholesterol",
+      "value": 161,
+      "unit": "mg/dL",
+      "referenceRange": "<200"
+    },
+    {
+      "name": "LDL",
+      "value": 80,
+      "unit": "mg/dL",
+      "referenceRange": "<100"
+    },
+    {
+      "name": "HDL",
+      "value": 51.4,
+      "unit": "mg/dL",
+      "referenceRange": ">40"
+    },
+    {
+      "name": "Triglycerides",
+      "value": 180,
+      "unit": "mg/dL",
+      "referenceRange": "<150"
+    },
+    {
+      "name": "VLDL",
+      "value": 34.9,
+      "unit": "mg/dL",
+      "referenceRange": "<30"
+    }
+  ]
+}

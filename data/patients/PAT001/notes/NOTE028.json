@@ -1,0 +1,70 @@
+{
+  "id": "NOTE028",
+  "type": "Progress Note",
+  "date": "2024-10-29T15:22:18.416Z",
+  "author": "Dr. Sarah Chen",
+  "department": "Primary Care",
+  "encounter": "ENC021",
+  "chiefComplaint": "Lab review",
+  "hpi": "Patient presents for lab review. Weight stable. Following low-sodium diet. Monitoring blood pressure at home.",
+  "reviewOfSystems": {
+    "Constitutional": "Reports fatigue",
+    "Cardiovascular": "Dyspnea on exertion at baseline",
+    "Respiratory": "No hemoptysis",
+    "GI": "Regular bowel movements",
+    "GU": "No dysuria",
+    "Neurologic": "No dizziness"
+  },
+  "vitals": {
+    "bp": "150/79 mmHg",
+    "hr": "83 bpm",
+    "rr": "19/min",
+    "temp": "97.9°F",
+    "spo2": "94% RA",
+    "weight": "97.2 kg"
+  },
+  "physicalExam": {
+    "General": "Comfortable, well-appearing",
+    "HEENT": "Normocephalic, PERRL, oropharynx clear",
+    "Cardiovascular": "Irregularly irregular, no murmurs, JVP not elevated",
+    "Respiratory": "Clear to auscultation bilaterally",
+    "Abdomen": "Soft, non-tender, non-distended",
+    "Extremities": "No edema, warm and well-perfused",
+    "Neurologic": "Alert and oriented, decreased sensation bilateral feet"
+  },
+  "assessment": [
+    {
+      "diagnosis": "Type 2 Diabetes Mellitus",
+      "icd10": "E11.65",
+      "notes": "HbA1c 8.4%. On insulin and metformin."
+    },
+    {
+      "diagnosis": "Chronic Kidney Disease Stage 3b",
+      "icd10": "N18.32",
+      "notes": "eGFR 35. Stable."
+    }
+  ],
+  "plan": [
+    {
+      "problem": "Diabetes",
+      "action": "Continue current regimen. Recheck HbA1c in 3 months."
+    },
+    {
+      "problem": "CKD",
+      "action": "Monitor renal function. Avoid nephrotoxins."
+    },
+    {
+      "problem": "Heart Failure",
+      "action": "Continue GDMT. Daily weights. Low sodium diet."
+    },
+    {
+      "problem": "Atrial Fibrillation",
+      "action": "Continue anticoagulation. Rate control adequate."
+    },
+    {
+      "problem": "Follow-up",
+      "action": "Return in 12 weeks or sooner if needed."
+    }
+  ],
+  "attestation": "I personally saw and examined the patient. I agree with the documented findings and plan.\n\nElectronically signed by: Dr. Sarah Chen\nDate: 10/29/2024"
+}

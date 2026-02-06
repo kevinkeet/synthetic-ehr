@@ -1,0 +1,18 @@
+{
+  "id": "LAB123",
+  "name": "BNP",
+  "collectedDate": "2022-02-21T16:22:18.416Z",
+  "receivedDate": "2022-02-21T16:52:18.416Z",
+  "reportedDate": "2022-02-21T17:52:18.416Z",
+  "orderedBy": "Dr. James Wilson",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "BNP",
+      "value": 538,
+      "unit": "pg/mL",
+      "referenceRange": "0-100"
+    }
+  ]
+}

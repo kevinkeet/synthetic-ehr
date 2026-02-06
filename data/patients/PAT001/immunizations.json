@@ -1,0 +1,134 @@
+{
+  "immunizations": [
+    {
+      "date": "2024-01-10",
+      "vaccine": "Influenza (Fluzone High-Dose)",
+      "dose": "0.7 mL",
+      "route": "IM",
+      "site": "Left deltoid",
+      "lotNumber": "UJ789456",
+      "manufacturer": "Sanofi Pasteur",
+      "administeredBy": "RN Smith",
+      "notes": "2023-2024 seasonal flu vaccine"
+    },
+    {
+      "date": "2023-10-15",
+      "vaccine": "COVID-19 (Pfizer-BioNTech Bivalent)",
+      "dose": "0.3 mL",
+      "route": "IM",
+      "site": "Right deltoid",
+      "lotNumber": "FN2687",
+      "manufacturer": "Pfizer",
+      "administeredBy": "RN Johnson",
+      "notes": "2023-2024 COVID-19 booster"
+    },
+    {
+      "date": "2023-01-12",
+      "vaccine": "Influenza (Fluzone High-Dose)",
+      "dose": "0.7 mL",
+      "route": "IM",
+      "site": "Left deltoid",
+      "lotNumber": "UH654321",
+      "manufacturer": "Sanofi Pasteur",
+      "administeredBy": "RN Smith"
+    },
+    {
+      "date": "2022-10-01",
+      "vaccine": "COVID-19 (Pfizer-BioNTech Bivalent)",
+      "dose": "0.3 mL",
+      "route": "IM",
+      "site": "Left deltoid",
+      "lotNumber": "FK9876",
+      "manufacturer": "Pfizer",
+      "administeredBy": "RN Davis"
+    },
+    {
+      "date": "2022-09-15",
+      "vaccine": "Pneumococcal 20-valent (Prevnar 20)",
+      "dose": "0.5 mL",
+      "route": "IM",
+      "site": "Right deltoid",
+      "lotNumber": "PN2022A",
+      "manufacturer": "Pfizer",
+      "administeredBy": "RN Smith",
+      "notes": "First pneumococcal vaccine"
+    },
+    {
+      "date": "2022-01-20",
+      "vaccine": "Influenza (Fluzone High-Dose)",
+      "dose": "0.7 mL",
+      "route": "IM",
+      "site": "Left deltoid",
+      "lotNumber": "UG123456",
+      "manufacturer": "Sanofi Pasteur",
+      "administeredBy": "RN Johnson"
+    },
+    {
+      "date": "2021-11-15",
+      "vaccine": "COVID-19 (Pfizer-BioNTech)",
+      "dose": "0.3 mL",
+      "route": "IM",
+      "site": "Left deltoid",
+      "lotNumber": "EW0150",
+      "manufacturer": "Pfizer",
+      "administeredBy": "RN Davis",
+      "notes": "Third dose (booster)"
+    },
+    {
+      "date": "2021-04-10",
+      "vaccine": "COVID-19 (Pfizer-BioNTech)",
+      "dose": "0.3 mL",
+      "route": "IM",
+      "site": "Left deltoid",
+      "lotNumber": "EL9262",
+      "manufacturer": "Pfizer",
+      "administeredBy": "Pharmacy",
+      "notes": "Second dose"
+    },
+    {
+      "date": "2021-03-20",
+      "vaccine": "COVID-19 (Pfizer-BioNTech)",
+      "dose": "0.3 mL",
+      "route": "IM",
+      "site": "Left deltoid",
+      "lotNumber": "EL9261",
+      "manufacturer": "Pfizer",
+      "administeredBy": "Pharmacy",
+      "notes": "First dose"
+    },
+    {
+      "date": "2019-10-05",
+      "vaccine": "Shingrix (Zoster)",
+      "dose": "0.5 mL",
+      "route": "IM",
+      "site": "Right deltoid",
+      "lotNumber": "SH4567",
+      "manufacturer": "GSK",
+      "administeredBy": "RN Smith",
+      "notes": "Second dose, series complete"
+    },
+    {
+      "date": "2019-08-01",
+      "vaccine": "Shingrix (Zoster)",
+      "dose": "0.5 mL",
+      "route": "IM",
+      "site": "Right deltoid",
+      "lotNumber": "SH4566",
+      "manufacturer": "GSK",
+      "administeredBy": "RN Smith",
+      "notes": "First dose"
+    },
+    {
+      "date": "2017-06-15",
+      "vaccine": "Tdap (Boostrix)",
+      "dose": "0.5 mL",
+      "route": "IM",
+      "site": "Left deltoid",
+      "lotNumber": "TD2017",
+      "manufacturer": "GSK",
+      "administeredBy": "RN Johnson",
+      "notes": "Tetanus booster"
+    }
+  ],
+  "lastReviewed": "2024-01-10"
+}

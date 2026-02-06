@@ -1,0 +1,18 @@
+{
+  "id": "LAB117",
+  "name": "Hemoglobin A1c",
+  "collectedDate": "2021-12-16T16:22:18.416Z",
+  "receivedDate": "2021-12-16T16:52:18.416Z",
+  "reportedDate": "2021-12-16T17:52:18.416Z",
+  "orderedBy": "Dr. William Thompson",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "HbA1c",
+      "value": 7.95,
+      "unit": "%",
+      "referenceRange": "4.0-5.6"
+    }
+  ]
+}

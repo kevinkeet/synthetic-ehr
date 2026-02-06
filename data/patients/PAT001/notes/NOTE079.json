@@ -1,0 +1,70 @@
+{
+  "id": "NOTE079",
+  "type": "Progress Note",
+  "date": "2022-07-15T15:22:18.416Z",
+  "author": "Dr. Patricia Lee",
+  "department": "Radiology",
+  "encounter": "ENC056",
+  "chiefComplaint": "Fatigue",
+  "hpi": "Patient presents for fatigue. Presents with mild worsening of baseline symptoms. Reports increased fatigue over the past week.",
+  "reviewOfSystems": {
+    "Constitutional": "No fever, chills, or weight loss",
+    "Cardiovascular": "No chest pain or palpitations",
+    "Respiratory": "No cough or wheezing",
+    "GI": "Appetite fair",
+    "GU": "No hematuria",
+    "Neurologic": "No dizziness"
+  },
+  "vitals": {
+    "bp": "144/76 mmHg",
+    "hr": "67 bpm",
+    "rr": "14/min",
+    "temp": "98.5°F",
+    "spo2": "95% RA",
+    "weight": "100.4 kg"
+  },
+  "physicalExam": {
+    "General": "Mildly fatigued-appearing",
+    "HEENT": "Normocephalic, PERRL, oropharynx clear",
+    "Cardiovascular": "Irregularly irregular, no murmurs, JVP not elevated",
+    "Respiratory": "Mild crackles at bases",
+    "Abdomen": "Soft, non-tender, non-distended",
+    "Extremities": "Trace bilateral ankle edema",
+    "Neurologic": "Alert and oriented, decreased sensation bilateral feet"
+  },
+  "assessment": [
+    {
+      "diagnosis": "Type 2 Diabetes Mellitus",
+      "icd10": "E11.65",
+      "notes": "HbA1c 7.4%. On insulin and metformin."
+    },
+    {
+      "diagnosis": "Chronic Kidney Disease Stage 3b",
+      "icd10": "N18.32",
+      "notes": "eGFR 32. Stable."
+    }
+  ],
+  "plan": [
+    {
+      "problem": "Diabetes",
+      "action": "Continue current regimen. Recheck HbA1c in 3 months."
+    },
+    {
+      "problem": "CKD",
+      "action": "Monitor renal function. Avoid nephrotoxins."
+    },
+    {
+      "problem": "Heart Failure",
+      "action": "Continue GDMT. Daily weights. Low sodium diet."
+    },
+    {
+      "problem": "Atrial Fibrillation",
+      "action": "Continue anticoagulation. Rate control adequate."
+    },
+    {
+      "problem": "Follow-up",
+      "action": "Return in 9 weeks or sooner if needed."
+    }
+  ],
+  "attestation": "I personally saw and examined the patient. I agree with the documented findings and plan.\n\nElectronically signed by: Dr. Patricia Lee\nDate: 7/15/2022"
+}

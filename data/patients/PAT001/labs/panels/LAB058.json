@@ -1,0 +1,18 @@
+{
+  "id": "LAB058",
+  "name": "Troponin",
+  "collectedDate": "2020-02-08T16:22:18.416Z",
+  "receivedDate": "2020-02-08T16:52:18.416Z",
+  "reportedDate": "2020-02-08T17:52:18.416Z",
+  "orderedBy": "Dr. Michael Torres",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "Troponin I",
+      "value": 0.04,
+      "unit": "ng/mL",
+      "referenceRange": "<0.04"
+    }
+  ]
+}

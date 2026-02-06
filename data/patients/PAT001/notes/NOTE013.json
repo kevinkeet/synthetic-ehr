@@ -1,0 +1,75 @@
+{
+  "id": "NOTE013",
+  "type": "Progress Note",
+  "date": "2025-09-11T15:22:18.416Z",
+  "author": "Dr. Sarah Chen",
+  "department": "Primary Care",
+  "encounter": "ENC008",
+  "chiefComplaint": "Routine follow-up",
+  "hpi": "Patient presents for routine follow-up. Presents with mild worsening of baseline symptoms. Reports increased fatigue over the past week.",
+  "reviewOfSystems": {
+    "Constitutional": "Weight stable",
+    "Cardiovascular": "No chest pain or palpitations",
+    "Respiratory": "No hemoptysis",
+    "GI": "Regular bowel movements",
+    "GU": "No hematuria",
+    "Neurologic": "No new weakness"
+  },
+  "vitals": {
+    "bp": "140/84 mmHg",
+    "hr": "72 bpm",
+    "rr": "18/min",
+    "temp": "97.5°F",
+    "spo2": "95% RA",
+    "weight": "97.3 kg"
+  },
+  "physicalExam": {
+    "General": "Comfortable, well-appearing",
+    "HEENT": "Normocephalic, PERRL, oropharynx clear",
+    "Cardiovascular": "S1/S2 normal, mild peripheral edema",
+    "Respiratory": "No wheezes or rhonchi",
+    "Abdomen": "Soft, non-tender, non-distended",
+    "Extremities": "1+ pedal edema bilaterally",
+    "Neurologic": "Alert and oriented, decreased sensation bilateral feet"
+  },
+  "assessment": [
+    {
+      "diagnosis": "Type 2 Diabetes Mellitus",
+      "icd10": "E11.65",
+      "notes": "HbA1c 7.6%. On insulin and metformin."
+    },
+    {
+      "diagnosis": "Chronic Kidney Disease Stage 3b",
+      "icd10": "N18.32",
+      "notes": "eGFR 38. Stable."
+    },
+    {
+      "diagnosis": "Heart Failure with Reduced EF",
+      "icd10": "I50.22",
+      "notes": "NYHA Class II. On GDMT."
+    }
+  ],
+  "plan": [
+    {
+      "problem": "Diabetes",
+      "action": "Continue current regimen. Recheck HbA1c in 3 months."
+    },
+    {
+      "problem": "CKD",
+      "action": "Monitor renal function. Avoid nephrotoxins."
+    },
+    {
+      "problem": "Heart Failure",
+      "action": "Continue GDMT. Daily weights. Low sodium diet."
+    },
+    {
+      "problem": "Atrial Fibrillation",
+      "action": "Continue anticoagulation. Rate control adequate."
+    },
+    {
+      "problem": "Follow-up",
+      "action": "Return in 4 weeks or sooner if needed."
+    }
+  ],
+  "attestation": "I personally saw and examined the patient. I agree with the documented findings and plan.\n\nElectronically signed by: Dr. Sarah Chen\nDate: 9/11/2025"
+}

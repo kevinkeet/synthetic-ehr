@@ -1,0 +1,49 @@
+{
+  "id": "IMG008",
+  "date": "2021-05-18T05:08:23.484Z",
+  "modality": "Nuclear",
+  "description": "Myocardial Perfusion Imaging (SPECT)",
+  "facility": "Springfield Medical Center",
+  "status": "Final",
+  "radiologist": "Dr. Patricia Lee",
+  "orderingProvider": "Dr. James Wilson",
+  "indication": "Coronary artery disease, heart failure, evaluate for ischemia and viability",
+  "technique": "Rest and pharmacologic stress myocardial perfusion SPECT imaging was performed using Tc-99m sestamibi. Regadenoson was administered for pharmacologic stress. Gated SPECT images were obtained at rest.",
+  "protocol": {
+    "stressAgent": "Regadenoson 0.4 mg IV",
+    "stressResponse": "Heart rate increased from 68 to 95 bpm. Blood pressure 142/78 at baseline, 138/72 at peak stress.",
+    "symptoms": "Patient reported mild chest tightness during stress, resolved spontaneously within 2 minutes.",
+    "ecg": "Baseline: Atrial fibrillation with controlled ventricular response. Stress: Non-specific ST-T changes, no diagnostic ST depression."
+  },
+  "findings": {
+    "perfusion": {
+      "stress": "Moderate fixed perfusion defect involving the inferior and inferolateral walls (approximately 15% of the myocardium). Mild reversible defect in the lateral wall.",
+      "rest": "Moderate fixed perfusion defect in the inferior and inferolateral walls, unchanged from stress. The lateral wall defect shows partial reversibility."
+    },
+    "function": {
+      "lvef": "32%",
+      "edv": "185 mL",
+      "esv": "126 mL",
+      "wallMotion": "Akinesis of the inferior wall. Hypokinesis of the inferolateral and lateral walls."
+    },
+    "lungUptake": "Normal lung-to-heart ratio.",
+    "tid": "Transient ischemic dilation ratio 1.08 (normal <1.22)."
+  },
+  "impression": [
+    "Moderate fixed perfusion defect involving the inferior and inferolateral walls (approximately 15% of the myocardium), consistent with prior infarction in the RCA territory.",
+    "Mild reversible perfusion defect in the lateral wall, suggesting mild peri-infarct ischemia or hibernating myocardium.",
+    "Severely reduced left ventricular systolic function (LVEF 32%) with regional wall motion abnormalities.",
+    "No evidence of significant ischemia in other coronary territories.",
+    "Findings consistent with ischemic cardiomyopathy."
+  ],
+  "summedScores": {
+    "sss": 12,
+    "srs": 10,
+    "sds": 2
+  },
+  "recommendations": [
+    "Continued optimal medical therapy for ischemic cardiomyopathy",
+    "Consider viability assessment if revascularization is being contemplated"
+  ],
+  "comparison": "MPI dated 2018-11-12. Findings are stable."
+}

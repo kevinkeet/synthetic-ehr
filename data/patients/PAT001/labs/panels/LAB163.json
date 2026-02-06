@@ -1,0 +1,18 @@
+{
+  "id": "LAB163",
+  "name": "Magnesium",
+  "collectedDate": "2023-12-05T16:22:18.416Z",
+  "receivedDate": "2023-12-05T16:52:18.416Z",
+  "reportedDate": "2023-12-05T17:52:18.416Z",
+  "orderedBy": "Dr. James Wilson",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "Magnesium",
+      "value": 1.67,
+      "unit": "mg/dL",
+      "referenceRange": "1.7-2.2"
+    }
+  ]
+}

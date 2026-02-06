@@ -1,0 +1,18 @@
+{
+  "id": "LAB062",
+  "name": "Hemoglobin A1c",
+  "collectedDate": "2020-02-29T16:22:18.416Z",
+  "receivedDate": "2020-02-29T16:52:18.416Z",
+  "reportedDate": "2020-02-29T17:52:18.416Z",
+  "orderedBy": "Dr. Michael Torres",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "HbA1c",
+      "value": 8.49,
+      "unit": "%",
+      "referenceRange": "4.0-5.6"
+    }
+  ]
+}

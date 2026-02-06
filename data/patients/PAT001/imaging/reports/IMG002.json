@@ -1,0 +1,60 @@
+{
+  "id": "IMG002",
+  "date": "2020-09-21T14:20:12.271Z",
+  "modality": "Echo",
+  "description": "Transthoracic Echocardiogram",
+  "facility": "Springfield Medical Center",
+  "status": "Final",
+  "radiologist": "Dr. Susan Miller",
+  "orderingProvider": "Dr. James Wilson",
+  "indication": "Heart failure with reduced ejection fraction, follow-up assessment",
+  "technique": "Complete 2D, M-mode, color flow Doppler, and spectral Doppler transthoracic echocardiographic examination.",
+  "findings": {
+    "leftVentricle": {
+      "size": "Moderately dilated (LVIDd 6.2 cm, LVIDs 5.0 cm)",
+      "wallThickness": "Normal (IVSd 1.0 cm, LVPWd 1.0 cm)",
+      "ejectionFraction": "30-35% by Simpson's biplane method",
+      "wallMotion": "Global hypokinesis. Akinesis of the inferior and inferolateral walls. Hypokinesis of the anterior and lateral walls.",
+      "diastolicFunction": "Grade II (pseudonormal) diastolic dysfunction. E/A ratio 1.2, E/e' 18."
+    },
+    "leftAtrium": {
+      "size": "Severely dilated (volume index 48 mL/m2)",
+      "notes": "Consistent with elevated filling pressures and chronic atrial fibrillation"
+    },
+    "rightVentricle": {
+      "size": "Normal",
+      "function": "Mildly reduced (TAPSE 1.6 cm)"
+    },
+    "rightAtrium": {
+      "size": "Mildly dilated"
+    },
+    "aorticValve": {
+      "morphology": "Trileaflet with mild sclerosis",
+      "stenosis": "None (peak velocity 1.2 m/s, mean gradient 4 mmHg)",
+      "regurgitation": "Trace"
+    },
+    "mitralValve": {
+      "morphology": "Mildly thickened leaflets",
+      "stenosis": "None",
+      "regurgitation": "Moderate (3+) - central jet, vena contracta 0.5 cm"
+    },
+    "tricuspidValve": {
+      "regurgitation": "Mild (2+)",
+      "rvsp": "38 mmHg (assuming RAP 10 mmHg)"
+    },
+    "pulmonicValve": "Normal",
+    "pericardium": "Small pericardial effusion, hemodynamically insignificant",
+    "ivc": "Dilated (2.4 cm) with <50% inspiratory collapse, consistent with elevated RAP"
+  },
+  "impression": [
+    "Moderately dilated left ventricle with severely reduced systolic function (EF 30-35%).",
+    "Regional wall motion abnormalities: inferior and inferolateral akinesis, global hypokinesis.",
+    "Moderate mitral regurgitation, likely functional/secondary.",
+    "Severely dilated left atrium.",
+    "Grade II diastolic dysfunction with elevated filling pressures.",
+    "Mildly elevated pulmonary artery systolic pressure (38 mmHg).",
+    "Small pericardial effusion, hemodynamically insignificant.",
+    "Findings consistent with ischemic cardiomyopathy with heart failure."
+  ],
+  "comparison": "Echocardiogram dated 2019-09-16. EF stable. Mitral regurgitation slightly increased from mild-moderate to moderate."
+}

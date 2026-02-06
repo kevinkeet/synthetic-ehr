@@ -1,0 +1,18 @@
+{
+  "id": "LAB012",
+  "name": "Hemoglobin A1c",
+  "collectedDate": "2018-05-04T15:22:18.416Z",
+  "receivedDate": "2018-05-04T15:52:18.416Z",
+  "reportedDate": "2018-05-04T16:52:18.416Z",
+  "orderedBy": "Dr. Jennifer Adams",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "HbA1c",
+      "value": 5.81,
+      "unit": "%",
+      "referenceRange": "4.0-5.6"
+    }
+  ]
+}

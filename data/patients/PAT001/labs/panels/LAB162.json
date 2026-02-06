@@ -1,0 +1,18 @@
+{
+  "id": "LAB162",
+  "name": "Hemoglobin A1c",
+  "collectedDate": "2023-10-30T15:22:18.416Z",
+  "receivedDate": "2023-10-30T15:52:18.416Z",
+  "reportedDate": "2023-10-30T16:52:18.416Z",
+  "orderedBy": "Dr. Michael Torres",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "HbA1c",
+      "value": 7.68,
+      "unit": "%",
+      "referenceRange": "4.0-5.6"
+    }
+  ]
+}

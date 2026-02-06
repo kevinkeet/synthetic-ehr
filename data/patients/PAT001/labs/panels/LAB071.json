@@ -1,0 +1,18 @@
+{
+  "id": "LAB071",
+  "name": "Uric Acid",
+  "collectedDate": "2020-06-10T15:22:18.416Z",
+  "receivedDate": "2020-06-10T15:52:18.416Z",
+  "reportedDate": "2020-06-10T16:52:18.416Z",
+  "orderedBy": "Dr. Jennifer Adams",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "Uric Acid",
+      "value": 7.7,
+      "unit": "mg/dL",
+      "referenceRange": "3.5-7.2"
+    }
+  ]
+}

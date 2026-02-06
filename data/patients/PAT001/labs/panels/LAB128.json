@@ -1,0 +1,24 @@
+{
+  "id": "LAB128",
+  "name": "Thyroid Panel",
+  "collectedDate": "2022-03-14T15:22:18.416Z",
+  "receivedDate": "2022-03-14T15:52:18.416Z",
+  "reportedDate": "2022-03-14T16:52:18.416Z",
+  "orderedBy": "Dr. Patricia Lee",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "TSH",
+      "value": 2.15,
+      "unit": "mIU/L",
+      "referenceRange": "0.4-4.0"
+    },
+    {
+      "name": "Free T4",
+      "value": 1.42,
+      "unit": "ng/dL",
+      "referenceRange": "0.8-1.8"
+    }
+  ]
+}

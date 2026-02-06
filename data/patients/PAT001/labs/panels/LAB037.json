@@ -1,0 +1,66 @@
+{
+  "id": "LAB037",
+  "name": "Complete Blood Count",
+  "collectedDate": "2019-04-06T15:22:18.416Z",
+  "receivedDate": "2019-04-06T15:52:18.416Z",
+  "reportedDate": "2019-04-06T16:52:18.416Z",
+  "orderedBy": "Dr. James Wilson",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "WBC",
+      "value": 8.92,
+      "unit": "K/uL",
+      "referenceRange": "4.5-11.0"
+    },
+    {
+      "name": "RBC",
+      "value": 3.29,
+      "unit": "M/uL",
+      "referenceRange": "4.5-5.5"
+    },
+    {
+      "name": "Hemoglobin",
+      "value": 11.6,
+      "unit": "g/dL",
+      "referenceRange": "12.0-17.5"
+    },
+    {
+      "name": "Hematocrit",
+      "value": 37.5,
+      "unit": "%",
+      "referenceRange": "36-50"
+    },
+    {
+      "name": "MCV",
+      "value": 86,
+      "unit": "fL",
+      "referenceRange": "80-100"
+    },
+    {
+      "name": "MCH",
+      "value": 34.5,
+      "unit": "pg",
+      "referenceRange": "27-33"
+    },
+    {
+      "name": "MCHC",
+      "value": 32.4,
+      "unit": "g/dL",
+      "referenceRange": "32-36"
+    },
+    {
+      "name": "RDW",
+      "value": 15.4,
+      "unit": "%",
+      "referenceRange": "11.5-14.5"
+    },
+    {
+      "name": "Platelets",
+      "value": 257,
+      "unit": "K/uL",
+      "referenceRange": "150-400"
+    }
+  ]
+}

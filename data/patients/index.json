@@ -1,0 +1,13 @@
+{
+  "patients": [
+    {
+      "id": "PAT001",
+      "name": "Morrison, Robert J",
+      "mrn": "MRN-78432156",
+      "dob": "1952-03-15",
+      "sex": "Male",
+      "status": "Active"
+    }
+  ],
+  "lastUpdated": "2024-01-15T08:00:00Z"
+}

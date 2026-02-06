@@ -1,0 +1,10 @@
+{
+  "id": "NOTE060",
+  "type": "Telephone Encounter",
+  "date": "2023-08-19T15:22:18.416Z",
+  "author": "Dr. Emily Brown",
+  "department": "Emergency Medicine",
+  "encounter": "ENC041",
+  "content": "Patient called regarding lab results.\n\nPatient requesting refill of maintenance medications. Verified adherence. Sent to pharmacy.\n\nPlan: Continue current management.",
+  "attestation": "Telephone encounter documented.\n\nElectronically signed by: Dr. Emily Brown\nDate: 8/19/2023"
+}

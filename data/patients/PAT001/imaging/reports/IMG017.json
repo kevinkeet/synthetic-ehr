@@ -1,0 +1,48 @@
+{
+  "id": "IMG017",
+  "date": "2023-10-30T11:06:53.469Z",
+  "modality": "Nuclear",
+  "description": "Renal Scan (MAG3)",
+  "facility": "Springfield Medical Center",
+  "status": "Final",
+  "radiologist": "Dr. Patricia Lee",
+  "orderingProvider": "Dr. Michael Torres",
+  "indication": "Chronic kidney disease stage 3b, evaluate differential renal function and drainage",
+  "technique": "Following IV injection of Tc-99m MAG3, serial images of the kidneys were obtained. Furosemide 40 mg IV was administered at 20 minutes.",
+  "protocol": {
+    "radiopharmaceutical": "Tc-99m MAG3",
+    "dose": "10 mCi",
+    "hydration": "Patient well-hydrated prior to study",
+    "diuretic": "Furosemide 40 mg IV at 20 minutes"
+  },
+  "findings": {
+    "kidneys": {
+      "right": {
+        "size": "Small (9.0 cm)",
+        "corticalUptake": "Reduced",
+        "peakTime": "6.2 minutes (delayed)",
+        "halfTime": "12 minutes post-furosemide (normal <10 min)",
+        "differentialFunction": "42%"
+      },
+      "left": {
+        "size": "Small (8.8 cm)",
+        "corticalUptake": "Reduced",
+        "peakTime": "5.8 minutes (delayed)",
+        "halfTime": "11 minutes post-furosemide (normal <10 min)",
+        "differentialFunction": "58%"
+      }
+    },
+    "drainage": "Mildly delayed washout bilaterally, improved with furosemide. No high-grade obstruction.",
+    "bladder": "Normal radiotracer accumulation in the bladder.",
+    "background": "Increased background activity consistent with impaired renal function.",
+    "gfr": "Calculated GFR by Gates method: 38 mL/min/1.73m2"
+  },
+  "impression": [
+    "Bilaterally small kidneys with reduced cortical uptake consistent with chronic kidney disease.",
+    "Split renal function: Right 42%, Left 58%.",
+    "Calculated GFR 38 mL/min/1.73m2, consistent with CKD stage 3b.",
+    "No high-grade obstruction. Mildly delayed drainage improved with furosemide.",
+    "Findings correlate with known chronic kidney disease."
+  ],
+  "comparison": "No prior renal scan available for comparison. Renal ultrasound dated 2021-06-15 showed small bilateral kidneys."
+}

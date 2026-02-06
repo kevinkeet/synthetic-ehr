@@ -1,0 +1,55 @@
+{
+  "id": "NOTE041",
+  "type": "Discharge Summary",
+  "date": "2024-02-07T16:22:18.416Z",
+  "author": "Dr. Robert Kim",
+  "department": "Urology",
+  "encounter": "ENC030",
+  "sections": [
+    {
+      "title": "Admission Date",
+      "content": "2/2/2024"
+    },
+    {
+      "title": "Discharge Date",
+      "content": "2/7/2024"
+    },
+    {
+      "title": "Attending Physician",
+      "content": "Dr. Robert Kim"
+    },
+    {
+      "title": "Principal Diagnosis",
+      "content": "Community-acquired pneumonia"
+    },
+    {
+      "title": "Secondary Diagnoses",
+      "content": "1. Type 2 Diabetes Mellitus\n2. Chronic Kidney Disease Stage 3b\n3. Heart Failure with Reduced EF\n4. Atrial Fibrillation\n5. Hypertension"
+    },
+    {
+      "title": "Hospital Course",
+      "content": "Patient was admitted for volume overload and treated with IV diuretics. Responded well to treatment with 6 liters of diuresis over 3 days. Symptoms improved, weight decreased from 101 kg to 97 kg. Renal function remained stable. No arrhythmias on telemetry. Patient educated on diet and medication compliance."
+    },
+    {
+      "title": "Discharge Medications",
+      "content": "See medication reconciliation."
+    },
+    {
+      "title": "Discharge Instructions",
+      "content": "1. Take all medications as prescribed\n2. Weigh yourself daily\n3. Follow low-sodium diet (<2g/day)\n4. Limit fluids to 2 liters daily\n5. Call if weight increases >3 lbs in a day or symptoms worsen\n6. Follow up with appointments as scheduled"
+    },
+    {
+      "title": "Follow-Up Appointments",
+      "content": "1. Primary Care: 1 week\n2. Cardiology: 2 weeks\n3. Nephrology: 4 weeks"
+    },
+    {
+      "title": "Discharge Condition",
+      "content": "Stable, improved"
+    },
+    {
+      "title": "Disposition",
+      "content": "Home with family"
+    }
+  ],
+  "attestation": "Discharge summary reviewed and approved.\n\nElectronically signed by: Dr. Robert Kim\nDate: 2/7/2024"
+}

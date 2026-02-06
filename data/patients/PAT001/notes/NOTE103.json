@@ -1,0 +1,10 @@
+{
+  "id": "NOTE103",
+  "type": "Telephone Encounter",
+  "date": "2021-01-05T16:22:18.416Z",
+  "author": "Dr. Robert Kim",
+  "department": "Urology",
+  "encounter": "ENC080",
+  "content": "Patient called regarding lab results.\n\nPatient asking about lab results. Reviewed recent values - stable kidney function, A1c improving.\n\nPlan: Schedule follow-up appointment.",
+  "attestation": "Telephone encounter documented.\n\nElectronically signed by: Dr. Robert Kim\nDate: 1/5/2021"
+}

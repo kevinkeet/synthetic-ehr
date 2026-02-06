@@ -1,0 +1,172 @@
+{
+  "id": "NOTE_HP001",
+  "type": "H&P",
+  "title": "Hospital Admission H&P - CHF Exacerbation",
+  "date": "2022-08-15T14:30:00.000Z",
+  "author": "Dr. Emily Brown",
+  "department": "Hospital Medicine",
+  "encounter": "ENC_ADM001",
+  "signedDate": "2022-08-15T16:45:00.000Z",
+  "sections": {
+    "chiefComplaint": "Shortness of breath and leg swelling for 3 days",
+    "historyOfPresentIllness": "Mr. Morrison is a 72-year-old male with a history of heart failure with reduced ejection fraction (HFrEF, EF 30-35%), Type 2 diabetes mellitus, chronic kidney disease stage 3b, and atrial fibrillation on warfarin who presents with progressive dyspnea on exertion and bilateral lower extremity edema over the past 3 days.\n\nPatient reports he was in his usual state of health until 3 days ago when he noticed increasing difficulty breathing when walking short distances. He normally can walk 1-2 blocks without stopping but now becomes short of breath after 20-30 feet. He also noticed that his legs have become progressively more swollen, and his shoes no longer fit comfortably. He denies any recent dietary indiscretions but admits to running out of his furosemide for the past 5 days due to a lapse in prescription refills.\n\nAssociated symptoms include orthopnea (now sleeping on 3 pillows vs his usual 2), paroxysmal nocturnal dyspnea with 2 episodes over the past 2 nights, and a 5-pound weight gain over the past week. He denies chest pain, palpitations, fever, cough, or productive sputum. No recent illness exposures.\n\nHe denies any recent medication changes other than the missed furosemide doses. He has been compliant with his low-sodium diet and fluid restriction prior to this episode.",
+    "reviewOfSystems": {
+      "constitutional": "Denies fever, chills, night sweats. Reports fatigue and decreased exercise tolerance.",
+      "cardiovascular": "Positive for dyspnea on exertion, orthopnea, PND, and bilateral leg swelling. Denies chest pain, palpitations.",
+      "respiratory": "Positive for dyspnea. Denies cough, hemoptysis, wheezing.",
+      "gastrointestinal": "Denies nausea, vomiting, abdominal pain, diarrhea. Reports decreased appetite.",
+      "genitourinary": "Denies dysuria, hematuria. Reports decreased urine output.",
+      "musculoskeletal": "Denies joint pain or muscle weakness.",
+      "neurological": "Denies headache, dizziness, weakness, numbness.",
+      "psychiatric": "Denies depression, anxiety."
+    },
+    "pastMedicalHistory": [
+      "Heart failure with reduced ejection fraction (HFrEF) - diagnosed 2019, EF 30-35% on most recent echo (8/2021)",
+      "Type 2 Diabetes Mellitus - diagnosed 2010, on metformin and glipizide",
+      "Chronic Kidney Disease Stage 3b - baseline Cr 1.8-2.0, eGFR 35-40",
+      "Atrial Fibrillation - permanent, rate-controlled, on warfarin",
+      "Hypertension",
+      "Hyperlipidemia",
+      "Coronary Artery Disease - 3-vessel disease on cath 2019, medically managed",
+      "Benign Prostatic Hyperplasia",
+      "GERD"
+    ],
+    "pastSurgicalHistory": [
+      "Appendectomy - 1975",
+      "Cholecystectomy - 2008",
+      "Cardiac catheterization - 2019"
+    ],
+    "medications": [
+      "Metformin 500 mg twice daily",
+      "Glipizide 5 mg daily",
+      "Lisinopril 10 mg daily (reduced from 20 mg due to hyperkalemia)",
+      "Carvedilol 12.5 mg twice daily",
+      "Furosemide 40 mg twice daily (patient ran out 5 days ago)",
+      "Spironolactone 25 mg daily",
+      "Warfarin 5 mg daily (goal INR 2-3)",
+      "Atorvastatin 40 mg daily",
+      "Aspirin 81 mg daily",
+      "Omeprazole 20 mg daily",
+      "Tamsulosin 0.4 mg at bedtime"
+    ],
+    "allergies": [
+      { "allergen": "Penicillin", "reaction": "Rash" },
+      { "allergen": "Sulfa drugs", "reaction": "Hives" },
+      { "allergen": "Lisinopril (high dose)", "reaction": "Hyperkalemia" }
+    ],
+    "socialHistory": {
+      "tobacco": "Former smoker, quit 15 years ago, 30 pack-year history",
+      "alcohol": "Social drinker, 1-2 glasses of wine per week",
+      "drugs": "Denies illicit drug use",
+      "occupation": "Retired accountant",
+      "livingsituation": "Lives with wife in single-story home",
+      "exercise": "Previously walked 1 mile daily, limited recently by symptoms"
+    },
+    "familyHistory": {
+      "father": "Died at age 68 from MI",
+      "mother": "Died at age 82 from stroke, had HTN and DM2",
+      "siblings": "Brother with CAD, sister with DM2"
+    },
+    "physicalExam": {
+      "vitals": {
+        "bloodPressure": "158/92 mmHg",
+        "heartRate": "92 bpm, irregularly irregular",
+        "respiratoryRate": "22/min",
+        "temperature": "98.4 F",
+        "oxygenSaturation": "91% on room air",
+        "weight": "98.5 kg (up 2.3 kg from last visit)"
+      },
+      "general": "Alert, oriented, appears mildly dyspneic at rest, able to speak in full sentences",
+      "heent": "Normocephalic, atraumatic. JVP elevated to angle of jaw at 45 degrees.",
+      "cardiovascular": "Irregularly irregular rhythm, S1 and S2 present, S3 gallop appreciated, 2/6 systolic murmur at apex",
+      "respiratory": "Bibasilar crackles extending 1/3 up lung fields bilaterally, no wheezes",
+      "abdomen": "Soft, non-tender, mildly distended, hepatomegaly palpable 3 cm below right costal margin, no ascites appreciated",
+      "extremities": "3+ pitting edema bilateral lower extremities to mid-shin, warm, no cyanosis",
+      "skin": "No rashes, warm and dry",
+      "neurological": "Alert and oriented x3, cranial nerves II-XII intact, strength 5/5 in all extremities"
+    },
+    "diagnostics": {
+      "labs": {
+        "bmp": "Na 134, K 5.1, Cl 100, CO2 22, BUN 45, Cr 2.4 (baseline 1.8-2.0), Glucose 165",
+        "cbc": "WBC 7.8, Hgb 10.2, Hct 31%, Plt 185",
+        "bnp": "1,850 pg/mL (elevated)",
+        "troponin": "0.08 ng/mL (mildly elevated, likely demand ischemia)",
+        "inr": "2.3 (therapeutic)"
+      },
+      "imaging": {
+        "cxr": "Cardiomegaly, bilateral pulmonary vascular congestion, small bilateral pleural effusions, no focal consolidation"
+      },
+      "ecg": "Atrial fibrillation with controlled ventricular response at 88 bpm, left axis deviation, old inferior Q waves, non-specific ST-T changes"
+    },
+    "assessment": [
+      {
+        "problem": "Acute on chronic systolic heart failure exacerbation (HFrEF)",
+        "details": "NYHA Class III-IV presentation. Precipitated by diuretic non-compliance. Elevated BNP, evidence of volume overload on exam and CXR."
+      },
+      {
+        "problem": "Acute kidney injury on CKD Stage 3b",
+        "details": "Cr 2.4 from baseline 1.8-2.0. Likely cardiorenal syndrome in setting of CHF exacerbation. Will need to balance diuresis with renal function."
+      },
+      {
+        "problem": "Atrial fibrillation with RVR",
+        "details": "Rate in 90s, likely due to volume overload and sympathetic activation. INR therapeutic."
+      },
+      {
+        "problem": "Type 2 Diabetes Mellitus",
+        "details": "Glucose 165, will hold metformin in setting of AKI."
+      },
+      {
+        "problem": "Mild troponin elevation",
+        "details": "Likely type 2 MI (demand ischemia) in setting of CHF exacerbation and tachycardia. No acute coronary syndrome symptoms."
+      }
+    ],
+    "plan": [
+      {
+        "problem": "CHF Exacerbation",
+        "interventions": [
+          "IV furosemide 80 mg x1 now, then 40 mg IV q12h",
+          "Strict I/O, daily weights",
+          "Sodium restriction <2g/day, fluid restriction 1.5L/day",
+          "Continue carvedilol 12.5 mg BID (hold if HR <60 or SBP <90)",
+          "Continue spironolactone 25 mg daily",
+          "Hold lisinopril given AKI, will reassess with improving renal function",
+          "Target net negative 1-2L/day with diuresis",
+          "Telemetry monitoring"
+        ]
+      },
+      {
+        "problem": "AKI on CKD",
+        "interventions": [
+          "Monitor Cr and electrolytes daily",
+          "Avoid nephrotoxins",
+          "Hold metformin until Cr improves"
+        ]
+      },
+      {
+        "problem": "Atrial fibrillation",
+        "interventions": [
+          "Continue warfarin, goal INR 2-3",
+          "Continue carvedilol for rate control",
+          "Expect rate to improve with decongestion"
+        ]
+      },
+      {
+        "problem": "Diabetes",
+        "interventions": [
+          "Hold metformin",
+          "Sliding scale insulin for glycemic control",
+          "Continue glipizide 5 mg daily"
+        ]
+      },
+      {
+        "problem": "Prophylaxis",
+        "interventions": [
+          "DVT prophylaxis: therapeutic anticoagulation with warfarin",
+          "GI prophylaxis: continue omeprazole"
+        ]
+      }
+    ],
+    "disposition": "Admit to telemetry for CHF exacerbation management. Goal is diuresis to dry weight with improvement of symptoms. Will monitor renal function closely. Code status: Full code."
+  },
+  "attestation": "I personally obtained the history and performed the physical examination. I have reviewed the test results and assessments. I agree with the plan as documented.\n\nElectronically signed by: Emily Brown, MD\nDate/Time: 8/15/2022 4:45 PM"
+}

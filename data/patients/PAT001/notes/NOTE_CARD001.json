@@ -1,0 +1,91 @@
+{
+  "id": "NOTE_CARD001",
+  "type": "Consult Note",
+  "title": "Cardiology Consultation - Heart Failure Management",
+  "date": "2023-11-15T10:30:00.000Z",
+  "author": "Dr. James Wilson",
+  "department": "Cardiology",
+  "encounter": "ENC_CARD001",
+  "signedDate": "2023-11-15T14:00:00.000Z",
+  "sections": {
+    "reasonForConsultation": "Heart failure management, optimization of guideline-directed medical therapy",
+    "historyOfPresentIllness": "Mr. Morrison is a 72-year-old gentleman with long-standing heart failure with reduced ejection fraction, last documented EF 30-35% in August 2023, who is referred for outpatient cardiology follow-up and optimization of heart failure therapy.\n\nPatient reports overall stability since his last hospitalization in August 2022 for CHF exacerbation. He has had no further hospitalizations. He denies significant dyspnea at rest, though he does experience exertional dyspnea after walking 1-2 blocks. He has been compliant with his medications and has not missed any doses of his diuretic. He weighs himself daily and has maintained his weight at approximately 94-95 kg. He follows a low-sodium diet and limits his fluid intake to 1.5 liters daily.\n\nHe does report intermittent bilateral lower extremity edema, typically worse at the end of the day, which improves overnight and with leg elevation. He denies orthopnea or paroxysmal nocturnal dyspnea. He has occasional palpitations consistent with his known atrial fibrillation but denies sustained palpitations, lightheadedness, or syncope.\n\nHis last echocardiogram from August 2023 showed EF 30-35% with regional wall motion abnormalities (inferior and inferolateral akinesis), moderate mitral regurgitation, and severely dilated left atrium.",
+    "currentMedications": [
+      "Furosemide 60 mg PO twice daily",
+      "Carvedilol 12.5 mg PO twice daily",
+      "Lisinopril 10 mg PO daily",
+      "Spironolactone 25 mg PO daily",
+      "Warfarin 5 mg PO daily",
+      "Metformin 500 mg PO twice daily",
+      "Glipizide 5 mg PO daily",
+      "Atorvastatin 40 mg PO daily",
+      "Aspirin 81 mg PO daily"
+    ],
+    "physicalExamination": {
+      "vitals": {
+        "bloodPressure": "122/74 mmHg",
+        "heartRate": "72 bpm, irregularly irregular",
+        "weight": "94.5 kg"
+      },
+      "general": "Well-appearing male in no acute distress",
+      "neck": "JVP approximately 8 cm H2O at 45 degrees, no carotid bruits",
+      "cardiovascular": "Irregularly irregular rhythm, normal S1, physiologically split S2, soft S3 gallop, 2/6 holosystolic murmur at apex radiating to axilla (mitral regurgitation), no rubs",
+      "lungs": "Clear to auscultation bilaterally, no wheezes, crackles, or rhonchi",
+      "abdomen": "Soft, non-tender, no hepatomegaly or ascites",
+      "extremities": "Trace bilateral lower extremity edema, warm, good peripheral pulses"
+    },
+    "diagnostics": {
+      "recentLabs": {
+        "date": "2023-11-10",
+        "bnp": "485 pg/mL",
+        "sodium": "138 mEq/L",
+        "potassium": "4.8 mEq/L",
+        "creatinine": "1.9 mg/dL",
+        "egfr": "38 mL/min/1.73m2"
+      },
+      "recentEcho": {
+        "date": "2023-08-16",
+        "findings": "EF 30-35%, global hypokinesis with inferior and inferolateral akinesis, moderate MR (central jet), severely dilated LA (volume index 52 mL/m2), mild TR with RVSP 42 mmHg"
+      },
+      "recentEkg": "Atrial fibrillation with controlled ventricular response at 68 bpm, left axis deviation, old inferior Q waves, non-specific ST-T changes"
+    },
+    "assessment": "72-year-old male with ischemic cardiomyopathy (HFrEF, EF 30-35%), currently NYHA Class II. He is on guideline-directed medical therapy including beta-blocker, ACE inhibitor, aldosterone antagonist, and diuretic. He is euvolemic to mildly volume overloaded today.\n\nHis therapy is currently submaximal. Specifically:\n1. Carvedilol dose is 12.5 mg BID (target dose 25 mg BID)\n2. Lisinopril 10 mg daily (could consider switch to sacubitril/valsartan)\n3. Not on SGLT2 inhibitor",
+    "recommendations": [
+      {
+        "category": "Medication Optimization",
+        "items": [
+          "Increase carvedilol to 18.75 mg BID in 2 weeks if BP and HR tolerate",
+          "Consider transitioning from lisinopril to sacubitril/valsartan (Entresto) if BP tolerates - start at 24/26 mg BID after 36-hour washout from ACEi",
+          "Add empagliflozin 10 mg daily (SGLT2i has mortality benefit in HFrEF regardless of diabetes status)",
+          "Continue current diuretic regimen - patient is near euvolemic"
+        ]
+      },
+      {
+        "category": "Device Therapy",
+        "items": [
+          "Patient has EF ≤35% on maximally tolerated GDMT for >3 months. He meets criteria for primary prevention ICD.",
+          "Discussed ICD placement with patient. He is interested but would like to discuss with family. Will schedule separate visit to discuss device therapy in detail."
+        ]
+      },
+      {
+        "category": "Risk Factor Modification",
+        "items": [
+          "Continue aspirin and statin for secondary prevention",
+          "Encourage continued smoking abstinence",
+          "Cardiac rehabilitation referral - would benefit from supervised exercise program"
+        ]
+      },
+      {
+        "category": "Monitoring",
+        "items": [
+          "Recheck BMP and BNP in 4 weeks after medication changes",
+          "Daily weights, call if gain >3 lbs in 1 day or >5 lbs in 1 week",
+          "Follow-up appointment in 4-6 weeks"
+        ]
+      }
+    ],
+    "patientEducation": "Discussed heart failure management including importance of medication compliance, daily weights, sodium restriction, and symptom monitoring. Discussed SGLT2 inhibitor benefits and side effects (UTI risk, genital yeast infections, euglycemic DKA). Discussed ICD for primary prevention of sudden cardiac death. Patient and wife present, both verbalized understanding.",
+    "plan": "1. Start empagliflozin 10 mg daily\n2. Increase carvedilol to 18.75 mg BID in 2 weeks (will call patient)\n3. Consider Entresto transition at next visit pending BP response to carvedilol up-titration\n4. Refer to cardiac rehab\n5. Follow-up in 4-6 weeks\n6. Schedule separate visit to discuss ICD"
+  },
+  "attestation": "I personally evaluated this patient, reviewed the available data, and formulated the assessment and recommendations. I have discussed the findings and plan with the patient and his wife.\n\nElectronically signed by: James Wilson, MD, FACC\nDate/Time: 11/15/2023 2:00 PM"
+}

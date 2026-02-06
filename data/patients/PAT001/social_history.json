@@ -1,0 +1,35 @@
+{
+  "tobacco": {
+    "status": "Former smoker",
+    "type": "Cigarettes",
+    "amount": "1 pack per day",
+    "packYears": 20,
+    "startDate": "1975",
+    "quitDate": "1995-06-15",
+    "counselingProvided": true
+  },
+  "alcohol": {
+    "status": "Rarely",
+    "frequency": "Social only, less than monthly",
+    "amount": "1-2 drinks when consumed",
+    "lastUse": "Over 1 year ago",
+    "notes": "Stopped drinking due to heart failure diagnosis"
+  },
+  "drugs": {
+    "status": "Denies",
+    "details": "No history of illicit drug use"
+  },
+  "occupation": {
+    "current": "Retired",
+    "previous": "Accountant for 35 years",
+    "status": "Retired since 2017",
+    "employer": "Springfield Financial Services"
+  },
+  "maritalStatus": "Married",
+  "livingSituation": "Lives at home with wife Patricia in single-story house. No stairs. Daughter lives nearby and visits weekly.",
+  "exercise": "Limited due to heart failure. Walks around the block daily when feeling well. No formal exercise program.",
+  "diet": "Following low-sodium diet (<2g/day) as instructed for heart failure. Wife prepares most meals. Diabetic diet with carbohydrate counting.",
+  "notes": "Retired with good family support. Wife is primary caregiver and manages medications. Patient is adherent to medical recommendations. Has advance directives on file.",
+  "lastUpdated": "2024-01-10",
+  "updatedBy": "Dr. Sarah Chen"
+}

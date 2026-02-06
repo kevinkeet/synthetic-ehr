@@ -1,0 +1,18 @@
+{
+  "id": "LAB194",
+  "name": "Hemoglobin A1c",
+  "collectedDate": "2025-03-24T15:22:18.416Z",
+  "receivedDate": "2025-03-24T15:52:18.416Z",
+  "reportedDate": "2025-03-24T16:52:18.416Z",
+  "orderedBy": "Dr. Jennifer Adams",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "HbA1c",
+      "value": 8.03,
+      "unit": "%",
+      "referenceRange": "4.0-5.6"
+    }
+  ]
+}

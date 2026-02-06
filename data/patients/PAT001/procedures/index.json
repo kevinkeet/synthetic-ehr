@@ -1,0 +1,106 @@
+{
+  "procedures": [
+    {
+      "id": "PROC001",
+      "name": "Cardiac Catheterization",
+      "cptCode": "93458",
+      "date": "2019-11-10",
+      "provider": "Dr. James Wilson",
+      "facility": "Springfield Medical Center",
+      "status": "Completed",
+      "laterality": null,
+      "notes": "Diagnostic catheterization showing 3-vessel CAD. EF 35%. Medical management recommended."
+    },
+    {
+      "id": "PROC002",
+      "name": "Transthoracic Echocardiogram",
+      "cptCode": "93306",
+      "date": "2023-08-16",
+      "provider": "Dr. James Wilson",
+      "facility": "Springfield Medical Center",
+      "status": "Completed",
+      "notes": "EF 30-35%, moderate MR, dilated LV"
+    },
+    {
+      "id": "PROC003",
+      "name": "Electrical Cardioversion",
+      "cptCode": "92960",
+      "date": "2017-04-15",
+      "provider": "Dr. James Wilson",
+      "facility": "Springfield Medical Center",
+      "status": "Completed",
+      "notes": "Attempted cardioversion for AFib. Reverted to sinus rhythm but returned to AFib within 48 hours."
+    },
+    {
+      "id": "PROC004",
+      "name": "Colonoscopy",
+      "cptCode": "45378",
+      "date": "2020-03-15",
+      "provider": "Dr. William Thompson",
+      "facility": "Springfield Medical Center",
+      "status": "Completed",
+      "notes": "Screening colonoscopy. Two small tubular adenomas removed. Repeat in 5 years."
+    },
+    {
+      "id": "PROC005",
+      "name": "Cystoscopy",
+      "cptCode": "52000",
+      "date": "2018-05-20",
+      "provider": "Dr. Robert Kim",
+      "facility": "Springfield Medical Center",
+      "status": "Completed",
+      "notes": "Evaluation for hematuria. Mild BPH changes. No masses."
+    },
+    {
+      "id": "PROC006",
+      "name": "Stress Echocardiogram",
+      "cptCode": "93351",
+      "date": "2022-01-20",
+      "provider": "Dr. James Wilson",
+      "facility": "Springfield Medical Center",
+      "status": "Completed",
+      "notes": "Pharmacologic stress with dobutamine. Fixed inferior wall defect. No ischemia."
+    },
+    {
+      "id": "PROC007",
+      "name": "Renal Ultrasound",
+      "cptCode": "76770",
+      "date": "2021-06-15",
+      "provider": "Dr. Michael Torres",
+      "facility": "Springfield Medical Center",
+      "status": "Completed",
+      "notes": "Bilateral kidneys small. No hydronephrosis. No stones."
+    },
+    {
+      "id": "PROC008",
+      "name": "Arterial Blood Gas",
+      "cptCode": "82803",
+      "date": "2023-08-15",
+      "provider": "Dr. Emily Brown",
+      "facility": "Springfield Medical Center",
+      "status": "Completed",
+      "notes": "pH 7.38, pCO2 42, pO2 68, HCO3 24. Mild hypoxemia."
+    },
+    {
+      "id": "PROC009",
+      "name": "Paracentesis",
+      "cptCode": "49083",
+      "date": "2022-08-17",
+      "provider": "Dr. James Wilson",
+      "facility": "Springfield Medical Center",
+      "status": "Completed",
+      "notes": "Diagnostic paracentesis during CHF admission. 500cc removed. Transudative fluid."
+    },
+    {
+      "id": "PROC010",
+      "name": "Flu Vaccination",
+      "cptCode": "90662",
+      "date": "2024-01-10",
+      "provider": "Dr. Sarah Chen",
+      "facility": "Springfield Primary Care",
+      "status": "Completed",
+      "notes": "High-dose influenza vaccine administered."
+    }
+  ],
+  "lastUpdated": "2024-01-10"
+}

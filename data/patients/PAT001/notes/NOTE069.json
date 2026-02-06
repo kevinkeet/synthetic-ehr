@@ -1,0 +1,10 @@
+{
+  "id": "NOTE069",
+  "type": "Telephone Encounter",
+  "date": "2023-04-21T15:22:18.416Z",
+  "author": "Dr. James Wilson",
+  "department": "Cardiology",
+  "encounter": "ENC046",
+  "content": "Patient called regarding appointment scheduling.\n\nPharmacy called regarding prior authorization for medication. Completed PA form.\n\nPlan: Schedule follow-up appointment.",
+  "attestation": "Telephone encounter documented.\n\nElectronically signed by: Dr. James Wilson\nDate: 4/21/2023"
+}

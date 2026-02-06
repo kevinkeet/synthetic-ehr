@@ -1,0 +1,42 @@
+{
+  "id": "LAB177",
+  "name": "Lipid Panel",
+  "collectedDate": "2024-06-02T15:22:18.416Z",
+  "receivedDate": "2024-06-02T15:52:18.416Z",
+  "reportedDate": "2024-06-02T16:52:18.416Z",
+  "orderedBy": "Dr. David Park",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "Total Cholesterol",
+      "value": 188,
+      "unit": "mg/dL",
+      "referenceRange": "<200"
+    },
+    {
+      "name": "LDL",
+      "value": 54.4,
+      "unit": "mg/dL",
+      "referenceRange": "<100"
+    },
+    {
+      "name": "HDL",
+      "value": 51.5,
+      "unit": "mg/dL",
+      "referenceRange": ">40"
+    },
+    {
+      "name": "Triglycerides",
+      "value": 115,
+      "unit": "mg/dL",
+      "referenceRange": "<150"
+    },
+    {
+      "name": "VLDL",
+      "value": 25.7,
+      "unit": "mg/dL",
+      "referenceRange": "<30"
+    }
+  ]
+}

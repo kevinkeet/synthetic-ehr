@@ -1,0 +1,54 @@
+{
+  "id": "IMG014",
+  "date": "2022-05-29T10:01:37.785Z",
+  "modality": "CT",
+  "description": "CTA Chest (CT Angiography)",
+  "facility": "Springfield Medical Center",
+  "status": "Final",
+  "radiologist": "Dr. Susan Miller",
+  "orderingProvider": "Dr. James Wilson",
+  "indication": "Dyspnea, atrial fibrillation, heart failure - rule out pulmonary embolism",
+  "technique": "Helical CT angiography of the chest was performed following IV administration of 80 mL Omnipaque 350 with bolus tracking technique. Images were acquired during a single breath-hold.",
+  "contrast": {
+    "type": "Omnipaque 350",
+    "volume": "80 mL",
+    "route": "IV",
+    "timing": "Bolus tracking, trigger at main pulmonary artery"
+  },
+  "findings": {
+    "pulmonaryArteries": {
+      "mainPA": "No filling defect. Normal caliber (2.8 cm).",
+      "right": "No pulmonary embolism. Segmental and subsegmental branches well opacified.",
+      "left": "No pulmonary embolism. Segmental and subsegmental branches well opacified."
+    },
+    "heart": {
+      "size": "Cardiomegaly with four-chamber enlargement.",
+      "leftAtrium": "Severely dilated.",
+      "leftVentricle": "Dilated with wall thinning of the inferior wall.",
+      "rightVentricle": "Mildly dilated.",
+      "pericardium": "Small pericardial effusion."
+    },
+    "lungs": {
+      "parenchyma": "Bibasilar dependent atelectasis. Mild interstitial edema with septal thickening. No consolidation.",
+      "nodules": "No pulmonary nodules.",
+      "pleura": "Small bilateral pleural effusions, right greater than left."
+    },
+    "mediastinum": {
+      "lymphNodes": "No significant mediastinal or hilar lymphadenopathy.",
+      "aorta": "Atherosclerotic calcification of the thoracic aorta. No aneurysm or dissection."
+    },
+    "chest_wall": "No chest wall abnormality.",
+    "upperAbdomen": "Limited evaluation. Surgical clips in the gallbladder fossa (status post cholecystectomy)."
+  },
+  "impression": [
+    "No pulmonary embolism identified.",
+    "Cardiomegaly with findings consistent with congestive heart failure including small bilateral pleural effusions, mild interstitial edema, and bibasilar atelectasis.",
+    "Small pericardial effusion.",
+    "Atherosclerotic disease of the thoracic aorta."
+  ],
+  "recommendations": [
+    "Optimize heart failure management",
+    "Consider diuretic adjustment for pulmonary edema"
+  ],
+  "comparison": "Chest X-ray dated 2022-05-15 showed cardiomegaly and pulmonary vascular congestion. Current study confirms findings and excludes PE."
+}

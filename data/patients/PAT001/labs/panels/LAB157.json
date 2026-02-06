@@ -1,0 +1,18 @@
+{
+  "id": "LAB157",
+  "name": "Troponin",
+  "collectedDate": "2023-09-14T15:22:18.416Z",
+  "receivedDate": "2023-09-14T15:52:18.416Z",
+  "reportedDate": "2023-09-14T16:52:18.416Z",
+  "orderedBy": "Dr. Lisa Martinez",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "Troponin I",
+      "value": 0.01,
+      "unit": "ng/mL",
+      "referenceRange": "<0.04"
+    }
+  ]
+}

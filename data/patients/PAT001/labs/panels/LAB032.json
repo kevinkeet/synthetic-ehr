@@ -1,0 +1,18 @@
+{
+  "id": "LAB032",
+  "name": "Magnesium",
+  "collectedDate": "2019-02-18T16:22:18.416Z",
+  "receivedDate": "2019-02-18T16:52:18.416Z",
+  "reportedDate": "2019-02-18T17:52:18.416Z",
+  "orderedBy": "Dr. Jennifer Adams",
+  "status": "Final",
+  "specimen": "Blood",
+  "results": [
+    {
+      "name": "Magnesium",
+      "value": 2.37,
+      "unit": "mg/dL",
+      "referenceRange": "1.7-2.2"
+    }
+  ]
+}
