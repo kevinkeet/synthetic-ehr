@@ -159,9 +159,27 @@ const Imaging = {
     },
 
     /**
+     * Check if this study has a viewable clinical image
+     */
+    getImageId(report) {
+        // Map certain imaging types to clinical images for simulation
+        if (report.modality === 'X-Ray' && report.description && report.description.toLowerCase().includes('chest')) {
+            return 'cxr-chf';
+        }
+        if (report.modality === 'ECG' || report.modality === 'EKG') {
+            return 'ekg-afib';
+        }
+        return null;
+    },
+
+    /**
      * Render imaging report
      */
     renderReport(report, container) {
+        const imageId = this.getImageId(report);
+        const viewImageButton = imageId && typeof ClinicalImages !== 'undefined' ?
+            '<button class="view-image-btn" onclick="ClinicalImages.show(\'' + imageId + '\')"><span class="btn-icon">&#128444;</span> View Image</button>' : '';
+
         container.innerHTML = `
             <div class="note-viewer-header">
                 <div class="note-viewer-title">${report.description || report.modality}</div>
@@ -170,6 +188,7 @@ const Imaging = {
                     <span><strong>Modality:</strong> ${report.modality}</span>
                     ${report.radiologist ? `<span><strong>Radiologist:</strong> ${report.radiologist}</span>` : ''}
                     ${report.facility ? `<span><strong>Facility:</strong> ${report.facility}</span>` : ''}
+                    ${viewImageButton}
                 </div>
             </div>
             <div class="note-viewer-body">

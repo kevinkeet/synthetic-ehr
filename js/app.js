@@ -42,6 +42,7 @@ const App = {
         DynamicLabs.init();
         DynamicImaging.init();
         SimulationDebrief.init();
+        ClinicalImages.init();
 
         // Load default patient
         try {

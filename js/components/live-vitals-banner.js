@@ -69,6 +69,13 @@ const LiveVitalsBanner = {
                 <div class="live-vitals-interventions" id="live-interventions">
                     <!-- Active interventions shown here -->
                 </div>
+                <div class="live-vitals-rhythm" id="live-rhythm" style="display: none;">
+                    <span class="rhythm-label">Rhythm:</span>
+                    <span class="rhythm-value" id="rhythm-value">Sinus</span>
+                    <button class="view-ekg-btn" id="view-ekg-btn" onclick="ClinicalImages.show('ekg-afib')" style="display: none;">
+                        View EKG
+                    </button>
+                </div>
                 <div class="live-vitals-trajectory" id="live-trajectory">
                     <span class="trajectory-label">Status:</span>
                     <span class="trajectory-value" id="trajectory-value">--</span>
@@ -131,6 +138,7 @@ const LiveVitalsBanner = {
         this.updateVitals(data.state);
         this.updateTrajectory(data.state);
         this.updateInterventions();
+        this.updateRhythm(data.state);
 
         this.lastState = data.state;
     },
@@ -270,11 +278,33 @@ const LiveVitalsBanner = {
         const banner = document.getElementById('live-vitals-banner');
         if (banner) {
             banner.classList.add('intervention-flash');
-            setTimeout(() => banner.classList.remove('intervention-flash'), 1000);
+            setTimeout(function() { banner.classList.remove('intervention-flash'); }, 1000);
         }
 
         // Show toast
-        App.showToast(`Treatment started: ${data.intervention.name}`, 'info');
+        App.showToast('Treatment started: ' + data.intervention.name, 'info');
+    },
+
+    /**
+     * Update rhythm display (shows when A-fib triggers)
+     */
+    updateRhythm(state) {
+        var rhythmContainer = document.getElementById('live-rhythm');
+        var rhythmValue = document.getElementById('rhythm-value');
+        var ekgBtn = document.getElementById('view-ekg-btn');
+
+        if (!rhythmContainer || !rhythmValue) return;
+
+        // Check if A-fib has been triggered
+        if (state && state.events && state.events.rapidAfib) {
+            rhythmContainer.style.display = 'flex';
+            rhythmValue.textContent = 'A-fib with RVR';
+            rhythmValue.className = 'rhythm-value critical';
+            if (ekgBtn) ekgBtn.style.display = 'inline-block';
+        } else {
+            rhythmContainer.style.display = 'none';
+            if (ekgBtn) ekgBtn.style.display = 'none';
+        }
     }
 };
 

@@ -381,6 +381,16 @@ const SimulationEngine = {
                 const icon = trigger.priority === 'urgent' ? '🚨' : '📞';
                 App.showToast(`${icon} Urgent call from the nurse!`, trigger.priority === 'urgent' ? 'error' : 'warning');
             }
+
+            // If this is the A-fib trigger, make EKG available and show a prompt
+            if (trigger.id === 'TRIG_AFIB' && typeof ClinicalImages !== 'undefined') {
+                // Show EKG availability toast after a short delay
+                setTimeout(function() {
+                    if (typeof App !== 'undefined') {
+                        App.showToast('📊 EKG ready for review - click to view', 'info', 8000);
+                    }
+                }, 2000);
+            }
         }
 
         if (trigger.action === 'labResult') {

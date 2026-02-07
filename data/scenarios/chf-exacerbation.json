@@ -136,7 +136,7 @@
       "type": "time",
       "atMinutes": 45,
       "action": "nurseAlert",
-      "message": "Doctor, Mr. Morrison's heart rate just jumped up to 142 and he's feeling his heart racing. The monitor is showing an irregular rhythm - looks like A-fib with rapid ventricular response. He's a bit more short of breath now too. Blood pressure is 138/88. Do you want me to start him on a heparin drip for the A-fib? I know he's got a high stroke risk with his history. Let me know what you'd like to do.",
+      "message": "Doctor, Mr. Morrison's heart rate just jumped up to 142 and he's feeling his heart racing. The monitor is showing an irregular rhythm - looks like A-fib with rapid ventricular response. I've got an EKG running now. He's a bit more short of breath too. Blood pressure is 138/88. Do you want me to start him on a heparin drip for the A-fib? I know he's got a high stroke risk with his history. The EKG strip should be ready for you to review.",
       "priority": "urgent",
       "stateChanges": {
         "vitals": {

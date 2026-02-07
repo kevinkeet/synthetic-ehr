@@ -3198,6 +3198,56 @@ html, body {
     color: #fca5a5;
 }
 
+/* Rhythm Display */
+.live-vitals-rhythm {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 16px;
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.rhythm-label {
+    font-size: 11px;
+    opacity: 0.7;
+}
+
+.rhythm-value {
+    font-size: 13px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    background: rgba(251, 191, 36, 0.3);
+    color: #fcd34d;
+}
+
+.rhythm-value.critical {
+    background: rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+    animation: rhythmPulse 1s infinite;
+}
+
+@keyframes rhythmPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.view-ekg-btn {
+    background: rgba(59, 130, 246, 0.8);
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.view-ekg-btn:hover {
+    background: rgba(59, 130, 246, 1);
+}
+
 /* Active Interventions in Banner */
 .live-vitals-interventions {
     display: flex;
@@ -4223,5 +4273,215 @@ html, body {
 
     .debrief-metrics {
         grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ============================================
+   Clinical Images Modal
+   ============================================ */
+.clinical-image-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.clinical-image-modal.visible {
+    display: flex;
+}
+
+.clinical-image-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+}
+
+.clinical-image-content {
+    position: relative;
+    background: var(--bg-white);
+    border-radius: 12px;
+    max-width: 900px;
+    max-height: 90vh;
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+}
+
+.clinical-image-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: var(--primary);
+    color: white;
+}
+
+.clinical-image-header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.clinical-image-close {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    line-height: 1;
+    opacity: 0.8;
+    transition: opacity 0.15s ease;
+}
+
+.clinical-image-close:hover {
+    opacity: 1;
+}
+
+.clinical-image-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.clinical-image-container {
+    position: relative;
+    background: #000;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clinical-image-container img {
+    max-width: 100%;
+    max-height: 450px;
+    object-fit: contain;
+}
+
+.clinical-image-loading {
+    position: absolute;
+    color: white;
+    font-size: 14px;
+}
+
+.clinical-image-details {
+    padding: 16px 20px;
+}
+
+.clinical-image-description {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.clinical-image-findings {
+    background: #fffbeb;
+    border: 1px solid #fbbf24;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+}
+
+.clinical-image-findings h4 {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #92400e;
+}
+
+.clinical-image-findings ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.clinical-image-findings li {
+    font-size: 13px;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.clinical-image-interpretation {
+    background: #ecfdf5;
+    border: 1px solid #10b981;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+}
+
+.clinical-image-interpretation h4 {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #065f46;
+}
+
+.clinical-image-interpretation p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+.clinical-image-credit {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.clinical-image-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 12px 20px;
+    background: var(--bg-light);
+    border-top: 1px solid var(--border-light);
+}
+
+/* Imaging Section - View Image Buttons */
+.view-image-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--primary-light);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.view-image-btn:hover {
+    background: var(--primary);
+}
+
+.view-image-btn .btn-icon {
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .clinical-image-content {
+        max-width: 100%;
+        max-height: 100%;
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+    }
+
+    .clinical-image-container img {
+        max-height: 300px;
     }
 }
