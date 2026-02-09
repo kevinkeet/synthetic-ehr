@@ -76,6 +76,13 @@ const AICoworker = {
         // Listen for external updates via postMessage
         window.addEventListener('message', (event) => this.handleExternalMessage(event));
 
+        // Listen for Claude thinking synthesis responses
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'CLAUDE_THINKING_RESPONSE') {
+                this.receiveThinkingUpdate(event.data.thinking);
+            }
+        });
+
         // Listen for storage changes (cross-tab/external updates)
         window.addEventListener('storage', (event) => {
             if (event.key === 'aiAssistantState') {
@@ -1043,20 +1050,189 @@ const AICoworker = {
 
     /**
      * Called when doctor updates their dictation - AI should respond
+     * This synthesizes the doctor's thoughts with AI's understanding
      */
     onDictationUpdated(text) {
-        // This would be where Claude updates its thinking
-        // For now, we'll signal that an update is needed
+        // Show thinking status
         this.state.status = 'thinking';
         this.render();
 
-        // In a real implementation, this would call Claude to update
-        // For demo, we can set a flag that external tools can see
+        // Build prompt for Claude to synthesize thinking
+        const synthesisPrompt = this.buildThinkingSynthesisPrompt(text);
+
+        // Try to get Claude to update the thinking
+        // Method 1: Use Claude extension if available
+        this.requestThinkingUpdate(synthesisPrompt);
+
+        // Method 2: Broadcast for external tools
         window.postMessage({
             type: 'DOCTOR_DICTATION_UPDATED',
             dictation: text,
+            synthesisPrompt: synthesisPrompt,
             fullContext: this.buildFullContext()
         }, '*');
+
+        // Method 3: For demo/offline - do a simple local synthesis
+        // This provides immediate feedback even without Claude
+        this.localThinkingSynthesis(text);
+    },
+
+    /**
+     * Build a prompt for Claude to synthesize doctor's thoughts with AI understanding
+     */
+    buildThinkingSynthesisPrompt(doctorThoughts) {
+        let prompt = `You are an AI clinical assistant. The doctor has just shared their thoughts about this case.
+Please synthesize their clinical reasoning with the current case understanding to create an updated "Current Thinking" summary.
+
+## Doctor's New Thoughts:
+"${doctorThoughts}"
+
+## Previous AI Understanding:
+${this.state.thinking || 'No previous thinking recorded.'}
+
+## Case Summary:
+${this.state.summary || 'No summary available.'}
+
+## Safety Flags:
+${this.state.flags && this.state.flags.length > 0
+    ? this.state.flags.map(f => '- ⚠️ ' + f.text).join('\n')
+    : 'None'}
+
+## Key Observations:
+${this.state.observations && this.state.observations.length > 0
+    ? this.state.observations.map(o => '- ' + o).join('\n')
+    : 'None'}
+
+---
+
+Please provide an updated "Current Thinking" that:
+1. Acknowledges and incorporates the doctor's clinical reasoning
+2. Notes where AI observations align with or support the doctor's assessment
+3. Highlights any safety considerations relevant to their plan
+4. Is written in first person from the AI's perspective (e.g., "The doctor has identified... I'm noting that...")
+5. Is concise (2-4 sentences)
+6. Uses **bold** for key clinical decisions
+
+Respond with ONLY the updated thinking text, no preamble.`;
+
+        return prompt;
+    },
+
+    /**
+     * Request Claude to update the thinking via extension
+     */
+    requestThinkingUpdate(prompt) {
+        // Create a special message type for thinking synthesis
+        window.postMessage({
+            type: 'CLAUDE_THINKING_SYNTHESIS',
+            prompt: prompt,
+            callback: 'AICoworker.receiveThinkingUpdate'
+        }, '*');
+
+        // Also dispatch custom event
+        const event = new CustomEvent('claude-thinking-request', {
+            detail: {
+                prompt: prompt,
+                type: 'synthesis'
+            }
+        });
+        document.dispatchEvent(event);
+    },
+
+    /**
+     * Receive updated thinking from Claude
+     */
+    receiveThinkingUpdate(newThinking) {
+        if (newThinking && typeof newThinking === 'string') {
+            this.state.thinking = newThinking;
+            this.state.status = 'ready';
+            this.saveState();
+            this.render();
+            App.showToast('AI thinking updated', 'success');
+        }
+    },
+
+    /**
+     * Local synthesis when Claude is not available
+     * Provides immediate feedback by combining doctor's thoughts with existing AI state
+     */
+    localThinkingSynthesis(doctorThoughts) {
+        // Extract key phrases from doctor's input
+        const lowerThoughts = doctorThoughts.toLowerCase();
+
+        // Build synthesized thinking
+        let newThinking = '';
+
+        // Acknowledge the doctor's assessment
+        if (lowerThoughts.includes('chf') || lowerThoughts.includes('heart failure') || lowerThoughts.includes('volume')) {
+            newThinking += 'Doctor has confirmed **CHF exacerbation** as the working diagnosis. ';
+        } else if (lowerThoughts.includes('sepsis') || lowerThoughts.includes('infection')) {
+            newThinking += 'Doctor is considering **infectious etiology**. ';
+        } else if (lowerThoughts.includes('acs') || lowerThoughts.includes('mi') || lowerThoughts.includes('cardiac')) {
+            newThinking += 'Doctor is evaluating for **acute coronary syndrome**. ';
+        } else {
+            newThinking += 'Doctor has shared their clinical assessment. ';
+        }
+
+        // Note alignment with triggers/causes
+        if (lowerThoughts.includes('diet') || lowerThoughts.includes('salt') || lowerThoughts.includes('sodium')) {
+            newThinking += 'Dietary indiscretion identified as likely trigger. ';
+        }
+        if (lowerThoughts.includes('missed') || lowerThoughts.includes('non-compliance') || lowerThoughts.includes('noncompliance')) {
+            newThinking += 'Medication non-adherence contributing. ';
+        }
+
+        // Handle anticoagulation decision (key scenario)
+        if (lowerThoughts.includes('anticoagulat') || lowerThoughts.includes('blood thinner')) {
+            if (lowerThoughts.includes('not') || lowerThoughts.includes("won't") || lowerThoughts.includes('hold') || lowerThoughts.includes('avoid')) {
+                newThinking += '**Key decision: Doctor has decided against anticoagulation** - ';
+                // Check if we have GI bleed flag
+                if (this.state.flags && this.state.flags.some(f => f.text.toLowerCase().includes('gi bleed') || f.text.toLowerCase().includes('bleeding'))) {
+                    newThinking += 'this aligns with GI recommendations given recent bleed history. ';
+                } else {
+                    newThinking += 'will monitor for bleeding risk factors. ';
+                }
+            } else if (lowerThoughts.includes('start') || lowerThoughts.includes('begin')) {
+                newThinking += '**Note: Doctor considering anticoagulation** - ';
+                if (this.state.flags && this.state.flags.some(f => f.text.toLowerCase().includes('gi bleed') || f.text.toLowerCase().includes('bleeding'))) {
+                    newThinking += '⚠️ please review GI bleed history before proceeding. ';
+                }
+            }
+        }
+
+        // Note the plan
+        if (lowerThoughts.includes('diure') || lowerThoughts.includes('lasix') || lowerThoughts.includes('furosemide')) {
+            newThinking += 'Plan includes diuresis. ';
+        }
+        if (lowerThoughts.includes('consult') || lowerThoughts.includes('cards') || lowerThoughts.includes('cardiology')) {
+            newThinking += 'Cardiology involvement planned. ';
+        }
+
+        // Add supporting observations if relevant
+        if (this.state.observations && this.state.observations.length > 0) {
+            const relevantObs = this.state.observations.find(o =>
+                o.toLowerCase().includes('bnp') ||
+                o.toLowerCase().includes('creatinine') ||
+                o.toLowerCase().includes('missed')
+            );
+            if (relevantObs) {
+                newThinking += 'Supporting data: ' + relevantObs.split(':')[0] + '. ';
+            }
+        }
+
+        // If we generated meaningful content, update the state
+        if (newThinking.length > 50) {
+            this.state.thinking = newThinking.trim();
+            this.state.status = 'ready';
+            this.saveState();
+            this.render();
+        } else {
+            // Fallback: just acknowledge the input
+            this.state.thinking = `Doctor's assessment received: "${doctorThoughts.substring(0, 100)}${doctorThoughts.length > 100 ? '...' : ''}" - integrating with case understanding.`;
+            this.state.status = 'ready';
+            this.saveState();
+            this.render();
+        }
     },
 
     // Voice recording (Web Speech API)
@@ -1741,4 +1917,15 @@ window.addAIFlag = function(text, severity) {
 
 window.setAIContext = function(text) {
     AICoworker.setContext(text);
+};
+
+window.updateAIThinking = function(thinking) {
+    AICoworker.receiveThinkingUpdate(thinking);
+};
+
+window.setAIDictation = function(text) {
+    AICoworker.state.dictation = text;
+    AICoworker.saveState();
+    AICoworker.render();
+    AICoworker.onDictationUpdated(text);
 };
