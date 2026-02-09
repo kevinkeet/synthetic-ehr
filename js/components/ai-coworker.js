@@ -1232,22 +1232,61 @@ Respond with ONLY the JSON, no preamble.`;
         let keyDecisions = [];
         let planItems = [];
 
-        // Identify working diagnosis
-        if (lowerThoughts.includes('chf') || lowerThoughts.includes('heart failure') || lowerThoughts.includes('volume overload') || lowerThoughts.includes('wet')) {
-            workingDiagnosis = 'CHF exacerbation';
-            newThinking += 'Doctor has confirmed **CHF exacerbation** as the working diagnosis. ';
+        // Detect key symptoms/findings that modify differential
+        const hasChestPain = lowerThoughts.includes('chest pain') || lowerThoughts.includes(' cp ') || lowerThoughts.includes('angina') || lowerThoughts.includes('chest pressure') || lowerThoughts.includes('substernal');
+        const hasDyspnea = lowerThoughts.includes('dyspnea') || lowerThoughts.includes('sob') || lowerThoughts.includes('short of breath') || lowerThoughts.includes('breathing');
+        const hasEdema = lowerThoughts.includes('edema') || lowerThoughts.includes('swelling') || lowerThoughts.includes('wet') || lowerThoughts.includes('volume') || lowerThoughts.includes('jvd');
+        const hasFever = lowerThoughts.includes('fever') || lowerThoughts.includes('febrile') || lowerThoughts.includes('temp');
+        const hasIschemia = lowerThoughts.includes('ischemi') || lowerThoughts.includes('st change') || lowerThoughts.includes('ekg change') || lowerThoughts.includes('troponin');
+        const hasCHF = lowerThoughts.includes('chf') || lowerThoughts.includes('heart failure') || lowerThoughts.includes('volume overload');
+        const hasACS = lowerThoughts.includes('acs') || lowerThoughts.includes('mi') || lowerThoughts.includes('stemi') || lowerThoughts.includes('nstemi') || lowerThoughts.includes('infarct');
+
+        // Track if we need ischemic workup
+        let needsIschemicWorkup = false;
+
+        // Identify working diagnosis with nuanced differentials
+        if (hasCHF || hasEdema) {
+            // CHF with possible triggers/causes
+            if (hasChestPain || hasIschemia || hasACS) {
+                workingDiagnosis = 'CHF exacerbation, possibly triggered by ischemia';
+                newThinking += 'Doctor suspects **CHF exacerbation, possibly triggered by new ischemic event**. ';
+                triggers.push('possible ischemia');
+                needsIschemicWorkup = true;
+            } else if (lowerThoughts.includes('arrhythmia') || lowerThoughts.includes('afib') || lowerThoughts.includes('rvr')) {
+                workingDiagnosis = 'CHF exacerbation, triggered by arrhythmia';
+                newThinking += 'Doctor suspects **CHF exacerbation triggered by arrhythmia**. ';
+                triggers.push('arrhythmia');
+            } else {
+                workingDiagnosis = 'CHF exacerbation';
+                newThinking += 'Doctor has confirmed **CHF exacerbation** as the working diagnosis. ';
+            }
+        } else if (hasChestPain && !lowerThoughts.includes('non-cardiac') && !lowerThoughts.includes('msk') && !lowerThoughts.includes('musculoskeletal')) {
+            // Chest pain without explicit CHF - consider cardiac causes
+            if (hasACS || hasIschemia) {
+                workingDiagnosis = 'ACS';
+                newThinking += 'Doctor is evaluating for **acute coronary syndrome**. ';
+                needsIschemicWorkup = true;
+            } else {
+                workingDiagnosis = 'Chest pain - cardiac workup indicated';
+                newThinking += 'Doctor is working up **chest pain** - ruling out cardiac etiology. ';
+                needsIschemicWorkup = true;
+            }
+        } else if (hasACS) {
+            workingDiagnosis = 'ACS';
+            newThinking += 'Doctor is evaluating for **acute coronary syndrome**. ';
+            needsIschemicWorkup = true;
         } else if (lowerThoughts.includes('sepsis') || lowerThoughts.includes('infection')) {
             workingDiagnosis = 'Sepsis/Infection';
             newThinking += 'Doctor is considering **infectious etiology**. ';
-        } else if (lowerThoughts.includes('acs') || lowerThoughts.includes('mi') || lowerThoughts.includes('stemi') || lowerThoughts.includes('nstemi')) {
-            workingDiagnosis = 'ACS';
-            newThinking += 'Doctor is evaluating for **acute coronary syndrome**. ';
         } else if (lowerThoughts.includes('copd') || lowerThoughts.includes('asthma') || lowerThoughts.includes('bronch')) {
             workingDiagnosis = 'COPD/Asthma exacerbation';
             newThinking += 'Doctor is treating **respiratory exacerbation**. ';
         } else if (lowerThoughts.includes('pneumonia') || lowerThoughts.includes('pna')) {
             workingDiagnosis = 'Pneumonia';
             newThinking += 'Doctor suspects **pneumonia**. ';
+        } else if (lowerThoughts.includes('pe') || lowerThoughts.includes('pulmonary embolism') || lowerThoughts.includes('embolus')) {
+            workingDiagnosis = 'Pulmonary embolism';
+            newThinking += 'Doctor is evaluating for **pulmonary embolism**. ';
         }
 
         // Identify triggers/causes
@@ -1259,8 +1298,12 @@ Respond with ONLY the JSON, no preamble.`;
             triggers.push('medication non-adherence');
             newThinking += 'Medication non-adherence contributing. ';
         }
-        if (lowerThoughts.includes('arrhythmia') || lowerThoughts.includes('afib') || lowerThoughts.includes('a-fib') || lowerThoughts.includes('rvr')) {
+        if ((lowerThoughts.includes('arrhythmia') || lowerThoughts.includes('afib') || lowerThoughts.includes('a-fib') || lowerThoughts.includes('rvr')) && !triggers.includes('arrhythmia')) {
             triggers.push('arrhythmia');
+        }
+        if (hasChestPain && !triggers.includes('possible ischemia')) {
+            triggers.push('chest pain - needs cardiac workup');
+            needsIschemicWorkup = true;
         }
 
         // Handle anticoagulation decision (key scenario)
@@ -1297,6 +1340,15 @@ Respond with ONLY the JSON, no preamble.`;
         if (lowerThoughts.includes('cath') || lowerThoughts.includes('angiogram')) {
             planItems.push('Cardiac catheterization');
         }
+        if (lowerThoughts.includes('ekg') || lowerThoughts.includes('ecg') || lowerThoughts.includes('12 lead') || lowerThoughts.includes('12-lead')) {
+            planItems.push('EKG');
+        }
+        if (lowerThoughts.includes('troponin') || lowerThoughts.includes('cardiac enzyme') || lowerThoughts.includes('cardiac marker')) {
+            planItems.push('Troponins');
+        }
+        if (lowerThoughts.includes('stress') || lowerThoughts.includes('perfusion') || lowerThoughts.includes('nuclear') || lowerThoughts.includes('mibi')) {
+            planItems.push('Stress/perfusion testing');
+        }
         if (lowerThoughts.includes('antibiotic') || lowerThoughts.includes('abx')) {
             planItems.push('Antibiotics');
         }
@@ -1311,6 +1363,11 @@ Respond with ONLY the JSON, no preamble.`;
         }
         if (lowerThoughts.includes('icu') || lowerThoughts.includes('intensive care')) {
             planItems.push('ICU admission');
+        }
+
+        // If ischemic workup needed, add to plan thinking
+        if (needsIschemicWorkup) {
+            newThinking += 'Ischemic workup indicated given presentation. ';
         }
 
         // Add supporting observations if relevant
@@ -1349,8 +1406,21 @@ Respond with ONLY the JSON, no preamble.`;
         // ===== BUILD UPDATED SUGGESTED ACTIONS =====
         let newSuggestions = [];
 
+        // Add ischemic workup suggestions if needed
+        if (needsIschemicWorkup) {
+            if (!planItems.includes('EKG') && !this.state.reviewed?.some(r => r.toLowerCase().includes('ekg') || r.toLowerCase().includes('ecg'))) {
+                newSuggestions.push('Stat EKG to evaluate for ischemia');
+            }
+            if (!planItems.includes('Troponins')) {
+                newSuggestions.push('Serial troponins (q6h x3)');
+            }
+            if (!planItems.includes('Stress/perfusion testing') && !planItems.includes('Cardiac catheterization')) {
+                newSuggestions.push('Consider stress test or perfusion imaging if troponins negative');
+            }
+        }
+
         // Add suggestions based on diagnosis
-        if (workingDiagnosis === 'CHF exacerbation') {
+        if (workingDiagnosis.includes('CHF')) {
             if (!planItems.includes('Diuresis')) {
                 newSuggestions.push('Start IV diuresis (furosemide 40mg IV)');
             }
@@ -1364,10 +1434,24 @@ Respond with ONLY the JSON, no preamble.`;
             newSuggestions.push('Start empiric antibiotics');
             newSuggestions.push('IV fluid resuscitation');
             newSuggestions.push('Lactate level');
-        } else if (workingDiagnosis === 'ACS') {
-            newSuggestions.push('Serial troponins q6h');
-            newSuggestions.push('Cardiology consult for cath consideration');
-            newSuggestions.push('Start antiplatelet therapy if not contraindicated');
+        } else if (workingDiagnosis === 'ACS' || workingDiagnosis.includes('Chest pain')) {
+            if (!newSuggestions.some(s => s.includes('troponin'))) {
+                newSuggestions.push('Serial troponins q6h');
+            }
+            if (!planItems.includes('Cardiology consult')) {
+                newSuggestions.push('Cardiology consult for cath consideration');
+            }
+            newSuggestions.push('Continuous telemetry monitoring');
+            // Check for bleeding risk before antiplatelet
+            if (this.state.flags && this.state.flags.some(f => f.text.toLowerCase().includes('bleed'))) {
+                newSuggestions.push('Review bleeding history before antiplatelet therapy');
+            } else {
+                newSuggestions.push('Start antiplatelet therapy if not contraindicated');
+            }
+        } else if (workingDiagnosis === 'Pulmonary embolism') {
+            newSuggestions.push('CT angiogram chest');
+            newSuggestions.push('D-dimer if low pretest probability');
+            newSuggestions.push('Start anticoagulation if confirmed (check bleeding risk)');
         }
 
         // Add suggestions based on open items
