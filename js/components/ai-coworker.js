@@ -360,7 +360,10 @@ const AICoworker = {
             this.state.openItems.forEach((item, index) => {
                 html += '<div class="ai-open-item">';
                 html += '<span class="open-text">' + this.escapeHtml(item) + '</span>';
+                html += '<div class="open-actions">';
+                html += '<button class="ask-claude-btn" onclick="AICoworker.askClaudeAbout(\'' + this.escapeHtml(item).replace(/'/g, "\\'") + '\')" title="Ask Claude to help">🤖</button>';
                 html += '<button class="open-done" onclick="AICoworker.markAddressed(' + index + ')" title="Mark as addressed">✓</button>';
+                html += '</div>';
                 html += '</div>';
             });
             html += '</div>';
@@ -377,7 +380,12 @@ const AICoworker = {
                 html += '<div class="ai-task ' + (isDone ? 'done' : '') + '">';
                 html += '<input type="checkbox" ' + (isDone ? 'checked' : '') + ' onchange="AICoworker.toggleTask(' + index + ')">';
                 html += '<span class="task-text">' + this.escapeHtml(task.text) + '</span>';
+                html += '<div class="task-actions">';
+                if (!isDone) {
+                    html += '<button class="ask-claude-btn" onclick="AICoworker.askClaudeAbout(\'' + this.escapeHtml(task.text).replace(/'/g, "\\'") + '\')" title="Ask Claude to help">🤖</button>';
+                }
                 html += '<button class="task-remove" onclick="AICoworker.removeTask(' + index + ')" title="Remove">×</button>';
+                html += '</div>';
                 html += '</div>';
             });
             html += '</div>';
@@ -543,6 +551,184 @@ const AICoworker = {
         this.render();
         this.closeAddTask();
         App.showToast('Task added', 'success');
+    },
+
+    // ==================== Claude Extension Integration ====================
+
+    /**
+     * Ask Claude browser extension to help with a specific item
+     * This triggers the Claude in Chrome extension if installed
+     */
+    askClaudeAbout(item) {
+        // Build context from current patient and state
+        const patientContext = this.buildPatientContext();
+        const prompt = 'Help me with this task for my patient:\n\nTask: ' + item + '\n\n' + patientContext;
+
+        // Method 1: Try to trigger Claude in Chrome extension via postMessage
+        // The extension listens for specific message types
+        window.postMessage({
+            type: 'CLAUDE_EXTENSION_PROMPT',
+            prompt: prompt,
+            context: {
+                source: 'synthetic-ehr',
+                task: item,
+                patient: patientContext
+            }
+        }, '*');
+
+        // Method 2: Try custom event that extensions might listen for
+        const event = new CustomEvent('claude-assist-request', {
+            detail: {
+                prompt: prompt,
+                task: item,
+                context: patientContext
+            }
+        });
+        document.dispatchEvent(event);
+
+        // Method 3: Check if extension exposed a global function
+        if (typeof window.askClaude === 'function') {
+            window.askClaude(prompt);
+            return;
+        }
+
+        // Method 4: Try to open Claude in a sidebar or popup if extension provides that
+        if (typeof window.openClaudeSidebar === 'function') {
+            window.openClaudeSidebar(prompt);
+            return;
+        }
+
+        // Method 5: Copy to clipboard and show instructions
+        this.copyToClipboardAndNotify(prompt, item);
+    },
+
+    /**
+     * Build patient context string for Claude
+     */
+    buildPatientContext() {
+        let context = 'Patient Context:\n';
+
+        // Add tracking context if available
+        if (this.state.context) {
+            context += this.state.context + '\n\n';
+        }
+
+        // Add what's been reviewed
+        if (this.state.reviewed && this.state.reviewed.length > 0) {
+            context += 'Already reviewed: ' + this.state.reviewed.join(', ') + '\n';
+        }
+
+        // Add observations
+        if (this.state.observations && this.state.observations.length > 0) {
+            context += '\nObservations:\n';
+            this.state.observations.forEach(obs => {
+                context += '- ' + obs + '\n';
+            });
+        }
+
+        // Add safety flags
+        if (this.state.flags && this.state.flags.length > 0) {
+            context += '\n⚠️ Safety Flags:\n';
+            this.state.flags.forEach(flag => {
+                context += '- ' + flag.text + '\n';
+            });
+        }
+
+        return context;
+    },
+
+    /**
+     * Fallback: Copy prompt to clipboard and notify user
+     */
+    copyToClipboardAndNotify(prompt, item) {
+        navigator.clipboard.writeText(prompt).then(() => {
+            App.showToast('📋 Copied to clipboard - paste into Claude', 'info', 4000);
+
+            // Also show a more detailed modal
+            this.showClaudeHelperModal(item, prompt);
+        }).catch(() => {
+            // If clipboard fails, just show the modal
+            this.showClaudeHelperModal(item, prompt);
+        });
+    },
+
+    /**
+     * Show modal with instructions for using Claude
+     */
+    showClaudeHelperModal(item, prompt) {
+        // Check if modal already exists
+        let modal = document.getElementById('claude-helper-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'claude-helper-modal';
+            modal.className = 'ai-modal';
+            modal.innerHTML = `
+                <div class="ai-modal-content">
+                    <div class="ai-modal-header">
+                        <h3>🤖 Ask Claude</h3>
+                        <button onclick="AICoworker.closeClaudeHelperModal()">×</button>
+                    </div>
+                    <div class="ai-modal-body">
+                        <p class="ai-modal-hint">The prompt has been copied to your clipboard. You can:</p>
+                        <div class="claude-helper-options">
+                            <a href="https://claude.ai/new" target="_blank" class="claude-option-btn">
+                                <span class="option-icon">💬</span>
+                                <span class="option-text">Open Claude.ai</span>
+                            </a>
+                            <button onclick="AICoworker.openClaudeSidepanel()" class="claude-option-btn">
+                                <span class="option-icon">📌</span>
+                                <span class="option-text">Open Extension Sidepanel</span>
+                            </button>
+                        </div>
+                        <div class="claude-prompt-preview">
+                            <label>Prompt (already copied):</label>
+                            <textarea id="claude-prompt-text" readonly rows="6"></textarea>
+                        </div>
+                    </div>
+                    <div class="ai-modal-footer">
+                        <button class="btn btn-secondary" onclick="AICoworker.closeClaudeHelperModal()">Close</button>
+                        <button class="btn btn-primary" onclick="AICoworker.copyPromptAgain()">📋 Copy Again</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Update prompt text
+        document.getElementById('claude-prompt-text').value = prompt;
+        modal.classList.add('visible');
+    },
+
+    closeClaudeHelperModal() {
+        const modal = document.getElementById('claude-helper-modal');
+        if (modal) modal.classList.remove('visible');
+    },
+
+    copyPromptAgain() {
+        const prompt = document.getElementById('claude-prompt-text').value;
+        navigator.clipboard.writeText(prompt).then(() => {
+            App.showToast('📋 Copied!', 'success');
+        });
+    },
+
+    /**
+     * Try to open Claude extension sidepanel
+     */
+    openClaudeSidepanel() {
+        // Try keyboard shortcut simulation (Cmd+Shift+P or Ctrl+Shift+P often opens sidepanel)
+        // This won't work programmatically, but we can guide the user
+
+        // Try extension-specific APIs
+        if (chrome && chrome.runtime && chrome.runtime.sendMessage) {
+            // Try to message the extension
+            try {
+                chrome.runtime.sendMessage('claude-extension-id', { action: 'openSidepanel' });
+            } catch (e) {
+                // Extension not available
+            }
+        }
+
+        App.showToast('Press Cmd+Shift+. to open Claude sidepanel', 'info', 5000);
     },
 
     // ==================== Panel Controls ====================

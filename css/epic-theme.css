@@ -4841,23 +4841,111 @@ html, body {
     color: var(--text-muted);
 }
 
-.ai-task .task-remove {
+.task-actions,
+.open-actions {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.ai-task:hover .task-actions,
+.ai-open-item:hover .open-actions {
+    opacity: 1;
+}
+
+.ai-task .task-remove,
+.open-actions button {
     background: transparent;
     border: none;
     color: var(--text-muted);
     cursor: pointer;
     font-size: 12px;
-    padding: 0 4px;
-    opacity: 0;
-}
-
-.ai-task:hover .task-remove {
-    opacity: 0.6;
+    padding: 2px 4px;
+    border-radius: 3px;
 }
 
 .ai-task .task-remove:hover {
     color: #b91c1c;
-    opacity: 1;
+    background: #fee2e2;
+}
+
+/* Ask Claude Button */
+.ask-claude-btn {
+    background: #f0f9ff !important;
+    border: 1px solid #bae6fd !important;
+    color: #0369a1 !important;
+    cursor: pointer;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+}
+
+.ask-claude-btn:hover {
+    background: #e0f2fe !important;
+    border-color: #7dd3fc !important;
+    transform: scale(1.05);
+}
+
+/* Claude Helper Modal extras */
+.claude-helper-options {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.claude-option-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 16px 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: all 0.15s ease;
+}
+
+.claude-option-btn:hover {
+    background: #f1f5f9;
+    border-color: var(--primary);
+}
+
+.claude-option-btn .option-icon {
+    font-size: 24px;
+}
+
+.claude-option-btn .option-text {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.claude-prompt-preview {
+    margin-top: 12px;
+}
+
+.claude-prompt-preview label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
+.claude-prompt-preview textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    font-size: 11px;
+    font-family: monospace;
+    background: #f8fafc;
+    resize: none;
 }
 
 /* AI Response Section */
