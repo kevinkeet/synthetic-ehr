@@ -1235,23 +1235,27 @@ Respond with ONLY the JSON, no preamble.`;
         // Detect key symptoms/findings that modify differential
         const hasChestPain = lowerThoughts.includes('chest pain') || lowerThoughts.includes(' cp ') || lowerThoughts.includes('angina') || lowerThoughts.includes('chest pressure') || lowerThoughts.includes('substernal');
         const hasDyspnea = lowerThoughts.includes('dyspnea') || lowerThoughts.includes('sob') || lowerThoughts.includes('short of breath') || lowerThoughts.includes('breathing');
-        const hasEdema = lowerThoughts.includes('edema') || lowerThoughts.includes('swelling') || lowerThoughts.includes('wet') || lowerThoughts.includes('volume') || lowerThoughts.includes('jvd');
+        const hasEdema = lowerThoughts.includes('edema') || lowerThoughts.includes('swelling') || lowerThoughts.includes('wet') || lowerThoughts.includes('jvd');
         const hasFever = lowerThoughts.includes('fever') || lowerThoughts.includes('febrile') || lowerThoughts.includes('temp');
         const hasIschemia = lowerThoughts.includes('ischemi') || lowerThoughts.includes('st change') || lowerThoughts.includes('ekg change') || lowerThoughts.includes('troponin');
-        const hasCHF = lowerThoughts.includes('chf') || lowerThoughts.includes('heart failure') || lowerThoughts.includes('volume overload');
-        const hasACS = lowerThoughts.includes('acs') || lowerThoughts.includes('mi') || lowerThoughts.includes('stemi') || lowerThoughts.includes('nstemi') || lowerThoughts.includes('infarct');
+        const hasCHF = lowerThoughts.includes('chf') || lowerThoughts.includes('heart failure');
+        const hasACS = lowerThoughts.includes('acs') || lowerThoughts.includes(' mi ') || lowerThoughts.includes('stemi') || lowerThoughts.includes('nstemi') || lowerThoughts.includes('infarct');
+
+        // Debug log to help diagnose
+        console.log('AI Synthesis - Detected:', { hasChestPain, hasIschemia, hasCHF, hasACS, hasEdema, text: lowerThoughts.substring(0, 100) });
 
         // Track if we need ischemic workup
         let needsIschemicWorkup = false;
 
         // Identify working diagnosis with nuanced differentials
-        if (hasCHF || hasEdema) {
-            // CHF with possible triggers/causes
+        if (hasCHF) {
+            // CHF - check for ischemic trigger
             if (hasChestPain || hasIschemia || hasACS) {
                 workingDiagnosis = 'CHF exacerbation, possibly triggered by ischemia';
                 newThinking += 'Doctor suspects **CHF exacerbation, possibly triggered by new ischemic event**. ';
                 triggers.push('possible ischemia');
                 needsIschemicWorkup = true;
+                console.log('AI Synthesis - CHF with ischemic trigger detected');
             } else if (lowerThoughts.includes('arrhythmia') || lowerThoughts.includes('afib') || lowerThoughts.includes('rvr')) {
                 workingDiagnosis = 'CHF exacerbation, triggered by arrhythmia';
                 newThinking += 'Doctor suspects **CHF exacerbation triggered by arrhythmia**. ';
@@ -1259,6 +1263,16 @@ Respond with ONLY the JSON, no preamble.`;
             } else {
                 workingDiagnosis = 'CHF exacerbation';
                 newThinking += 'Doctor has confirmed **CHF exacerbation** as the working diagnosis. ';
+            }
+        } else if (hasEdema) {
+            // Volume overload without explicit CHF
+            if (hasChestPain || hasIschemia) {
+                workingDiagnosis = 'Volume overload with possible ischemic trigger';
+                newThinking += 'Doctor notes **volume overload with concern for ischemia**. ';
+                needsIschemicWorkup = true;
+            } else {
+                workingDiagnosis = 'Volume overload';
+                newThinking += 'Doctor notes **volume overload**. ';
             }
         } else if (hasChestPain && !lowerThoughts.includes('non-cardiac') && !lowerThoughts.includes('msk') && !lowerThoughts.includes('musculoskeletal')) {
             // Chest pain without explicit CHF - consider cardiac causes
@@ -1365,9 +1379,21 @@ Respond with ONLY the JSON, no preamble.`;
             planItems.push('ICU admission');
         }
 
+        // Detect "ischemic workup" explicitly mentioned
+        if (lowerThoughts.includes('ischemic workup') || lowerThoughts.includes('cardiac workup') || lowerThoughts.includes('rule out acs') || lowerThoughts.includes('r/o acs')) {
+            needsIschemicWorkup = true;
+            if (!planItems.includes('Ischemic workup')) {
+                planItems.push('Ischemic workup');
+            }
+        }
+
         // If ischemic workup needed, add to plan thinking
         if (needsIschemicWorkup) {
             newThinking += 'Ischemic workup indicated given presentation. ';
+            // Add ischemic workup to plan if not already there
+            if (!planItems.some(p => p.toLowerCase().includes('ischemic') || p.toLowerCase().includes('ekg') || p.toLowerCase().includes('troponin'))) {
+                planItems.push('Ischemic workup');
+            }
         }
 
         // Add supporting observations if relevant
