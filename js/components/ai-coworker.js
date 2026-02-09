@@ -16,6 +16,11 @@ const AICoworker = {
     isMinimized: false,
     updateInterval: null,
 
+    // API Configuration
+    apiKey: null,
+    apiEndpoint: 'https://api.anthropic.com/v1/messages',
+    model: 'claude-sonnet-4-20250514',
+
     // Default state
     state: {
         status: 'ready', // ready, thinking, alert
@@ -70,6 +75,7 @@ const AICoworker = {
     init() {
         this.createPanel();
         this.loadState();
+        this.loadApiKey(); // Load saved API key
         this.setupEventListeners();
         this.startPolling();
 
@@ -131,6 +137,12 @@ const AICoworker = {
                 </button>
                 <button class="ai-assistant-note-btn" onclick="AICoworker.openNoteModal()" title="Write a note">
                     📝 Write Note
+                </button>
+                <button class="ai-assistant-settings-btn" onclick="AICoworker.openApiKeyModal()" title="API Settings">
+                    ⚙️
+                </button>
+                <button class="ai-assistant-debug-btn" onclick="AICoworker.openDebugPanel()" title="View Prompts & Context">
+                    🔍
                 </button>
                 <button class="ai-assistant-ask-btn" onclick="AICoworker.openAskModal()" title="Ask AI for help">
                     💬 Ask
@@ -1059,15 +1071,16 @@ const AICoworker = {
      * This synthesizes the doctor's thoughts with AI's understanding
      */
     onDictationUpdated(text) {
+        console.log('🩺 onDictationUpdated called with:', text.substring(0, 100) + '...');
+
         // Show thinking status
         this.state.status = 'thinking';
         this.render();
 
-        // Build prompt for Claude to synthesize thinking
+        // Build prompt for Claude to synthesize thinking (for external tools)
         const synthesisPrompt = this.buildThinkingSynthesisPrompt(text);
 
-        // Try to get Claude to update the thinking
-        // Method 1: Use Claude extension if available
+        // Method 1: Use Claude extension if available (broadcast)
         this.requestThinkingUpdate(synthesisPrompt);
 
         // Method 2: Broadcast for external tools
@@ -1078,9 +1091,10 @@ const AICoworker = {
             fullContext: this.buildFullContext()
         }, '*');
 
-        // Method 3: For demo/offline - do a simple local synthesis
-        // This provides immediate feedback even without Claude
-        this.localThinkingSynthesis(text);
+        // Method 3: Use LLM API for intelligent synthesis (PRIMARY METHOD)
+        // Falls back to local synthesis if API not configured
+        console.log('🚀 Calling synthesizeWithLLM...');
+        this.synthesizeWithLLM(text);
     },
 
     /**
@@ -1860,8 +1874,8 @@ Respond with ONLY the JSON, no preamble.`;
             fullContext: this.buildFullContext()
         }, '*');
 
-        // Local fallback for immediate feedback
-        this.localRefreshAnalysis();
+        // Use LLM for intelligent refresh (falls back to local if not configured)
+        this.refreshWithLLM();
     },
 
     /**
@@ -2097,6 +2111,591 @@ Format your response as JSON:
         this.state.lastUpdated = new Date().toISOString();
         this.saveState();
         this.render();
+    },
+
+    // ==================== LLM API Integration ====================
+
+    /**
+     * Load API key from localStorage
+     */
+    loadApiKey() {
+        this.apiKey = localStorage.getItem('anthropicApiKey');
+        return this.apiKey;
+    },
+
+    /**
+     * Save API key to localStorage
+     */
+    saveApiKey(key) {
+        this.apiKey = key;
+        localStorage.setItem('anthropicApiKey', key);
+    },
+
+    /**
+     * Check if API is configured
+     */
+    isApiConfigured() {
+        return !!(this.apiKey || this.loadApiKey());
+    },
+
+    /**
+     * Open API key configuration modal
+     */
+    openApiKeyModal() {
+        let modal = document.getElementById('ai-apikey-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'ai-apikey-modal';
+            modal.className = 'ai-modal';
+            modal.innerHTML = `
+                <div class="ai-modal-content">
+                    <div class="ai-modal-header">
+                        <h3>🔑 Configure API Key</h3>
+                        <button onclick="AICoworker.closeApiKeyModal()">×</button>
+                    </div>
+                    <div class="ai-modal-body">
+                        <p class="ai-modal-hint">Enter your Anthropic API key to enable AI-powered synthesis. Your key is stored locally in your browser.</p>
+                        <input type="password" id="api-key-input" placeholder="sk-ant-..." style="width: 100%; padding: 10px; font-family: monospace;">
+                        <p class="ai-modal-hint" style="margin-top: 10px; font-size: 11px;">
+                            <a href="https://console.anthropic.com/settings/keys" target="_blank">Get an API key from Anthropic Console →</a>
+                        </p>
+                    </div>
+                    <div class="ai-modal-footer">
+                        <button class="btn btn-secondary" onclick="AICoworker.closeApiKeyModal()">Cancel</button>
+                        <button class="btn btn-primary" onclick="AICoworker.submitApiKey()">Save Key</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        document.getElementById('api-key-input').value = this.apiKey || '';
+        modal.classList.add('visible');
+    },
+
+    closeApiKeyModal() {
+        const modal = document.getElementById('ai-apikey-modal');
+        if (modal) modal.classList.remove('visible');
+    },
+
+    submitApiKey() {
+        const input = document.getElementById('api-key-input');
+        const key = input.value.trim();
+        if (key) {
+            this.saveApiKey(key);
+            this.closeApiKeyModal();
+            App.showToast('API key saved', 'success');
+        }
+    },
+
+    // ==================== Debug/Prompt Viewer ====================
+
+    /**
+     * Store the last API call details for debugging
+     */
+    lastApiCall: {
+        timestamp: null,
+        systemPrompt: '',
+        userMessage: '',
+        clinicalContext: '',
+        response: '',
+        error: null
+    },
+
+    /**
+     * Open the debug panel showing prompts and context
+     */
+    openDebugPanel() {
+        let modal = document.getElementById('ai-debug-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'ai-debug-modal';
+            modal.className = 'ai-modal ai-debug-modal';
+            modal.innerHTML = `
+                <div class="ai-modal-content ai-debug-content">
+                    <div class="ai-modal-header">
+                        <h3>🔍 Debug: LLM Prompts & Context</h3>
+                        <button onclick="AICoworker.closeDebugPanel()">×</button>
+                    </div>
+                    <div class="ai-modal-body ai-debug-body">
+                        <div class="debug-tabs">
+                            <button class="debug-tab active" onclick="AICoworker.switchDebugTab('context')">Clinical Context</button>
+                            <button class="debug-tab" onclick="AICoworker.switchDebugTab('system')">System Prompt</button>
+                            <button class="debug-tab" onclick="AICoworker.switchDebugTab('user')">User Message</button>
+                            <button class="debug-tab" onclick="AICoworker.switchDebugTab('response')">Last Response</button>
+                        </div>
+                        <div class="debug-info">
+                            <span id="debug-timestamp">No API call yet</span>
+                            <span id="debug-status"></span>
+                        </div>
+                        <div class="debug-panel-content">
+                            <textarea id="debug-context-text" class="debug-textarea" placeholder="Clinical context will appear here..."></textarea>
+                            <textarea id="debug-system-text" class="debug-textarea" style="display:none;" placeholder="System prompt will appear here..."></textarea>
+                            <textarea id="debug-user-text" class="debug-textarea" style="display:none;" placeholder="User message will appear here..."></textarea>
+                            <textarea id="debug-response-text" class="debug-textarea" style="display:none;" placeholder="API response will appear here..."></textarea>
+                        </div>
+                        <div class="debug-actions">
+                            <button class="btn btn-secondary" onclick="AICoworker.copyDebugToClipboard()">📋 Copy All</button>
+                            <button class="btn btn-secondary" onclick="AICoworker.exportDebugToFile()">💾 Export to File</button>
+                            <button class="btn btn-primary" onclick="AICoworker.refreshDebugContext()">🔄 Refresh Context</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Populate with current data
+        this.refreshDebugContext();
+        modal.classList.add('visible');
+    },
+
+    closeDebugPanel() {
+        const modal = document.getElementById('ai-debug-modal');
+        if (modal) modal.classList.remove('visible');
+    },
+
+    switchDebugTab(tab) {
+        // Update tab buttons
+        document.querySelectorAll('.debug-tab').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+
+        // Hide all textareas
+        document.querySelectorAll('.debug-textarea').forEach(ta => ta.style.display = 'none');
+
+        // Show selected textarea
+        const textareaId = `debug-${tab}-text`;
+        const textarea = document.getElementById(textareaId);
+        if (textarea) textarea.style.display = 'block';
+    },
+
+    refreshDebugContext() {
+        // Build current clinical context
+        const clinicalContext = this.buildFullClinicalContext();
+        document.getElementById('debug-context-text').value = clinicalContext;
+
+        // Show last API call data if available
+        if (this.lastApiCall.timestamp) {
+            document.getElementById('debug-timestamp').textContent =
+                `Last API call: ${new Date(this.lastApiCall.timestamp).toLocaleTimeString()}`;
+            document.getElementById('debug-system-text').value = this.lastApiCall.systemPrompt || 'No system prompt recorded';
+            document.getElementById('debug-user-text').value = this.lastApiCall.userMessage || 'No user message recorded';
+            document.getElementById('debug-response-text').value = this.lastApiCall.response ||
+                (this.lastApiCall.error ? `ERROR: ${this.lastApiCall.error}` : 'No response recorded');
+
+            document.getElementById('debug-status').textContent = this.lastApiCall.error ? '❌ Error' : '✅ Success';
+            document.getElementById('debug-status').style.color = this.lastApiCall.error ? '#dc2626' : '#16a34a';
+        } else {
+            document.getElementById('debug-timestamp').textContent = 'No API call yet - dictate some thoughts to trigger an API call';
+            document.getElementById('debug-system-text').value = this.getSynthesisSystemPrompt();
+            document.getElementById('debug-user-text').value = '(Will be populated when you dictate thoughts)';
+            document.getElementById('debug-response-text').value = '(Will be populated after API call)';
+        }
+    },
+
+    /**
+     * Get the system prompt for synthesis (for display)
+     */
+    getSynthesisSystemPrompt() {
+        return `You are an AI clinical assistant helping a physician manage a patient case. Your role is to:
+1. Synthesize the doctor's clinical reasoning with the available patient data
+2. Update the case summary, your current thinking, and suggested actions
+3. ALWAYS respect and incorporate the doctor's stated assessment and plan
+4. Flag any safety concerns but don't override the doctor's decisions
+5. Be concise and clinically relevant
+
+IMPORTANT: The doctor drives decision-making. You support by organizing information and surfacing relevant data.
+
+Respond in this exact JSON format:
+{
+    "summary": "1-2 sentence case summary with **bold** for key diagnoses and decisions",
+    "thinking": "2-4 sentences synthesizing doctor's assessment with clinical data. Use **bold** for key findings. Acknowledge their reasoning and note supporting/concerning data.",
+    "suggestedActions": ["action 1", "action 2", "action 3", "action 4", "action 5"],
+    "observations": ["any new observations based on the data that might be relevant"]
+}
+
+RULES:
+- suggestedActions should ALIGN with the doctor's stated plan, not contradict it
+- If doctor says "no anticoagulation", don't suggest anticoagulation
+- Always consider safety flags when making suggestions
+- Keep suggestions actionable and specific
+- Maximum 5 suggested actions, prioritized by importance`;
+    },
+
+    copyDebugToClipboard() {
+        const allData = `=== AI ASSISTANT DEBUG EXPORT ===
+Timestamp: ${this.lastApiCall.timestamp ? new Date(this.lastApiCall.timestamp).toISOString() : 'No API call yet'}
+
+=== CLINICAL CONTEXT ===
+${document.getElementById('debug-context-text').value}
+
+=== SYSTEM PROMPT ===
+${document.getElementById('debug-system-text').value}
+
+=== USER MESSAGE ===
+${document.getElementById('debug-user-text').value}
+
+=== API RESPONSE ===
+${document.getElementById('debug-response-text').value}
+`;
+        navigator.clipboard.writeText(allData).then(() => {
+            App.showToast('Debug info copied to clipboard', 'success');
+        });
+    },
+
+    exportDebugToFile() {
+        const allData = `=== AI ASSISTANT DEBUG EXPORT ===
+Timestamp: ${this.lastApiCall.timestamp ? new Date(this.lastApiCall.timestamp).toISOString() : 'No API call yet'}
+
+=== CLINICAL CONTEXT ===
+${document.getElementById('debug-context-text').value}
+
+=== SYSTEM PROMPT ===
+${document.getElementById('debug-system-text').value}
+
+=== USER MESSAGE ===
+${document.getElementById('debug-user-text').value}
+
+=== API RESPONSE ===
+${document.getElementById('debug-response-text').value}
+`;
+        const blob = new Blob([allData], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ai-debug-${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+        App.showToast('Debug info exported', 'success');
+    },
+
+    /**
+     * Build the full clinical context for the LLM
+     */
+    buildFullClinicalContext() {
+        const ctx = {
+            patient: this.state.chartData?.patientInfo || { name: 'Unknown', age: 'Unknown' },
+            vitals: this.state.chartData?.vitals?.slice(-5) || [],
+            labs: this.state.chartData?.labs || [],
+            medications: this.state.chartData?.meds || [],
+            nursingNotes: this.state.chartData?.nursingNotes?.slice(-5) || [],
+            safetyFlags: this.state.flags || [],
+            observations: this.state.observations || [],
+            reviewed: this.state.reviewed || [],
+            openItems: this.state.openItems || [],
+            previousSummary: this.state.summary || '',
+            previousThinking: this.state.thinking || '',
+            dictationHistory: this.state.dictationHistory?.slice(-3) || []
+        };
+
+        let contextStr = `## Patient Information
+Name: ${ctx.patient.name || 'Unknown'}
+Age: ${ctx.patient.age || 'Unknown'}
+MRN: ${ctx.patient.mrn || 'Unknown'}
+
+## Current Vitals
+${ctx.vitals.length > 0
+    ? ctx.vitals.map(v => `- HR: ${v.hr || 'N/A'}, BP: ${v.sbp || '?'}/${v.dbp || '?'}, RR: ${v.rr || 'N/A'}, SpO2: ${v.spo2 || 'N/A'}%, Temp: ${v.temp || 'N/A'}`).join('\n')
+    : 'No vitals recorded'}
+
+## Lab Results
+${ctx.labs.length > 0
+    ? ctx.labs.map(l => `- ${l.name}: ${l.value} ${l.unit || ''} ${l.flag ? '(' + l.flag + ')' : ''}`).join('\n')
+    : 'No labs available'}
+
+## Current Medications
+${ctx.medications.length > 0
+    ? ctx.medications.map(m => `- ${m.name} ${m.dose || ''} ${m.route || ''} ${m.frequency || ''}`).join('\n')
+    : 'No medications listed'}
+
+## Safety Flags (CRITICAL - always consider these)
+${ctx.safetyFlags.length > 0
+    ? ctx.safetyFlags.map(f => `⚠️ ${f.text} (${f.severity || 'warning'})`).join('\n')
+    : 'None'}
+
+## Key Observations
+${ctx.observations.length > 0
+    ? ctx.observations.map(o => `- ${o}`).join('\n')
+    : 'None'}
+
+## What Has Been Reviewed
+${ctx.reviewed.length > 0
+    ? ctx.reviewed.map(r => `✓ ${r}`).join('\n')
+    : 'Nothing reviewed yet'}
+
+## Open Items (Not Yet Addressed)
+${ctx.openItems.length > 0
+    ? ctx.openItems.map(o => `○ ${o}`).join('\n')
+    : 'None'}
+
+## Nursing Notes
+${ctx.nursingNotes.length > 0
+    ? ctx.nursingNotes.map(n => `- ${n.text || n}`).join('\n')
+    : 'None'}
+
+## Previous AI Summary
+${ctx.previousSummary || 'None'}
+
+## Previous AI Thinking
+${ctx.previousThinking || 'None'}
+
+## Doctor's Previous Thoughts (for context)
+${ctx.dictationHistory.length > 0
+    ? ctx.dictationHistory.map(d => `- "${d.text}"`).join('\n')
+    : 'None'}`;
+
+        return contextStr;
+    },
+
+    /**
+     * Call the Anthropic API with the given prompt
+     */
+    async callLLM(systemPrompt, userMessage) {
+        // Store debug info BEFORE the call
+        this.lastApiCall = {
+            timestamp: Date.now(),
+            systemPrompt: systemPrompt,
+            userMessage: userMessage,
+            clinicalContext: '', // Will be set by caller if needed
+            response: '',
+            error: null
+        };
+
+        console.log('🤖 LLM API CALL:', {
+            timestamp: new Date().toISOString(),
+            systemPromptLength: systemPrompt.length,
+            userMessageLength: userMessage.length
+        });
+        console.log('📝 System Prompt:', systemPrompt.substring(0, 500) + '...');
+        console.log('📝 User Message:', userMessage.substring(0, 500) + '...');
+
+        if (!this.isApiConfigured()) {
+            this.lastApiCall.error = 'API key not configured';
+            this.openApiKeyModal();
+            throw new Error('API key not configured');
+        }
+
+        try {
+            const response = await fetch(this.apiEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': this.apiKey,
+                    'anthropic-version': '2023-06-01',
+                    'anthropic-dangerous-direct-browser-access': 'true'
+                },
+                body: JSON.stringify({
+                    model: this.model,
+                    max_tokens: 1024,
+                    system: systemPrompt,
+                    messages: [
+                        { role: 'user', content: userMessage }
+                    ]
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                const errorMsg = error.error?.message || 'API request failed';
+                this.lastApiCall.error = errorMsg;
+                console.error('❌ LLM API Error:', errorMsg);
+                throw new Error(errorMsg);
+            }
+
+            const data = await response.json();
+            const responseText = data.content[0].text;
+
+            // Store successful response
+            this.lastApiCall.response = responseText;
+            console.log('✅ LLM Response:', responseText.substring(0, 500) + '...');
+
+            return responseText;
+        } catch (error) {
+            this.lastApiCall.error = error.message;
+            console.error('❌ LLM API Error:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Use LLM to synthesize doctor's thoughts with clinical context
+     */
+    async synthesizeWithLLM(doctorThoughts) {
+        this.state.status = 'thinking';
+        this.render();
+
+        const systemPrompt = `You are an AI clinical assistant helping a physician manage a patient case. Your role is to:
+1. Synthesize the doctor's clinical reasoning with the available patient data
+2. Update the case summary, your current thinking, and suggested actions
+3. ALWAYS respect and incorporate the doctor's stated assessment and plan
+4. Flag any safety concerns but don't override the doctor's decisions
+5. Be concise and clinically relevant
+
+IMPORTANT: The doctor drives decision-making. You support by organizing information and surfacing relevant data.
+
+Respond in this exact JSON format:
+{
+    "summary": "1-2 sentence case summary with **bold** for key diagnoses and decisions",
+    "thinking": "2-4 sentences synthesizing doctor's assessment with clinical data. Use **bold** for key findings. Acknowledge their reasoning and note supporting/concerning data.",
+    "suggestedActions": ["action 1", "action 2", "action 3", "action 4", "action 5"],
+    "observations": ["any new observations based on the data that might be relevant"]
+}
+
+RULES:
+- suggestedActions should ALIGN with the doctor's stated plan, not contradict it
+- If doctor says "no anticoagulation", don't suggest anticoagulation
+- Always consider safety flags when making suggestions
+- Keep suggestions actionable and specific
+- Maximum 5 suggested actions, prioritized by importance`;
+
+        const clinicalContext = this.buildFullClinicalContext();
+
+        const userMessage = `## Current Clinical Context
+${clinicalContext}
+
+## Doctor's Current Assessment/Thoughts
+"${doctorThoughts}"
+
+Based on the doctor's thoughts and the clinical context above, provide an updated synthesis.`;
+
+        // Store clinical context for debug panel
+        this.lastApiCall.clinicalContext = clinicalContext;
+
+        try {
+            const response = await this.callLLM(systemPrompt, userMessage);
+
+            // Parse the JSON response
+            const jsonMatch = response.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) {
+                throw new Error('Invalid response format');
+            }
+
+            const result = JSON.parse(jsonMatch[0]);
+
+            // Update state with LLM response
+            if (result.summary) {
+                this.state.summary = result.summary;
+            }
+            if (result.thinking) {
+                this.state.thinking = result.thinking;
+            }
+            if (result.suggestedActions && Array.isArray(result.suggestedActions)) {
+                this.state.suggestedActions = result.suggestedActions.map((action, idx) => ({
+                    id: 'llm_action_' + Date.now() + '_' + idx,
+                    text: typeof action === 'string' ? action : action.text
+                }));
+            }
+            if (result.observations && Array.isArray(result.observations)) {
+                // Add new observations without duplicates
+                result.observations.forEach(obs => {
+                    if (!this.state.observations.includes(obs)) {
+                        this.state.observations.push(obs);
+                    }
+                });
+            }
+
+            this.state.status = 'ready';
+            this.saveState();
+            this.render();
+            App.showToast('AI synthesis updated', 'success');
+
+        } catch (error) {
+            console.error('LLM synthesis error:', error);
+
+            if (error.message === 'API key not configured') {
+                // Modal already shown, fall back to local synthesis
+                console.warn('⚠️ API key not configured - falling back to LOCAL/RULES-BASED synthesis');
+                this.localThinkingSynthesis(doctorThoughts);
+            } else {
+                this.state.status = 'ready';
+                this.render();
+                App.showToast('Error: ' + error.message, 'error');
+            }
+        }
+    },
+
+    /**
+     * Use LLM for full case refresh
+     */
+    async refreshWithLLM() {
+        this.state.status = 'thinking';
+        this.render();
+
+        // Animate refresh button
+        const btn = document.querySelector('.ai-assistant-refresh-btn');
+        if (btn) {
+            btn.classList.add('spinning');
+        }
+
+        const systemPrompt = `You are an AI clinical assistant. Analyze this patient case and provide a comprehensive synthesis.
+
+Respond in this exact JSON format:
+{
+    "summary": "1-2 sentence case summary with **bold** for key diagnoses",
+    "thinking": "2-4 sentences with your clinical analysis. Note key findings, concerns, and what needs attention.",
+    "suggestedActions": ["action 1", "action 2", "action 3", "action 4", "action 5"],
+    "observations": ["key observations from the data"]
+}
+
+Prioritize:
+1. Safety concerns and critical values
+2. Alignment with doctor's stated assessment (if any)
+3. Actionable next steps
+4. Things that haven't been addressed yet`;
+
+        const clinicalContext = this.buildFullClinicalContext();
+
+        const userMessage = `## Clinical Context
+${clinicalContext}
+
+${this.state.dictation ? `## Doctor's Current Assessment\n"${this.state.dictation}"` : '## No doctor assessment recorded yet'}
+
+Provide a comprehensive case synthesis.`;
+
+        try {
+            const response = await this.callLLM(systemPrompt, userMessage);
+
+            const jsonMatch = response.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) {
+                throw new Error('Invalid response format');
+            }
+
+            const result = JSON.parse(jsonMatch[0]);
+
+            if (result.summary) this.state.summary = result.summary;
+            if (result.thinking) this.state.thinking = result.thinking;
+            if (result.suggestedActions && Array.isArray(result.suggestedActions)) {
+                this.state.suggestedActions = result.suggestedActions.map((action, idx) => ({
+                    id: 'refresh_' + Date.now() + '_' + idx,
+                    text: typeof action === 'string' ? action : action.text
+                }));
+            }
+            if (result.observations && Array.isArray(result.observations)) {
+                this.state.observations = result.observations;
+            }
+
+            this.state.status = 'ready';
+            this.state.lastUpdated = new Date().toISOString();
+            this.saveState();
+            this.render();
+            App.showToast('AI analysis refreshed', 'success');
+
+        } catch (error) {
+            console.error('LLM refresh error:', error);
+
+            if (error.message === 'API key not configured') {
+                // Modal already shown, fall back to local refresh
+                console.warn('⚠️ API key not configured - falling back to LOCAL/RULES-BASED refresh');
+                this.localRefreshAnalysis();
+            } else {
+                this.state.status = 'ready';
+                this.render();
+                App.showToast('Error: ' + error.message, 'error');
+            }
+        } finally {
+            if (btn) {
+                btn.classList.remove('spinning');
+            }
+        }
     },
 
     // ==================== Claude Extension Integration ====================
