@@ -21,6 +21,10 @@ const AICoworker = {
         status: 'ready', // ready, thinking, alert
         lastUpdated: null,
 
+        // Doctor's dictated thoughts - heavily influences AI reasoning
+        dictation: '',
+        dictationHistory: [], // Previous dictations for context
+
         // AI's current summary/understanding of the case
         summary: '',
 
@@ -46,7 +50,18 @@ const AICoworker = {
         openItems: [],
 
         // Context the AI is holding for the doctor
-        context: ''
+        context: '',
+
+        // Data sources for note writing
+        chartData: {
+            patientInfo: null,
+            vitals: [],
+            labs: [],
+            meds: [],
+            imaging: [],
+            nursingNotes: [],
+            previousNotes: []
+        }
     },
 
     /**
@@ -98,11 +113,14 @@ const AICoworker = {
                 </div>
             </div>
             <div class="ai-assistant-footer" id="ai-assistant-footer">
-                <button class="ai-assistant-ask-btn" onclick="AICoworker.openAskModal()" title="Ask AI for help">
-                    💬 Ask AI
+                <button class="ai-assistant-dictate-btn" onclick="AICoworker.openDictationModal()" title="Dictate your thoughts">
+                    🎤 Dictate
                 </button>
-                <button class="ai-assistant-add-btn" onclick="AICoworker.openAddTask()" title="Add a task">
-                    + Add Task
+                <button class="ai-assistant-note-btn" onclick="AICoworker.openNoteModal()" title="Write a note">
+                    📝 Write Note
+                </button>
+                <button class="ai-assistant-ask-btn" onclick="AICoworker.openAskModal()" title="Ask AI for help">
+                    💬 Ask
                 </button>
             </div>
         `;
@@ -123,6 +141,12 @@ const AICoworker = {
 
         // Create add task modal
         this.createAddTaskModal();
+
+        // Create dictation modal
+        this.createDictationModal();
+
+        // Create note writing modal
+        this.createNoteModal();
     },
 
     /**
@@ -182,22 +206,303 @@ const AICoworker = {
     },
 
     /**
+     * Create the "Dictation" modal for doctor's thoughts
+     */
+    createDictationModal() {
+        const modal = document.createElement('div');
+        modal.id = 'ai-dictation-modal';
+        modal.className = 'ai-modal';
+        modal.innerHTML = `
+            <div class="ai-modal-content dictation-modal">
+                <div class="ai-modal-header">
+                    <h3>🎤 Dictate Your Thoughts</h3>
+                    <button onclick="AICoworker.closeDictationModal()">×</button>
+                </div>
+                <div class="ai-modal-body">
+                    <p class="ai-modal-hint">Share your clinical reasoning. This will heavily influence the AI's understanding of your approach to this case.</p>
+                    <div class="dictation-controls">
+                        <button id="voice-record-btn" class="voice-btn" onclick="AICoworker.toggleVoiceRecording()">
+                            <span class="voice-icon">🎙️</span>
+                            <span class="voice-text">Start Recording</span>
+                        </button>
+                        <span class="dictation-or">or type below</span>
+                    </div>
+                    <textarea id="ai-dictation-input" rows="6" placeholder="e.g., I think this is a CHF exacerbation triggered by dietary indiscretion. Given his GI bleed history, I'm going to hold off on anticoagulation even though he has A-fib. Plan is diuresis and cardiology consult..."></textarea>
+                    <div class="dictation-history-toggle">
+                        <button onclick="AICoworker.toggleDictationHistory()" class="text-btn">
+                            📜 View previous thoughts (<span id="dictation-count">0</span>)
+                        </button>
+                    </div>
+                    <div id="dictation-history" class="dictation-history hidden"></div>
+                </div>
+                <div class="ai-modal-footer">
+                    <button class="btn btn-secondary" onclick="AICoworker.closeDictationModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="AICoworker.submitDictation()">💾 Save Thoughts</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    },
+
+    /**
+     * Create the "Write Note" modal
+     */
+    createNoteModal() {
+        const modal = document.createElement('div');
+        modal.id = 'ai-note-modal';
+        modal.className = 'ai-modal';
+        modal.innerHTML = `
+            <div class="ai-modal-content note-modal">
+                <div class="ai-modal-header">
+                    <h3>📝 Write Clinical Note</h3>
+                    <button onclick="AICoworker.closeNoteModal()">×</button>
+                </div>
+                <div class="ai-modal-body">
+                    <p class="ai-modal-hint">Select a note type. AI will draft it using chart data, your dictated thoughts, and observations.</p>
+
+                    <div class="note-type-selector">
+                        <label class="note-type-option">
+                            <input type="radio" name="note-type" value="hp" checked>
+                            <span class="note-type-card">
+                                <span class="note-type-icon">📋</span>
+                                <span class="note-type-name">H&P</span>
+                                <span class="note-type-desc">History & Physical</span>
+                            </span>
+                        </label>
+                        <label class="note-type-option">
+                            <input type="radio" name="note-type" value="progress">
+                            <span class="note-type-card">
+                                <span class="note-type-icon">📊</span>
+                                <span class="note-type-name">Progress</span>
+                                <span class="note-type-desc">Daily Progress Note</span>
+                            </span>
+                        </label>
+                        <label class="note-type-option">
+                            <input type="radio" name="note-type" value="discharge">
+                            <span class="note-type-card">
+                                <span class="note-type-icon">🏠</span>
+                                <span class="note-type-name">Discharge</span>
+                                <span class="note-type-desc">Discharge Summary</span>
+                            </span>
+                        </label>
+                        <label class="note-type-option">
+                            <input type="radio" name="note-type" value="consult">
+                            <span class="note-type-card">
+                                <span class="note-type-icon">🔍</span>
+                                <span class="note-type-name">Consult</span>
+                                <span class="note-type-desc">Consultation Note</span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="note-data-sources">
+                        <div class="data-sources-header">Data sources to include:</div>
+                        <div class="data-source-checks">
+                            <label><input type="checkbox" id="include-vitals" checked> Recent Vitals</label>
+                            <label><input type="checkbox" id="include-labs" checked> Lab Results</label>
+                            <label><input type="checkbox" id="include-meds" checked> Medications</label>
+                            <label><input type="checkbox" id="include-imaging" checked> Imaging</label>
+                            <label><input type="checkbox" id="include-nursing" checked> Nursing Notes</label>
+                            <label><input type="checkbox" id="include-dictation" checked> My Dictated Thoughts</label>
+                            <label><input type="checkbox" id="include-previous" checked> Previous Notes</label>
+                        </div>
+                    </div>
+
+                    <div class="note-additional">
+                        <label>Additional instructions (optional):</label>
+                        <textarea id="note-instructions" rows="2" placeholder="e.g., Focus on the anticoagulation decision, keep it brief..."></textarea>
+                    </div>
+                </div>
+                <div class="ai-modal-footer">
+                    <button class="btn btn-secondary" onclick="AICoworker.closeNoteModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="AICoworker.generateNote()">✨ Generate Draft</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    },
+
+    /**
      * Setup event listeners
      */
     setupEventListeners() {
-        // Listen to simulation events
+        // Listen to simulation events for dynamic AI updates
         if (typeof SimulationEngine !== 'undefined') {
             SimulationEngine.on('nurseAlert', (data) => this.onAlert(data));
             SimulationEngine.on('patientAlert', (data) => this.onAlert(data));
+            SimulationEngine.on('vitalsUpdate', (data) => this.onVitalsUpdate(data));
+            SimulationEngine.on('labsReady', (data) => this.onLabsReady(data));
+            SimulationEngine.on('medicationGiven', (data) => this.onMedicationGiven(data));
+            SimulationEngine.on('orderPlaced', (data) => this.onOrderPlaced(data));
+            SimulationEngine.on('consultResponse', (data) => this.onConsultResponse(data));
+            SimulationEngine.on('timeUpdate', (data) => this.onTimeUpdate(data));
         }
 
-        // Listen for keyboard shortcut to add task
+        // Listen for keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 this.closeAskModal();
                 this.closeAddTask();
+                this.closeDictationModal();
+                this.closeNoteModal();
             }
         });
+
+        // Listen for page navigation to gather context
+        window.addEventListener('hashchange', () => this.onPageChange());
+        window.addEventListener('popstate', () => this.onPageChange());
+    },
+
+    /**
+     * Handle vitals updates - AI should notice significant changes
+     */
+    onVitalsUpdate(data) {
+        // Check for concerning vital changes
+        if (data.hr > 120 || data.hr < 50) {
+            this.addObservation('Heart rate ' + (data.hr > 120 ? 'elevated' : 'low') + ' at ' + data.hr + ' bpm');
+        }
+        if (data.sbp < 90) {
+            this.addFlag('Hypotension: SBP ' + data.sbp + ' mmHg', 'critical');
+        }
+        if (data.spo2 < 92) {
+            this.addFlag('Hypoxia: SpO2 ' + data.spo2 + '%', 'critical');
+        }
+
+        // Update chart data
+        if (!this.state.chartData.vitals) this.state.chartData.vitals = [];
+        this.state.chartData.vitals.push({
+            ...data,
+            timestamp: new Date().toISOString()
+        });
+        // Keep last 20 entries
+        if (this.state.chartData.vitals.length > 20) {
+            this.state.chartData.vitals = this.state.chartData.vitals.slice(-20);
+        }
+        this.saveState();
+    },
+
+    /**
+     * Handle labs becoming ready
+     */
+    onLabsReady(data) {
+        this.addObservation('New lab results available: ' + (data.panel || data.name || 'Labs'));
+
+        // Check for critical values
+        if (data.results) {
+            data.results.forEach(lab => {
+                if (lab.critical) {
+                    this.addFlag('Critical lab: ' + lab.name + ' = ' + lab.value + ' ' + (lab.unit || ''), 'critical');
+                }
+            });
+        }
+
+        // Store labs
+        if (data.results) {
+            if (!this.state.chartData.labs) this.state.chartData.labs = [];
+            this.state.chartData.labs = [...this.state.chartData.labs, ...data.results];
+        }
+        this.saveState();
+    },
+
+    /**
+     * Handle medication administered
+     */
+    onMedicationGiven(data) {
+        const medName = data.medication || data.name || 'medication';
+        this.markReviewed('Administered: ' + medName);
+
+        // Update thinking if relevant to case
+        if (medName.toLowerCase().includes('furosemide') || medName.toLowerCase().includes('lasix')) {
+            this.addObservation('Diuretic given - monitor urine output and electrolytes');
+        }
+    },
+
+    /**
+     * Handle orders being placed
+     */
+    onOrderPlaced(data) {
+        const orderName = data.order || data.name || 'order';
+
+        // Move from open items to reviewed if it was pending
+        if (this.state.openItems) {
+            const idx = this.state.openItems.findIndex(item =>
+                item.toLowerCase().includes(orderName.toLowerCase())
+            );
+            if (idx !== -1) {
+                this.markAddressed(idx);
+            }
+        }
+
+        this.markReviewed('Ordered: ' + orderName);
+    },
+
+    /**
+     * Handle consult responses
+     */
+    onConsultResponse(data) {
+        const specialty = data.specialty || data.service || 'Consult';
+        this.addObservation(specialty + ' consult note available');
+
+        // Store consult note
+        if (!this.state.chartData.previousNotes) this.state.chartData.previousNotes = [];
+        this.state.chartData.previousNotes.push({
+            type: 'consult',
+            specialty: specialty,
+            content: data.note || data.content,
+            timestamp: new Date().toISOString()
+        });
+        this.saveState();
+    },
+
+    /**
+     * Handle simulation time updates - for time-based triggers
+     */
+    onTimeUpdate(data) {
+        const minutes = data.minutes || data.elapsed || 0;
+
+        // Example: At 45 minutes, prompt about A-fib anticoagulation decision
+        if (minutes >= 45 && minutes < 47 && !this.state._afibPromptShown) {
+            this.state._afibPromptShown = true;
+            if (this.state.flags && this.state.flags.some(f => f.text.toLowerCase().includes('gi bleed'))) {
+                // Patient has GI bleed history - this is the anticoagulation dilemma
+                this.addObservation('A-fib confirmed on telemetry - anticoagulation decision needed');
+                if (!this.state.suggestedActions) this.state.suggestedActions = [];
+                this.state.suggestedActions.push({
+                    id: 'afib_decision',
+                    text: 'Review anticoagulation options given GI bleed history'
+                });
+                this.saveState();
+                this.render();
+            }
+        }
+    },
+
+    /**
+     * Handle page navigation - update context
+     */
+    onPageChange() {
+        const page = window.location.hash || window.location.pathname;
+        const pageName = this.getPageName(page);
+        if (pageName) {
+            this.markReviewed('Viewed: ' + pageName);
+        }
+    },
+
+    getPageName(page) {
+        const pageNames = {
+            'chart': 'Chart Overview',
+            'labs': 'Lab Results',
+            'vitals': 'Vital Signs',
+            'meds': 'Medications',
+            'orders': 'Orders',
+            'notes': 'Clinical Notes',
+            'imaging': 'Imaging',
+            'results': 'Results'
+        };
+        for (const [key, name] of Object.entries(pageNames)) {
+            if (page.toLowerCase().includes(key)) return name;
+        }
+        return null;
     },
 
     /**
@@ -323,6 +628,20 @@ const AICoworker = {
                 html += '</div>';
             });
             html += '</div>';
+            html += '</div>';
+        }
+
+        // Doctor's Dictation (their thoughts - prominent position)
+        if (this.state.dictation) {
+            html += '<div class="ai-section dictation-section">';
+            html += '<div class="ai-section-header">';
+            html += '<span class="icon">🎤</span> Your Thoughts';
+            html += '<button class="section-edit-btn" onclick="AICoworker.openDictationModal()" title="Edit">✏️</button>';
+            html += '</div>';
+            html += '<div class="ai-dictation">' + this.formatText(this.state.dictation) + '</div>';
+            if (this.state.dictationHistory && this.state.dictationHistory.length > 0) {
+                html += '<div class="dictation-meta">' + this.state.dictationHistory.length + ' previous thought(s)</div>';
+            }
             html += '</div>';
         }
 
@@ -630,6 +949,402 @@ const AICoworker = {
         App.showToast('Task added', 'success');
     },
 
+    // ==================== Dictation ====================
+
+    openDictationModal() {
+        const modal = document.getElementById('ai-dictation-modal');
+        if (modal) {
+            modal.classList.add('visible');
+            const input = document.getElementById('ai-dictation-input');
+            if (input) {
+                input.value = this.state.dictation || '';
+                input.focus();
+            }
+            this.updateDictationCount();
+        }
+    },
+
+    closeDictationModal() {
+        const modal = document.getElementById('ai-dictation-modal');
+        if (modal) {
+            modal.classList.remove('visible');
+            this.stopVoiceRecording();
+        }
+    },
+
+    updateDictationCount() {
+        const countEl = document.getElementById('dictation-count');
+        if (countEl && this.state.dictationHistory) {
+            countEl.textContent = this.state.dictationHistory.length;
+        }
+    },
+
+    toggleDictationHistory() {
+        const historyEl = document.getElementById('dictation-history');
+        if (historyEl) {
+            historyEl.classList.toggle('hidden');
+            if (!historyEl.classList.contains('hidden')) {
+                this.renderDictationHistory();
+            }
+        }
+    },
+
+    renderDictationHistory() {
+        const historyEl = document.getElementById('dictation-history');
+        if (!historyEl || !this.state.dictationHistory) return;
+
+        if (this.state.dictationHistory.length === 0) {
+            historyEl.innerHTML = '<div class="no-history">No previous thoughts recorded</div>';
+            return;
+        }
+
+        let html = '';
+        this.state.dictationHistory.slice().reverse().forEach((entry, index) => {
+            const time = new Date(entry.timestamp).toLocaleTimeString();
+            html += '<div class="history-entry">';
+            html += '<div class="history-time">' + time + '</div>';
+            html += '<div class="history-text">' + this.escapeHtml(entry.text) + '</div>';
+            html += '</div>';
+        });
+        historyEl.innerHTML = html;
+    },
+
+    submitDictation() {
+        const input = document.getElementById('ai-dictation-input');
+        const text = input.value.trim();
+        if (!text) {
+            App.showToast('Please enter your thoughts', 'warning');
+            return;
+        }
+
+        // Save previous dictation to history
+        if (this.state.dictation) {
+            if (!this.state.dictationHistory) this.state.dictationHistory = [];
+            this.state.dictationHistory.push({
+                text: this.state.dictation,
+                timestamp: this.state.lastUpdated || new Date().toISOString()
+            });
+            // Keep last 10 entries
+            if (this.state.dictationHistory.length > 10) {
+                this.state.dictationHistory = this.state.dictationHistory.slice(-10);
+            }
+        }
+
+        // Update current dictation
+        this.state.dictation = text;
+        this.saveState();
+        this.render();
+        this.closeDictationModal();
+        App.showToast('Thoughts saved', 'success');
+
+        // Trigger AI to update its thinking based on dictation
+        this.onDictationUpdated(text);
+    },
+
+    /**
+     * Called when doctor updates their dictation - AI should respond
+     */
+    onDictationUpdated(text) {
+        // This would be where Claude updates its thinking
+        // For now, we'll signal that an update is needed
+        this.state.status = 'thinking';
+        this.render();
+
+        // In a real implementation, this would call Claude to update
+        // For demo, we can set a flag that external tools can see
+        window.postMessage({
+            type: 'DOCTOR_DICTATION_UPDATED',
+            dictation: text,
+            fullContext: this.buildFullContext()
+        }, '*');
+    },
+
+    // Voice recording (Web Speech API)
+    isRecording: false,
+    recognition: null,
+
+    toggleVoiceRecording() {
+        if (this.isRecording) {
+            this.stopVoiceRecording();
+        } else {
+            this.startVoiceRecording();
+        }
+    },
+
+    startVoiceRecording() {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            App.showToast('Voice recognition not supported in this browser', 'warning');
+            return;
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        this.recognition = new SpeechRecognition();
+        this.recognition.continuous = true;
+        this.recognition.interimResults = true;
+        this.recognition.lang = 'en-US';
+
+        const input = document.getElementById('ai-dictation-input');
+        const btn = document.getElementById('voice-record-btn');
+        let finalTranscript = input.value;
+
+        this.recognition.onresult = (event) => {
+            let interimTranscript = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript + ' ';
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
+                }
+            }
+            input.value = finalTranscript + interimTranscript;
+        };
+
+        this.recognition.onerror = (event) => {
+            console.error('Speech recognition error:', event.error);
+            this.stopVoiceRecording();
+            if (event.error === 'not-allowed') {
+                App.showToast('Microphone access denied', 'error');
+            }
+        };
+
+        this.recognition.onend = () => {
+            if (this.isRecording) {
+                // Auto-restart if still supposed to be recording
+                this.recognition.start();
+            }
+        };
+
+        this.recognition.start();
+        this.isRecording = true;
+
+        if (btn) {
+            btn.classList.add('recording');
+            btn.querySelector('.voice-text').textContent = 'Stop Recording';
+            btn.querySelector('.voice-icon').textContent = '⏹️';
+        }
+    },
+
+    stopVoiceRecording() {
+        if (this.recognition) {
+            this.isRecording = false;
+            this.recognition.stop();
+            this.recognition = null;
+        }
+
+        const btn = document.getElementById('voice-record-btn');
+        if (btn) {
+            btn.classList.remove('recording');
+            btn.querySelector('.voice-text').textContent = 'Start Recording';
+            btn.querySelector('.voice-icon').textContent = '🎙️';
+        }
+    },
+
+    // ==================== Note Writing ====================
+
+    openNoteModal() {
+        const modal = document.getElementById('ai-note-modal');
+        if (modal) {
+            modal.classList.add('visible');
+            // Gather current chart data
+            this.gatherChartData();
+        }
+    },
+
+    closeNoteModal() {
+        const modal = document.getElementById('ai-note-modal');
+        if (modal) {
+            modal.classList.remove('visible');
+        }
+    },
+
+    /**
+     * Gather data from the chart for note writing
+     */
+    gatherChartData() {
+        // Pull from various sources in the EHR
+        const chartData = {
+            patientInfo: null,
+            vitals: [],
+            labs: [],
+            meds: [],
+            imaging: [],
+            nursingNotes: [],
+            previousNotes: []
+        };
+
+        // Get patient info from PatientHeader if available
+        if (typeof PatientHeader !== 'undefined' && PatientHeader.patient) {
+            chartData.patientInfo = PatientHeader.patient;
+        }
+
+        // Get vitals from VitalsDisplay if available
+        if (typeof VitalsDisplay !== 'undefined' && VitalsDisplay.currentVitals) {
+            chartData.vitals = VitalsDisplay.vitalsHistory || [VitalsDisplay.currentVitals];
+        }
+
+        // Get labs from LabsPanel if available
+        if (typeof LabsPanel !== 'undefined' && LabsPanel.results) {
+            chartData.labs = LabsPanel.results;
+        }
+
+        // Get meds from localStorage or global
+        const storedMeds = localStorage.getItem('patientMedications');
+        if (storedMeds) {
+            try {
+                chartData.meds = JSON.parse(storedMeds);
+            } catch (e) {}
+        }
+
+        // Get nursing notes from SimulationEngine if available
+        if (typeof SimulationEngine !== 'undefined') {
+            chartData.nursingNotes = SimulationEngine.nursingNotes || [];
+        }
+
+        this.state.chartData = chartData;
+    },
+
+    /**
+     * Generate a clinical note using Claude
+     */
+    generateNote() {
+        const noteType = document.querySelector('input[name="note-type"]:checked').value;
+        const instructions = document.getElementById('note-instructions').value.trim();
+
+        // Build data sources based on checkboxes
+        const includeSources = {
+            vitals: document.getElementById('include-vitals').checked,
+            labs: document.getElementById('include-labs').checked,
+            meds: document.getElementById('include-meds').checked,
+            imaging: document.getElementById('include-imaging').checked,
+            nursing: document.getElementById('include-nursing').checked,
+            dictation: document.getElementById('include-dictation').checked,
+            previous: document.getElementById('include-previous').checked
+        };
+
+        // Build the prompt for Claude
+        const prompt = this.buildNotePrompt(noteType, includeSources, instructions);
+
+        this.closeNoteModal();
+
+        // Trigger Claude to generate the note
+        this.askClaudeAbout(prompt);
+
+        App.showToast('Generating ' + this.getNoteTypeName(noteType) + '...', 'info');
+    },
+
+    getNoteTypeName(type) {
+        const names = {
+            'hp': 'H&P',
+            'progress': 'Progress Note',
+            'discharge': 'Discharge Summary',
+            'consult': 'Consult Note'
+        };
+        return names[type] || 'Note';
+    },
+
+    buildNotePrompt(noteType, includeSources, instructions) {
+        let prompt = 'Please write a clinical ' + this.getNoteTypeName(noteType) + ' for this patient.\n\n';
+
+        // Add chart data based on selected sources
+        if (includeSources.vitals && this.state.chartData.vitals.length > 0) {
+            prompt += '## Recent Vitals\n';
+            const recent = this.state.chartData.vitals.slice(-3);
+            recent.forEach(v => {
+                prompt += '- HR: ' + (v.hr || v.heartRate || 'N/A') + ', ';
+                prompt += 'BP: ' + (v.systolic || v.sbp || '?') + '/' + (v.diastolic || v.dbp || '?') + ', ';
+                prompt += 'RR: ' + (v.rr || v.respRate || 'N/A') + ', ';
+                prompt += 'SpO2: ' + (v.spo2 || v.o2sat || 'N/A') + '%\n';
+            });
+            prompt += '\n';
+        }
+
+        if (includeSources.labs && this.state.chartData.labs.length > 0) {
+            prompt += '## Lab Results\n';
+            this.state.chartData.labs.forEach(lab => {
+                prompt += '- ' + lab.name + ': ' + lab.value + ' ' + (lab.unit || '') + '\n';
+            });
+            prompt += '\n';
+        }
+
+        if (includeSources.meds && this.state.chartData.meds.length > 0) {
+            prompt += '## Current Medications\n';
+            this.state.chartData.meds.forEach(med => {
+                prompt += '- ' + med.name + ' ' + (med.dose || '') + ' ' + (med.route || '') + ' ' + (med.frequency || '') + '\n';
+            });
+            prompt += '\n';
+        }
+
+        if (includeSources.nursing && this.state.chartData.nursingNotes.length > 0) {
+            prompt += '## Nursing Notes\n';
+            this.state.chartData.nursingNotes.slice(-5).forEach(note => {
+                prompt += '- ' + note.text + '\n';
+            });
+            prompt += '\n';
+        }
+
+        if (includeSources.dictation && this.state.dictation) {
+            prompt += '## Doctor\'s Assessment & Thoughts\n';
+            prompt += this.state.dictation + '\n\n';
+        }
+
+        // Add context from AI state
+        if (this.state.summary) {
+            prompt += '## Case Summary\n' + this.state.summary + '\n\n';
+        }
+
+        if (this.state.flags && this.state.flags.length > 0) {
+            prompt += '## Safety Alerts\n';
+            this.state.flags.forEach(f => {
+                prompt += '⚠️ ' + f.text + '\n';
+            });
+            prompt += '\n';
+        }
+
+        if (this.state.observations && this.state.observations.length > 0) {
+            prompt += '## Key Observations\n';
+            this.state.observations.forEach(obs => {
+                prompt += '- ' + obs + '\n';
+            });
+            prompt += '\n';
+        }
+
+        // Add template structure hint
+        prompt += '## Note Format\n';
+        if (noteType === 'hp') {
+            prompt += 'Please structure as: Chief Complaint, HPI, PMH, Medications, Allergies, Social Hx, Family Hx, ROS, Physical Exam, Assessment, Plan\n';
+        } else if (noteType === 'progress') {
+            prompt += 'Please structure as: Subjective, Objective (vitals, exam, labs), Assessment, Plan (by problem)\n';
+        } else if (noteType === 'discharge') {
+            prompt += 'Please structure as: Admission Diagnosis, Hospital Course, Discharge Diagnosis, Discharge Medications, Follow-up, Patient Instructions\n';
+        } else if (noteType === 'consult') {
+            prompt += 'Please structure as: Reason for Consult, HPI, Relevant History, Exam, Labs/Imaging, Assessment, Recommendations\n';
+        }
+
+        if (instructions) {
+            prompt += '\n## Additional Instructions\n' + instructions + '\n';
+        }
+
+        return prompt;
+    },
+
+    /**
+     * Build full context for external tools
+     */
+    buildFullContext() {
+        return {
+            dictation: this.state.dictation,
+            dictationHistory: this.state.dictationHistory,
+            summary: this.state.summary,
+            thinking: this.state.thinking,
+            flags: this.state.flags,
+            observations: this.state.observations,
+            reviewed: this.state.reviewed,
+            openItems: this.state.openItems,
+            tasks: this.state.tasks,
+            chartData: this.state.chartData
+        };
+    },
+
     // ==================== Claude Extension Integration ====================
 
     /**
@@ -933,31 +1648,61 @@ const AICoworker = {
     loadDemo() {
         this.update({
             status: 'thinking',
+            dictation: 'Classic CHF exacerbation picture. He looks wet - JVD, lower extremity edema, crackles. Wife says he\'s been eating a lot of salty foods and missed his Lasix a few times. Given his GI bleed 5 months ago, I\'m NOT going to anticoagulate even if he\'s in A-fib. Will diurese and get cards involved.',
+            dictationHistory: [
+                {
+                    text: 'Initial impression: Dyspneic elderly male, appears uncomfortable. Need to assess volume status and check for arrhythmia.',
+                    timestamp: new Date(Date.now() - 30 * 60000).toISOString()
+                }
+            ],
             summary: '72yo male with **DM2, CKD Stage 3, CHF (EF 32%)**, and **A.fib** presenting with acute dyspnea. Recent admission 3 weeks ago for CHF exacerbation. Currently appears volume overloaded.',
-            thinking: 'This looks like another CHF exacerbation. Need to determine the trigger - could be dietary indiscretion, medication non-compliance, or new arrhythmia. **Important consideration:** Patient has recent GI bleed history which will affect anticoagulation decisions if A-fib is confirmed.',
+            thinking: 'Doctor has identified this as a CHF exacerbation with clear triggers (dietary indiscretion, missed diuretics). Key decision: **Doctor has decided against anticoagulation** due to GI bleed history - this aligns with GI recommendations. Supporting with diuresis and cardiology consult.',
             suggestedActions: [
                 { id: 'action_1', text: 'Order BNP to assess current heart failure severity' },
-                { id: 'action_2', text: 'Check creatinine before adjusting diuretics' },
-                { id: 'action_3', text: 'Review the GI consult note about bleeding history' },
-                { id: 'action_4', text: 'Start IV furosemide 40mg for acute diuresis' }
+                { id: 'action_2', text: 'Check creatinine trend before aggressive diuresis' },
+                { id: 'action_3', text: 'Place cardiology consult' },
+                { id: 'action_4', text: 'Start IV furosemide 40mg' }
             ],
             flags: [
                 { text: 'Recent GI bleed (5 months ago) - GI recommends avoiding anticoagulation', severity: 'critical' }
             ],
             reviewed: [
                 'Medication list',
-                'Recent vitals'
+                'Recent vitals',
+                'GI consult note'
             ],
             observations: [
                 'Last BNP was 890 pg/mL (3 weeks ago)',
                 'Cr trending up: 1.4 → 1.6 over past week',
-                'Patient reports missing doses of furosemide'
+                'Patient reports missing doses of furosemide',
+                'Physical exam: JVD present, 2+ pitting edema, bibasilar crackles'
             ],
             openItems: [
                 'Echocardiogram (last done 6 months ago)',
                 'Code status discussion'
             ],
-            tasks: []
+            tasks: [],
+            chartData: {
+                patientInfo: { name: 'Robert Morrison', age: 72, mrn: '847291' },
+                vitals: [
+                    { hr: 94, sbp: 142, dbp: 88, rr: 22, spo2: 94, timestamp: new Date().toISOString() }
+                ],
+                labs: [
+                    { name: 'BNP', value: '890', unit: 'pg/mL', timestamp: '3 weeks ago' },
+                    { name: 'Creatinine', value: '1.6', unit: 'mg/dL' },
+                    { name: 'Potassium', value: '4.2', unit: 'mEq/L' }
+                ],
+                meds: [
+                    { name: 'Furosemide', dose: '40mg', route: 'PO', frequency: 'BID' },
+                    { name: 'Lisinopril', dose: '10mg', route: 'PO', frequency: 'daily' },
+                    { name: 'Carvedilol', dose: '12.5mg', route: 'PO', frequency: 'BID' },
+                    { name: 'Metformin', dose: '500mg', route: 'PO', frequency: 'BID' }
+                ],
+                nursingNotes: [
+                    { text: 'Patient appears short of breath, sitting upright. Requesting to use bathroom frequently.', timestamp: new Date().toISOString() }
+                ],
+                previousNotes: []
+            }
         });
     },
 

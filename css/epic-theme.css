@@ -4741,6 +4741,56 @@ html, body {
     font-size: 11px;
 }
 
+/* Doctor's Dictation Section */
+.dictation-section {
+    background: linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%);
+    margin: -10px -10px 10px -10px;
+    padding: 10px;
+    border-radius: 0;
+    border-bottom: 2px solid #d946ef;
+}
+
+.dictation-section .ai-section-header {
+    color: #a21caf;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-edit-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    opacity: 0.6;
+    padding: 2px 6px;
+}
+
+.section-edit-btn:hover {
+    opacity: 1;
+    background: rgba(162, 28, 175, 0.1);
+    border-radius: 4px;
+}
+
+.ai-dictation {
+    font-size: 13px;
+    color: var(--text-primary);
+    line-height: 1.6;
+    font-style: italic;
+    background: white;
+    padding: 10px;
+    border-radius: 6px;
+    border-left: 3px solid #d946ef;
+    margin-top: 8px;
+}
+
+.dictation-meta {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    text-align: right;
+}
+
 /* Summary Section */
 .summary-section {
     background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
@@ -5147,7 +5197,9 @@ html, body {
 }
 
 .ai-assistant-ask-btn,
-.ai-assistant-add-btn {
+.ai-assistant-add-btn,
+.ai-assistant-dictate-btn,
+.ai-assistant-note-btn {
     flex: 1;
     padding: 6px 10px;
     border-radius: 6px;
@@ -5155,6 +5207,28 @@ html, body {
     font-weight: 500;
     cursor: pointer;
     transition: all 0.15s ease;
+}
+
+.ai-assistant-dictate-btn {
+    background: linear-gradient(135deg, #a21caf 0%, #d946ef 100%);
+    color: white;
+    border: none;
+}
+
+.ai-assistant-dictate-btn:hover {
+    background: linear-gradient(135deg, #86198f 0%, #c026d3 100%);
+    transform: scale(1.02);
+}
+
+.ai-assistant-note-btn {
+    background: linear-gradient(135deg, #0369a1 0%, #0ea5e9 100%);
+    color: white;
+    border: none;
+}
+
+.ai-assistant-note-btn:hover {
+    background: linear-gradient(135deg, #075985 0%, #0284c7 100%);
+    transform: scale(1.02);
 }
 
 .ai-assistant-ask-btn {
@@ -5325,6 +5399,217 @@ html, body {
     gap: 10px;
     padding: 14px 18px;
     border-top: 1px solid var(--border-light);
+}
+
+/* Dictation Modal */
+.dictation-modal {
+    width: 500px;
+}
+
+.dictation-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.voice-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #a21caf 0%, #d946ef 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.voice-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(162, 28, 175, 0.3);
+}
+
+.voice-btn.recording {
+    background: linear-gradient(135deg, #dc2626 0%, #f87171 100%);
+    animation: recordingPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes recordingPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+    50% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+}
+
+.voice-icon {
+    font-size: 18px;
+}
+
+.dictation-or {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.dictation-history-toggle {
+    margin-top: 12px;
+}
+
+.text-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+
+.text-btn:hover {
+    color: var(--primary);
+}
+
+.dictation-history {
+    margin-top: 10px;
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    padding: 8px;
+    background: var(--bg-light);
+}
+
+.dictation-history.hidden {
+    display: none;
+}
+
+.history-entry {
+    padding: 8px;
+    border-bottom: 1px solid var(--border-light);
+    font-size: 12px;
+}
+
+.history-entry:last-child {
+    border-bottom: none;
+}
+
+.history-time {
+    color: var(--text-muted);
+    font-size: 10px;
+    margin-bottom: 4px;
+}
+
+.history-text {
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.no-history {
+    color: var(--text-muted);
+    font-size: 12px;
+    text-align: center;
+    padding: 12px;
+}
+
+/* Note Writing Modal */
+.note-modal {
+    width: 560px;
+}
+
+.note-type-selector {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.note-type-option {
+    cursor: pointer;
+}
+
+.note-type-option input {
+    display: none;
+}
+
+.note-type-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 8px;
+    background: var(--bg-light);
+    border: 2px solid var(--border-light);
+    border-radius: 8px;
+    transition: all 0.15s ease;
+}
+
+.note-type-option input:checked + .note-type-card {
+    border-color: var(--primary);
+    background: #eff6ff;
+}
+
+.note-type-card:hover {
+    border-color: var(--primary-light);
+}
+
+.note-type-icon {
+    font-size: 24px;
+    margin-bottom: 6px;
+}
+
+.note-type-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.note-type-desc {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.note-data-sources {
+    margin-bottom: 16px;
+}
+
+.data-sources-header {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.data-source-checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+}
+
+.data-source-checks label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.data-source-checks input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+}
+
+.note-additional {
+    margin-top: 12px;
+}
+
+.note-additional label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
 }
 
 /* Responsive */
