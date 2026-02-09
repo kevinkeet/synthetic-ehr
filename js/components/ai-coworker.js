@@ -523,12 +523,11 @@ const AICoworker = {
         const question = input.value.trim();
         if (!question) return;
 
-        // For now, show a placeholder response
-        // In real implementation, this would call Claude API
-        this.state.aiResponse = 'I received your question: "' + question + '"\n\nThis is where the AI response would appear. In a full implementation, this would call Claude to provide contextual help based on the patient data and your question.';
-        this.saveState();
-        this.render();
+        // Close the ask modal first
         this.closeAskModal();
+
+        // Use the Claude extension integration
+        this.askClaudeAbout(question);
     },
 
     quickAsk(type) {
