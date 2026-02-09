@@ -1085,19 +1085,23 @@ const AICoworker = {
 
     /**
      * Build a prompt for Claude to synthesize doctor's thoughts with AI understanding
+     * Now updates Summary, Thinking, AND Suggested Actions
      */
     buildThinkingSynthesisPrompt(doctorThoughts) {
-        let prompt = `You are an AI clinical assistant. The doctor has just shared their thoughts about this case.
-Please synthesize their clinical reasoning with the current case understanding to create an updated "Current Thinking" summary.
+        let prompt = `You are an AI clinical assistant. The doctor has just shared their clinical reasoning about this case.
+Please update ALL of the following based on their input:
+1. Case Summary
+2. Current Thinking
+3. Suggested Actions
 
 ## Doctor's New Thoughts:
 "${doctorThoughts}"
 
-## Previous AI Understanding:
-${this.state.thinking || 'No previous thinking recorded.'}
-
-## Case Summary:
+## Previous Case Summary:
 ${this.state.summary || 'No summary available.'}
+
+## Previous AI Thinking:
+${this.state.thinking || 'No previous thinking recorded.'}
 
 ## Safety Flags:
 ${this.state.flags && this.state.flags.length > 0
@@ -1109,17 +1113,29 @@ ${this.state.observations && this.state.observations.length > 0
     ? this.state.observations.map(o => '- ' + o).join('\n')
     : 'None'}
 
+## Open Items (Not Yet Addressed):
+${this.state.openItems && this.state.openItems.length > 0
+    ? this.state.openItems.map(o => '○ ' + o).join('\n')
+    : 'None'}
+
 ---
 
-Please provide an updated "Current Thinking" that:
-1. Acknowledges and incorporates the doctor's clinical reasoning
-2. Notes where AI observations align with or support the doctor's assessment
-3. Highlights any safety considerations relevant to their plan
-4. Is written in first person from the AI's perspective (e.g., "The doctor has identified... I'm noting that...")
-5. Is concise (2-4 sentences)
-6. Uses **bold** for key clinical decisions
+Based on the doctor's thoughts, provide UPDATED versions of all three:
 
-Respond with ONLY the updated thinking text, no preamble.`;
+1. **Summary** (1-2 sentences): Concise case summary reflecting the doctor's working diagnosis, triggers, and key decisions. Use **bold** for diagnosis and key decisions.
+
+2. **Thinking** (2-4 sentences): Your synthesis of the doctor's clinical reasoning with the case data. Acknowledge their assessment, note supporting data, highlight any safety considerations. Use **bold** for key decisions. Write from AI perspective.
+
+3. **Suggested Actions** (3-5 items): Prioritized next steps that ALIGN with the doctor's stated plan. Don't contradict their decisions - support them. Include follow-through items for plans they mentioned.
+
+Format your response as JSON:
+{
+  "summary": "...",
+  "thinking": "...",
+  "suggestedActions": ["action 1", "action 2", "action 3"]
+}
+
+Respond with ONLY the JSON, no preamble.`;
 
         return prompt;
     },
@@ -1147,71 +1163,154 @@ Respond with ONLY the updated thinking text, no preamble.`;
 
     /**
      * Receive updated thinking from Claude
+     * Now handles full JSON response with summary, thinking, and actions
      */
-    receiveThinkingUpdate(newThinking) {
-        if (newThinking && typeof newThinking === 'string') {
-            this.state.thinking = newThinking;
+    receiveThinkingUpdate(response) {
+        try {
+            let data = response;
+
+            // If it's a string, try to parse as JSON
+            if (typeof response === 'string') {
+                // Try to extract JSON from the response
+                const jsonMatch = response.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    data = JSON.parse(jsonMatch[0]);
+                } else {
+                    // If no JSON found, treat the whole thing as thinking text
+                    this.state.thinking = response;
+                    this.state.status = 'ready';
+                    this.saveState();
+                    this.render();
+                    App.showToast('AI thinking updated', 'success');
+                    return;
+                }
+            }
+
+            // Update all fields from parsed response
+            if (data.thinking) {
+                this.state.thinking = data.thinking;
+            }
+            if (data.summary) {
+                this.state.summary = data.summary;
+            }
+            if (data.suggestedActions && Array.isArray(data.suggestedActions)) {
+                this.state.suggestedActions = data.suggestedActions.map((action, idx) => ({
+                    id: 'claude_action_' + idx,
+                    text: typeof action === 'string' ? action : action.text
+                }));
+            }
+
             this.state.status = 'ready';
             this.saveState();
             this.render();
-            App.showToast('AI thinking updated', 'success');
+            App.showToast('AI updated based on your thoughts', 'success');
+        } catch (e) {
+            console.error('Error parsing thinking update:', e);
+            // Fallback: if it's a string, just use it as thinking
+            if (typeof response === 'string' && response.length > 0) {
+                this.state.thinking = response;
+                this.state.status = 'ready';
+                this.saveState();
+                this.render();
+            }
         }
     },
 
     /**
      * Local synthesis when Claude is not available
      * Provides immediate feedback by combining doctor's thoughts with existing AI state
+     * Updates Summary, Thinking, AND Suggested Actions based on dictation
      */
     localThinkingSynthesis(doctorThoughts) {
         // Extract key phrases from doctor's input
         const lowerThoughts = doctorThoughts.toLowerCase();
 
-        // Build synthesized thinking
+        // ===== BUILD UPDATED THINKING =====
         let newThinking = '';
+        let workingDiagnosis = '';
+        let triggers = [];
+        let keyDecisions = [];
+        let planItems = [];
 
-        // Acknowledge the doctor's assessment
-        if (lowerThoughts.includes('chf') || lowerThoughts.includes('heart failure') || lowerThoughts.includes('volume')) {
+        // Identify working diagnosis
+        if (lowerThoughts.includes('chf') || lowerThoughts.includes('heart failure') || lowerThoughts.includes('volume overload') || lowerThoughts.includes('wet')) {
+            workingDiagnosis = 'CHF exacerbation';
             newThinking += 'Doctor has confirmed **CHF exacerbation** as the working diagnosis. ';
         } else if (lowerThoughts.includes('sepsis') || lowerThoughts.includes('infection')) {
+            workingDiagnosis = 'Sepsis/Infection';
             newThinking += 'Doctor is considering **infectious etiology**. ';
-        } else if (lowerThoughts.includes('acs') || lowerThoughts.includes('mi') || lowerThoughts.includes('cardiac')) {
+        } else if (lowerThoughts.includes('acs') || lowerThoughts.includes('mi') || lowerThoughts.includes('stemi') || lowerThoughts.includes('nstemi')) {
+            workingDiagnosis = 'ACS';
             newThinking += 'Doctor is evaluating for **acute coronary syndrome**. ';
-        } else {
-            newThinking += 'Doctor has shared their clinical assessment. ';
+        } else if (lowerThoughts.includes('copd') || lowerThoughts.includes('asthma') || lowerThoughts.includes('bronch')) {
+            workingDiagnosis = 'COPD/Asthma exacerbation';
+            newThinking += 'Doctor is treating **respiratory exacerbation**. ';
+        } else if (lowerThoughts.includes('pneumonia') || lowerThoughts.includes('pna')) {
+            workingDiagnosis = 'Pneumonia';
+            newThinking += 'Doctor suspects **pneumonia**. ';
         }
 
-        // Note alignment with triggers/causes
-        if (lowerThoughts.includes('diet') || lowerThoughts.includes('salt') || lowerThoughts.includes('sodium')) {
-            newThinking += 'Dietary indiscretion identified as likely trigger. ';
+        // Identify triggers/causes
+        if (lowerThoughts.includes('diet') || lowerThoughts.includes('salt') || lowerThoughts.includes('sodium') || lowerThoughts.includes('salty')) {
+            triggers.push('dietary indiscretion');
+            newThinking += 'Dietary indiscretion identified as trigger. ';
         }
-        if (lowerThoughts.includes('missed') || lowerThoughts.includes('non-compliance') || lowerThoughts.includes('noncompliance')) {
+        if (lowerThoughts.includes('missed') || lowerThoughts.includes('non-compliance') || lowerThoughts.includes('noncompliance') || lowerThoughts.includes('not taking')) {
+            triggers.push('medication non-adherence');
             newThinking += 'Medication non-adherence contributing. ';
+        }
+        if (lowerThoughts.includes('arrhythmia') || lowerThoughts.includes('afib') || lowerThoughts.includes('a-fib') || lowerThoughts.includes('rvr')) {
+            triggers.push('arrhythmia');
         }
 
         // Handle anticoagulation decision (key scenario)
-        if (lowerThoughts.includes('anticoagulat') || lowerThoughts.includes('blood thinner')) {
-            if (lowerThoughts.includes('not') || lowerThoughts.includes("won't") || lowerThoughts.includes('hold') || lowerThoughts.includes('avoid')) {
+        if (lowerThoughts.includes('anticoagulat') || lowerThoughts.includes('blood thinner') || lowerThoughts.includes('coumadin') || lowerThoughts.includes('eliquis') || lowerThoughts.includes('xarelto')) {
+            if (lowerThoughts.includes('not') || lowerThoughts.includes("won't") || lowerThoughts.includes('hold') || lowerThoughts.includes('avoid') || lowerThoughts.includes("don't")) {
+                keyDecisions.push('No anticoagulation');
                 newThinking += '**Key decision: Doctor has decided against anticoagulation** - ';
-                // Check if we have GI bleed flag
                 if (this.state.flags && this.state.flags.some(f => f.text.toLowerCase().includes('gi bleed') || f.text.toLowerCase().includes('bleeding'))) {
                     newThinking += 'this aligns with GI recommendations given recent bleed history. ';
                 } else {
                     newThinking += 'will monitor for bleeding risk factors. ';
                 }
-            } else if (lowerThoughts.includes('start') || lowerThoughts.includes('begin')) {
-                newThinking += '**Note: Doctor considering anticoagulation** - ';
+            } else if (lowerThoughts.includes('start') || lowerThoughts.includes('begin') || lowerThoughts.includes('initiate')) {
+                keyDecisions.push('Starting anticoagulation');
+                newThinking += '**Note: Doctor planning to start anticoagulation** - ';
                 if (this.state.flags && this.state.flags.some(f => f.text.toLowerCase().includes('gi bleed') || f.text.toLowerCase().includes('bleeding'))) {
                     newThinking += '⚠️ please review GI bleed history before proceeding. ';
                 }
             }
         }
 
-        // Note the plan
-        if (lowerThoughts.includes('diure') || lowerThoughts.includes('lasix') || lowerThoughts.includes('furosemide')) {
+        // Identify plan items from dictation
+        if (lowerThoughts.includes('diure') || lowerThoughts.includes('lasix') || lowerThoughts.includes('furosemide') || lowerThoughts.includes('bumex')) {
+            planItems.push('Diuresis');
             newThinking += 'Plan includes diuresis. ';
         }
         if (lowerThoughts.includes('consult') || lowerThoughts.includes('cards') || lowerThoughts.includes('cardiology')) {
+            planItems.push('Cardiology consult');
             newThinking += 'Cardiology involvement planned. ';
+        }
+        if (lowerThoughts.includes('echo') || lowerThoughts.includes('echocardiogram')) {
+            planItems.push('Echocardiogram');
+        }
+        if (lowerThoughts.includes('cath') || lowerThoughts.includes('angiogram')) {
+            planItems.push('Cardiac catheterization');
+        }
+        if (lowerThoughts.includes('antibiotic') || lowerThoughts.includes('abx')) {
+            planItems.push('Antibiotics');
+        }
+        if (lowerThoughts.includes('steroid') || lowerThoughts.includes('prednisone') || lowerThoughts.includes('solumedrol')) {
+            planItems.push('Steroids');
+        }
+        if (lowerThoughts.includes('bipap') || lowerThoughts.includes('cpap') || lowerThoughts.includes('niv') || lowerThoughts.includes('high flow')) {
+            planItems.push('Respiratory support');
+        }
+        if (lowerThoughts.includes('admit') || lowerThoughts.includes('admission')) {
+            planItems.push('Hospital admission');
+        }
+        if (lowerThoughts.includes('icu') || lowerThoughts.includes('intensive care')) {
+            planItems.push('ICU admission');
         }
 
         // Add supporting observations if relevant
@@ -1226,19 +1325,108 @@ Respond with ONLY the updated thinking text, no preamble.`;
             }
         }
 
-        // If we generated meaningful content, update the state
+        // ===== BUILD UPDATED SUMMARY =====
+        let newSummary = this.state.summary || '';
+        if (workingDiagnosis) {
+            // Update summary to reflect doctor's diagnosis
+            const patientInfo = this.state.chartData?.patientInfo;
+            const age = patientInfo?.age || '72';
+            const name = patientInfo?.name || 'Patient';
+
+            newSummary = `${age}yo presenting with **${workingDiagnosis}**`;
+            if (triggers.length > 0) {
+                newSummary += ` triggered by ${triggers.join(' and ')}`;
+            }
+            newSummary += '. ';
+            if (keyDecisions.length > 0) {
+                newSummary += `Key decision: **${keyDecisions.join(', ')}**. `;
+            }
+            if (planItems.length > 0) {
+                newSummary += `Plan: ${planItems.slice(0, 3).join(', ')}.`;
+            }
+        }
+
+        // ===== BUILD UPDATED SUGGESTED ACTIONS =====
+        let newSuggestions = [];
+
+        // Add suggestions based on diagnosis
+        if (workingDiagnosis === 'CHF exacerbation') {
+            if (!planItems.includes('Diuresis')) {
+                newSuggestions.push('Start IV diuresis (furosemide 40mg IV)');
+            }
+            newSuggestions.push('Check BMP in AM for electrolytes and renal function');
+            newSuggestions.push('Order daily weights and strict I/Os');
+            if (!planItems.includes('Echocardiogram') && !this.state.reviewed?.some(r => r.toLowerCase().includes('echo'))) {
+                newSuggestions.push('Consider TTE to assess current EF');
+            }
+        } else if (workingDiagnosis === 'Sepsis/Infection') {
+            newSuggestions.push('Obtain blood cultures x2');
+            newSuggestions.push('Start empiric antibiotics');
+            newSuggestions.push('IV fluid resuscitation');
+            newSuggestions.push('Lactate level');
+        } else if (workingDiagnosis === 'ACS') {
+            newSuggestions.push('Serial troponins q6h');
+            newSuggestions.push('Cardiology consult for cath consideration');
+            newSuggestions.push('Start antiplatelet therapy if not contraindicated');
+        }
+
+        // Add suggestions based on open items
+        if (this.state.openItems && this.state.openItems.length > 0) {
+            this.state.openItems.forEach(item => {
+                if (item.toLowerCase().includes('code status') && !newSuggestions.some(s => s.toLowerCase().includes('code'))) {
+                    newSuggestions.push('Discuss code status with patient/family');
+                }
+            });
+        }
+
+        // Add safety-related suggestions based on flags
+        if (this.state.flags && this.state.flags.length > 0) {
+            this.state.flags.forEach(flag => {
+                if (flag.text.toLowerCase().includes('gi bleed') && !keyDecisions.includes('No anticoagulation')) {
+                    if (!newSuggestions.some(s => s.includes('bleed'))) {
+                        newSuggestions.push('Document bleeding history before any anticoagulation');
+                    }
+                }
+                if (flag.text.toLowerCase().includes('ckd') || flag.text.toLowerCase().includes('renal')) {
+                    if (!newSuggestions.some(s => s.includes('renal'))) {
+                        newSuggestions.push('Adjust medications for renal function');
+                    }
+                }
+            });
+        }
+
+        // Add follow-through items from plan mentioned in dictation
+        if (planItems.includes('Cardiology consult') && !this.state.reviewed?.some(r => r.toLowerCase().includes('cardiology'))) {
+            if (!newSuggestions.some(s => s.toLowerCase().includes('cardiology'))) {
+                newSuggestions.push('Place cardiology consult order');
+            }
+        }
+
+        // ===== UPDATE STATE =====
+        // Update thinking
         if (newThinking.length > 50) {
             this.state.thinking = newThinking.trim();
-            this.state.status = 'ready';
-            this.saveState();
-            this.render();
         } else {
-            // Fallback: just acknowledge the input
-            this.state.thinking = `Doctor's assessment received: "${doctorThoughts.substring(0, 100)}${doctorThoughts.length > 100 ? '...' : ''}" - integrating with case understanding.`;
-            this.state.status = 'ready';
-            this.saveState();
-            this.render();
+            this.state.thinking = `Doctor's assessment: "${doctorThoughts.substring(0, 150)}${doctorThoughts.length > 150 ? '...' : ''}"`;
         }
+
+        // Update summary if we built a meaningful one
+        if (newSummary && newSummary.length > 30 && workingDiagnosis) {
+            this.state.summary = newSummary.trim();
+        }
+
+        // Update suggested actions
+        if (newSuggestions.length > 0) {
+            const uniqueSuggestions = [...new Set(newSuggestions)].slice(0, 5);
+            this.state.suggestedActions = uniqueSuggestions.map((text, idx) => ({
+                id: 'dictation_action_' + idx,
+                text: text
+            }));
+        }
+
+        this.state.status = 'ready';
+        this.saveState();
+        this.render();
     },
 
     // Voice recording (Web Speech API)
