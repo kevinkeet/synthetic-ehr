@@ -43,6 +43,7 @@ const App = {
         DynamicImaging.init();
         SimulationDebrief.init();
         ClinicalImages.init();
+        AICoworker.init();
 
         // Load default patient
         try {
