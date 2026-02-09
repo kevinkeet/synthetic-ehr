@@ -1,28 +1,43 @@
 /**
  * AI Assistant Panel
- * A persistent panel showing AI's thinking about the case
- * Can be updated externally via localStorage, postMessage, or file polling
+ * A supportive copilot that helps organize the doctor's thinking
+ * without leading or getting ahead of their clinical reasoning.
+ *
+ * Philosophy: The doctor drives decision-making. AI supports by:
+ * - Mirroring back what the doctor has found/done
+ * - Surfacing relevant data when contextually appropriate
+ * - Flagging safety concerns (contraindications, allergies, interactions)
+ * - Tracking what's been addressed vs. still open
+ * - Providing help only when explicitly asked
  */
 
 const AICoworker = {
     isVisible: false,
     isMinimized: false,
     updateInterval: null,
-    lastUpdateTime: null,
 
     // Default state
     state: {
-        status: 'thinking', // thinking, watching, ready, alert
+        status: 'ready', // ready, thinking, alert
         lastUpdated: null,
-        caseSummary: '',
-        currentThinking: '',
-        nextSteps: [],
-        todos: [],
-        suggestions: [], // New: AI suggestions with actions
-        savedForLater: [], // New: Saved suggestions
-        alerts: [],
-        confidence: null,
-        focusArea: ''
+
+        // What the doctor has reviewed/found (AI mirrors this back)
+        reviewed: [],
+
+        // Neutral observations - facts, not recommendations
+        observations: [],
+
+        // Safety flags only - contraindications, allergies, critical values
+        flags: [],
+
+        // Doctor's own task list (they add items, AI doesn't suggest)
+        tasks: [],
+
+        // Open/unaddressed items (neutral tracking, not recommendations)
+        openItems: [],
+
+        // Context the AI is holding for the doctor
+        context: ''
     },
 
     /**
@@ -39,7 +54,7 @@ const AICoworker = {
 
         // Listen for storage changes (cross-tab/external updates)
         window.addEventListener('storage', (event) => {
-            if (event.key === 'aiCoworkerState') {
+            if (event.key === 'aiAssistantState') {
                 this.loadState();
                 this.render();
             }
@@ -53,30 +68,33 @@ const AICoworker = {
      */
     createPanel() {
         const panel = document.createElement('div');
-        panel.id = 'ai-coworker-panel';
-        panel.className = 'ai-coworker-panel';
+        panel.id = 'ai-assistant-panel';
+        panel.className = 'ai-assistant-panel';
         panel.innerHTML = `
-            <div class="ai-coworker-header">
-                <div class="ai-coworker-title">
-                    <span class="ai-coworker-icon">✨</span>
-                    <span class="ai-coworker-name">AI Assistant</span>
-                    <span class="ai-coworker-status" id="ai-coworker-status">●</span>
+            <div class="ai-assistant-header">
+                <div class="ai-assistant-title">
+                    <span class="ai-assistant-icon">✨</span>
+                    <span class="ai-assistant-name">AI Assistant</span>
+                    <span class="ai-assistant-status" id="ai-assistant-status">●</span>
                 </div>
-                <div class="ai-coworker-actions">
-                    <button class="ai-coworker-btn" onclick="AICoworker.refresh()" title="Refresh">↻</button>
-                    <button class="ai-coworker-btn" onclick="AICoworker.toggleMinimize()" title="Minimize" id="ai-coworker-minimize">−</button>
-                    <button class="ai-coworker-btn" onclick="AICoworker.toggle()" title="Close">×</button>
-                </div>
-            </div>
-            <div class="ai-coworker-body" id="ai-coworker-body">
-                <div class="ai-coworker-loading">
-                    <div class="ai-coworker-spinner"></div>
-                    <span>Connecting to AI...</span>
+                <div class="ai-assistant-actions">
+                    <button class="ai-assistant-btn" onclick="AICoworker.toggleMinimize()" title="Minimize" id="ai-assistant-minimize">−</button>
+                    <button class="ai-assistant-btn" onclick="AICoworker.toggle()" title="Close">×</button>
                 </div>
             </div>
-            <div class="ai-coworker-footer" id="ai-coworker-footer">
-                <span class="ai-coworker-update-time" id="ai-coworker-update-time">--</span>
-                <button class="ai-coworker-edit-btn" onclick="AICoworker.openEditor()" title="Edit manually">✏️ Edit</button>
+            <div class="ai-assistant-body" id="ai-assistant-body">
+                <div class="ai-assistant-loading">
+                    <div class="ai-assistant-spinner"></div>
+                    <span>Ready to assist...</span>
+                </div>
+            </div>
+            <div class="ai-assistant-footer" id="ai-assistant-footer">
+                <button class="ai-assistant-ask-btn" onclick="AICoworker.openAskModal()" title="Ask AI for help">
+                    💬 Ask AI
+                </button>
+                <button class="ai-assistant-add-btn" onclick="AICoworker.openAddTask()" title="Add a task">
+                    + Add Task
+                </button>
             </div>
         `;
 
@@ -84,55 +102,70 @@ const AICoworker = {
 
         // Create the toggle button
         const toggleBtn = document.createElement('button');
-        toggleBtn.id = 'ai-coworker-toggle';
-        toggleBtn.className = 'ai-coworker-toggle';
+        toggleBtn.id = 'ai-assistant-toggle';
+        toggleBtn.className = 'ai-assistant-toggle';
         toggleBtn.innerHTML = '✨';
         toggleBtn.title = 'AI Assistant';
         toggleBtn.onclick = () => this.toggle();
         document.body.appendChild(toggleBtn);
 
-        // Create editor modal
-        this.createEditorModal();
+        // Create ask modal
+        this.createAskModal();
+
+        // Create add task modal
+        this.createAddTaskModal();
     },
 
     /**
-     * Create the editor modal for manual updates
+     * Create the "Ask AI" modal
      */
-    createEditorModal() {
+    createAskModal() {
         const modal = document.createElement('div');
-        modal.id = 'ai-coworker-editor';
-        modal.className = 'ai-coworker-editor-modal';
+        modal.id = 'ai-ask-modal';
+        modal.className = 'ai-modal';
         modal.innerHTML = `
-            <div class="ai-coworker-editor-content">
-                <div class="ai-coworker-editor-header">
-                    <h3>Edit AI Assistant State</h3>
-                    <button onclick="AICoworker.closeEditor()">×</button>
+            <div class="ai-modal-content">
+                <div class="ai-modal-header">
+                    <h3>💬 Ask AI</h3>
+                    <button onclick="AICoworker.closeAskModal()">×</button>
                 </div>
-                <div class="ai-coworker-editor-body">
-                    <div class="editor-section">
-                        <label>Case Summary</label>
-                        <textarea id="edit-case-summary" rows="3" placeholder="Brief summary of the case..."></textarea>
-                    </div>
-                    <div class="editor-section">
-                        <label>Current Thinking</label>
-                        <textarea id="edit-current-thinking" rows="4" placeholder="What the AI is currently considering..."></textarea>
-                    </div>
-                    <div class="editor-section">
-                        <label>Suggestions (one per line)</label>
-                        <textarea id="edit-suggestions" rows="4" placeholder="Order a chest X-ray to assess for pulmonary edema&#10;Check BNP level to confirm heart failure&#10;Review medication compliance"></textarea>
-                    </div>
-                    <div class="editor-section">
-                        <label>To-Do Items (one per line, prefix with [x] if done)</label>
-                        <textarea id="edit-todos" rows="4" placeholder="Order BNP&#10;[x] Review medications&#10;Call cardiology"></textarea>
-                    </div>
-                    <div class="editor-section">
-                        <label>Focus Area</label>
-                        <input type="text" id="edit-focus-area" placeholder="e.g., Fluid management">
+                <div class="ai-modal-body">
+                    <p class="ai-modal-hint">Ask the AI to help with your clinical reasoning. The AI will provide information to support your decision-making.</p>
+                    <textarea id="ai-ask-input" rows="3" placeholder="e.g., What's this patient's bleeding history? or Help me think through the differential..."></textarea>
+                    <div class="ai-quick-asks">
+                        <button onclick="AICoworker.quickAsk('summarize')">Summarize what I've found</button>
+                        <button onclick="AICoworker.quickAsk('missing')">What haven't I checked?</button>
+                        <button onclick="AICoworker.quickAsk('history')">Relevant history</button>
                     </div>
                 </div>
-                <div class="ai-coworker-editor-footer">
-                    <button class="btn btn-secondary" onclick="AICoworker.closeEditor()">Cancel</button>
-                    <button class="btn btn-primary" onclick="AICoworker.saveFromEditor()">Save Changes</button>
+                <div class="ai-modal-footer">
+                    <button class="btn btn-secondary" onclick="AICoworker.closeAskModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="AICoworker.submitAsk()">Ask</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    },
+
+    /**
+     * Create the "Add Task" modal
+     */
+    createAddTaskModal() {
+        const modal = document.createElement('div');
+        modal.id = 'ai-task-modal';
+        modal.className = 'ai-modal';
+        modal.innerHTML = `
+            <div class="ai-modal-content small">
+                <div class="ai-modal-header">
+                    <h3>+ Add Task</h3>
+                    <button onclick="AICoworker.closeAddTask()">×</button>
+                </div>
+                <div class="ai-modal-body">
+                    <input type="text" id="ai-task-input" placeholder="e.g., Check renal function before diuretics">
+                </div>
+                <div class="ai-modal-footer">
+                    <button class="btn btn-secondary" onclick="AICoworker.closeAddTask()">Cancel</button>
+                    <button class="btn btn-primary" onclick="AICoworker.submitTask()">Add</button>
                 </div>
             </div>
         `;
@@ -143,19 +176,25 @@ const AICoworker = {
      * Setup event listeners
      */
     setupEventListeners() {
-        // Listen to simulation events to provide context
+        // Listen to simulation events
         if (typeof SimulationEngine !== 'undefined') {
-            SimulationEngine.on('tick', (data) => this.onSimulationTick(data));
-            SimulationEngine.on('nurseAlert', (data) => this.onAlert('nurse', data));
-            SimulationEngine.on('patientAlert', (data) => this.onAlert('patient', data));
+            SimulationEngine.on('nurseAlert', (data) => this.onAlert(data));
+            SimulationEngine.on('patientAlert', (data) => this.onAlert(data));
         }
+
+        // Listen for keyboard shortcut to add task
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closeAskModal();
+                this.closeAddTask();
+            }
+        });
     },
 
     /**
      * Start polling for external updates
      */
     startPolling() {
-        // Poll for file-based updates every 2 seconds
         this.updateInterval = setInterval(() => {
             this.checkForUpdates();
         }, 2000);
@@ -166,7 +205,7 @@ const AICoworker = {
      */
     async checkForUpdates() {
         // Check localStorage for updates
-        const stored = localStorage.getItem('aiCoworkerState');
+        const stored = localStorage.getItem('aiAssistantState');
         if (stored) {
             try {
                 const parsed = JSON.parse(stored);
@@ -179,9 +218,9 @@ const AICoworker = {
             }
         }
 
-        // Also try to fetch from a local JSON file (for wiki plugin integration)
+        // Also try to fetch from JSON file
         try {
-            const response = await fetch('data/ai-coworker-state.json?t=' + Date.now(), {
+            const response = await fetch('data/ai-assistant-state.json?t=' + Date.now(), {
                 method: 'GET',
                 cache: 'no-store'
             });
@@ -196,138 +235,13 @@ const AICoworker = {
         } catch (e) {
             // File doesn't exist yet, that's ok
         }
-
-        // Also try to fetch from a markdown wiki file
-        try {
-            const mdResponse = await fetch('data/ai-coworker-wiki.md?t=' + Date.now(), {
-                method: 'GET',
-                cache: 'no-store'
-            });
-            if (mdResponse.ok) {
-                const mdContent = await mdResponse.text();
-                const parsedState = this.parseMarkdownWiki(mdContent);
-                if (parsedState && parsedState._hash !== this._lastMdHash) {
-                    this._lastMdHash = parsedState._hash;
-                    delete parsedState._hash;
-                    this.state = { ...this.state, ...parsedState };
-                    this.saveState();
-                    this.render();
-                }
-            }
-        } catch (e) {
-            // File doesn't exist yet, that's ok
-        }
-    },
-
-    /**
-     * Parse markdown wiki format into state object
-     */
-    parseMarkdownWiki(content) {
-        const state = {};
-        let currentSection = null;
-        let sectionContent = [];
-
-        // Simple hash for change detection
-        state._hash = this.simpleHash(content);
-
-        const lines = content.split('\n');
-
-        for (const line of lines) {
-            // Check for section headers
-            if (line.startsWith('## ')) {
-                // Save previous section
-                if (currentSection) {
-                    this.processMdSection(state, currentSection, sectionContent.join('\n').trim());
-                }
-                currentSection = line.substring(3).trim().toLowerCase();
-                sectionContent = [];
-            } else if (currentSection && !line.startsWith('#') && !line.startsWith('---') && !line.startsWith('*Last updated')) {
-                // Skip HTML comments
-                if (!line.includes('<!--') && !line.includes('-->')) {
-                    sectionContent.push(line);
-                }
-            }
-        }
-
-        // Process last section
-        if (currentSection) {
-            this.processMdSection(state, currentSection, sectionContent.join('\n').trim());
-        }
-
-        return state;
-    },
-
-    /**
-     * Process a markdown section into state
-     */
-    processMdSection(state, section, content) {
-        if (!content) return;
-
-        switch (section) {
-            case 'status':
-                state.status = content.trim();
-                break;
-            case 'focus area':
-                state.focusArea = content.trim();
-                break;
-            case 'case summary':
-                state.caseSummary = content.trim();
-                break;
-            case 'current thinking':
-                state.currentThinking = content.trim();
-                break;
-            case 'next steps':
-                state.nextSteps = content.split('\n')
-                    .map(line => line.replace(/^[-*]\s*/, '').trim())
-                    .filter(line => line.length > 0);
-                break;
-            case 'suggestions':
-                state.suggestions = content.split('\n')
-                    .map((line, index) => {
-                        const text = line.replace(/^[-*]\s*/, '').trim();
-                        return text ? { id: 'sug_' + index + '_' + Date.now(), text: text } : null;
-                    })
-                    .filter(item => item !== null);
-                break;
-            case 'to-do list':
-                state.todos = content.split('\n')
-                    .map(line => {
-                        const trimmed = line.replace(/^[-*]\s*/, '').trim();
-                        if (!trimmed) return null;
-                        const isDone = trimmed.startsWith('[x]') || trimmed.startsWith('[X]');
-                        const text = trimmed.replace(/^\[[ xX]\]\s*/, '').trim();
-                        return text ? { text, done: isDone } : null;
-                    })
-                    .filter(item => item !== null);
-                break;
-            case 'confidence':
-                const num = parseInt(content.trim(), 10);
-                if (!isNaN(num)) {
-                    state.confidence = Math.min(100, Math.max(0, num));
-                }
-                break;
-        }
-    },
-
-    /**
-     * Simple hash function for change detection
-     */
-    simpleHash(str) {
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            const char = str.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash;
-        }
-        return hash.toString(16);
     },
 
     /**
      * Handle external messages (postMessage API)
      */
     handleExternalMessage(event) {
-        // Accept messages from any origin for flexibility with external tools
-        if (event.data && event.data.type === 'aiCoworkerUpdate') {
+        if (event.data && event.data.type === 'aiAssistantUpdate') {
             this.update(event.data.payload);
         }
     },
@@ -336,7 +250,7 @@ const AICoworker = {
      * Load state from localStorage
      */
     loadState() {
-        const stored = localStorage.getItem('aiCoworkerState');
+        const stored = localStorage.getItem('aiAssistantState');
         if (stored) {
             try {
                 this.state = { ...this.state, ...JSON.parse(stored) };
@@ -352,7 +266,7 @@ const AICoworker = {
      */
     saveState() {
         this.state.lastUpdated = new Date().toISOString();
-        localStorage.setItem('aiCoworkerState', JSON.stringify(this.state));
+        localStorage.setItem('aiAssistantState', JSON.stringify(this.state));
     },
 
     /**
@@ -365,7 +279,7 @@ const AICoworker = {
         this.render();
 
         // Flash to indicate update
-        const panel = document.getElementById('ai-coworker-panel');
+        const panel = document.getElementById('ai-assistant-panel');
         if (panel) {
             panel.classList.add('updated');
             setTimeout(() => panel.classList.remove('updated'), 1000);
@@ -376,279 +290,266 @@ const AICoworker = {
      * Render the panel content
      */
     render() {
-        const body = document.getElementById('ai-coworker-body');
-        const statusEl = document.getElementById('ai-coworker-status');
-        const timeEl = document.getElementById('ai-coworker-update-time');
+        const body = document.getElementById('ai-assistant-body');
+        const statusEl = document.getElementById('ai-assistant-status');
 
         if (!body) return;
 
         // Update status indicator
         if (statusEl) {
-            statusEl.className = 'ai-coworker-status ' + (this.state.status || 'thinking');
-            statusEl.title = this.state.status || 'thinking';
+            statusEl.className = 'ai-assistant-status ' + (this.state.status || 'ready');
         }
 
-        // Update time
-        if (timeEl && this.state.lastUpdated) {
-            const updated = new Date(this.state.lastUpdated);
-            timeEl.textContent = 'Updated ' + this.formatTimeAgo(updated);
-        }
-
-        // Build content
         let html = '';
 
-        // Alerts (if any)
-        if (this.state.alerts && this.state.alerts.length > 0) {
-            html += '<div class="ai-coworker-alerts">';
-            this.state.alerts.forEach(alert => {
-                html += '<div class="ai-coworker-alert ' + (alert.priority || '') + '">';
-                html += '<span class="alert-icon">⚠️</span>';
-                html += '<span class="alert-text">' + this.escapeHtml(alert.message) + '</span>';
-                html += '</div>';
-            });
-            html += '</div>';
-        }
-
-        // Focus Area
-        if (this.state.focusArea) {
-            html += '<div class="ai-coworker-focus">';
-            html += '<span class="focus-label">Currently focusing on:</span>';
-            html += '<span class="focus-value">' + this.escapeHtml(this.state.focusArea) + '</span>';
-            html += '</div>';
-        }
-
-        // Case Summary
-        if (this.state.caseSummary) {
-            html += '<div class="ai-coworker-section">';
-            html += '<div class="section-header">📋 Case Summary</div>';
-            html += '<div class="section-content">' + this.formatMarkdown(this.state.caseSummary) + '</div>';
-            html += '</div>';
-        }
-
-        // Current Thinking
-        if (this.state.currentThinking) {
-            html += '<div class="ai-coworker-section thinking">';
-            html += '<div class="section-header">💭 Current Thinking</div>';
-            html += '<div class="section-content">' + this.formatMarkdown(this.state.currentThinking) + '</div>';
-            html += '</div>';
-        }
-
-        // Suggestions (New feature)
-        if (this.state.suggestions && this.state.suggestions.length > 0) {
-            html += '<div class="ai-coworker-section suggestions-section">';
-            html += '<div class="section-header">💡 Suggestions</div>';
-            html += '<div class="suggestions-list">';
-            this.state.suggestions.forEach((suggestion, index) => {
-                const sugId = suggestion.id || ('sug_' + index);
-                html += '<div class="suggestion-item" data-id="' + sugId + '">';
-                html += '<div class="suggestion-text">' + this.escapeHtml(suggestion.text || suggestion) + '</div>';
-                html += '<div class="suggestion-actions">';
-                html += '<button class="suggestion-btn do-now" onclick="AICoworker.doNow(' + index + ')" title="Do Now">▶ Do Now</button>';
-                html += '<button class="suggestion-btn save-later" onclick="AICoworker.saveLater(' + index + ')" title="Save for Later">💾 Later</button>';
-                html += '<button class="suggestion-btn remove" onclick="AICoworker.removeSuggestion(' + index + ')" title="Remove">✕</button>';
-                html += '</div>';
+        // Safety Flags (always show first if present) - these are critical
+        if (this.state.flags && this.state.flags.length > 0) {
+            html += '<div class="ai-section flags-section">';
+            html += '<div class="ai-section-header"><span class="icon">⚠️</span> Safety Flags</div>';
+            html += '<div class="ai-flags-list">';
+            this.state.flags.forEach((flag, index) => {
+                html += '<div class="ai-flag ' + (flag.severity || 'warning') + '">';
+                html += '<span class="flag-text">' + this.escapeHtml(flag.text) + '</span>';
+                html += '<button class="flag-dismiss" onclick="AICoworker.dismissFlag(' + index + ')" title="Acknowledge">✓</button>';
                 html += '</div>';
             });
             html += '</div>';
             html += '</div>';
         }
 
-        // Saved for Later
-        if (this.state.savedForLater && this.state.savedForLater.length > 0) {
-            html += '<div class="ai-coworker-section saved-section">';
-            html += '<div class="section-header">📌 Saved for Later</div>';
-            html += '<div class="saved-list">';
-            this.state.savedForLater.forEach((item, index) => {
-                html += '<div class="saved-item">';
-                html += '<span class="saved-text">' + this.escapeHtml(item.text || item) + '</span>';
-                html += '<div class="saved-actions">';
-                html += '<button class="suggestion-btn do-now small" onclick="AICoworker.doSaved(' + index + ')" title="Do Now">▶</button>';
-                html += '<button class="suggestion-btn remove small" onclick="AICoworker.removeSaved(' + index + ')" title="Remove">✕</button>';
-                html += '</div>';
+        // Context / Current Focus (what the AI is tracking)
+        if (this.state.context) {
+            html += '<div class="ai-section context-section">';
+            html += '<div class="ai-section-header"><span class="icon">🎯</span> Tracking</div>';
+            html += '<div class="ai-context">' + this.formatText(this.state.context) + '</div>';
+            html += '</div>';
+        }
+
+        // What You've Reviewed (mirroring back)
+        if (this.state.reviewed && this.state.reviewed.length > 0) {
+            html += '<div class="ai-section reviewed-section">';
+            html += '<div class="ai-section-header"><span class="icon">✓</span> Reviewed</div>';
+            html += '<div class="ai-reviewed-list">';
+            this.state.reviewed.forEach(item => {
+                html += '<div class="ai-reviewed-item">' + this.escapeHtml(item) + '</div>';
+            });
+            html += '</div>';
+            html += '</div>';
+        }
+
+        // Observations (neutral facts, not recommendations)
+        if (this.state.observations && this.state.observations.length > 0) {
+            html += '<div class="ai-section observations-section">';
+            html += '<div class="ai-section-header"><span class="icon">👁</span> Observations</div>';
+            html += '<div class="ai-observations-list">';
+            this.state.observations.forEach((obs, index) => {
+                html += '<div class="ai-observation">';
+                html += '<span class="obs-text">' + this.escapeHtml(obs) + '</span>';
+                html += '<button class="obs-dismiss" onclick="AICoworker.dismissObservation(' + index + ')" title="Dismiss">×</button>';
                 html += '</div>';
             });
             html += '</div>';
             html += '</div>';
         }
 
-        // To-Do List
-        if (this.state.todos && this.state.todos.length > 0) {
-            html += '<div class="ai-coworker-section">';
-            html += '<div class="section-header">☑️ To-Do List</div>';
-            html += '<ul class="todo-list">';
-            this.state.todos.forEach((todo, index) => {
-                const isComplete = todo.done || todo.completed;
-                html += '<li class="todo-item ' + (isComplete ? 'completed' : '') + '">';
-                html += '<input type="checkbox" ' + (isComplete ? 'checked' : '') + ' onchange="AICoworker.toggleTodo(' + index + ')">';
-                html += '<span class="todo-text">' + this.escapeHtml(todo.text || todo) + '</span>';
-                html += '</li>';
+        // Open Items (what hasn't been addressed - neutral tracking)
+        if (this.state.openItems && this.state.openItems.length > 0) {
+            html += '<div class="ai-section open-section">';
+            html += '<div class="ai-section-header"><span class="icon">○</span> Not Yet Addressed</div>';
+            html += '<div class="ai-open-list">';
+            this.state.openItems.forEach((item, index) => {
+                html += '<div class="ai-open-item">';
+                html += '<span class="open-text">' + this.escapeHtml(item) + '</span>';
+                html += '<button class="open-done" onclick="AICoworker.markAddressed(' + index + ')" title="Mark as addressed">✓</button>';
+                html += '</div>';
             });
-            html += '</ul>';
+            html += '</div>';
             html += '</div>';
         }
 
-        // Confidence indicator
-        if (this.state.confidence !== null && this.state.confidence !== undefined) {
-            html += '<div class="ai-coworker-confidence">';
-            html += '<span class="confidence-label">Confidence:</span>';
-            html += '<div class="confidence-bar">';
-            html += '<div class="confidence-fill" style="width: ' + this.state.confidence + '%"></div>';
+        // Doctor's Task List (their own tasks)
+        if (this.state.tasks && this.state.tasks.length > 0) {
+            html += '<div class="ai-section tasks-section">';
+            html += '<div class="ai-section-header"><span class="icon">☐</span> Your Tasks</div>';
+            html += '<div class="ai-tasks-list">';
+            this.state.tasks.forEach((task, index) => {
+                const isDone = task.done;
+                html += '<div class="ai-task ' + (isDone ? 'done' : '') + '">';
+                html += '<input type="checkbox" ' + (isDone ? 'checked' : '') + ' onchange="AICoworker.toggleTask(' + index + ')">';
+                html += '<span class="task-text">' + this.escapeHtml(task.text) + '</span>';
+                html += '<button class="task-remove" onclick="AICoworker.removeTask(' + index + ')" title="Remove">×</button>';
+                html += '</div>';
+            });
             html += '</div>';
-            html += '<span class="confidence-value">' + this.state.confidence + '%</span>';
+            html += '</div>';
+        }
+
+        // AI Response (when doctor asks for help)
+        if (this.state.aiResponse) {
+            html += '<div class="ai-section response-section">';
+            html += '<div class="ai-section-header"><span class="icon">💬</span> AI Response</div>';
+            html += '<div class="ai-response">' + this.formatText(this.state.aiResponse) + '</div>';
+            html += '<button class="ai-clear-response" onclick="AICoworker.clearResponse()">Clear</button>';
             html += '</div>';
         }
 
         // Empty state
         if (!html) {
-            html = '<div class="ai-coworker-empty">';
+            html = '<div class="ai-empty">';
             html += '<div class="empty-icon">✨</div>';
-            html += '<div class="empty-text">No data from AI yet</div>';
-            html += '<div class="empty-hint">The AI Assistant will update this panel as it analyzes the case.</div>';
-            html += '<button class="btn btn-sm" onclick="AICoworker.loadSampleData()">Load Sample Data</button>';
+            html += '<div class="empty-text">Ready to assist</div>';
+            html += '<div class="empty-hint">I\'ll track what you\'ve reviewed and flag any safety concerns. Click "Ask AI" if you need help.</div>';
+            html += '<button class="btn btn-sm" onclick="AICoworker.loadDemo()">Load Demo</button>';
             html += '</div>';
         }
 
         body.innerHTML = html;
     },
 
-    /**
-     * Handle "Do Now" action for a suggestion
-     */
-    doNow(index) {
-        if (!this.state.suggestions || !this.state.suggestions[index]) return;
-
-        const suggestion = this.state.suggestions[index];
-        const suggestionText = suggestion.text || suggestion;
-
-        // Add to todos as an active item
-        if (!this.state.todos) this.state.todos = [];
-        this.state.todos.unshift({ text: suggestionText, done: false, fromSuggestion: true });
-
-        // Remove from suggestions
-        this.state.suggestions.splice(index, 1);
-
-        this.saveState();
-        this.render();
-
-        App.showToast('Added to To-Do: ' + suggestionText.substring(0, 40) + '...', 'success');
-    },
+    // ==================== User Actions ====================
 
     /**
-     * Handle "Save for Later" action for a suggestion
+     * Toggle a task
      */
-    saveLater(index) {
-        if (!this.state.suggestions || !this.state.suggestions[index]) return;
-
-        const suggestion = this.state.suggestions[index];
-
-        // Add to saved for later
-        if (!this.state.savedForLater) this.state.savedForLater = [];
-        this.state.savedForLater.push(suggestion);
-
-        // Remove from suggestions
-        this.state.suggestions.splice(index, 1);
-
-        this.saveState();
-        this.render();
-
-        App.showToast('Saved for later', 'info');
-    },
-
-    /**
-     * Handle "Remove" action for a suggestion
-     */
-    removeSuggestion(index) {
-        if (!this.state.suggestions || !this.state.suggestions[index]) return;
-
-        this.state.suggestions.splice(index, 1);
-
-        this.saveState();
-        this.render();
-    },
-
-    /**
-     * Handle "Do Now" for a saved item
-     */
-    doSaved(index) {
-        if (!this.state.savedForLater || !this.state.savedForLater[index]) return;
-
-        const item = this.state.savedForLater[index];
-        const itemText = item.text || item;
-
-        // Add to todos
-        if (!this.state.todos) this.state.todos = [];
-        this.state.todos.unshift({ text: itemText, done: false, fromSuggestion: true });
-
-        // Remove from saved
-        this.state.savedForLater.splice(index, 1);
-
-        this.saveState();
-        this.render();
-
-        App.showToast('Added to To-Do', 'success');
-    },
-
-    /**
-     * Handle "Remove" for a saved item
-     */
-    removeSaved(index) {
-        if (!this.state.savedForLater || !this.state.savedForLater[index]) return;
-
-        this.state.savedForLater.splice(index, 1);
-
-        this.saveState();
-        this.render();
-    },
-
-    /**
-     * Toggle a todo item
-     */
-    toggleTodo(index) {
-        if (this.state.todos && this.state.todos[index]) {
-            const todo = this.state.todos[index];
-            if (typeof todo === 'object') {
-                todo.done = !todo.done;
-                todo.completed = todo.done;
-            } else {
-                this.state.todos[index] = { text: todo, done: true };
-            }
+    toggleTask(index) {
+        if (this.state.tasks && this.state.tasks[index]) {
+            this.state.tasks[index].done = !this.state.tasks[index].done;
             this.saveState();
             this.render();
         }
     },
 
     /**
-     * Load sample data for demonstration
+     * Remove a task
      */
-    loadSampleData() {
-        this.update({
-            status: 'thinking',
-            caseSummary: '72yo male with **DM2, CKD Stage 3, CHF (EF 32%)**, and **A.fib** presenting with acute dyspnea. Recent admission 3 weeks ago for CHF exacerbation. Currently volume overloaded with bilateral crackles and lower extremity edema.',
-            currentThinking: 'This appears to be another CHF exacerbation, likely triggered by dietary indiscretion or medication non-compliance. Need to rule out acute coronary syndrome and arrhythmia as precipitants. **Important:** Patient has history of recent GI bleed - anticoagulation decisions need careful consideration.',
-            suggestions: [
-                { id: 'sug_1', text: 'Order a chest X-ray to assess for pulmonary edema and cardiomegaly' },
-                { id: 'sug_2', text: 'Check BNP level to confirm degree of heart failure decompensation' },
-                { id: 'sug_3', text: 'Review medication compliance - patient may have missed diuretics' },
-                { id: 'sug_4', text: 'Consider IV furosemide 40mg for acute diuresis' },
-                { id: 'sug_5', text: 'Check renal function before adjusting diuretics (GFR impact)' }
-            ],
-            todos: [
-                { text: 'Review home medication list', done: true },
-                { text: 'Check prior echo report', done: false }
-            ],
-            savedForLater: [],
-            focusArea: 'Volume status and diuretic management',
-            confidence: 75,
-            alerts: []
-        });
+    removeTask(index) {
+        if (this.state.tasks) {
+            this.state.tasks.splice(index, 1);
+            this.saveState();
+            this.render();
+        }
     },
 
     /**
-     * Show/hide the panel
+     * Dismiss a safety flag (acknowledge)
      */
+    dismissFlag(index) {
+        if (this.state.flags) {
+            this.state.flags.splice(index, 1);
+            this.saveState();
+            this.render();
+        }
+    },
+
+    /**
+     * Dismiss an observation
+     */
+    dismissObservation(index) {
+        if (this.state.observations) {
+            this.state.observations.splice(index, 1);
+            this.saveState();
+            this.render();
+        }
+    },
+
+    /**
+     * Mark an open item as addressed
+     */
+    markAddressed(index) {
+        if (this.state.openItems) {
+            const item = this.state.openItems[index];
+            this.state.openItems.splice(index, 1);
+            // Add to reviewed
+            if (!this.state.reviewed) this.state.reviewed = [];
+            this.state.reviewed.push(item);
+            this.saveState();
+            this.render();
+        }
+    },
+
+    /**
+     * Clear AI response
+     */
+    clearResponse() {
+        this.state.aiResponse = null;
+        this.saveState();
+        this.render();
+    },
+
+    // ==================== Modals ====================
+
+    openAskModal() {
+        const modal = document.getElementById('ai-ask-modal');
+        if (modal) {
+            modal.classList.add('visible');
+            document.getElementById('ai-ask-input').focus();
+        }
+    },
+
+    closeAskModal() {
+        const modal = document.getElementById('ai-ask-modal');
+        if (modal) {
+            modal.classList.remove('visible');
+            document.getElementById('ai-ask-input').value = '';
+        }
+    },
+
+    openAddTask() {
+        const modal = document.getElementById('ai-task-modal');
+        if (modal) {
+            modal.classList.add('visible');
+            document.getElementById('ai-task-input').focus();
+        }
+    },
+
+    closeAddTask() {
+        const modal = document.getElementById('ai-task-modal');
+        if (modal) {
+            modal.classList.remove('visible');
+            document.getElementById('ai-task-input').value = '';
+        }
+    },
+
+    submitAsk() {
+        const input = document.getElementById('ai-ask-input');
+        const question = input.value.trim();
+        if (!question) return;
+
+        // For now, show a placeholder response
+        // In real implementation, this would call Claude API
+        this.state.aiResponse = 'I received your question: "' + question + '"\n\nThis is where the AI response would appear. In a full implementation, this would call Claude to provide contextual help based on the patient data and your question.';
+        this.saveState();
+        this.render();
+        this.closeAskModal();
+    },
+
+    quickAsk(type) {
+        const questions = {
+            'summarize': 'Please summarize what I\'ve found so far in this case.',
+            'missing': 'What aspects of this case haven\'t I reviewed yet?',
+            'history': 'What relevant history should I be aware of for this patient?'
+        };
+        document.getElementById('ai-ask-input').value = questions[type] || '';
+    },
+
+    submitTask() {
+        const input = document.getElementById('ai-task-input');
+        const taskText = input.value.trim();
+        if (!taskText) return;
+
+        if (!this.state.tasks) this.state.tasks = [];
+        this.state.tasks.push({ text: taskText, done: false });
+        this.saveState();
+        this.render();
+        this.closeAddTask();
+        App.showToast('Task added', 'success');
+    },
+
+    // ==================== Panel Controls ====================
+
     toggle() {
-        const panel = document.getElementById('ai-coworker-panel');
-        const toggle = document.getElementById('ai-coworker-toggle');
+        const panel = document.getElementById('ai-assistant-panel');
+        const toggle = document.getElementById('ai-assistant-toggle');
 
         this.isVisible = !this.isVisible;
 
@@ -660,19 +561,13 @@ const AICoworker = {
         }
     },
 
-    /**
-     * Show the panel
-     */
     show() {
         if (!this.isVisible) this.toggle();
     },
 
-    /**
-     * Minimize/expand the panel body
-     */
     toggleMinimize() {
-        const panel = document.getElementById('ai-coworker-panel');
-        const btn = document.getElementById('ai-coworker-minimize');
+        const panel = document.getElementById('ai-assistant-panel');
+        const btn = document.getElementById('ai-assistant-minimize');
 
         this.isMinimized = !this.isMinimized;
 
@@ -684,151 +579,79 @@ const AICoworker = {
         }
     },
 
-    /**
-     * Refresh data
-     */
-    refresh() {
-        this.checkForUpdates();
-        App.showToast('AI Assistant refreshed', 'info');
+    // ==================== Event Handlers ====================
+
+    onAlert(data) {
+        // Add safety-critical alerts as flags
+        if (data.priority === 'urgent' || data.priority === 'critical') {
+            if (!this.state.flags) this.state.flags = [];
+            this.state.flags.unshift({
+                text: data.message,
+                severity: data.priority,
+                timestamp: new Date().toISOString()
+            });
+            this.state.flags = this.state.flags.slice(0, 5);
+            this.saveState();
+            this.render();
+        }
     },
 
-    /**
-     * Open the editor modal
-     */
-    openEditor() {
-        const modal = document.getElementById('ai-coworker-editor');
-        if (!modal) return;
-
-        // Populate fields
-        document.getElementById('edit-case-summary').value = this.state.caseSummary || '';
-        document.getElementById('edit-current-thinking').value = this.state.currentThinking || '';
-        document.getElementById('edit-focus-area').value = this.state.focusArea || '';
-
-        // Format suggestions
-        const suggestionsText = (this.state.suggestions || []).map(s => s.text || s).join('\n');
-        document.getElementById('edit-suggestions').value = suggestionsText;
-
-        // Format todos
-        const todosText = (this.state.todos || []).map(todo => {
-            if (typeof todo === 'object') {
-                return (todo.done ? '[x] ' : '') + (todo.text || '');
-            }
-            return todo;
-        }).join('\n');
-        document.getElementById('edit-todos').value = todosText;
-
-        modal.classList.add('visible');
-    },
+    // ==================== External API ====================
 
     /**
-     * Close the editor modal
+     * Add an observation (neutral fact)
      */
-    closeEditor() {
-        const modal = document.getElementById('ai-coworker-editor');
-        if (modal) modal.classList.remove('visible');
-    },
-
-    /**
-     * Save from editor
-     */
-    saveFromEditor() {
-        const caseSummary = document.getElementById('edit-case-summary').value.trim();
-        const currentThinking = document.getElementById('edit-current-thinking').value.trim();
-        const suggestionsRaw = document.getElementById('edit-suggestions').value.trim();
-        const todosRaw = document.getElementById('edit-todos').value.trim();
-        const focusArea = document.getElementById('edit-focus-area').value.trim();
-
-        // Parse suggestions
-        const suggestions = suggestionsRaw.split('\n').filter(s => s.trim()).map((text, index) => ({
-            id: 'sug_' + index + '_' + Date.now(),
-            text: text.trim()
-        }));
-
-        // Parse todos
-        const todos = todosRaw.split('\n').filter(s => s.trim()).map(line => {
-            const isDone = line.startsWith('[x]') || line.startsWith('[X]');
-            const text = line.replace(/^\[x\]\s*/i, '').trim();
-            return { text, done: isDone };
-        });
-
-        this.update({
-            caseSummary,
-            currentThinking,
-            suggestions,
-            todos,
-            focusArea
-        });
-
-        this.closeEditor();
-        App.showToast('AI Assistant updated', 'success');
-    },
-
-    /**
-     * Handle simulation tick - can auto-update based on state
-     */
-    onSimulationTick(data) {
-        // Could auto-generate insights here based on simulation state
-        // For now, just track that simulation is running
-    },
-
-    /**
-     * Handle alerts from simulation
-     */
-    onAlert(type, data) {
-        // Add alert to state
-        if (!this.state.alerts) this.state.alerts = [];
-
-        this.state.alerts.unshift({
-            type: type,
-            message: data.message,
-            priority: data.priority,
-            timestamp: new Date().toISOString()
-        });
-
-        // Keep only last 5 alerts
-        this.state.alerts = this.state.alerts.slice(0, 5);
-
+    addObservation(text) {
+        if (!this.state.observations) this.state.observations = [];
+        this.state.observations.push(text);
         this.saveState();
         this.render();
     },
 
     /**
-     * Format time ago
+     * Add a safety flag
      */
-    formatTimeAgo(date) {
-        const seconds = Math.floor((new Date() - date) / 1000);
-        if (seconds < 60) return 'just now';
-        const minutes = Math.floor(seconds / 60);
-        if (minutes < 60) return minutes + 'm ago';
-        const hours = Math.floor(minutes / 60);
-        if (hours < 24) return hours + 'h ago';
-        return date.toLocaleDateString();
+    addFlag(text, severity = 'warning') {
+        if (!this.state.flags) this.state.flags = [];
+        this.state.flags.unshift({ text, severity, timestamp: new Date().toISOString() });
+        this.saveState();
+        this.render();
+        this.show();
     },
 
     /**
-     * Simple markdown formatting
+     * Mark something as reviewed
      */
-    formatMarkdown(text) {
-        if (!text) return '';
-        return this.escapeHtml(text)
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/\n/g, '<br>');
+    markReviewed(item) {
+        if (!this.state.reviewed) this.state.reviewed = [];
+        if (!this.state.reviewed.includes(item)) {
+            this.state.reviewed.push(item);
+            this.saveState();
+            this.render();
+        }
     },
 
     /**
-     * Escape HTML
+     * Set context/tracking info
      */
-    escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+    setContext(text) {
+        this.state.context = text;
+        this.saveState();
+        this.render();
     },
 
     /**
-     * External API for external tools to update
-     * Call via: window.AICoworker.updateFromExternal({...})
+     * Add open item (something not yet addressed)
+     */
+    addOpenItem(item) {
+        if (!this.state.openItems) this.state.openItems = [];
+        this.state.openItems.push(item);
+        this.saveState();
+        this.render();
+    },
+
+    /**
+     * Full update from external source
      */
     updateFromExternal(data) {
         this.update(data);
@@ -836,35 +659,75 @@ const AICoworker = {
     },
 
     /**
-     * Add a single suggestion externally
-     */
-    addSuggestion(text) {
-        if (!this.state.suggestions) this.state.suggestions = [];
-        this.state.suggestions.push({
-            id: 'sug_' + Date.now(),
-            text: text
-        });
-        this.saveState();
-        this.render();
-        this.show();
-    },
-
-    /**
-     * Get current state (for external tools)
+     * Get current state
      */
     getState() {
         return { ...this.state };
+    },
+
+    // ==================== Demo ====================
+
+    loadDemo() {
+        this.update({
+            status: 'ready',
+            context: '72yo male presenting with dyspnea. CHF history with EF 32%.',
+            flags: [
+                { text: 'Recent GI bleed (5 months ago) - GI recommends avoiding anticoagulation', severity: 'critical' }
+            ],
+            reviewed: [
+                'Medication list',
+                'Recent vitals'
+            ],
+            observations: [
+                'Last BNP was 890 pg/mL (3 weeks ago)',
+                'Cr trending up: 1.4 → 1.6 over past week',
+                'Patient reports missing doses of furosemide'
+            ],
+            openItems: [
+                'Echocardiogram (last done 6 months ago)',
+                'Code status discussion',
+                'Daily weight trend'
+            ],
+            tasks: [
+                { text: 'Review GI consult note', done: false },
+                { text: 'Check today\'s labs when available', done: false }
+            ]
+        });
+    },
+
+    // ==================== Utilities ====================
+
+    formatText(text) {
+        if (!text) return '';
+        return this.escapeHtml(text)
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n/g, '<br>');
+    },
+
+    escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 };
 
-// Expose globally for external access
+// Expose globally
 window.AICoworker = AICoworker;
 
-// Also expose simple update functions
+// Convenience functions for external tools
 window.updateAIAssistant = function(data) {
     AICoworker.updateFromExternal(data);
 };
 
-window.addAISuggestion = function(text) {
-    AICoworker.addSuggestion(text);
+window.addAIObservation = function(text) {
+    AICoworker.addObservation(text);
+};
+
+window.addAIFlag = function(text, severity) {
+    AICoworker.addFlag(text, severity);
+};
+
+window.setAIContext = function(text) {
+    AICoworker.setContext(text);
 };
