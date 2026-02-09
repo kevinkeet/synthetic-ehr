@@ -1,6 +1,6 @@
 /**
- * AI Coworker Panel
- * A persistent panel showing Claude's thinking about the case
+ * AI Assistant Panel
+ * A persistent panel showing AI's thinking about the case
  * Can be updated externally via localStorage, postMessage, or file polling
  */
 
@@ -18,13 +18,15 @@ const AICoworker = {
         currentThinking: '',
         nextSteps: [],
         todos: [],
+        suggestions: [], // New: AI suggestions with actions
+        savedForLater: [], // New: Saved suggestions
         alerts: [],
         confidence: null,
         focusArea: ''
     },
 
     /**
-     * Initialize the AI Coworker panel
+     * Initialize the AI Assistant panel
      */
     init() {
         this.createPanel();
@@ -43,7 +45,7 @@ const AICoworker = {
             }
         });
 
-        console.log('AI Coworker initialized');
+        console.log('AI Assistant initialized');
     },
 
     /**
@@ -56,8 +58,8 @@ const AICoworker = {
         panel.innerHTML = `
             <div class="ai-coworker-header">
                 <div class="ai-coworker-title">
-                    <span class="ai-coworker-icon">🤖</span>
-                    <span class="ai-coworker-name">Claude Coworker</span>
+                    <span class="ai-coworker-icon">✨</span>
+                    <span class="ai-coworker-name">AI Assistant</span>
                     <span class="ai-coworker-status" id="ai-coworker-status">●</span>
                 </div>
                 <div class="ai-coworker-actions">
@@ -69,7 +71,7 @@ const AICoworker = {
             <div class="ai-coworker-body" id="ai-coworker-body">
                 <div class="ai-coworker-loading">
                     <div class="ai-coworker-spinner"></div>
-                    <span>Connecting to Claude...</span>
+                    <span>Connecting to AI...</span>
                 </div>
             </div>
             <div class="ai-coworker-footer" id="ai-coworker-footer">
@@ -84,8 +86,8 @@ const AICoworker = {
         const toggleBtn = document.createElement('button');
         toggleBtn.id = 'ai-coworker-toggle';
         toggleBtn.className = 'ai-coworker-toggle';
-        toggleBtn.innerHTML = '🤖';
-        toggleBtn.title = 'AI Coworker';
+        toggleBtn.innerHTML = '✨';
+        toggleBtn.title = 'AI Assistant';
         toggleBtn.onclick = () => this.toggle();
         document.body.appendChild(toggleBtn);
 
@@ -103,7 +105,7 @@ const AICoworker = {
         modal.innerHTML = `
             <div class="ai-coworker-editor-content">
                 <div class="ai-coworker-editor-header">
-                    <h3>Edit AI Coworker State</h3>
+                    <h3>Edit AI Assistant State</h3>
                     <button onclick="AICoworker.closeEditor()">×</button>
                 </div>
                 <div class="ai-coworker-editor-body">
@@ -113,11 +115,11 @@ const AICoworker = {
                     </div>
                     <div class="editor-section">
                         <label>Current Thinking</label>
-                        <textarea id="edit-current-thinking" rows="4" placeholder="What Claude is currently considering..."></textarea>
+                        <textarea id="edit-current-thinking" rows="4" placeholder="What the AI is currently considering..."></textarea>
                     </div>
                     <div class="editor-section">
-                        <label>Next Steps (one per line)</label>
-                        <textarea id="edit-next-steps" rows="3" placeholder="Review labs&#10;Check vitals trend&#10;Consider imaging"></textarea>
+                        <label>Suggestions (one per line)</label>
+                        <textarea id="edit-suggestions" rows="4" placeholder="Order a chest X-ray to assess for pulmonary edema&#10;Check BNP level to confirm heart failure&#10;Review medication compliance"></textarea>
                     </div>
                     <div class="editor-section">
                         <label>To-Do Items (one per line, prefix with [x] if done)</label>
@@ -173,7 +175,7 @@ const AICoworker = {
                     this.render();
                 }
             } catch (e) {
-                console.warn('Error parsing AI Coworker state:', e);
+                console.warn('Error parsing AI Assistant state:', e);
             }
         }
 
@@ -279,6 +281,14 @@ const AICoworker = {
                     .map(line => line.replace(/^[-*]\s*/, '').trim())
                     .filter(line => line.length > 0);
                 break;
+            case 'suggestions':
+                state.suggestions = content.split('\n')
+                    .map((line, index) => {
+                        const text = line.replace(/^[-*]\s*/, '').trim();
+                        return text ? { id: 'sug_' + index + '_' + Date.now(), text: text } : null;
+                    })
+                    .filter(item => item !== null);
+                break;
             case 'to-do list':
                 state.todos = content.split('\n')
                     .map(line => {
@@ -331,7 +341,7 @@ const AICoworker = {
             try {
                 this.state = { ...this.state, ...JSON.parse(stored) };
             } catch (e) {
-                console.warn('Error loading AI Coworker state:', e);
+                console.warn('Error loading AI Assistant state:', e);
             }
         }
         this.render();
@@ -346,7 +356,7 @@ const AICoworker = {
     },
 
     /**
-     * Update the AI Coworker state
+     * Update the AI Assistant state
      */
     update(newState) {
         this.state = { ...this.state, ...newState };
@@ -423,15 +433,41 @@ const AICoworker = {
             html += '</div>';
         }
 
-        // Next Steps
-        if (this.state.nextSteps && this.state.nextSteps.length > 0) {
-            html += '<div class="ai-coworker-section">';
-            html += '<div class="section-header">➡️ Next Steps</div>';
-            html += '<ol class="next-steps-list">';
-            this.state.nextSteps.forEach(step => {
-                html += '<li>' + this.escapeHtml(step) + '</li>';
+        // Suggestions (New feature)
+        if (this.state.suggestions && this.state.suggestions.length > 0) {
+            html += '<div class="ai-coworker-section suggestions-section">';
+            html += '<div class="section-header">💡 Suggestions</div>';
+            html += '<div class="suggestions-list">';
+            this.state.suggestions.forEach((suggestion, index) => {
+                const sugId = suggestion.id || ('sug_' + index);
+                html += '<div class="suggestion-item" data-id="' + sugId + '">';
+                html += '<div class="suggestion-text">' + this.escapeHtml(suggestion.text || suggestion) + '</div>';
+                html += '<div class="suggestion-actions">';
+                html += '<button class="suggestion-btn do-now" onclick="AICoworker.doNow(' + index + ')" title="Do Now">▶ Do Now</button>';
+                html += '<button class="suggestion-btn save-later" onclick="AICoworker.saveLater(' + index + ')" title="Save for Later">💾 Later</button>';
+                html += '<button class="suggestion-btn remove" onclick="AICoworker.removeSuggestion(' + index + ')" title="Remove">✕</button>';
+                html += '</div>';
+                html += '</div>';
             });
-            html += '</ol>';
+            html += '</div>';
+            html += '</div>';
+        }
+
+        // Saved for Later
+        if (this.state.savedForLater && this.state.savedForLater.length > 0) {
+            html += '<div class="ai-coworker-section saved-section">';
+            html += '<div class="section-header">📌 Saved for Later</div>';
+            html += '<div class="saved-list">';
+            this.state.savedForLater.forEach((item, index) => {
+                html += '<div class="saved-item">';
+                html += '<span class="saved-text">' + this.escapeHtml(item.text || item) + '</span>';
+                html += '<div class="saved-actions">';
+                html += '<button class="suggestion-btn do-now small" onclick="AICoworker.doSaved(' + index + ')" title="Do Now">▶</button>';
+                html += '<button class="suggestion-btn remove small" onclick="AICoworker.removeSaved(' + index + ')" title="Remove">✕</button>';
+                html += '</div>';
+                html += '</div>';
+            });
+            html += '</div>';
             html += '</div>';
         }
 
@@ -465,14 +501,103 @@ const AICoworker = {
         // Empty state
         if (!html) {
             html = '<div class="ai-coworker-empty">';
-            html += '<div class="empty-icon">🤖</div>';
-            html += '<div class="empty-text">No data from Claude yet</div>';
-            html += '<div class="empty-hint">Claude Cowork will update this panel as it analyzes the case.</div>';
+            html += '<div class="empty-icon">✨</div>';
+            html += '<div class="empty-text">No data from AI yet</div>';
+            html += '<div class="empty-hint">The AI Assistant will update this panel as it analyzes the case.</div>';
             html += '<button class="btn btn-sm" onclick="AICoworker.loadSampleData()">Load Sample Data</button>';
             html += '</div>';
         }
 
         body.innerHTML = html;
+    },
+
+    /**
+     * Handle "Do Now" action for a suggestion
+     */
+    doNow(index) {
+        if (!this.state.suggestions || !this.state.suggestions[index]) return;
+
+        const suggestion = this.state.suggestions[index];
+        const suggestionText = suggestion.text || suggestion;
+
+        // Add to todos as an active item
+        if (!this.state.todos) this.state.todos = [];
+        this.state.todos.unshift({ text: suggestionText, done: false, fromSuggestion: true });
+
+        // Remove from suggestions
+        this.state.suggestions.splice(index, 1);
+
+        this.saveState();
+        this.render();
+
+        App.showToast('Added to To-Do: ' + suggestionText.substring(0, 40) + '...', 'success');
+    },
+
+    /**
+     * Handle "Save for Later" action for a suggestion
+     */
+    saveLater(index) {
+        if (!this.state.suggestions || !this.state.suggestions[index]) return;
+
+        const suggestion = this.state.suggestions[index];
+
+        // Add to saved for later
+        if (!this.state.savedForLater) this.state.savedForLater = [];
+        this.state.savedForLater.push(suggestion);
+
+        // Remove from suggestions
+        this.state.suggestions.splice(index, 1);
+
+        this.saveState();
+        this.render();
+
+        App.showToast('Saved for later', 'info');
+    },
+
+    /**
+     * Handle "Remove" action for a suggestion
+     */
+    removeSuggestion(index) {
+        if (!this.state.suggestions || !this.state.suggestions[index]) return;
+
+        this.state.suggestions.splice(index, 1);
+
+        this.saveState();
+        this.render();
+    },
+
+    /**
+     * Handle "Do Now" for a saved item
+     */
+    doSaved(index) {
+        if (!this.state.savedForLater || !this.state.savedForLater[index]) return;
+
+        const item = this.state.savedForLater[index];
+        const itemText = item.text || item;
+
+        // Add to todos
+        if (!this.state.todos) this.state.todos = [];
+        this.state.todos.unshift({ text: itemText, done: false, fromSuggestion: true });
+
+        // Remove from saved
+        this.state.savedForLater.splice(index, 1);
+
+        this.saveState();
+        this.render();
+
+        App.showToast('Added to To-Do', 'success');
+    },
+
+    /**
+     * Handle "Remove" for a saved item
+     */
+    removeSaved(index) {
+        if (!this.state.savedForLater || !this.state.savedForLater[index]) return;
+
+        this.state.savedForLater.splice(index, 1);
+
+        this.saveState();
+        this.render();
     },
 
     /**
@@ -500,19 +625,18 @@ const AICoworker = {
             status: 'thinking',
             caseSummary: '72yo male with **DM2, CKD Stage 3, CHF (EF 32%)**, and **A.fib** presenting with acute dyspnea. Recent admission 3 weeks ago for CHF exacerbation. Currently volume overloaded with bilateral crackles and lower extremity edema.',
             currentThinking: 'This appears to be another CHF exacerbation, likely triggered by dietary indiscretion or medication non-compliance. Need to rule out acute coronary syndrome and arrhythmia as precipitants. **Important:** Patient has history of recent GI bleed - anticoagulation decisions need careful consideration.',
-            nextSteps: [
-                'Review recent medication list for compliance',
-                'Check BNP trend compared to baseline',
-                'Assess volume status with I/O and daily weights',
-                'Consider echocardiogram if significantly changed from baseline'
+            suggestions: [
+                { id: 'sug_1', text: 'Order a chest X-ray to assess for pulmonary edema and cardiomegaly' },
+                { id: 'sug_2', text: 'Check BNP level to confirm degree of heart failure decompensation' },
+                { id: 'sug_3', text: 'Review medication compliance - patient may have missed diuretics' },
+                { id: 'sug_4', text: 'Consider IV furosemide 40mg for acute diuresis' },
+                { id: 'sug_5', text: 'Check renal function before adjusting diuretics (GFR impact)' }
             ],
             todos: [
-                { text: 'Order BMP and BNP', done: false },
-                { text: 'Review prior echo report', done: false },
-                { text: 'Check GI bleed history before anticoagulation', done: false },
-                { text: 'Assess diuretic response', done: false },
-                { text: 'Review home medication list', done: true }
+                { text: 'Review home medication list', done: true },
+                { text: 'Check prior echo report', done: false }
             ],
+            savedForLater: [],
             focusArea: 'Volume status and diuretic management',
             confidence: 75,
             alerts: []
@@ -565,7 +689,7 @@ const AICoworker = {
      */
     refresh() {
         this.checkForUpdates();
-        App.showToast('AI Coworker refreshed', 'info');
+        App.showToast('AI Assistant refreshed', 'info');
     },
 
     /**
@@ -578,8 +702,11 @@ const AICoworker = {
         // Populate fields
         document.getElementById('edit-case-summary').value = this.state.caseSummary || '';
         document.getElementById('edit-current-thinking').value = this.state.currentThinking || '';
-        document.getElementById('edit-next-steps').value = (this.state.nextSteps || []).join('\n');
         document.getElementById('edit-focus-area').value = this.state.focusArea || '';
+
+        // Format suggestions
+        const suggestionsText = (this.state.suggestions || []).map(s => s.text || s).join('\n');
+        document.getElementById('edit-suggestions').value = suggestionsText;
 
         // Format todos
         const todosText = (this.state.todos || []).map(todo => {
@@ -607,12 +734,15 @@ const AICoworker = {
     saveFromEditor() {
         const caseSummary = document.getElementById('edit-case-summary').value.trim();
         const currentThinking = document.getElementById('edit-current-thinking').value.trim();
-        const nextStepsRaw = document.getElementById('edit-next-steps').value.trim();
+        const suggestionsRaw = document.getElementById('edit-suggestions').value.trim();
         const todosRaw = document.getElementById('edit-todos').value.trim();
         const focusArea = document.getElementById('edit-focus-area').value.trim();
 
-        // Parse next steps
-        const nextSteps = nextStepsRaw.split('\n').filter(s => s.trim());
+        // Parse suggestions
+        const suggestions = suggestionsRaw.split('\n').filter(s => s.trim()).map((text, index) => ({
+            id: 'sug_' + index + '_' + Date.now(),
+            text: text.trim()
+        }));
 
         // Parse todos
         const todos = todosRaw.split('\n').filter(s => s.trim()).map(line => {
@@ -624,13 +754,13 @@ const AICoworker = {
         this.update({
             caseSummary,
             currentThinking,
-            nextSteps,
+            suggestions,
             todos,
             focusArea
         });
 
         this.closeEditor();
-        App.showToast('AI Coworker updated', 'success');
+        App.showToast('AI Assistant updated', 'success');
     },
 
     /**
@@ -697,11 +827,25 @@ const AICoworker = {
     },
 
     /**
-     * External API for Claude Cowork to update
+     * External API for external tools to update
      * Call via: window.AICoworker.updateFromExternal({...})
      */
     updateFromExternal(data) {
         this.update(data);
+        this.show();
+    },
+
+    /**
+     * Add a single suggestion externally
+     */
+    addSuggestion(text) {
+        if (!this.state.suggestions) this.state.suggestions = [];
+        this.state.suggestions.push({
+            id: 'sug_' + Date.now(),
+            text: text
+        });
+        this.saveState();
+        this.render();
         this.show();
     },
 
@@ -716,7 +860,11 @@ const AICoworker = {
 // Expose globally for external access
 window.AICoworker = AICoworker;
 
-// Also expose a simple update function
-window.updateAICoworker = function(data) {
+// Also expose simple update functions
+window.updateAIAssistant = function(data) {
     AICoworker.updateFromExternal(data);
+};
+
+window.addAISuggestion = function(text) {
+    AICoworker.addSuggestion(text);
 };

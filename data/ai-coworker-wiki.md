@@ -1,4 +1,4 @@
-# AI Coworker Case Notes
+# AI Assistant Case Notes
 
 ## Status
 watching
@@ -10,10 +10,13 @@ Patient assessment
 <!-- Write a brief summary of the case here -->
 
 ## Current Thinking
-<!-- What is Claude currently considering about this case? -->
+<!-- What is the AI currently considering about this case? -->
 
-## Next Steps
-<!-- One step per line -->
+## Suggestions
+<!-- AI suggestions for actions - one per line -->
+- Review patient's medication list for compliance issues
+- Check recent BNP trend to assess heart failure status
+- Order chest X-ray if not done recently
 
 ## To-Do List
 <!-- One item per line, prefix with [x] if completed -->
@@ -25,4 +28,4 @@ Patient assessment
 75
 
 ---
-*Last updated by Claude Cowork*
+*Last updated by AI Assistant*
