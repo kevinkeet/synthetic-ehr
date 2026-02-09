@@ -21,6 +21,15 @@ const AICoworker = {
         status: 'ready', // ready, thinking, alert
         lastUpdated: null,
 
+        // AI's current summary/understanding of the case
+        summary: '',
+
+        // AI's current thinking process
+        thinking: '',
+
+        // Suggested next actions (user can click to execute via Claude)
+        suggestedActions: [],
+
         // What the doctor has reviewed/found (AI mirrors this back)
         reviewed: [],
 
@@ -317,6 +326,42 @@ const AICoworker = {
             html += '</div>';
         }
 
+        // AI Summary (how the AI understands the case)
+        if (this.state.summary) {
+            html += '<div class="ai-section summary-section">';
+            html += '<div class="ai-section-header"><span class="icon">📋</span> Case Summary</div>';
+            html += '<div class="ai-summary">' + this.formatText(this.state.summary) + '</div>';
+            html += '</div>';
+        }
+
+        // AI Thinking (current reasoning)
+        if (this.state.thinking) {
+            html += '<div class="ai-section thinking-section">';
+            html += '<div class="ai-section-header"><span class="icon">💭</span> Current Thinking</div>';
+            html += '<div class="ai-thinking">' + this.formatText(this.state.thinking) + '</div>';
+            html += '</div>';
+        }
+
+        // Suggested Actions (AI recommendations user can execute)
+        if (this.state.suggestedActions && this.state.suggestedActions.length > 0) {
+            html += '<div class="ai-section actions-section">';
+            html += '<div class="ai-section-header"><span class="icon">💡</span> Suggested Actions</div>';
+            html += '<div class="ai-actions-list">';
+            this.state.suggestedActions.forEach((action, index) => {
+                const actionText = typeof action === 'string' ? action : action.text;
+                const actionId = typeof action === 'object' && action.id ? action.id : index;
+                html += '<div class="ai-suggested-action">';
+                html += '<span class="action-text">' + this.escapeHtml(actionText) + '</span>';
+                html += '<div class="action-buttons">';
+                html += '<button class="action-do-btn" onclick="AICoworker.executeAction(' + index + ')" title="Ask Claude to do this">▶ Do it</button>';
+                html += '<button class="action-dismiss-btn" onclick="AICoworker.dismissAction(' + index + ')" title="Dismiss">×</button>';
+                html += '</div>';
+                html += '</div>';
+            });
+            html += '</div>';
+            html += '</div>';
+        }
+
         // Context / Current Focus (what the AI is tracking)
         if (this.state.context) {
             html += '<div class="ai-section context-section">';
@@ -455,6 +500,39 @@ const AICoworker = {
     dismissObservation(index) {
         if (this.state.observations) {
             this.state.observations.splice(index, 1);
+            this.saveState();
+            this.render();
+        }
+    },
+
+    /**
+     * Execute a suggested action via Claude extension
+     */
+    executeAction(index) {
+        if (this.state.suggestedActions && this.state.suggestedActions[index]) {
+            const action = this.state.suggestedActions[index];
+            const actionText = typeof action === 'string' ? action : action.text;
+
+            // Trigger Claude to help execute this action
+            this.askClaudeAbout('Please help me: ' + actionText);
+
+            // Optionally move to tasks
+            if (!this.state.tasks) this.state.tasks = [];
+            this.state.tasks.push({ text: actionText, done: false, fromSuggestion: true });
+
+            // Remove from suggestions
+            this.state.suggestedActions.splice(index, 1);
+            this.saveState();
+            this.render();
+        }
+    },
+
+    /**
+     * Dismiss a suggested action
+     */
+    dismissAction(index) {
+        if (this.state.suggestedActions) {
+            this.state.suggestedActions.splice(index, 1);
             this.saveState();
             this.render();
         }
@@ -854,8 +932,15 @@ const AICoworker = {
 
     loadDemo() {
         this.update({
-            status: 'ready',
-            context: '72yo male presenting with dyspnea. CHF history with EF 32%.',
+            status: 'thinking',
+            summary: '72yo male with **DM2, CKD Stage 3, CHF (EF 32%)**, and **A.fib** presenting with acute dyspnea. Recent admission 3 weeks ago for CHF exacerbation. Currently appears volume overloaded.',
+            thinking: 'This looks like another CHF exacerbation. Need to determine the trigger - could be dietary indiscretion, medication non-compliance, or new arrhythmia. **Important consideration:** Patient has recent GI bleed history which will affect anticoagulation decisions if A-fib is confirmed.',
+            suggestedActions: [
+                { id: 'action_1', text: 'Order BNP to assess current heart failure severity' },
+                { id: 'action_2', text: 'Check creatinine before adjusting diuretics' },
+                { id: 'action_3', text: 'Review the GI consult note about bleeding history' },
+                { id: 'action_4', text: 'Start IV furosemide 40mg for acute diuresis' }
+            ],
             flags: [
                 { text: 'Recent GI bleed (5 months ago) - GI recommends avoiding anticoagulation', severity: 'critical' }
             ],
@@ -870,13 +955,9 @@ const AICoworker = {
             ],
             openItems: [
                 'Echocardiogram (last done 6 months ago)',
-                'Code status discussion',
-                'Daily weight trend'
+                'Code status discussion'
             ],
-            tasks: [
-                { text: 'Review GI consult note', done: false },
-                { text: 'Check today\'s labs when available', done: false }
-            ]
+            tasks: []
         });
     },
 
