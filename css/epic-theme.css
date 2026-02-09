@@ -5209,6 +5209,40 @@ html, body {
     transition: all 0.15s ease;
 }
 
+.ai-assistant-refresh-btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--bg-light);
+    border: 1px solid var(--border-medium);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.ai-assistant-refresh-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: rotate(90deg);
+}
+
+.ai-assistant-refresh-btn.spinning {
+    animation: refreshSpin 1s ease-in-out;
+    pointer-events: none;
+}
+
+@keyframes refreshSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 .ai-assistant-dictate-btn {
     background: linear-gradient(135deg, #a21caf 0%, #d946ef 100%);
     color: white;

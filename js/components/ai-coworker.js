@@ -81,6 +81,9 @@ const AICoworker = {
             if (event.data && event.data.type === 'CLAUDE_THINKING_RESPONSE') {
                 this.receiveThinkingUpdate(event.data.thinking);
             }
+            if (event.data && event.data.type === 'CLAUDE_REFRESH_RESPONSE') {
+                this.receiveRefreshUpdate(event.data.response);
+            }
         });
 
         // Listen for storage changes (cross-tab/external updates)
@@ -120,6 +123,9 @@ const AICoworker = {
                 </div>
             </div>
             <div class="ai-assistant-footer" id="ai-assistant-footer">
+                <button class="ai-assistant-refresh-btn" onclick="AICoworker.refreshThinking()" title="Refresh AI thinking">
+                    🔄
+                </button>
                 <button class="ai-assistant-dictate-btn" onclick="AICoworker.openDictationModal()" title="Dictate your thoughts">
                     🎤 Dictate
                 </button>
@@ -1521,6 +1527,280 @@ Respond with ONLY the updated thinking text, no preamble.`;
         };
     },
 
+    // ==================== Refresh / Re-analyze ====================
+
+    /**
+     * Refresh AI thinking - re-analyze the entire case
+     */
+    refreshThinking() {
+        // Show thinking status
+        this.state.status = 'thinking';
+        this.render();
+
+        // Gather latest chart data
+        this.gatherChartData();
+
+        // Build comprehensive refresh prompt
+        const refreshPrompt = this.buildRefreshPrompt();
+
+        // Animate the refresh button
+        const btn = document.querySelector('.ai-assistant-refresh-btn');
+        if (btn) {
+            btn.classList.add('spinning');
+            setTimeout(() => btn.classList.remove('spinning'), 2000);
+        }
+
+        App.showToast('Refreshing AI analysis...', 'info');
+
+        // Try Claude extension first
+        this.requestFullRefresh(refreshPrompt);
+
+        // Broadcast for external tools
+        window.postMessage({
+            type: 'AI_REFRESH_REQUESTED',
+            prompt: refreshPrompt,
+            fullContext: this.buildFullContext()
+        }, '*');
+
+        // Local fallback for immediate feedback
+        this.localRefreshAnalysis();
+    },
+
+    /**
+     * Build prompt for full case refresh
+     */
+    buildRefreshPrompt() {
+        let prompt = `You are an AI clinical assistant. Please analyze this case and provide updated thinking and suggested actions.
+
+## Patient Information
+${this.state.chartData.patientInfo
+    ? `Name: ${this.state.chartData.patientInfo.name}, Age: ${this.state.chartData.patientInfo.age}`
+    : 'See case summary below'}
+
+## Doctor's Current Assessment
+${this.state.dictation || 'No dictation recorded yet.'}
+
+## Case Summary
+${this.state.summary || 'No summary available.'}
+
+## Current Vitals
+${this.state.chartData.vitals && this.state.chartData.vitals.length > 0
+    ? this.state.chartData.vitals.slice(-1).map(v =>
+        `HR: ${v.hr || 'N/A'}, BP: ${v.sbp || '?'}/${v.dbp || '?'}, RR: ${v.rr || 'N/A'}, SpO2: ${v.spo2 || 'N/A'}%`
+      ).join('\n')
+    : 'No vitals recorded'}
+
+## Recent Labs
+${this.state.chartData.labs && this.state.chartData.labs.length > 0
+    ? this.state.chartData.labs.map(l => `- ${l.name}: ${l.value} ${l.unit || ''}`).join('\n')
+    : 'No labs available'}
+
+## Safety Flags
+${this.state.flags && this.state.flags.length > 0
+    ? this.state.flags.map(f => `⚠️ ${f.text}`).join('\n')
+    : 'None'}
+
+## Key Observations
+${this.state.observations && this.state.observations.length > 0
+    ? this.state.observations.map(o => `- ${o}`).join('\n')
+    : 'None'}
+
+## What Has Been Reviewed
+${this.state.reviewed && this.state.reviewed.length > 0
+    ? this.state.reviewed.map(r => `✓ ${r}`).join('\n')
+    : 'Nothing marked as reviewed'}
+
+## Open Items (Not Yet Addressed)
+${this.state.openItems && this.state.openItems.length > 0
+    ? this.state.openItems.map(o => `○ ${o}`).join('\n')
+    : 'None'}
+
+## Current Medications
+${this.state.chartData.meds && this.state.chartData.meds.length > 0
+    ? this.state.chartData.meds.map(m => `- ${m.name} ${m.dose || ''} ${m.route || ''} ${m.frequency || ''}`).join('\n')
+    : 'No medications listed'}
+
+## Nursing Notes
+${this.state.chartData.nursingNotes && this.state.chartData.nursingNotes.length > 0
+    ? this.state.chartData.nursingNotes.slice(-3).map(n => `- ${n.text}`).join('\n')
+    : 'None'}
+
+---
+
+Please provide:
+
+1. **Updated Thinking** (2-4 sentences): Your current analysis of the case, acknowledging the doctor's assessment, noting key clinical considerations, and highlighting any safety concerns. Use **bold** for key decisions. Write from AI perspective.
+
+2. **Updated Summary** (1-2 sentences): A concise case summary with key diagnoses and current status.
+
+3. **Suggested Actions** (3-5 items): Prioritized next steps the doctor should consider. Focus on actionable items.
+
+Format your response as JSON:
+{
+  "thinking": "...",
+  "summary": "...",
+  "suggestedActions": ["action 1", "action 2", "action 3"]
+}`;
+
+        return prompt;
+    },
+
+    /**
+     * Request full refresh from Claude extension
+     */
+    requestFullRefresh(prompt) {
+        window.postMessage({
+            type: 'CLAUDE_REFRESH_REQUEST',
+            prompt: prompt,
+            callback: 'AICoworker.receiveRefreshUpdate'
+        }, '*');
+
+        const event = new CustomEvent('claude-refresh-request', {
+            detail: { prompt: prompt }
+        });
+        document.dispatchEvent(event);
+    },
+
+    /**
+     * Receive refresh update from Claude
+     */
+    receiveRefreshUpdate(response) {
+        try {
+            let data = response;
+            if (typeof response === 'string') {
+                // Try to parse JSON from response
+                const jsonMatch = response.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    data = JSON.parse(jsonMatch[0]);
+                }
+            }
+
+            if (data.thinking) {
+                this.state.thinking = data.thinking;
+            }
+            if (data.summary) {
+                this.state.summary = data.summary;
+            }
+            if (data.suggestedActions && Array.isArray(data.suggestedActions)) {
+                this.state.suggestedActions = data.suggestedActions.map((action, idx) => ({
+                    id: 'refresh_action_' + idx,
+                    text: typeof action === 'string' ? action : action.text
+                }));
+            }
+
+            this.state.status = 'ready';
+            this.saveState();
+            this.render();
+            App.showToast('AI analysis updated', 'success');
+        } catch (e) {
+            console.error('Error parsing refresh response:', e);
+            this.state.status = 'ready';
+            this.render();
+        }
+    },
+
+    /**
+     * Local refresh analysis when Claude is not available
+     */
+    localRefreshAnalysis() {
+        const lowerDictation = (this.state.dictation || '').toLowerCase();
+
+        // Build updated thinking based on current state
+        let newThinking = '';
+        let newSuggestions = [];
+
+        // Analyze based on dictation content
+        if (lowerDictation.includes('chf') || lowerDictation.includes('heart failure') || lowerDictation.includes('volume overload')) {
+            newThinking += 'Working diagnosis: **CHF exacerbation**. ';
+
+            // Check for triggers mentioned
+            if (lowerDictation.includes('diet') || lowerDictation.includes('salt')) {
+                newThinking += 'Dietary indiscretion identified as trigger. ';
+            }
+            if (lowerDictation.includes('missed') || lowerDictation.includes('compliance')) {
+                newThinking += 'Medication non-adherence contributing. ';
+            }
+
+            // Suggest diuresis if not already mentioned
+            if (!this.state.reviewed?.some(r => r.toLowerCase().includes('diure') || r.toLowerCase().includes('lasix'))) {
+                newSuggestions.push('Consider IV diuresis with furosemide');
+            }
+            newSuggestions.push('Monitor daily weights and I/Os');
+            newSuggestions.push('Recheck BMP in AM for electrolytes');
+        }
+
+        // Check for anticoagulation decision
+        if (lowerDictation.includes('anticoagulat') || lowerDictation.includes('a-fib') || lowerDictation.includes('afib')) {
+            if (lowerDictation.includes('not') || lowerDictation.includes("won't") || lowerDictation.includes('hold')) {
+                newThinking += '**Doctor has decided against anticoagulation**';
+                if (this.state.flags?.some(f => f.text.toLowerCase().includes('bleed'))) {
+                    newThinking += ' - aligns with bleeding history. ';
+                } else {
+                    newThinking += '. ';
+                }
+            }
+        }
+
+        // Add suggestions based on open items
+        if (this.state.openItems && this.state.openItems.length > 0) {
+            this.state.openItems.forEach(item => {
+                if (item.toLowerCase().includes('echo')) {
+                    newSuggestions.push('Order echocardiogram to assess current EF');
+                }
+                if (item.toLowerCase().includes('code status')) {
+                    newSuggestions.push('Discuss code status with patient/family');
+                }
+            });
+        }
+
+        // Add suggestions based on flags
+        if (this.state.flags && this.state.flags.length > 0) {
+            this.state.flags.forEach(flag => {
+                if (flag.text.toLowerCase().includes('gi bleed') && !newSuggestions.some(s => s.includes('GI'))) {
+                    newSuggestions.push('Document GI bleed history in anticoagulation decision');
+                }
+            });
+        }
+
+        // Check labs for actionable items
+        if (this.state.chartData.labs) {
+            const cr = this.state.chartData.labs.find(l => l.name.toLowerCase().includes('creatinine'));
+            if (cr && parseFloat(cr.value) > 1.5) {
+                newThinking += 'Noting elevated creatinine - monitor renal function with diuresis. ';
+                if (!newSuggestions.some(s => s.includes('renal'))) {
+                    newSuggestions.push('Monitor creatinine closely with diuresis');
+                }
+            }
+        }
+
+        // Add cardiology consult if heart failure and not already done
+        if ((lowerDictation.includes('chf') || lowerDictation.includes('heart failure')) &&
+            !this.state.reviewed?.some(r => r.toLowerCase().includes('cardiology'))) {
+            if (!newSuggestions.some(s => s.includes('cardiology'))) {
+                newSuggestions.push('Consider cardiology consult');
+            }
+        }
+
+        // Update state if we generated meaningful content
+        if (newThinking.length > 30) {
+            this.state.thinking = newThinking.trim();
+        }
+
+        if (newSuggestions.length > 0) {
+            // Deduplicate and limit to 5
+            const uniqueSuggestions = [...new Set(newSuggestions)].slice(0, 5);
+            this.state.suggestedActions = uniqueSuggestions.map((text, idx) => ({
+                id: 'local_refresh_' + idx,
+                text: text
+            }));
+        }
+
+        this.state.status = 'ready';
+        this.state.lastUpdated = new Date().toISOString();
+        this.saveState();
+        this.render();
+    },
+
     // ==================== Claude Extension Integration ====================
 
     /**
@@ -1928,4 +2208,12 @@ window.setAIDictation = function(text) {
     AICoworker.saveState();
     AICoworker.render();
     AICoworker.onDictationUpdated(text);
+};
+
+window.refreshAIAssistant = function() {
+    AICoworker.refreshThinking();
+};
+
+window.updateAIFromRefresh = function(response) {
+    AICoworker.receiveRefreshUpdate(response);
 };
