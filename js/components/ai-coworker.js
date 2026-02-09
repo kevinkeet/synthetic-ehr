@@ -21,6 +21,13 @@ const AICoworker = {
     apiEndpoint: 'https://api.anthropic.com/v1/messages',
     model: 'claude-sonnet-4-20250514',
 
+    // Longitudinal Clinical Document
+    longitudinalDoc: null,
+    longitudinalDocUpdater: null,
+    longitudinalDocRenderer: null,
+    longitudinalDocBuilder: null,
+    useLongitudinalContext: true, // Toggle between legacy and longitudinal context
+
     // Default state
     state: {
         status: 'ready', // ready, thinking, alert
@@ -101,6 +108,59 @@ const AICoworker = {
         });
 
         console.log('AI Assistant initialized');
+
+        // Initialize longitudinal document for current patient
+        this.initializeLongitudinalDocument();
+    },
+
+    /**
+     * Initialize the longitudinal clinical document for the current patient
+     */
+    async initializeLongitudinalDocument(patientId = null) {
+        try {
+            // Get patient ID from dataLoader or default
+            const pid = patientId || window.dataLoader?.currentPatientId || 'PAT001';
+            console.log(`Initializing longitudinal document for patient ${pid}...`);
+
+            // Create builder
+            this.longitudinalDocBuilder = new LongitudinalDocumentBuilder(window.dataLoader);
+
+            // Build full document
+            this.longitudinalDoc = await this.longitudinalDocBuilder.buildFull(pid);
+
+            // Create updater for real-time updates
+            this.longitudinalDocUpdater = new LongitudinalDocumentUpdater(this.longitudinalDoc);
+
+            // Create renderer
+            this.longitudinalDocRenderer = new LongitudinalDocumentRenderer({
+                format: 'detailed',
+                includeNarrative: true,
+                includeLabTrends: true
+            });
+
+            // Sync any existing session state to the document
+            this.syncSessionStateToDocument();
+
+            console.log('Longitudinal document initialized successfully');
+            console.log(`  - Problems: ${this.longitudinalDoc.problemMatrix.size}`);
+            console.log(`  - Lab trends: ${this.longitudinalDoc.longitudinalData.labs.size}`);
+            console.log(`  - Vitals: ${this.longitudinalDoc.longitudinalData.vitals.length}`);
+
+        } catch (error) {
+            console.error('Failed to initialize longitudinal document:', error);
+            // Fall back to legacy context
+            this.useLongitudinalContext = false;
+        }
+    },
+
+    /**
+     * Sync current AI session state to the longitudinal document
+     */
+    syncSessionStateToDocument() {
+        if (!this.longitudinalDocUpdater) return;
+
+        // Sync from current state
+        this.longitudinalDocUpdater.syncFromAIState(this.state);
     },
 
     /**
@@ -2271,7 +2331,13 @@ Format your response as JSON:
     refreshDebugContext() {
         // Build current clinical context
         const clinicalContext = this.buildFullClinicalContext();
-        document.getElementById('debug-context-text').value = clinicalContext;
+
+        // Add header showing which context type is being used
+        const contextType = (this.useLongitudinalContext && this.longitudinalDoc)
+            ? '=== LONGITUDINAL CLINICAL DOCUMENT ===\n\n'
+            : '=== LEGACY CLINICAL CONTEXT ===\n\n';
+
+        document.getElementById('debug-context-text').value = contextType + clinicalContext;
 
         // Show last API call data if available
         if (this.lastApiCall.timestamp) {
@@ -2370,8 +2436,33 @@ ${document.getElementById('debug-response-text').value}
 
     /**
      * Build the full clinical context for the LLM
+     * Uses longitudinal document if available, falls back to legacy method
      */
     buildFullClinicalContext() {
+        // Try to use longitudinal document if available
+        if (this.useLongitudinalContext && this.longitudinalDoc && this.longitudinalDocRenderer) {
+            try {
+                // Sync current session state to document first
+                this.syncSessionStateToDocument();
+
+                // Render the longitudinal document
+                const context = this.longitudinalDocRenderer.render(this.longitudinalDoc);
+                console.log('Using LONGITUDINAL clinical context');
+                console.log(`  - Context length: ${context.length} chars`);
+                return context;
+            } catch (error) {
+                console.warn('Failed to render longitudinal context, falling back to legacy:', error);
+            }
+        }
+
+        console.log('Using LEGACY clinical context');
+        return this.buildLegacyClinicalContext();
+    },
+
+    /**
+     * Legacy method for building clinical context (fallback)
+     */
+    buildLegacyClinicalContext() {
         const ctx = {
             patient: this.state.chartData?.patientInfo || { name: 'Unknown', age: 'Unknown' },
             vitals: this.state.chartData?.vitals?.slice(-5) || [],
