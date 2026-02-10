@@ -403,7 +403,9 @@ class LongitudinalClinicalDocument {
             aiObservations: [],
             safetyFlags: [],
             reviewedItems: [],
-            pendingItems: []
+            pendingItems: [],
+            patientConversation: [],
+            nurseConversation: []
         };
     }
 

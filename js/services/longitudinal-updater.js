@@ -559,6 +559,36 @@ class LongitudinalDocumentUpdater {
         // Update timestamp
         this.document.metadata.lastUpdated = new Date().toISOString();
     }
+
+    /**
+     * Sync patient conversation history into the document
+     * @param {Array} messages - Array of {role, content} from PatientChat
+     */
+    syncPatientConversation(messages) {
+        if (!messages || messages.length === 0) return;
+
+        // Take the most recent messages (last 20) to keep context manageable
+        const recent = messages.slice(-20);
+        this.document.sessionContext.patientConversation = recent.map(m => ({
+            role: m.role === 'user' ? 'doctor' : 'patient',
+            content: m.content
+        }));
+    }
+
+    /**
+     * Sync nurse conversation history into the document
+     * @param {Array} messages - Array of {role, content} from NurseChat
+     */
+    syncNurseConversation(messages) {
+        if (!messages || messages.length === 0) return;
+
+        // Take the most recent messages (last 20) to keep context manageable
+        const recent = messages.slice(-20);
+        this.document.sessionContext.nurseConversation = recent.map(m => ({
+            role: m.role === 'user' ? 'doctor' : 'nurse',
+            content: m.content
+        }));
+    }
 }
 
 // ============================================================

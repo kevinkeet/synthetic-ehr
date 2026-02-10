@@ -22,7 +22,16 @@ const NotesList = {
 
         try {
             const notesIndex = await dataLoader.loadNotesIndex();
-            this.notes = DateUtils.sortByDate(notesIndex.notes || [], 'date');
+            const baseNotes = notesIndex.notes || [];
+
+            // Merge in AI-generated notes from localStorage
+            const generatedNotes = JSON.parse(localStorage.getItem('ehr-generated-notes') || '[]');
+            const allNotes = [...baseNotes, ...generatedNotes.map(n => ({
+                ...n,
+                preview: (n.content || '').substring(0, 100) + '...'
+            }))];
+
+            this.notes = DateUtils.sortByDate(allNotes, 'date');
             this.filteredNotes = [...this.notes];
 
             content.innerHTML = `
@@ -95,11 +104,12 @@ const NotesList = {
         }
 
         return this.filteredNotes.map(note => `
-            <div class="note-list-item ${note.id === this.selectedNoteId ? 'selected' : ''}"
+            <div class="note-list-item ${note.id === this.selectedNoteId ? 'selected' : ''} ${note.aiGenerated ? 'ai-generated' : ''}"
                  data-note-id="${note.id}"
                  onclick="NotesList.selectNote('${note.id}')">
                 <div class="note-item-header">
                     <span class="note-type">${note.type}</span>
+                    ${note.aiGenerated ? '<span class="note-ai-badge">AI Draft</span>' : ''}
                     <span class="note-date">${DateUtils.formatDate(note.date)}</span>
                 </div>
                 <div class="note-author">${note.author} - ${note.department || ''}</div>
@@ -167,6 +177,15 @@ const NotesList = {
 
         viewer.innerHTML = '<div class="loading">Loading note...</div>';
 
+        // Check if this is an AI-generated note (stored in localStorage)
+        const generatedNotes = JSON.parse(localStorage.getItem('ehr-generated-notes') || '[]');
+        const generatedNote = generatedNotes.find(n => n.id === noteId);
+
+        if (generatedNote) {
+            NoteViewer.render(generatedNote, viewer);
+            return;
+        }
+
         try {
             const note = await dataLoader.loadNote(noteId);
             NoteViewer.render(note, viewer);
@@ -178,6 +197,21 @@ const NotesList = {
                     <div class="empty-state-text">Error loading note</div>
                 </div>
             `;
+        }
+    },
+
+    /**
+     * Add a generated note to the current list without full re-render
+     */
+    addGeneratedNote(note) {
+        this.notes.unshift({
+            ...note,
+            preview: (note.content || '').substring(0, 100) + '...'
+        });
+        this.filteredNotes = [...this.notes];
+        const listBody = document.getElementById('notes-list-body');
+        if (listBody) {
+            listBody.innerHTML = this.renderNotesList();
         }
     },
 

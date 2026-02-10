@@ -573,6 +573,30 @@ Code Status: ${doc.patientSnapshot.codeStatus || 'Full Code'}`;
             hasContent = true;
         }
 
+        // Patient conversation (what the patient told us)
+        if (ctx.patientConversation && ctx.patientConversation.length > 0) {
+            text += `### Patient Interview (Recent)\n`;
+            text += `The following is the recent conversation between the physician and the patient:\n`;
+            for (const msg of ctx.patientConversation) {
+                const speaker = msg.role === 'doctor' ? 'Doctor' : 'Patient';
+                text += `${speaker}: ${msg.content}\n`;
+            }
+            text += '\n';
+            hasContent = true;
+        }
+
+        // Nurse conversation (what the nurse reported)
+        if (ctx.nurseConversation && ctx.nurseConversation.length > 0) {
+            text += `### Nurse Communication (Recent)\n`;
+            text += `The following is the recent conversation between the physician and the nurse:\n`;
+            for (const msg of ctx.nurseConversation) {
+                const speaker = msg.role === 'doctor' ? 'Doctor' : 'Nurse';
+                text += `${speaker}: ${msg.content}\n`;
+            }
+            text += '\n';
+            hasContent = true;
+        }
+
         // AI observations
         if (ctx.aiObservations && ctx.aiObservations.length > 0) {
             text += `### AI Observations\n`;

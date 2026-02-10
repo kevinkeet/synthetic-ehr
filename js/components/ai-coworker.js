@@ -161,6 +161,16 @@ const AICoworker = {
 
         // Sync from current state
         this.longitudinalDocUpdater.syncFromAIState(this.state);
+
+        // Sync patient conversation if available
+        if (window.PatientChat && window.PatientChat.messages && window.PatientChat.messages.length > 0) {
+            this.longitudinalDocUpdater.syncPatientConversation(window.PatientChat.messages);
+        }
+
+        // Sync nurse conversation if available
+        if (window.NurseChat && window.NurseChat.messages && window.NurseChat.messages.length > 0) {
+            this.longitudinalDocUpdater.syncNurseConversation(window.NurseChat.messages);
+        }
     },
 
     /**
@@ -430,6 +440,8 @@ const AICoworker = {
                 this.closeAddTask();
                 this.closeDictationModal();
                 this.closeNoteModal();
+                this.closeNoteEditor();
+                this.closeResponseModal();
             }
         });
 
@@ -1760,9 +1772,10 @@ Respond with ONLY the JSON, no preamble.`;
     /**
      * Generate a clinical note using Claude
      */
-    generateNote() {
+    async generateNote() {
         const noteType = document.querySelector('input[name="note-type"]:checked').value;
         const instructions = document.getElementById('note-instructions').value.trim();
+        const noteTypeName = this.getNoteTypeName(noteType);
 
         // Build data sources based on checkboxes
         const includeSources = {
@@ -1775,15 +1788,45 @@ Respond with ONLY the JSON, no preamble.`;
             previous: document.getElementById('include-previous').checked
         };
 
-        // Build the prompt for Claude
-        const prompt = this.buildNotePrompt(noteType, includeSources, instructions);
-
         this.closeNoteModal();
 
-        // Trigger Claude to generate the note
-        this.askClaudeAbout(prompt);
+        // Show generating state
+        this.openNoteEditor(noteTypeName, null);
 
-        App.showToast('Generating ' + this.getNoteTypeName(noteType) + '...', 'info');
+        // Build context - use full longitudinal context + specific note prompt
+        const clinicalContext = this.buildFullClinicalContext();
+        const notePrompt = this.buildNotePrompt(noteType, includeSources, instructions);
+
+        const systemPrompt = `You are a physician writing a clinical note in an EHR system. Write a professional, thorough clinical note based on the patient data provided. Use standard medical documentation conventions.
+
+Write the note in plain text with clear section headers. Do NOT use markdown formatting like ** or #. Use UPPERCASE for section headers followed by a colon.
+
+IMPORTANT:
+- Be thorough but concise - include clinically relevant details
+- Use the patient's actual data from the clinical context
+- Include the patient and nurse conversation data if relevant to the clinical picture
+- Structure the note according to the requested format
+- Write as if you are the attending physician documenting the encounter`;
+
+        const userMessage = `## Full Clinical Context
+${clinicalContext}
+
+## Note Request
+${notePrompt}`;
+
+        try {
+            const response = await this.callLLM(systemPrompt, userMessage, 4096);
+            this.openNoteEditor(noteTypeName, response);
+            App.showToast(noteTypeName + ' draft generated', 'success');
+        } catch (error) {
+            console.error('Note generation error:', error);
+            if (error.message === 'API key not configured') {
+                this.closeNoteEditor();
+            } else {
+                this.openNoteEditor(noteTypeName, 'Error generating note: ' + error.message + '\n\nYou can write your note manually here.');
+                App.showToast('Error generating note: ' + error.message, 'error');
+            }
+        }
     },
 
     getNoteTypeName(type) {
@@ -1879,6 +1922,102 @@ Respond with ONLY the JSON, no preamble.`;
         }
 
         return prompt;
+    },
+
+    // ==================== Note Editor ====================
+
+    openNoteEditor(noteTypeName, content) {
+        let modal = document.getElementById('ai-note-editor-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'ai-note-editor-modal';
+            modal.className = 'ai-modal';
+            document.body.appendChild(modal);
+        }
+
+        const isGenerating = content === null;
+
+        modal.innerHTML = `
+            <div class="ai-modal-content note-editor-modal">
+                <div class="ai-modal-header">
+                    <h3>${noteTypeName} Draft</h3>
+                    <button onclick="AICoworker.closeNoteEditor()">×</button>
+                </div>
+                <div class="ai-modal-body note-editor-body">
+                    ${isGenerating
+                        ? '<div class="note-generating"><div class="ai-assistant-spinner"></div><span>Generating note draft...</span></div>'
+                        : '<textarea id="note-editor-content" class="note-editor-textarea" spellcheck="true"></textarea>'
+                    }
+                </div>
+                <div class="ai-modal-footer">
+                    <button class="btn btn-secondary" onclick="AICoworker.closeNoteEditor()">Discard</button>
+                    <button class="btn btn-secondary" onclick="AICoworker.copyNoteToClipboard()" ${isGenerating ? 'disabled' : ''}>Copy</button>
+                    <button class="btn btn-primary" onclick="AICoworker.saveNoteToEHR('${noteTypeName}')" ${isGenerating ? 'disabled' : ''}>Save to Chart</button>
+                </div>
+            </div>
+        `;
+
+        modal.classList.add('visible');
+
+        if (!isGenerating && content) {
+            const textarea = document.getElementById('note-editor-content');
+            if (textarea) textarea.value = content;
+        }
+    },
+
+    closeNoteEditor() {
+        const modal = document.getElementById('ai-note-editor-modal');
+        if (modal) modal.classList.remove('visible');
+    },
+
+    copyNoteToClipboard() {
+        const textarea = document.getElementById('note-editor-content');
+        if (!textarea) return;
+        navigator.clipboard.writeText(textarea.value).then(() => {
+            App.showToast('Note copied to clipboard', 'success');
+        });
+    },
+
+    saveNoteToEHR(noteTypeName) {
+        const textarea = document.getElementById('note-editor-content');
+        if (!textarea || !textarea.value.trim()) {
+            App.showToast('Note is empty', 'error');
+            return;
+        }
+
+        const now = new Date();
+        const noteId = 'NOTE_AI_' + now.getTime();
+        const patientName = window.PatientHeader?.patient?.name || 'Unknown Patient';
+
+        const newNote = {
+            id: noteId,
+            type: noteTypeName,
+            title: noteTypeName + ' - AI-Assisted Draft',
+            date: now.toISOString(),
+            author: 'Attending Physician (AI-Assisted)',
+            department: 'Hospital Medicine',
+            content: textarea.value.trim(),
+            signedDate: null,
+            aiGenerated: true
+        };
+
+        // Store in localStorage so it persists and is accessible to the Notes view
+        const storedNotes = JSON.parse(localStorage.getItem('ehr-generated-notes') || '[]');
+        storedNotes.push(newNote);
+        localStorage.setItem('ehr-generated-notes', JSON.stringify(storedNotes));
+
+        // Notify the notes list component if it exists
+        if (window.NotesList && typeof NotesList.addGeneratedNote === 'function') {
+            NotesList.addGeneratedNote(newNote);
+        }
+
+        this.closeNoteEditor();
+        App.showToast(noteTypeName + ' saved to chart', 'success');
+
+        // Navigate to notes view to show the saved note
+        if (window.router) {
+            window.router.navigate('/notes');
+        }
     },
 
     /**
@@ -2475,7 +2614,15 @@ ${document.getElementById('debug-response-text').value}
             openItems: this.state.openItems || [],
             previousSummary: this.state.summary || '',
             previousThinking: this.state.thinking || '',
-            dictationHistory: this.state.dictationHistory?.slice(-3) || []
+            dictationHistory: this.state.dictationHistory?.slice(-3) || [],
+            patientConversation: (window.PatientChat?.messages || []).slice(-20).map(m => ({
+                role: m.role === 'user' ? 'doctor' : 'patient',
+                content: m.content
+            })),
+            nurseConversation: (window.NurseChat?.messages || []).slice(-20).map(m => ({
+                role: m.role === 'user' ? 'doctor' : 'nurse',
+                content: m.content
+            }))
         };
 
         let contextStr = `## Patient Information
@@ -2532,7 +2679,17 @@ ${ctx.previousThinking || 'None'}
 ## Doctor's Previous Thoughts (for context)
 ${ctx.dictationHistory.length > 0
     ? ctx.dictationHistory.map(d => `- "${d.text}"`).join('\n')
-    : 'None'}`;
+    : 'None'}
+
+## Patient Interview (Recent)
+${ctx.patientConversation.length > 0
+    ? ctx.patientConversation.map(m => `${m.role === 'doctor' ? 'Doctor' : 'Patient'}: ${m.content}`).join('\n')
+    : 'No patient conversation yet'}
+
+## Nurse Communication (Recent)
+${ctx.nurseConversation.length > 0
+    ? ctx.nurseConversation.map(m => `${m.role === 'doctor' ? 'Doctor' : 'Nurse'}: ${m.content}`).join('\n')
+    : 'No nurse conversation yet'}`;
 
         return contextStr;
     },
@@ -2540,7 +2697,7 @@ ${ctx.dictationHistory.length > 0
     /**
      * Call the Anthropic API with the given prompt
      */
-    async callLLM(systemPrompt, userMessage) {
+    async callLLM(systemPrompt, userMessage, maxTokens) {
         // Store debug info BEFORE the call
         this.lastApiCall = {
             timestamp: Date.now(),
@@ -2576,7 +2733,7 @@ ${ctx.dictationHistory.length > 0
                 },
                 body: JSON.stringify({
                     model: this.model,
-                    max_tokens: 1024,
+                    max_tokens: maxTokens || 1024,
                     system: systemPrompt,
                     messages: [
                         { role: 'user', content: userMessage }
@@ -2795,47 +2952,38 @@ Provide a comprehensive case synthesis.`;
      * Ask Claude browser extension to help with a specific item
      * This triggers the Claude in Chrome extension if installed
      */
-    askClaudeAbout(item) {
-        // Build context from current patient and state
-        const patientContext = this.buildPatientContext();
-        const prompt = 'Help me with this task for my patient:\n\nTask: ' + item + '\n\n' + patientContext;
-
-        // Method 1: Try to trigger Claude in Chrome extension via postMessage
-        // The extension listens for specific message types
-        window.postMessage({
-            type: 'CLAUDE_EXTENSION_PROMPT',
-            prompt: prompt,
-            context: {
-                source: 'synthetic-ehr',
-                task: item,
-                patient: patientContext
-            }
-        }, '*');
-
-        // Method 2: Try custom event that extensions might listen for
-        const event = new CustomEvent('claude-assist-request', {
-            detail: {
-                prompt: prompt,
-                task: item,
-                context: patientContext
-            }
-        });
-        document.dispatchEvent(event);
-
-        // Method 3: Check if extension exposed a global function
-        if (typeof window.askClaude === 'function') {
-            window.askClaude(prompt);
+    async askClaudeAbout(item) {
+        // Check if this looks like a note-writing request
+        const notePatterns = /\b(write|draft|generate|create)\b.*\b(note|h&p|h\&p|progress note|discharge|consult)\b/i;
+        if (notePatterns.test(item)) {
+            this.openNoteModal();
             return;
         }
 
-        // Method 4: Try to open Claude in a sidebar or popup if extension provides that
-        if (typeof window.openClaudeSidebar === 'function') {
-            window.openClaudeSidebar(prompt);
-            return;
-        }
+        // Show response modal in loading state
+        this.openResponseModal(item, null);
 
-        // Method 5: Copy to clipboard and show instructions
-        this.copyToClipboardAndNotify(prompt, item);
+        const clinicalContext = this.buildFullClinicalContext();
+
+        const systemPrompt = `You are an AI clinical assistant helping a physician. Answer their question or help with their task using the clinical context provided. Be concise, clinically relevant, and actionable. Use plain text, not markdown.`;
+
+        const userMessage = `## Clinical Context
+${clinicalContext}
+
+## Physician's Request
+${item}`;
+
+        try {
+            const response = await this.callLLM(systemPrompt, userMessage, 2048);
+            this.openResponseModal(item, response);
+        } catch (error) {
+            if (error.message === 'API key not configured') {
+                this.closeResponseModal();
+            } else {
+                this.openResponseModal(item, 'Error: ' + error.message);
+                App.showToast('Error: ' + error.message, 'error');
+            }
+        }
     },
 
     /**
@@ -2873,8 +3021,62 @@ Provide a comprehensive case synthesis.`;
         return context;
     },
 
+    // ==================== AI Response Modal ====================
+
+    openResponseModal(question, content) {
+        let modal = document.getElementById('ai-response-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'ai-response-modal';
+            modal.className = 'ai-modal';
+            document.body.appendChild(modal);
+        }
+
+        const isLoading = content === null;
+
+        modal.innerHTML = `
+            <div class="ai-modal-content note-editor-modal">
+                <div class="ai-modal-header">
+                    <h3>AI Response</h3>
+                    <button onclick="AICoworker.closeResponseModal()">×</button>
+                </div>
+                <div class="ai-modal-body note-editor-body">
+                    <div class="response-question">${this.escapeHtml(question)}</div>
+                    ${isLoading
+                        ? '<div class="note-generating"><div class="ai-assistant-spinner"></div><span>Thinking...</span></div>'
+                        : '<div class="ai-response-content" id="ai-response-text"></div>'
+                    }
+                </div>
+                <div class="ai-modal-footer">
+                    <button class="btn btn-secondary" onclick="AICoworker.closeResponseModal()">Close</button>
+                    <button class="btn btn-secondary" onclick="AICoworker.copyResponseToClipboard()" ${isLoading ? 'disabled' : ''}>Copy</button>
+                </div>
+            </div>
+        `;
+
+        modal.classList.add('visible');
+
+        if (!isLoading && content) {
+            const el = document.getElementById('ai-response-text');
+            if (el) el.textContent = content;
+        }
+    },
+
+    closeResponseModal() {
+        const modal = document.getElementById('ai-response-modal');
+        if (modal) modal.classList.remove('visible');
+    },
+
+    copyResponseToClipboard() {
+        const el = document.getElementById('ai-response-text');
+        if (!el) return;
+        navigator.clipboard.writeText(el.textContent).then(() => {
+            App.showToast('Response copied to clipboard', 'success');
+        });
+    },
+
     /**
-     * Fallback: Copy prompt to clipboard and notify user
+     * Fallback: Copy prompt to clipboard and notify user (legacy)
      */
     copyToClipboardAndNotify(prompt, item) {
         navigator.clipboard.writeText(prompt).then(() => {
