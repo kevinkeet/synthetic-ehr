@@ -501,6 +501,171 @@ class LongitudinalClinicalDocument {
 
         return 'Historical';
     }
+
+    // ============================================================
+    // SERIALIZATION (for localStorage persistence)
+    // ============================================================
+
+    /**
+     * Serialize the document to a plain JSON-safe object
+     * Converts Maps to arrays of [key, value] pairs
+     */
+    serialize() {
+        return {
+            metadata: this.metadata,
+            patientSnapshot: this.patientSnapshot,
+            problemMatrix: this.serializeProblemMatrix(),
+            longitudinalData: this.serializeLongitudinalData(),
+            clinicalNarrative: this.clinicalNarrative,
+            sessionContext: this.sessionContext,
+            options: {
+                timePeriods: this.options.timePeriods,
+                maxVitalsPerPeriod: this.options.maxVitalsPerPeriod,
+                maxLabsPerPeriod: this.options.maxLabsPerPeriod,
+                maxNotesPerPeriod: this.options.maxNotesPerPeriod,
+                includeResolvedProblems: this.options.includeResolvedProblems
+            }
+        };
+    }
+
+    serializeProblemMatrix() {
+        const entries = [];
+        for (const [id, timeline] of this.problemMatrix) {
+            entries.push([id, {
+                problem: timeline.problem,
+                timeline: this.serializeTimeline(timeline.timeline)
+            }]);
+        }
+        return entries;
+    }
+
+    serializeTimeline(timelineMap) {
+        const entries = [];
+        for (const [label, data] of timelineMap) {
+            entries.push([label, {
+                encounters: data.encounters,
+                notes: data.notes,
+                labs: data.labs,
+                medications: data.medications,
+                vitals: data.vitals,
+                imaging: data.imaging,
+                procedures: data.procedures,
+                status: data.status
+            }]);
+        }
+        return entries;
+    }
+
+    serializeLongitudinalData() {
+        // Serialize labs Map<string, LabTrend>
+        const labEntries = [];
+        for (const [name, trend] of this.longitudinalData.labs) {
+            labEntries.push([name, {
+                name: trend.name,
+                referenceRange: trend.referenceRange,
+                values: trend.values.map(v => ({
+                    ...v,
+                    date: v.date instanceof Date ? v.date.toISOString() : v.date
+                })),
+                trend: trend.trend,
+                baseline: trend.baseline,
+                criticalEvents: trend.criticalEvents.map(e => ({
+                    ...e,
+                    date: e.date instanceof Date ? e.date.toISOString() : e.date
+                }))
+            }]);
+        }
+
+        // Serialize vitalsByPeriod Map
+        const vitalsByPeriodEntries = [];
+        for (const [label, vitals] of this.longitudinalData.vitalsByPeriod) {
+            vitalsByPeriodEntries.push([label, vitals]);
+        }
+
+        return {
+            vitals: this.longitudinalData.vitals,
+            vitalsByPeriod: vitalsByPeriodEntries,
+            medications: this.longitudinalData.medications,
+            labs: labEntries,
+            imaging: this.longitudinalData.imaging,
+            procedures: this.longitudinalData.procedures,
+            encounters: this.longitudinalData.encounters
+        };
+    }
+
+    /**
+     * Deserialize from a plain JSON object back into a full document
+     * @param {Object} data - Serialized document data
+     * @returns {LongitudinalClinicalDocument}
+     */
+    static deserialize(data) {
+        if (!data || !data.metadata) return null;
+
+        const doc = new LongitudinalClinicalDocument(data.options || {});
+        doc.metadata = data.metadata;
+        doc.patientSnapshot = data.patientSnapshot;
+        doc.clinicalNarrative = data.clinicalNarrative;
+        doc.sessionContext = data.sessionContext;
+
+        // Deserialize problem matrix
+        if (data.problemMatrix) {
+            for (const [id, timelineData] of data.problemMatrix) {
+                const timeline = new ProblemTimeline(timelineData.problem);
+                // Restore the timeline Map
+                timeline.timeline = new Map();
+                if (timelineData.timeline) {
+                    for (const [label, periodData] of timelineData.timeline) {
+                        const period = new ProblemPeriodData();
+                        Object.assign(period, periodData);
+                        timeline.timeline.set(label, period);
+                    }
+                }
+                doc.problemMatrix.set(id, timeline);
+            }
+        }
+
+        // Deserialize longitudinal data
+        if (data.longitudinalData) {
+            doc.longitudinalData.vitals = data.longitudinalData.vitals || [];
+            doc.longitudinalData.medications = data.longitudinalData.medications || { current: [], historical: [], recentChanges: [] };
+            doc.longitudinalData.imaging = data.longitudinalData.imaging || [];
+            doc.longitudinalData.procedures = data.longitudinalData.procedures || [];
+            doc.longitudinalData.encounters = data.longitudinalData.encounters || [];
+
+            // Deserialize vitalsByPeriod Map
+            doc.longitudinalData.vitalsByPeriod = new Map();
+            if (data.longitudinalData.vitalsByPeriod) {
+                for (const [label, vitals] of data.longitudinalData.vitalsByPeriod) {
+                    doc.longitudinalData.vitalsByPeriod.set(label, vitals);
+                }
+            }
+
+            // Deserialize labs Map with LabTrend objects
+            doc.longitudinalData.labs = new Map();
+            if (data.longitudinalData.labs) {
+                for (const [name, trendData] of data.longitudinalData.labs) {
+                    const trend = new LabTrend(trendData.name, trendData.referenceRange);
+                    // Restore values with proper Date objects
+                    for (const v of trendData.values || []) {
+                        trend.values.push({
+                            ...v,
+                            date: new Date(v.date)
+                        });
+                    }
+                    trend.trend = trendData.trend;
+                    trend.baseline = trendData.baseline;
+                    trend.latestValue = trend.values.length > 0 ? trend.values[0] : null;
+                    trend.criticalEvents = (trendData.criticalEvents || []).map(e => ({
+                        ...e,
+                        date: new Date(e.date)
+                    }));
+                    doc.longitudinalData.labs.set(name, trend);
+                }
+            }
+        }
+
+        return doc;
+    }
 }
 
 // ============================================================

@@ -122,11 +122,27 @@ const AICoworker = {
             const pid = patientId || window.dataLoader?.currentPatientId || 'PAT001';
             console.log(`Initializing longitudinal document for patient ${pid}...`);
 
-            // Create builder
-            this.longitudinalDocBuilder = new LongitudinalDocumentBuilder(window.dataLoader);
+            // Try to load from localStorage first
+            const savedDoc = this.loadLongitudinalDoc(pid);
+            if (savedDoc) {
+                console.log('Loaded longitudinal document from localStorage');
+                this.longitudinalDoc = savedDoc;
 
-            // Build full document
-            this.longitudinalDoc = await this.longitudinalDocBuilder.buildFull(pid);
+                // Create builder for incremental updates
+                this.longitudinalDocBuilder = new LongitudinalDocumentBuilder(window.dataLoader);
+
+                // Do an incremental update to pick up any new data since last save
+                await this.longitudinalDocBuilder.updateSince(
+                    this.longitudinalDoc,
+                    this.longitudinalDoc.metadata.lastLoadedTimestamp
+                );
+                console.log('Incremental update complete');
+            } else {
+                // No saved document - build from scratch
+                console.log('No saved document found, building full document...');
+                this.longitudinalDocBuilder = new LongitudinalDocumentBuilder(window.dataLoader);
+                this.longitudinalDoc = await this.longitudinalDocBuilder.buildFull(pid);
+            }
 
             // Create updater for real-time updates
             this.longitudinalDocUpdater = new LongitudinalDocumentUpdater(this.longitudinalDoc);
@@ -141,16 +157,85 @@ const AICoworker = {
             // Sync any existing session state to the document
             this.syncSessionStateToDocument();
 
+            // Save the initialized document
+            this.saveLongitudinalDoc();
+
             console.log('Longitudinal document initialized successfully');
             console.log(`  - Problems: ${this.longitudinalDoc.problemMatrix.size}`);
             console.log(`  - Lab trends: ${this.longitudinalDoc.longitudinalData.labs.size}`);
             console.log(`  - Vitals: ${this.longitudinalDoc.longitudinalData.vitals.length}`);
+            console.log(`  - Narrative trajectory: ${this.longitudinalDoc.clinicalNarrative.trajectoryAssessment ? 'YES' : 'empty'}`);
+            console.log(`  - Key findings: ${this.longitudinalDoc.clinicalNarrative.keyFindings.length}`);
 
         } catch (error) {
             console.error('Failed to initialize longitudinal document:', error);
             // Fall back to legacy context
             this.useLongitudinalContext = false;
         }
+    },
+
+    /**
+     * Save longitudinal document to localStorage
+     */
+    saveLongitudinalDoc() {
+        if (!this.longitudinalDoc) return;
+
+        try {
+            const patientId = this.longitudinalDoc.metadata.patientId;
+            const key = `longitudinalDoc_${patientId}`;
+            const serialized = this.longitudinalDoc.serialize();
+            const json = JSON.stringify(serialized);
+            localStorage.setItem(key, json);
+            console.log(`Saved longitudinal document (${(json.length / 1024).toFixed(1)}KB)`);
+        } catch (error) {
+            console.warn('Failed to save longitudinal document:', error.message);
+            // localStorage might be full - try to clear old data
+            if (error.name === 'QuotaExceededError') {
+                console.warn('localStorage quota exceeded, clearing old longitudinal docs');
+                this.clearOldLongitudinalDocs();
+            }
+        }
+    },
+
+    /**
+     * Load longitudinal document from localStorage
+     */
+    loadLongitudinalDoc(patientId) {
+        try {
+            const key = `longitudinalDoc_${patientId}`;
+            const json = localStorage.getItem(key);
+            if (!json) return null;
+
+            const data = JSON.parse(json);
+            const doc = LongitudinalClinicalDocument.deserialize(data);
+
+            if (doc) {
+                console.log(`Loaded longitudinal document from localStorage (${(json.length / 1024).toFixed(1)}KB)`);
+                console.log(`  - Last updated: ${doc.metadata.lastUpdated}`);
+                console.log(`  - Narrative trajectory: ${doc.clinicalNarrative.trajectoryAssessment ? 'YES' : 'empty'}`);
+                console.log(`  - Key findings: ${doc.clinicalNarrative.keyFindings.length}`);
+                console.log(`  - Doctor dictations: ${doc.sessionContext.doctorDictation.length}`);
+            }
+
+            return doc;
+        } catch (error) {
+            console.warn('Failed to load longitudinal document:', error.message);
+            return null;
+        }
+    },
+
+    /**
+     * Clear old longitudinal docs if localStorage is full
+     */
+    clearOldLongitudinalDocs() {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith('longitudinalDoc_')) {
+                keysToRemove.push(key);
+            }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
     },
 
     /**
@@ -171,6 +256,54 @@ const AICoworker = {
         if (window.NurseChat && window.NurseChat.messages && window.NurseChat.messages.length > 0) {
             this.longitudinalDocUpdater.syncNurseConversation(window.NurseChat.messages);
         }
+    },
+
+    /**
+     * Write LLM insights back into the longitudinal document
+     * This makes the document "learn" from each LLM interaction,
+     * building a durable record that persists across sessions.
+     */
+    writeBackToDocument(llmResult) {
+        if (!this.longitudinalDoc) return;
+
+        const narrative = this.longitudinalDoc.clinicalNarrative;
+
+        // Write trajectory assessment (cumulative - LLM refines each time)
+        if (llmResult.trajectoryAssessment) {
+            narrative.trajectoryAssessment = llmResult.trajectoryAssessment;
+        }
+
+        // Write key findings (merge, deduplicate)
+        if (llmResult.keyFindings && Array.isArray(llmResult.keyFindings)) {
+            const existingSet = new Set(narrative.keyFindings.map(f => f.toLowerCase().trim()));
+            for (const finding of llmResult.keyFindings) {
+                if (!existingSet.has(finding.toLowerCase().trim())) {
+                    narrative.keyFindings.push(finding);
+                    existingSet.add(finding.toLowerCase().trim());
+                }
+            }
+            // Cap at 20 to prevent unbounded growth
+            if (narrative.keyFindings.length > 20) {
+                narrative.keyFindings = narrative.keyFindings.slice(-20);
+            }
+        }
+
+        // Write open questions (replace - LLM provides current state)
+        if (llmResult.openQuestions && Array.isArray(llmResult.openQuestions)) {
+            narrative.openQuestions = llmResult.openQuestions;
+        }
+
+        // Update metadata timestamp
+        this.longitudinalDoc.metadata.lastUpdated = new Date().toISOString();
+
+        // Persist to localStorage
+        this.saveLongitudinalDoc();
+
+        console.log('📝 Write-back to longitudinal document:', {
+            trajectory: !!llmResult.trajectoryAssessment,
+            keyFindings: llmResult.keyFindings?.length || 0,
+            openQuestions: llmResult.openQuestions?.length || 0
+        });
     },
 
     /**
@@ -2771,29 +2904,37 @@ ${ctx.nurseConversation.length > 0
         this.state.status = 'thinking';
         this.render();
 
-        const systemPrompt = `You are an AI clinical assistant helping a physician manage a patient case. Your role is to:
+        const systemPrompt = `You are an AI clinical assistant helping a physician manage a patient case. You maintain a durable "living memory" of this patient that persists across interactions.
+
+Your role:
 1. Synthesize the doctor's clinical reasoning with the available patient data
 2. Update the case summary, your current thinking, and suggested actions
 3. ALWAYS respect and incorporate the doctor's stated assessment and plan
 4. Flag any safety concerns but don't override the doctor's decisions
-5. Be concise and clinically relevant
+5. Update your persistent clinical narrative (trajectory, key findings, open questions)
+6. Be concise and clinically relevant
 
 IMPORTANT: The doctor drives decision-making. You support by organizing information and surfacing relevant data.
 
 Respond in this exact JSON format:
 {
     "summary": "1-2 sentence case summary with **bold** for key diagnoses and decisions",
-    "thinking": "2-4 sentences synthesizing doctor's assessment with clinical data. Use **bold** for key findings. Acknowledge their reasoning and note supporting/concerning data.",
+    "thinking": "2-4 sentences synthesizing doctor's assessment with clinical data. Use **bold** for key findings.",
     "suggestedActions": ["action 1", "action 2", "action 3", "action 4", "action 5"],
-    "observations": ["any new observations based on the data that might be relevant"]
+    "observations": ["any new observations based on the data"],
+    "trajectoryAssessment": "Brief assessment of each active problem's trajectory (improving, worsening, stable). Include key data points supporting each assessment. This persists across sessions as your memory of the patient.",
+    "keyFindings": ["Critical clinical findings that should be remembered across sessions"],
+    "openQuestions": ["Unresolved clinical questions that need follow-up"]
 }
 
 RULES:
 - suggestedActions should ALIGN with the doctor's stated plan, not contradict it
 - If doctor says "no anticoagulation", don't suggest anticoagulation
 - Always consider safety flags when making suggestions
-- Keep suggestions actionable and specific
-- Maximum 5 suggested actions, prioritized by importance`;
+- Keep suggestions actionable and specific, maximum 5
+- trajectoryAssessment should BUILD ON any existing trajectory (don't lose prior context, refine it)
+- keyFindings should be durable insights, not transient observations
+- openQuestions are things that still need to be resolved`;
 
         const clinicalContext = this.buildFullClinicalContext();
 
@@ -2803,7 +2944,7 @@ ${clinicalContext}
 ## Doctor's Current Assessment/Thoughts
 "${doctorThoughts}"
 
-Based on the doctor's thoughts and the clinical context above, provide an updated synthesis.`;
+Based on the doctor's thoughts and the clinical context above, provide an updated synthesis. Update the trajectory assessment, key findings, and open questions based on this new information.`;
 
         // Store clinical context for debug panel
         this.lastApiCall.clinicalContext = clinicalContext;
@@ -2819,7 +2960,7 @@ Based on the doctor's thoughts and the clinical context above, provide an update
 
             const result = JSON.parse(jsonMatch[0]);
 
-            // Update state with LLM response
+            // Update AI panel state
             if (result.summary) {
                 this.state.summary = result.summary;
             }
@@ -2833,13 +2974,15 @@ Based on the doctor's thoughts and the clinical context above, provide an update
                 }));
             }
             if (result.observations && Array.isArray(result.observations)) {
-                // Add new observations without duplicates
                 result.observations.forEach(obs => {
                     if (!this.state.observations.includes(obs)) {
                         this.state.observations.push(obs);
                     }
                 });
             }
+
+            // === LLM WRITE-BACK: Update longitudinal document with AI insights ===
+            this.writeBackToDocument(result);
 
             this.state.status = 'ready';
             this.saveState();
@@ -2850,7 +2993,6 @@ Based on the doctor's thoughts and the clinical context above, provide an update
             console.error('LLM synthesis error:', error);
 
             if (error.message === 'API key not configured') {
-                // Modal already shown, fall back to local synthesis
                 console.warn('⚠️ API key not configured - falling back to LOCAL/RULES-BASED synthesis');
                 this.localThinkingSynthesis(doctorThoughts);
             } else {
@@ -2874,21 +3016,31 @@ Based on the doctor's thoughts and the clinical context above, provide an update
             btn.classList.add('spinning');
         }
 
-        const systemPrompt = `You are an AI clinical assistant. Analyze this patient case and provide a comprehensive synthesis.
+        const systemPrompt = `You are an AI clinical assistant embedded in an EHR system. Analyze this patient case and provide a comprehensive synthesis.
+
+You maintain a LONGITUDINAL CLINICAL DOCUMENT that persists across sessions. Your insights are written back into this document so they accumulate over time. Think of yourself as building a living understanding of this patient.
 
 Respond in this exact JSON format:
 {
     "summary": "1-2 sentence case summary with **bold** for key diagnoses",
     "thinking": "2-4 sentences with your clinical analysis. Note key findings, concerns, and what needs attention.",
     "suggestedActions": ["action 1", "action 2", "action 3", "action 4", "action 5"],
-    "observations": ["key observations from the data"]
+    "observations": ["key observations from the data"],
+    "trajectoryAssessment": "A paragraph synthesizing disease trajectories. For each active problem, describe current status, recent trend, and concerning patterns. This is DURABLE - it persists and gets refined over time.",
+    "keyFindings": ["finding 1", "finding 2"],
+    "openQuestions": ["question 1", "question 2"]
 }
 
 Prioritize:
 1. Safety concerns and critical values
 2. Alignment with doctor's stated assessment (if any)
 3. Actionable next steps
-4. Things that haven't been addressed yet`;
+4. Things that haven't been addressed yet
+
+RULES:
+- trajectoryAssessment should be comprehensive - describe how each problem is trending
+- keyFindings should be durable insights worth remembering across sessions
+- openQuestions are things that still need to be resolved`;
 
         const clinicalContext = this.buildFullClinicalContext();
 
@@ -2897,7 +3049,10 @@ ${clinicalContext}
 
 ${this.state.dictation ? `## Doctor's Current Assessment\n"${this.state.dictation}"` : '## No doctor assessment recorded yet'}
 
-Provide a comprehensive case synthesis.`;
+Provide a comprehensive case synthesis. Build a trajectory assessment covering all active problems.`;
+
+        // Store clinical context for debug panel
+        this.lastApiCall.clinicalContext = clinicalContext;
 
         try {
             const response = await this.callLLM(systemPrompt, userMessage);
@@ -2920,6 +3075,9 @@ Provide a comprehensive case synthesis.`;
             if (result.observations && Array.isArray(result.observations)) {
                 this.state.observations = result.observations;
             }
+
+            // === LLM WRITE-BACK: Update longitudinal document with AI insights ===
+            this.writeBackToDocument(result);
 
             this.state.status = 'ready';
             this.state.lastUpdated = new Date().toISOString();
