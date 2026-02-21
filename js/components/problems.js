@@ -123,6 +123,11 @@ const Problems = {
         document.querySelectorAll('.tab-content').forEach(content => {
             content.classList.toggle('active', content.id === `problems-${tabName}-content`);
         });
+
+        // Track resolved problems view for simulation scoring
+        if (tabName === 'resolved' && typeof SimulationScoreTracker !== 'undefined') {
+            SimulationScoreTracker.trackResolvedProblemsViewed();
+        }
     }
 };
 

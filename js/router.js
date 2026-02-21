@@ -60,6 +60,11 @@ class Router {
         this.currentRoute = path;
         this.currentParams = params;
 
+        // Track chart navigation for simulation scoring
+        if (typeof SimulationScoreTracker !== 'undefined') {
+            SimulationScoreTracker.trackChartNavigation(path);
+        }
+
         // Update active nav item
         document.querySelectorAll('.nav-item').forEach(item => {
             const itemPath = item.getAttribute('href')?.slice(1);

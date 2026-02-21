@@ -80,11 +80,33 @@ COMMUNICATION STYLE:
 PATIENT CONTEXT:
 - ${patientName} is a 72-year-old male admitted for shortness of breath
 - History: Heart problems, diabetes, kidney issues, irregular heartbeat
-- Allergies: Penicillin (rash)
-- Wife brought him in saying he's "not been himself" - not sure exactly what's going on yet
+- Wife brought him in saying he's "not been himself"
 - Currently on telemetry, 2L nasal cannula
+- ED did not get much history and did not start any treatments
 
-NOTE: You don't have the full picture yet - let the doctor figure out what's going on through their assessment.`;
+IMPORTANT: You have the information below but do NOT volunteer it unless the doctor ASKS about these specific topics. This is a clinical challenge - the doctor needs to know to ask.
+
+INFORMATION YOU SHARE ONLY WHEN ASKED:
+
+1. URINE OUTPUT / I&O (share if asked about urine, output, I&O, voiding):
+   "His urine output has only been about 25 mL in the last hour since he got up here. Pretty low. I don't have strict I&O orders yet."
+
+2. PHYSICAL EXAM FINDINGS (share if asked to examine, or about lungs, heart, legs, JVP):
+   "I did my initial assessment. He's got crackles about a third of the way up both lungs. His JVP looks elevated - I can see it to the angle of his jaw sitting at 45 degrees. Legs are pretty swollen, I'd say 3+ pitting edema bilaterally, up to mid-shin. He has a noticeable gallop on cardiac auscultation. His belly seems a bit distended too."
+
+3. WIFE'S REPORT (share if asked about wife, Patricia, family, who brought him):
+   "His wife Patricia is out in the waiting area. She told me he's been getting worse over the past week - more short of breath, sleeping in his recliner instead of bed, shoes don't fit anymore. She also mentioned he ran out of one of his pills about a week ago and hasn't been able to get it refilled. She's really worried about him."
+
+4. ED COURSE (share if asked about what happened in ED, what meds were given):
+   "ED only got a saline lock placed and put him on 2L nasal cannula. No meds were given and no labs were drawn up here yet. They were pretty backed up down there."
+
+5. ALLERGY DETAILS (share if asked about allergies):
+   "His allergy band shows Penicillin - ANAPHYLAXIS, that's a big red flag. Also has sulfa drugs causing rash, lisinopril causing angioedema, and shellfish. I've got the band on him."
+
+6. MEDICATION ADMINISTRATION RECORD (share if asked about home meds or what he's taking):
+   "I don't have a full med rec done yet. The pharmacy is working on it. His wife said he takes 'a bunch of pills' but wasn't sure of all the names."
+
+NOTE: You do NOT know the full medical history (resolved problems, prior hospitalizations, etc.). That is for the doctor to find in the chart or ask the patient. Let the doctor lead the diagnostic process.`;
         }
 
         // Add current patient status
@@ -277,6 +299,11 @@ Keep responses concise and professional, like a real nurse-physician interaction
         this.messages.push({ role: 'user', content: text });
         AIPanel.addMessage('nurse', 'user', text);
         this.saveHistory();
+
+        // Track for simulation scoring
+        if (typeof SimulationScoreTracker !== 'undefined') {
+            SimulationScoreTracker.trackNurseQuestion(text);
+        }
 
         // Show typing indicator
         this.isLoading = true;

@@ -166,6 +166,11 @@ const NotesList = {
     async selectNote(noteId) {
         this.selectedNoteId = noteId;
 
+        // Track for simulation scoring
+        if (typeof SimulationScoreTracker !== 'undefined') {
+            SimulationScoreTracker.trackNoteViewed(noteId);
+        }
+
         // Update selected state in list
         document.querySelectorAll('.note-list-item').forEach(item => {
             item.classList.toggle('selected', item.dataset.noteId === noteId);

@@ -481,6 +481,31 @@ const OrderEntry = {
             formData: { ...this.formData }
         };
 
+        // Allergy safety check for medication orders
+        if (this.selectedType === 'medication' && typeof SimulationScoreTracker !== 'undefined') {
+            const allergyMatch = SimulationScoreTracker.checkAllergyMatch(order.name);
+            if (allergyMatch) {
+                const proceed = await this.showAllergyWarning(order.name, allergyMatch);
+                if (!proceed) {
+                    return; // User cancelled the order
+                }
+                // User overrode the warning - record the violation
+                SimulationScoreTracker.allergyViolations.push({
+                    medication: order.name,
+                    allergen: allergyMatch.allergen,
+                    reaction: allergyMatch.reaction,
+                    severity: 'critical',
+                    overridden: true,
+                    time: new Date().toISOString()
+                });
+            }
+        }
+
+        // Track order in simulation scoring
+        if (typeof SimulationScoreTracker !== 'undefined') {
+            SimulationScoreTracker.trackOrder(order);
+        }
+
         // In a real app, this would save to the server
         // For now, we'll add it to the display and show success
         console.log('Order submitted:', order);
@@ -658,6 +683,61 @@ const OrderEntry = {
         if (!doseString) return null;
         const match = doseString.match(/(\d+(?:\.\d+)?)/);
         return match ? parseFloat(match[1]) : null;
+    },
+
+    /**
+     * Show allergy warning modal and return whether user wants to proceed
+     */
+    showAllergyWarning(medicationName, allergyMatch) {
+        return new Promise((resolve) => {
+            // Create overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'allergy-warning-overlay';
+            overlay.innerHTML = `
+                <div class="allergy-warning-modal">
+                    <div class="allergy-warning-header">
+                        <span class="allergy-warning-icon">&#9888;</span>
+                        ALLERGY ALERT
+                    </div>
+                    <div class="allergy-warning-body">
+                        <p><strong>Patient: Robert Morrison</strong></p>
+                        <p class="allergy-warning-detail">
+                            <strong>Documented Allergy:</strong> ${allergyMatch.allergen}<br>
+                            <strong>Reaction:</strong> ${allergyMatch.reaction}<br>
+                            <strong>Severity:</strong> <span class="allergy-severity-${allergyMatch.severity.toLowerCase()}">${allergyMatch.severity}</span>
+                        </p>
+                        <p class="allergy-warning-message">
+                            <strong>${medicationName}</strong> is in the <strong>${allergyMatch.allergen}</strong> class.
+                            Ordering this medication may cause <strong>${allergyMatch.reaction}</strong>.
+                        </p>
+                        <p class="allergy-warning-note">This will be recorded as a safety error in the simulation evaluation.</p>
+                    </div>
+                    <div class="allergy-warning-actions">
+                        <button class="btn allergy-btn-cancel" id="allergy-cancel">Cancel Order</button>
+                        <button class="btn allergy-btn-override" id="allergy-override">Override & Proceed</button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(overlay);
+
+            document.getElementById('allergy-cancel').addEventListener('click', () => {
+                overlay.remove();
+                resolve(false);
+            });
+            document.getElementById('allergy-override').addEventListener('click', () => {
+                overlay.remove();
+                resolve(true);
+            });
+
+            // Close on overlay click
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.remove();
+                    resolve(false);
+                }
+            });
+        });
     }
 };
 

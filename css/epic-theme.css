@@ -4143,6 +4143,205 @@ html, body {
     color: var(--text-muted);
 }
 
+.score-grade {
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;
+    margin-top: 8px;
+    color: var(--text-primary);
+}
+
+/* Safety alerts in debrief */
+.debrief-safety-alerts {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.safety-alert-item {
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    border-left: 4px solid #dc2626;
+    padding: 12px 16px;
+    border-radius: 4px;
+    color: #991b1b;
+    font-size: 13px;
+}
+
+/* Clinical Challenge Banner */
+.simulation-challenge-banner {
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    color: white;
+    padding: 0;
+    margin: 0;
+    border-bottom: 2px solid #1d4ed8;
+    animation: bannerSlideDown 0.5s ease-out;
+}
+
+@keyframes bannerSlideDown {
+    from { transform: translateY(-100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.challenge-banner-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    max-width: 100%;
+}
+
+.challenge-banner-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.challenge-banner-text {
+    flex: 1;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.challenge-banner-text strong {
+    font-size: 14px;
+}
+
+.challenge-banner-dismiss {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    font-size: 18px;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.challenge-banner-dismiss:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+/* Allergy Warning Modal */
+.allergy-warning-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.2s ease;
+}
+
+.allergy-warning-modal {
+    background: white;
+    border-radius: 12px;
+    width: 500px;
+    max-width: 90vw;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    border: 3px solid #dc2626;
+}
+
+.allergy-warning-header {
+    background: #dc2626;
+    color: white;
+    padding: 16px 24px;
+    font-size: 18px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.allergy-warning-icon {
+    font-size: 24px;
+}
+
+.allergy-warning-body {
+    padding: 24px;
+}
+
+.allergy-warning-body p {
+    margin: 0 0 12px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.allergy-warning-detail {
+    background: #fef2f2;
+    border: 1px solid #fca5a5;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.allergy-severity-severe {
+    color: #dc2626;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.allergy-severity-moderate {
+    color: #d97706;
+    font-weight: 600;
+}
+
+.allergy-warning-message {
+    color: #991b1b;
+    font-weight: 500;
+}
+
+.allergy-warning-note {
+    color: #6b7280;
+    font-size: 12px !important;
+    font-style: italic;
+}
+
+.allergy-warning-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px;
+    background: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+}
+
+.allergy-btn-cancel {
+    background: #059669;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.allergy-btn-cancel:hover {
+    background: #047857;
+}
+
+.allergy-btn-override {
+    background: #dc2626;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.allergy-btn-override:hover {
+    background: #b91c1c;
+}
+
 .debrief-footer {
     padding: 16px 24px;
     background: var(--bg-subtle);

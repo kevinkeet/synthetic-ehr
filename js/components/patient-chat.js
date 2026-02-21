@@ -313,6 +313,11 @@ CURRENT SYMPTOMS:`;
         AIPanel.addMessage('patient', 'user', text);
         this.saveHistory();
 
+        // Track for simulation scoring
+        if (typeof SimulationScoreTracker !== 'undefined') {
+            SimulationScoreTracker.trackPatientQuestion(text);
+        }
+
         // Show typing indicator
         this.isLoading = true;
         AIPanel.addMessage('patient', 'assistant', '', true);

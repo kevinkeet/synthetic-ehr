@@ -111,6 +111,11 @@ const SimulationEngine = {
         const scenario = this.currentScenario;
         if (!scenario) return;
 
+        // Initialize score tracker
+        if (typeof SimulationScoreTracker !== 'undefined') {
+            SimulationScoreTracker.init();
+        }
+
         // Clear previous chat history for a fresh start
         if (typeof PatientChat !== 'undefined') {
             PatientChat.clearChat();
@@ -119,57 +124,94 @@ const SimulationEngine = {
             NurseChat.clearChat();
         }
 
-        // Generate opening nurse message based on scenario
-        let openingMessage = '';
-        let startWithPatient = false;
+        // Generate opening messages based on scenario
+        let nurseOpening = '';
+        let patientOpening = '';
 
         if (scenario.id === 'SCENARIO_SOB_001' || scenario.name?.includes('Shortness of Breath')) {
-            openingMessage = `You have a new patient to admit in room 412 - Mr. Robert Morrison, a 72-year-old male. His wife brought him to the ED with a chief complaint of "not feeling well." The ED is slammed and didn't get much history. Vitals on arrival: BP 158/92, HR 102 irregular, RR 24, SpO2 92% on 2L NC. He's been placed on telemetry. No admission orders have been placed yet - you'll need to evaluate him, gather history, and write your admission orders. He's ready for you to see him now.`;
-            startWithPatient = true;
+            nurseOpening = `Doctor, you have a new admission in room 412 - Mr. Robert Morrison, 72-year-old male. His wife brought him to the ED saying he's "not been himself." The ED was slammed and barely got any history. Vitals: BP 158/92, HR 102 irregular, RR 24, SpO2 92% on 2L NC. He's on telemetry but no admission orders have been placed. He's asking to see his doctor.`;
+
+            patientOpening = `Doc... are you my doctor? Nobody's told me what's going on. My wife dragged me here and they've been poking me with needles and sticking things on my chest but nobody will tell me what they think is wrong. Can you at least tell me what's happening?`;
         } else {
-            openingMessage = `Doctor, I'm calling about your new admission. The patient just arrived on the floor and is getting settled. Initial vitals have been obtained. Let me know if you have any orders or would like to come evaluate.`;
+            nurseOpening = `Doctor, I'm calling about your new admission. The patient just arrived on the floor and is getting settled. Initial vitals have been obtained. Let me know if you have any orders or would like to come evaluate.`;
+            patientOpening = '';
         }
 
         // Use setTimeout to ensure this runs after the chat clear is complete
         setTimeout(() => {
-            // Add the opening message to nurse chat
             if (typeof NurseChat !== 'undefined' && typeof AIPanel !== 'undefined') {
-                // Add to messages array
-                NurseChat.messages.push({ role: 'assistant', content: openingMessage });
+                // Add nurse opening message
+                NurseChat.messages.push({ role: 'assistant', content: nurseOpening });
                 NurseChat.saveHistory();
 
-                // Manually add to UI - remove welcome and add message
                 const container = document.getElementById('nurse-messages');
                 if (container) {
-                    // Remove welcome message if present
                     const welcome = container.querySelector('.chat-welcome');
-                    if (welcome) {
-                        welcome.remove();
-                    }
-
-                    // Add the message directly to the DOM
-                    AIPanel.addMessage('nurse', 'assistant', openingMessage);
-                }
-
-                // Switch to patient tab to prompt history taking
-                if (startWithPatient) {
-                    AIPanel.switchTab('patient');
-                } else {
-                    AIPanel.switchTab('nurse');
-                }
-                AIPanel.expand();
-
-                // Speak if voice output is enabled
-                if (typeof SpeechService !== 'undefined' && typeof PatientChat !== 'undefined' && PatientChat.voiceOutputEnabled) {
-                    SpeechService.speak(openingMessage);
+                    if (welcome) welcome.remove();
+                    AIPanel.addMessage('nurse', 'assistant', nurseOpening);
                 }
             }
+
+            // Show challenge banner
+            this.showChallengeBanner();
 
             // Show toast notification
             if (typeof App !== 'undefined') {
-                App.showToast('🏥 New admission ready - go interview the patient', 'info');
+                App.showToast('New admission - patient is waiting for you', 'info');
             }
         }, 100);
+
+        // Patient speaks after a short delay (feels like arriving at bedside)
+        if (patientOpening) {
+            setTimeout(() => {
+                if (typeof PatientChat !== 'undefined' && typeof AIPanel !== 'undefined') {
+                    PatientChat.messages.push({ role: 'assistant', content: patientOpening });
+                    PatientChat.saveHistory();
+
+                    const container = document.getElementById('patient-messages');
+                    if (container) {
+                        const welcome = container.querySelector('.chat-welcome');
+                        if (welcome) welcome.remove();
+                        AIPanel.addMessage('patient', 'assistant', patientOpening);
+                    }
+
+                    // Switch to patient tab - the patient is talking to you
+                    AIPanel.switchTab('patient');
+                    AIPanel.expand();
+
+                    if (typeof SpeechService !== 'undefined' && PatientChat.voiceOutputEnabled) {
+                        SpeechService.speak(patientOpening);
+                    }
+                }
+            }, 3000);
+        }
+    },
+
+    /**
+     * Show the clinical challenge banner at the top of the main content area
+     */
+    showChallengeBanner() {
+        // Remove existing banner if present
+        const existing = document.getElementById('simulation-challenge-banner');
+        if (existing) existing.remove();
+
+        const banner = document.createElement('div');
+        banner.id = 'simulation-challenge-banner';
+        banner.className = 'simulation-challenge-banner';
+        banner.innerHTML = `
+            <div class="challenge-banner-content">
+                <div class="challenge-banner-icon">&#127919;</div>
+                <div class="challenge-banner-text">
+                    <strong>CLINICAL CHALLENGE</strong>: New admission. Gather history from the patient, ask the nurse key questions, review the chart for critical information, and place all necessary orders.
+                </div>
+                <button class="challenge-banner-dismiss" onclick="this.parentElement.parentElement.remove()" title="Dismiss">&times;</button>
+            </div>
+        `;
+
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            mainContent.parentElement.insertBefore(banner, mainContent);
+        }
     },
 
     /**
@@ -399,6 +441,11 @@ const SimulationEngine = {
 
         if (trigger.action === 'patientAlert') {
             this.emit('patientAlert', { message: trigger.message, priority: trigger.priority });
+
+            // Mark emotional trigger for score tracking
+            if (trigger.id === 'TRIG_EMOTIONAL' && typeof SimulationScoreTracker !== 'undefined') {
+                SimulationScoreTracker.markEmotionalTrigger();
+            }
 
             // Add to patient chat - patient speaks directly
             if (typeof PatientChat !== 'undefined') {

@@ -111,203 +111,24 @@ const SimulationDebrief = {
     },
 
     /**
-     * Calculate multi-dimensional performance scores
+     * Calculate multi-dimensional performance scores using SimulationScoreTracker
      */
     calculateScores(scenario, state, interventions, elapsedMinutes) {
-        const scores = {
-            historyTaking: { score: 0, max: 100, details: [] },
-            clinicalDecisionMaking: { score: 0, max: 100, details: [] },
-            medicalKnowledge: { score: 0, max: 100, details: [] },
-            empathy: { score: 0, max: 100, details: [] },
+        // Use the centralized score tracker if available
+        if (typeof SimulationScoreTracker !== 'undefined') {
+            return SimulationScoreTracker.calculateFinalScores();
+        }
+
+        // Fallback: return empty scores
+        return {
+            patientHistory: { score: 0, details: [] },
+            nurseInteraction: { score: 0, details: [] },
+            chartReview: { score: 0, details: [] },
+            medicationManagement: { score: 0, details: [] },
+            safety: { score: 100, details: [] },
+            empathy: { score: 50, details: [] },
             overall: { score: 0, max: 100 }
         };
-
-        // ===== HISTORY TAKING =====
-        // Check patient chat for evidence of good history taking
-        const patientMessages = typeof PatientChat !== 'undefined' ? PatientChat.messages : [];
-        const userQuestions = patientMessages.filter(m => m.role === 'user').map(m => m.content.toLowerCase());
-
-        // Points for asking about specific symptoms
-        const historyPoints = [
-            { keywords: ['breath', 'breathing', 'short of breath', 'dyspnea', 'winded'], points: 15, desc: 'Asked about breathing' },
-            { keywords: ['swell', 'ankle', 'leg', 'feet', 'edema'], points: 15, desc: 'Asked about swelling' },
-            { keywords: ['sleep', 'lie flat', 'pillow', 'orthopnea', 'bed'], points: 10, desc: 'Asked about orthopnea' },
-            { keywords: ['weight', 'gained', 'heavier'], points: 10, desc: 'Asked about weight changes' },
-            { keywords: ['medication', 'pill', 'medicine', 'taking', 'compliance'], points: 15, desc: 'Asked about medications' },
-            { keywords: ['bleed', 'blood', 'stomach', 'gi', 'ulcer', 'vomit'], points: 20, desc: 'Asked about bleeding history (critical!)' },
-            { keywords: ['blood thinner', 'anticoagul', 'warfarin', 'coumadin'], points: 15, desc: 'Asked about blood thinners' }
-        ];
-
-        historyPoints.forEach(hp => {
-            if (userQuestions.some(q => hp.keywords.some(k => q.includes(k)))) {
-                scores.historyTaking.score += hp.points;
-                scores.historyTaking.details.push({ text: hp.desc, earned: true });
-            } else {
-                scores.historyTaking.details.push({ text: hp.desc, earned: false });
-            }
-        });
-
-        // ===== CLINICAL DECISION MAKING =====
-        const hasDiuretic = interventions.some(i =>
-            i.name?.toLowerCase().includes('furosemide') ||
-            i.name?.toLowerCase().includes('lasix') ||
-            i.name?.toLowerCase().includes('bumetanide')
-        );
-
-        const anticoagulants = ['heparin', 'enoxaparin', 'lovenox', 'warfarin', 'apixaban', 'rivaroxaban'];
-        const startedAnticoag = interventions.some(i =>
-            anticoagulants.some(ac => i.name?.toLowerCase().includes(ac))
-        );
-
-        if (hasDiuretic) {
-            scores.clinicalDecisionMaking.score += 30;
-            scores.clinicalDecisionMaking.details.push({ text: 'Initiated appropriate diuretic therapy', earned: true });
-        } else {
-            scores.clinicalDecisionMaking.details.push({ text: 'Initiated appropriate diuretic therapy', earned: false });
-        }
-
-        if (elapsedMinutes <= 30 && hasDiuretic) {
-            scores.clinicalDecisionMaking.score += 20;
-            scores.clinicalDecisionMaking.details.push({ text: 'Timely intervention (<30 min)', earned: true });
-        } else {
-            scores.clinicalDecisionMaking.details.push({ text: 'Timely intervention (<30 min)', earned: false });
-        }
-
-        // Check if avoided anticoagulation (the pitfall)
-        const afibTriggered = scenario?.triggers?.find(t => t.id === 'TRIG_AFIB' && t.triggered);
-        if (afibTriggered) {
-            if (!startedAnticoag) {
-                scores.clinicalDecisionMaking.score += 30;
-                scores.clinicalDecisionMaking.details.push({ text: 'Correctly avoided anticoagulation despite A-fib', earned: true });
-            } else {
-                scores.clinicalDecisionMaking.details.push({ text: 'Correctly avoided anticoagulation despite A-fib', earned: false });
-            }
-        }
-
-        // Check for appropriate monitoring
-        const hasLabMonitoring = interventions.some(i =>
-            i.name?.toLowerCase().includes('bmp') ||
-            i.name?.toLowerCase().includes('metabolic') ||
-            i.name?.toLowerCase().includes('electrolyte')
-        );
-        if (hasLabMonitoring) {
-            scores.clinicalDecisionMaking.score += 20;
-            scores.clinicalDecisionMaking.details.push({ text: 'Ordered appropriate lab monitoring', earned: true });
-        } else {
-            scores.clinicalDecisionMaking.details.push({ text: 'Ordered appropriate lab monitoring', earned: false });
-        }
-
-        // ===== MEDICAL KNOWLEDGE =====
-        // Based on appropriate orders and dosing
-        const hasTelemetry = interventions.some(i =>
-            i.name?.toLowerCase().includes('telemetry') ||
-            i.formData?.telemetry === 'Yes'
-        );
-        if (hasTelemetry) {
-            scores.medicalKnowledge.score += 20;
-            scores.medicalKnowledge.details.push({ text: 'Appropriate cardiac monitoring', earned: true });
-        }
-
-        const hasOxygen = interventions.some(i =>
-            i.name?.toLowerCase().includes('oxygen') ||
-            i.formData?.oxygen?.includes('NC')
-        );
-        if (hasOxygen || state?.vitals?.oxygenSaturation > 92) {
-            scores.medicalKnowledge.score += 20;
-            scores.medicalKnowledge.details.push({ text: 'Managed oxygenation appropriately', earned: true });
-        }
-
-        // Fluid restriction/low sodium diet
-        const hasFluidRestriction = interventions.some(i =>
-            i.name?.toLowerCase().includes('fluid') ||
-            i.name?.toLowerCase().includes('sodium') ||
-            i.formData?.diet?.includes('Sodium')
-        );
-        if (hasFluidRestriction) {
-            scores.medicalKnowledge.score += 20;
-            scores.medicalKnowledge.details.push({ text: 'Appropriate dietary orders for CHF', earned: true });
-        }
-
-        // I&O monitoring
-        const hasIO = interventions.some(i =>
-            i.name?.toLowerCase().includes('i&o') ||
-            i.name?.toLowerCase().includes('strict') ||
-            i.formData?.io?.includes('Strict')
-        );
-        if (hasIO) {
-            scores.medicalKnowledge.score += 20;
-            scores.medicalKnowledge.details.push({ text: 'Ordered strict I&O monitoring', earned: true });
-        }
-
-        // Daily weights
-        const hasWeights = interventions.some(i =>
-            i.name?.toLowerCase().includes('weight') ||
-            i.formData?.dailyWeight === 'Yes'
-        );
-        if (hasWeights) {
-            scores.medicalKnowledge.score += 20;
-            scores.medicalKnowledge.details.push({ text: 'Ordered daily weights', earned: true });
-        }
-
-        // ===== EMPATHY =====
-        // Check for empathetic responses during emotional trigger
-        const emotionalTriggered = scenario?.triggers?.find(t => t.id === 'TRIG_EMOTIONAL' && t.triggered);
-        if (emotionalTriggered) {
-            // Look for empathetic language in responses after emotional trigger
-            const empathyKeywords = ['understand', 'sorry', 'hear', 'feel', 'scared', 'worry', 'concern',
-                                     'here for you', 'together', 'explain', 'help', 'okay', 'normal to feel'];
-            const postEmotionalMessages = patientMessages.filter(m => m.role === 'user');
-            const empathyFound = postEmotionalMessages.some(m =>
-                empathyKeywords.some(k => m.content.toLowerCase().includes(k))
-            );
-
-            if (empathyFound) {
-                scores.empathy.score += 50;
-                scores.empathy.details.push({ text: 'Responded empathetically to patient distress', earned: true });
-            } else {
-                scores.empathy.details.push({ text: 'Responded empathetically to patient distress', earned: false });
-            }
-
-            // Check if explained plan to patient
-            const explainKeywords = ['plan', 'going to', 'will', 'test', 'treatment', 'medicine', 'help'];
-            const explainedPlan = postEmotionalMessages.some(m =>
-                explainKeywords.some(k => m.content.toLowerCase().includes(k))
-            );
-            if (explainedPlan) {
-                scores.empathy.score += 30;
-                scores.empathy.details.push({ text: 'Explained plan to anxious patient', earned: true });
-            } else {
-                scores.empathy.details.push({ text: 'Explained plan to anxious patient', earned: false });
-            }
-
-            // Check if addressed death/brother concern
-            const addressedFear = postEmotionalMessages.some(m =>
-                m.content.toLowerCase().includes('brother') ||
-                m.content.toLowerCase().includes('die') ||
-                m.content.toLowerCase().includes('death') ||
-                m.content.toLowerCase().includes('home')
-            );
-            if (addressedFear) {
-                scores.empathy.score += 20;
-                scores.empathy.details.push({ text: 'Addressed specific fears (brother\'s death)', earned: true });
-            } else {
-                scores.empathy.details.push({ text: 'Addressed specific fears (brother\'s death)', earned: false });
-            }
-        } else {
-            // Emotional trigger not yet activated - give neutral score
-            scores.empathy.score = 50;
-            scores.empathy.details.push({ text: 'Emotional challenge not yet encountered', earned: null });
-        }
-
-        // Calculate overall score as weighted average
-        scores.overall.score = Math.round(
-            (scores.historyTaking.score * 0.25) +
-            (scores.clinicalDecisionMaking.score * 0.30) +
-            (scores.medicalKnowledge.score * 0.25) +
-            (scores.empathy.score * 0.20)
-        );
-
-        return scores;
     },
 
     /**
@@ -605,15 +426,32 @@ const SimulationDebrief = {
                             <span class="score-value">${data.scores.overall.score}</span>
                             <span class="score-label">Overall</span>
                         </div>
+                        <div class="score-grade">${this.getGradeLabel(data.scores.overall.score)}</div>
                     </div>
                     <div class="debrief-score-categories">
-                        ${this.renderScoreCategory('History Taking', data.scores.historyTaking, '📋')}
-                        ${this.renderScoreCategory('Clinical Decision Making', data.scores.clinicalDecisionMaking, '🧠')}
-                        ${this.renderScoreCategory('Medical Knowledge', data.scores.medicalKnowledge, '📚')}
-                        ${this.renderScoreCategory('Empathy', data.scores.empathy, '💚')}
+                        ${this.renderScoreCategory('Patient History (20%)', data.scores.patientHistory, '&#128203;')}
+                        ${this.renderScoreCategory('Nurse Interaction (15%)', data.scores.nurseInteraction, '&#129658;')}
+                        ${this.renderScoreCategory('Chart Review (15%)', data.scores.chartReview, '&#128196;')}
+                        ${this.renderScoreCategory('Medication Management (30%)', data.scores.medicationManagement, '&#128138;')}
+                        ${this.renderScoreCategory('Safety & Allergies (10%)', data.scores.safety, '&#9888;')}
+                        ${this.renderScoreCategory('Empathy (10%)', data.scores.empathy, '&#128154;')}
                     </div>
                 </div>
             </div>
+
+            <!-- Allergy Violations (if any) -->
+            ${typeof SimulationScoreTracker !== 'undefined' && SimulationScoreTracker.allergyViolations.length > 0 ? `
+            <div class="debrief-section">
+                <h3>&#128680; Safety Alerts</h3>
+                <div class="debrief-safety-alerts">
+                    ${SimulationScoreTracker.allergyViolations.map(v => `
+                        <div class="safety-alert-item">
+                            <strong>ALLERGY VIOLATION:</strong> Ordered <em>${v.medication}</em> despite documented <strong>${v.allergen}</strong> allergy (${v.reaction}).
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            ` : ''}
             ` : ''}
 
             <!-- Metrics Section -->
@@ -702,6 +540,14 @@ const SimulationDebrief = {
         if (score >= 60) return 'score-good';
         if (score >= 40) return 'score-fair';
         return 'score-poor';
+    },
+
+    getGradeLabel(score) {
+        if (score >= 90) return 'Excellent';
+        if (score >= 75) return 'Good';
+        if (score >= 60) return 'Satisfactory';
+        if (score >= 40) return 'Needs Improvement';
+        return 'Unsatisfactory';
     },
 
     /**
