@@ -2353,7 +2353,7 @@ html, body {
 /* Additional AI Panel Styles */
 .ai-tab {
     flex: 1;
-    padding: 10px 12px;
+    padding: 8px 6px;
     background: transparent;
     border: none;
     color: rgba(255, 255, 255, 0.7);
@@ -2378,9 +2378,9 @@ html, body {
 }
 
 .ai-tab .tab-icon {
-    font-size: 20px;
-    width: 28px;
-    height: 28px;
+    font-size: 16px;
+    width: 24px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4699,154 +4699,66 @@ html, body {
 }
 
 /* ============================================
-   AI Assistant Panel (Supportive Copilot)
+   AI Assistant Panel (Integrated Sidebar Tab)
    ============================================ */
-.ai-assistant-panel {
-    position: fixed;
-    left: 16px;
-    bottom: 16px;
-    width: 340px;
-    max-height: calc(100vh - 120px);
-    background: var(--bg-white);
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
-    z-index: 1100;
+
+/* Assistant Tab Container */
+.assistant-tab-container {
     display: flex;
     flex-direction: column;
-    opacity: 0;
-    transform: translateY(20px) scale(0.95);
-    pointer-events: none;
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    height: 100%;
 }
 
-.ai-assistant-panel.visible {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    pointer-events: auto;
-}
-
-.ai-assistant-panel.minimized .ai-assistant-body,
-.ai-assistant-panel.minimized .ai-assistant-footer {
-    display: none;
-}
-
-.ai-assistant-panel.updated {
-    animation: assistantPulse 0.5s ease;
-}
-
-@keyframes assistantPulse {
-    0%, 100% { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05); }
-    50% { box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4), 0 0 0 2px rgba(59, 130, 246, 0.5); }
-}
-
-/* Header */
-.ai-assistant-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 14px;
-    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-    border-radius: 12px 12px 0 0;
-    color: white;
-}
-
-.ai-assistant-panel.minimized .ai-assistant-header {
-    border-radius: 12px;
-}
-
-.ai-assistant-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-    font-size: 13px;
-}
-
-.ai-assistant-icon {
-    font-size: 18px;
-}
-
-.ai-assistant-status {
-    font-size: 10px;
-    animation: statusPulse 2s infinite;
-}
-
-.ai-assistant-status.ready { color: #34d399; }
-.ai-assistant-status.thinking { color: #fbbf24; }
-.ai-assistant-status.alert { color: #f87171; animation: statusBlink 0.5s infinite; }
-
-@keyframes statusPulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-@keyframes statusBlink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-}
-
-.ai-assistant-actions {
-    display: flex;
-    gap: 4px;
-}
-
-.ai-assistant-btn {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    width: 22px;
-    height: 22px;
-    border-radius: 4px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    transition: background 0.15s ease;
-}
-
-.ai-assistant-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
-
-/* Body */
-.ai-assistant-body {
+.assistant-tab-scroll {
     flex: 1;
     overflow-y: auto;
-    padding: 10px;
-    max-height: 380px;
+    padding: 0;
 }
 
-.ai-assistant-loading {
+/* Assistant Toolbar */
+.assistant-toolbar {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 24px;
-    color: var(--text-muted);
-    font-size: 12px;
+    gap: 4px;
+    padding: 8px 10px;
+    background: var(--bg-light);
+    border-bottom: 1px solid var(--border-light);
+    flex-wrap: wrap;
 }
 
-.ai-assistant-spinner {
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--border-light);
-    border-top-color: var(--primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 10px;
+.assistant-toolbar-btn {
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background: white;
+    border: 1px solid var(--border-medium);
+    color: var(--text-secondary);
+    white-space: nowrap;
 }
 
-/* Sections */
+.assistant-toolbar-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* Sections (in sidebar tab) */
 .ai-section {
-    margin-bottom: 12px;
-    padding-bottom: 10px;
+    margin-bottom: 0;
+    padding: 10px;
     border-bottom: 1px solid var(--border-light);
 }
 
 .ai-section:last-child {
     border-bottom: none;
-    margin-bottom: 0;
+}
+
+.section-count {
+    font-weight: 400;
+    color: var(--text-muted);
 }
 
 .ai-section-header {
@@ -4866,10 +4778,6 @@ html, body {
 /* Flags Section (Safety Critical) */
 .flags-section {
     background: #fef2f2;
-    margin: -10px -10px 10px -10px;
-    padding: 10px;
-    border-radius: 0;
-    border-bottom: none;
 }
 
 .flags-section .ai-section-header {
@@ -4918,10 +4826,6 @@ html, body {
 /* Context Section */
 .context-section {
     background: #f0f9ff;
-    margin: -10px -10px 10px -10px;
-    padding: 10px;
-    border-radius: 0;
-    border-bottom: none;
 }
 
 .context-section .ai-section-header {
@@ -4956,9 +4860,6 @@ html, body {
 /* Doctor's Dictation Section */
 .dictation-section {
     background: linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%);
-    margin: -10px -10px 10px -10px;
-    padding: 10px;
-    border-radius: 0;
     border-bottom: 2px solid #d946ef;
 }
 
@@ -5006,10 +4907,6 @@ html, body {
 /* Summary Section */
 .summary-section {
     background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-    margin: -10px -10px 10px -10px;
-    padding: 10px;
-    border-radius: 0;
-    border-bottom: none;
 }
 
 .summary-section .ai-section-header {
@@ -5025,10 +4922,6 @@ html, body {
 /* Thinking Section */
 .thinking-section {
     background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
-    margin: -10px -10px 10px -10px;
-    padding: 10px;
-    border-radius: 0;
-    border-bottom: none;
 }
 
 .thinking-section .ai-section-header {
@@ -5045,10 +4938,6 @@ html, body {
 /* Suggested Actions Section */
 .actions-section {
     background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-    margin: -10px -10px 10px -10px;
-    padding: 10px;
-    border-radius: 0;
-    border-bottom: none;
 }
 
 .actions-section .ai-section-header {
@@ -5335,10 +5224,6 @@ html, body {
 /* AI Response Section */
 .response-section {
     background: #fefce8;
-    margin: -10px -10px 10px -10px;
-    padding: 10px;
-    border-radius: 0;
-    border-bottom: none;
 }
 
 .response-section .ai-section-header {
@@ -5396,183 +5281,7 @@ html, body {
     line-height: 1.4;
 }
 
-/* Footer */
-.ai-assistant-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 10px;
-    background: var(--bg-light);
-    border-radius: 0 0 12px 12px;
-    border-top: 1px solid var(--border-light);
-    gap: 8px;
-}
-
-.ai-assistant-ask-btn,
-.ai-assistant-add-btn,
-.ai-assistant-dictate-btn,
-.ai-assistant-note-btn {
-    flex: 1;
-    padding: 6px 10px;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.ai-assistant-refresh-btn {
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background: var(--bg-light);
-    border: 1px solid var(--border-medium);
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.ai-assistant-refresh-btn:hover {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-    transform: rotate(90deg);
-}
-
-.ai-assistant-refresh-btn.spinning {
-    animation: refreshSpin 1s ease-in-out;
-    pointer-events: none;
-}
-
-@keyframes refreshSpin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.ai-assistant-dictate-btn {
-    background: linear-gradient(135deg, #a21caf 0%, #d946ef 100%);
-    color: white;
-    border: none;
-}
-
-.ai-assistant-dictate-btn:hover {
-    background: linear-gradient(135deg, #86198f 0%, #c026d3 100%);
-    transform: scale(1.02);
-}
-
-.ai-assistant-note-btn {
-    background: linear-gradient(135deg, #0369a1 0%, #0ea5e9 100%);
-    color: white;
-    border: none;
-}
-
-.ai-assistant-note-btn:hover {
-    background: linear-gradient(135deg, #075985 0%, #0284c7 100%);
-    transform: scale(1.02);
-}
-
-.ai-assistant-settings-btn {
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    border-radius: 6px;
-    font-size: 14px;
-    background: white;
-    color: var(--text-secondary);
-    border: 1px solid var(--border-medium);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.ai-assistant-settings-btn:hover {
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-    border-color: var(--primary);
-}
-
-.ai-assistant-debug-btn {
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    border-radius: 6px;
-    font-size: 14px;
-    background: white;
-    color: var(--text-secondary);
-    border: 1px solid var(--border-medium);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.ai-assistant-debug-btn:hover {
-    background: #fef3c7;
-    color: #92400e;
-    border-color: #f59e0b;
-}
-
-.ai-assistant-ask-btn {
-    background: var(--primary);
-    color: white;
-    border: none;
-}
-
-.ai-assistant-ask-btn:hover {
-    background: var(--primary-dark);
-}
-
-.ai-assistant-add-btn {
-    background: white;
-    color: var(--text-secondary);
-    border: 1px solid var(--border-medium);
-}
-
-.ai-assistant-add-btn:hover {
-    background: var(--bg-light);
-    border-color: var(--primary);
-    color: var(--primary);
-}
-
-/* Toggle Button */
-.ai-assistant-toggle {
-    position: fixed;
-    left: 16px;
-    bottom: 16px;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-    color: white;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
-    z-index: 1099;
-    font-size: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.ai-assistant-toggle:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(30, 64, 175, 0.4);
-}
-
-.ai-assistant-toggle.active {
-    opacity: 0;
-    pointer-events: none;
-}
+/* Old floating panel footer/toggle - removed (now integrated in sidebar) */
 
 /* Modal Styles */
 .ai-modal {
@@ -6064,15 +5773,5 @@ html, body {
 
 /* Responsive */
 @media (max-width: 768px) {
-    .ai-assistant-panel {
-        left: 8px;
-        right: 8px;
-        bottom: 8px;
-        width: auto;
-    }
-
-    .ai-assistant-toggle {
-        left: 8px;
-        bottom: 8px;
-    }
+    /* AI assistant now in sidebar tab - no floating panel responsive needed */
 }

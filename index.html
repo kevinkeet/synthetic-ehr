@@ -139,6 +139,10 @@
                             <span class="tab-icon">&#128105;&#8205;&#9877;&#65039;</span>
                             <span class="tab-label">Nurse</span>
                         </button>
+                        <button class="ai-tab" data-tab="assistant" onclick="AIPanel.switchTab('assistant')">
+                            <span class="tab-icon">&#10024;</span>
+                            <span class="tab-label">Assistant</span>
+                        </button>
                     </div>
                     <div class="ai-panel-header-actions">
                         <button class="ai-settings-btn-header" onclick="AIPanel.openSettings()" title="AI Settings">
@@ -220,6 +224,19 @@
                             <button class="send-btn" onclick="NurseChat.sendMessage()" title="Send">
                                 <span>&#10148;</span>
                             </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assistant Tab -->
+                <div class="ai-tab-content" id="assistant-chat-tab">
+                    <div class="assistant-tab-container">
+                        <div class="assistant-tab-scroll" id="assistant-tab-body">
+                            <div class="ai-empty">
+                                <div class="empty-icon">&#10024;</div>
+                                <div class="empty-text">Ready to assist</div>
+                                <div class="empty-hint">I'll track what you review and flag safety concerns.</div>
+                            </div>
                         </div>
                     </div>
                 </div>

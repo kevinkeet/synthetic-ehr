@@ -80,11 +80,14 @@ const AICoworker = {
      * Initialize the AI Assistant panel
      */
     init() {
+        // Reset session state on startup - keeps longitudinal doc but clears transient session data
+        this.resetSessionState();
+
+        // Create modals (ask, dictation, note, etc.)
         this.createPanel();
-        this.loadState();
+
         this.loadApiKey(); // Load saved API key
         this.setupEventListeners();
-        this.startPolling();
 
         // Listen for external updates via postMessage
         window.addEventListener('message', (event) => this.handleExternalMessage(event));
@@ -99,18 +102,48 @@ const AICoworker = {
             }
         });
 
-        // Listen for storage changes (cross-tab/external updates)
-        window.addEventListener('storage', (event) => {
-            if (event.key === 'aiAssistantState') {
-                this.loadState();
-                this.render();
-            }
-        });
+        // Render into the AI panel tab
+        this.render();
 
         console.log('AI Assistant initialized');
 
         // Initialize longitudinal document for current patient
         this.initializeLongitudinalDocument();
+    },
+
+    /**
+     * Reset session state to fresh defaults.
+     * Called on init to prevent stale data from previous sessions.
+     * The longitudinal doc is preserved separately.
+     */
+    resetSessionState() {
+        this.state = {
+            status: 'ready',
+            lastUpdated: null,
+            dictation: '',
+            dictationHistory: [],
+            summary: '',
+            thinking: '',
+            suggestedActions: [],
+            reviewed: [],
+            observations: [],
+            flags: [],
+            tasks: [],
+            openItems: [],
+            context: '',
+            aiResponse: null,
+            chartData: {
+                patientInfo: null,
+                vitals: [],
+                labs: [],
+                meds: [],
+                imaging: [],
+                nursingNotes: [],
+                previousNotes: []
+            }
+        };
+        // Clear stale localStorage state
+        localStorage.removeItem('aiAssistantState');
     },
 
     /**
@@ -307,63 +340,9 @@ const AICoworker = {
     },
 
     /**
-     * Create the panel HTML
+     * Create modals (no longer creates a floating panel - renders into AI panel tab)
      */
     createPanel() {
-        const panel = document.createElement('div');
-        panel.id = 'ai-assistant-panel';
-        panel.className = 'ai-assistant-panel';
-        panel.innerHTML = `
-            <div class="ai-assistant-header">
-                <div class="ai-assistant-title">
-                    <span class="ai-assistant-icon">✨</span>
-                    <span class="ai-assistant-name">AI Assistant</span>
-                    <span class="ai-assistant-status" id="ai-assistant-status">●</span>
-                </div>
-                <div class="ai-assistant-actions">
-                    <button class="ai-assistant-btn" onclick="AICoworker.toggleMinimize()" title="Minimize" id="ai-assistant-minimize">−</button>
-                    <button class="ai-assistant-btn" onclick="AICoworker.toggle()" title="Close">×</button>
-                </div>
-            </div>
-            <div class="ai-assistant-body" id="ai-assistant-body">
-                <div class="ai-assistant-loading">
-                    <div class="ai-assistant-spinner"></div>
-                    <span>Ready to assist...</span>
-                </div>
-            </div>
-            <div class="ai-assistant-footer" id="ai-assistant-footer">
-                <button class="ai-assistant-refresh-btn" onclick="AICoworker.refreshThinking()" title="Refresh AI thinking">
-                    🔄
-                </button>
-                <button class="ai-assistant-dictate-btn" onclick="AICoworker.openDictationModal()" title="Dictate your thoughts">
-                    🎤 Dictate
-                </button>
-                <button class="ai-assistant-note-btn" onclick="AICoworker.openNoteModal()" title="Write a note">
-                    📝 Write Note
-                </button>
-                <button class="ai-assistant-settings-btn" onclick="AICoworker.openApiKeyModal()" title="API Settings">
-                    ⚙️
-                </button>
-                <button class="ai-assistant-debug-btn" onclick="AICoworker.openDebugPanel()" title="View Prompts & Context">
-                    🔍
-                </button>
-                <button class="ai-assistant-ask-btn" onclick="AICoworker.openAskModal()" title="Ask AI for help">
-                    💬 Ask
-                </button>
-            </div>
-        `;
-
-        document.body.appendChild(panel);
-
-        // Create the toggle button
-        const toggleBtn = document.createElement('button');
-        toggleBtn.id = 'ai-assistant-toggle';
-        toggleBtn.className = 'ai-assistant-toggle';
-        toggleBtn.innerHTML = '✨';
-        toggleBtn.title = 'AI Assistant';
-        toggleBtn.onclick = () => this.toggle();
-        document.body.appendChild(toggleBtn);
-
         // Create ask modal
         this.createAskModal();
 
@@ -736,52 +715,6 @@ const AICoworker = {
     },
 
     /**
-     * Start polling for external updates
-     */
-    startPolling() {
-        this.updateInterval = setInterval(() => {
-            this.checkForUpdates();
-        }, 2000);
-    },
-
-    /**
-     * Check for updates from external sources
-     */
-    async checkForUpdates() {
-        // Check localStorage for updates
-        const stored = localStorage.getItem('aiAssistantState');
-        if (stored) {
-            try {
-                const parsed = JSON.parse(stored);
-                if (parsed.lastUpdated !== this.state.lastUpdated) {
-                    this.state = { ...this.state, ...parsed };
-                    this.render();
-                }
-            } catch (e) {
-                console.warn('Error parsing AI Assistant state:', e);
-            }
-        }
-
-        // Also try to fetch from JSON file
-        try {
-            const response = await fetch('data/ai-assistant-state.json?t=' + Date.now(), {
-                method: 'GET',
-                cache: 'no-store'
-            });
-            if (response.ok) {
-                const data = await response.json();
-                if (data.lastUpdated && data.lastUpdated !== this.state.lastUpdated) {
-                    this.state = { ...this.state, ...data };
-                    this.saveState();
-                    this.render();
-                }
-            }
-        } catch (e) {
-            // File doesn't exist yet, that's ok
-        }
-    },
-
-    /**
      * Handle external messages (postMessage API)
      */
     handleExternalMessage(event) {
@@ -791,25 +724,12 @@ const AICoworker = {
     },
 
     /**
-     * Load state from localStorage
-     */
-    loadState() {
-        const stored = localStorage.getItem('aiAssistantState');
-        if (stored) {
-            try {
-                this.state = { ...this.state, ...JSON.parse(stored) };
-            } catch (e) {
-                console.warn('Error loading AI Assistant state:', e);
-            }
-        }
-        this.render();
-    },
-
-    /**
-     * Save state to localStorage
+     * Save state to localStorage (session-only persistence)
      */
     saveState() {
         this.state.lastUpdated = new Date().toISOString();
+        // We still save to localStorage for within-session persistence
+        // but resetSessionState() clears it on next page load
         localStorage.setItem('aiAssistantState', JSON.stringify(this.state));
     },
 
@@ -821,37 +741,34 @@ const AICoworker = {
         this.state.lastUpdated = new Date().toISOString();
         this.saveState();
         this.render();
-
-        // Flash to indicate update
-        const panel = document.getElementById('ai-assistant-panel');
-        if (panel) {
-            panel.classList.add('updated');
-            setTimeout(() => panel.classList.remove('updated'), 1000);
-        }
     },
 
     /**
-     * Render the panel content
+     * Render the panel content into the AI panel assistant tab
      */
     render() {
-        const body = document.getElementById('ai-assistant-body');
-        const statusEl = document.getElementById('ai-assistant-status');
+        const body = document.getElementById('assistant-tab-body');
 
         if (!body) return;
 
-        // Update status indicator
-        if (statusEl) {
-            statusEl.className = 'ai-assistant-status ' + (this.state.status || 'ready');
-        }
-
         let html = '';
+
+        // Footer toolbar (action buttons at top for easy access)
+        html += '<div class="assistant-toolbar">';
+        html += '<button class="assistant-toolbar-btn" onclick="AICoworker.refreshThinking()" title="Refresh AI thinking">🔄</button>';
+        html += '<button class="assistant-toolbar-btn" onclick="AICoworker.openDictationModal()" title="Dictate your thoughts">🎤 Dictate</button>';
+        html += '<button class="assistant-toolbar-btn" onclick="AICoworker.openNoteModal()" title="Write a note">📝 Note</button>';
+        html += '<button class="assistant-toolbar-btn" onclick="AICoworker.openAskModal()" title="Ask AI">💬 Ask</button>';
+        html += '<button class="assistant-toolbar-btn" onclick="AICoworker.openDebugPanel()" title="Debug">🔍</button>';
+        html += '</div>';
 
         // Safety Flags (always show first if present) - these are critical
         if (this.state.flags && this.state.flags.length > 0) {
             html += '<div class="ai-section flags-section">';
             html += '<div class="ai-section-header"><span class="icon">⚠️</span> Safety Flags</div>';
             html += '<div class="ai-flags-list">';
-            this.state.flags.forEach((flag, index) => {
+            // Cap at 5 most recent flags
+            this.state.flags.slice(0, 5).forEach((flag, index) => {
                 html += '<div class="ai-flag ' + (flag.severity || 'warning') + '">';
                 html += '<span class="flag-text">' + this.escapeHtml(flag.text) + '</span>';
                 html += '<button class="flag-dismiss" onclick="AICoworker.dismissFlag(' + index + ')" title="Acknowledge">✓</button>';
@@ -869,9 +786,6 @@ const AICoworker = {
             html += '<button class="section-edit-btn" onclick="AICoworker.openDictationModal()" title="Edit">✏️</button>';
             html += '</div>';
             html += '<div class="ai-dictation">' + this.formatText(this.state.dictation) + '</div>';
-            if (this.state.dictationHistory && this.state.dictationHistory.length > 0) {
-                html += '<div class="dictation-meta">' + this.state.dictationHistory.length + ' previous thought(s)</div>';
-            }
             html += '</div>';
         }
 
@@ -891,18 +805,33 @@ const AICoworker = {
             html += '</div>';
         }
 
-        // Suggested Actions (AI recommendations user can execute)
+        // AI Summary
+        if (this.state.summary) {
+            html += '<div class="ai-section summary-section">';
+            html += '<div class="ai-section-header"><span class="icon">📋</span> Case Summary</div>';
+            html += '<div class="ai-summary">' + this.formatText(this.state.summary) + '</div>';
+            html += '</div>';
+        }
+
+        // AI Thinking
+        if (this.state.thinking) {
+            html += '<div class="ai-section thinking-section">';
+            html += '<div class="ai-section-header"><span class="icon">💭</span> Current Thinking</div>';
+            html += '<div class="ai-thinking">' + this.formatText(this.state.thinking) + '</div>';
+            html += '</div>';
+        }
+
+        // Suggested Actions (cap at 5)
         if (this.state.suggestedActions && this.state.suggestedActions.length > 0) {
             html += '<div class="ai-section actions-section">';
             html += '<div class="ai-section-header"><span class="icon">💡</span> Suggested Actions</div>';
             html += '<div class="ai-actions-list">';
-            this.state.suggestedActions.forEach((action, index) => {
+            this.state.suggestedActions.slice(0, 5).forEach((action, index) => {
                 const actionText = typeof action === 'string' ? action : action.text;
-                const actionId = typeof action === 'object' && action.id ? action.id : index;
                 html += '<div class="ai-suggested-action">';
                 html += '<span class="action-text">' + this.escapeHtml(actionText) + '</span>';
                 html += '<div class="action-buttons">';
-                html += '<button class="action-do-btn" onclick="AICoworker.executeAction(' + index + ')" title="Ask Claude to do this">▶ Do it</button>';
+                html += '<button class="action-do-btn" onclick="AICoworker.executeAction(' + index + ')" title="Do this">▶</button>';
                 html += '<button class="action-dismiss-btn" onclick="AICoworker.dismissAction(' + index + ')" title="Dismiss">×</button>';
                 html += '</div>';
                 html += '</div>';
@@ -911,60 +840,25 @@ const AICoworker = {
             html += '</div>';
         }
 
-        // Context / Current Focus (what the AI is tracking)
-        if (this.state.context) {
-            html += '<div class="ai-section context-section">';
-            html += '<div class="ai-section-header"><span class="icon">🎯</span> Tracking</div>';
-            html += '<div class="ai-context">' + this.formatText(this.state.context) + '</div>';
-            html += '</div>';
-        }
-
-        // What You've Reviewed (mirroring back)
-        if (this.state.reviewed && this.state.reviewed.length > 0) {
-            html += '<div class="ai-section reviewed-section">';
-            html += '<div class="ai-section-header"><span class="icon">✓</span> Reviewed</div>';
-            html += '<div class="ai-reviewed-list">';
-            this.state.reviewed.forEach(item => {
-                html += '<div class="ai-reviewed-item">' + this.escapeHtml(item) + '</div>';
-            });
-            html += '</div>';
-            html += '</div>';
-        }
-
-        // Observations (neutral facts, not recommendations)
+        // Observations (cap at 8 most recent)
         if (this.state.observations && this.state.observations.length > 0) {
+            const recentObs = this.state.observations.slice(-8);
+            const startIdx = this.state.observations.length - recentObs.length;
             html += '<div class="ai-section observations-section">';
-            html += '<div class="ai-section-header"><span class="icon">👁</span> Observations</div>';
+            html += '<div class="ai-section-header"><span class="icon">👁</span> Observations <span class="section-count">(' + this.state.observations.length + ')</span></div>';
             html += '<div class="ai-observations-list">';
-            this.state.observations.forEach((obs, index) => {
+            recentObs.forEach((obs, i) => {
+                const actualIdx = startIdx + i;
                 html += '<div class="ai-observation">';
                 html += '<span class="obs-text">' + this.escapeHtml(obs) + '</span>';
-                html += '<button class="obs-dismiss" onclick="AICoworker.dismissObservation(' + index + ')" title="Dismiss">×</button>';
+                html += '<button class="obs-dismiss" onclick="AICoworker.dismissObservation(' + actualIdx + ')" title="Dismiss">×</button>';
                 html += '</div>';
             });
             html += '</div>';
             html += '</div>';
         }
 
-        // Open Items (what hasn't been addressed - neutral tracking)
-        if (this.state.openItems && this.state.openItems.length > 0) {
-            html += '<div class="ai-section open-section">';
-            html += '<div class="ai-section-header"><span class="icon">○</span> Not Yet Addressed</div>';
-            html += '<div class="ai-open-list">';
-            this.state.openItems.forEach((item, index) => {
-                html += '<div class="ai-open-item">';
-                html += '<span class="open-text">' + this.escapeHtml(item) + '</span>';
-                html += '<div class="open-actions">';
-                html += '<button class="ask-claude-btn" onclick="AICoworker.askClaudeAbout(\'' + this.escapeHtml(item).replace(/'/g, "\\'") + '\')" title="Ask Claude to help">🤖</button>';
-                html += '<button class="open-done" onclick="AICoworker.markAddressed(' + index + ')" title="Mark as addressed">✓</button>';
-                html += '</div>';
-                html += '</div>';
-            });
-            html += '</div>';
-            html += '</div>';
-        }
-
-        // Doctor's Task List (their own tasks)
+        // Doctor's Task List
         if (this.state.tasks && this.state.tasks.length > 0) {
             html += '<div class="ai-section tasks-section">';
             html += '<div class="ai-section-header"><span class="icon">☐</span> Your Tasks</div>';
@@ -974,12 +868,7 @@ const AICoworker = {
                 html += '<div class="ai-task ' + (isDone ? 'done' : '') + '">';
                 html += '<input type="checkbox" ' + (isDone ? 'checked' : '') + ' onchange="AICoworker.toggleTask(' + index + ')">';
                 html += '<span class="task-text">' + this.escapeHtml(task.text) + '</span>';
-                html += '<div class="task-actions">';
-                if (!isDone) {
-                    html += '<button class="ask-claude-btn" onclick="AICoworker.askClaudeAbout(\'' + this.escapeHtml(task.text).replace(/'/g, "\\'") + '\')" title="Ask Claude to help">🤖</button>';
-                }
                 html += '<button class="task-remove" onclick="AICoworker.removeTask(' + index + ')" title="Remove">×</button>';
-                html += '</div>';
                 html += '</div>';
             });
             html += '</div>';
@@ -995,13 +884,16 @@ const AICoworker = {
             html += '</div>';
         }
 
-        // Empty state
-        if (!html) {
-            html = '<div class="ai-empty">';
+        // If only the toolbar was rendered, show empty state below it
+        const hasContent = this.state.flags?.length || this.state.dictation || this.state.summary ||
+            this.state.thinking || this.state.suggestedActions?.length || this.state.observations?.length ||
+            this.state.tasks?.length || this.state.aiResponse;
+
+        if (!hasContent) {
+            html += '<div class="ai-empty">';
             html += '<div class="empty-icon">✨</div>';
             html += '<div class="empty-text">Ready to assist</div>';
-            html += '<div class="empty-hint">I\'ll track what you\'ve reviewed and flag any safety concerns. Click "Ask AI" if you need help.</div>';
-            html += '<button class="btn btn-sm" onclick="AICoworker.loadDemo()">Load Demo</button>';
+            html += '<div class="empty-hint">I\'ll track what you review and flag safety concerns. Use the buttons above to dictate, ask, or write notes.</div>';
             html += '</div>';
         }
 
@@ -2188,7 +2080,7 @@ ${notePrompt}`;
         const refreshPrompt = this.buildRefreshPrompt();
 
         // Animate the refresh button
-        const btn = document.querySelector('.ai-assistant-refresh-btn');
+        const btn = document.querySelector('.assistant-toolbar-btn');
         if (btn) {
             btn.classList.add('spinning');
             setTimeout(() => btn.classList.remove('spinning'), 2000);
@@ -3011,7 +2903,7 @@ Based on the doctor's thoughts and the clinical context above, provide an update
         this.render();
 
         // Animate refresh button
-        const btn = document.querySelector('.ai-assistant-refresh-btn');
+        const btn = document.querySelector('.assistant-toolbar-btn');
         if (btn) {
             btn.classList.add('spinning');
         }
@@ -3329,36 +3221,25 @@ ${item}`;
 
     // ==================== Panel Controls ====================
 
+    /**
+     * Show the assistant tab in the AI panel sidebar
+     */
     toggle() {
-        const panel = document.getElementById('ai-assistant-panel');
-        const toggle = document.getElementById('ai-assistant-toggle');
-
-        this.isVisible = !this.isVisible;
-
-        if (panel) {
-            panel.classList.toggle('visible', this.isVisible);
-        }
-        if (toggle) {
-            toggle.classList.toggle('active', this.isVisible);
+        // Switch to assistant tab in the AI panel
+        if (typeof AIPanel !== 'undefined') {
+            AIPanel.switchTab('assistant');
+            if (AIPanel.isCollapsed) {
+                AIPanel.expand();
+            }
         }
     },
 
     show() {
-        if (!this.isVisible) this.toggle();
+        this.toggle();
     },
 
     toggleMinimize() {
-        const panel = document.getElementById('ai-assistant-panel');
-        const btn = document.getElementById('ai-assistant-minimize');
-
-        this.isMinimized = !this.isMinimized;
-
-        if (panel) {
-            panel.classList.toggle('minimized', this.isMinimized);
-        }
-        if (btn) {
-            btn.textContent = this.isMinimized ? '+' : '−';
-        }
+        // No-op - panel is now integrated into sidebar
     },
 
     // ==================== Event Handlers ====================
@@ -3385,7 +3266,13 @@ ${item}`;
      */
     addObservation(text) {
         if (!this.state.observations) this.state.observations = [];
+        // Deduplicate
+        if (this.state.observations.includes(text)) return;
         this.state.observations.push(text);
+        // Cap at 15 to prevent clutter
+        if (this.state.observations.length > 15) {
+            this.state.observations = this.state.observations.slice(-15);
+        }
         this.saveState();
         this.render();
     },
@@ -3408,6 +3295,10 @@ ${item}`;
         if (!this.state.reviewed) this.state.reviewed = [];
         if (!this.state.reviewed.includes(item)) {
             this.state.reviewed.push(item);
+            // Cap at 20 to prevent unbounded growth
+            if (this.state.reviewed.length > 20) {
+                this.state.reviewed = this.state.reviewed.slice(-20);
+            }
             this.saveState();
             this.render();
         }

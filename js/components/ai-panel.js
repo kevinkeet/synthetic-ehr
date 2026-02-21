@@ -101,12 +101,15 @@ const AIPanel = {
         document.querySelectorAll('.ai-tab-content').forEach(content => {
             const contentId = content.id;
             const isActive = (tabName === 'patient' && contentId === 'patient-chat-tab') ||
-                           (tabName === 'nurse' && contentId === 'nurse-chat-tab');
+                           (tabName === 'nurse' && contentId === 'nurse-chat-tab') ||
+                           (tabName === 'assistant' && contentId === 'assistant-chat-tab');
             content.classList.toggle('active', isActive);
         });
 
         // Scroll to bottom of active chat
-        this.scrollToBottom(tabName);
+        if (tabName !== 'assistant') {
+            this.scrollToBottom(tabName);
+        }
     },
 
     /**
