@@ -5618,6 +5618,78 @@ html, body {
     flex-shrink: 0;
 }
 
+/* ---- CHART REVIEW PROGRESS (Non-Simulation) ---- */
+.chart-review-checklist {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    margin-bottom: 8px;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    transition: background 0.15s ease;
+}
+
+.checklist-item:hover {
+    background: var(--bg-hover);
+    text-decoration: none;
+    color: var(--text-primary);
+}
+
+.checklist-done .checklist-icon {
+    color: #22c55e;
+    font-weight: 700;
+}
+
+.checklist-pending .checklist-icon {
+    color: #d1d5db;
+}
+
+.checklist-done .checklist-name {
+    color: var(--text-primary);
+}
+
+.checklist-pending .checklist-name {
+    color: var(--text-muted);
+}
+
+.review-suggestion {
+    font-size: 10px;
+    color: var(--text-muted);
+    padding: 4px 6px;
+    background: #eff6ff;
+    border-radius: 4px;
+    margin-bottom: 6px;
+}
+
+.review-suggestion .suggestion-icon {
+    font-size: 12px;
+}
+
+.session-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    border-top: 1px solid var(--border-light);
+    padding-top: 6px;
+}
+
+.stat-chip {
+    font-size: 10px;
+    color: var(--text-secondary);
+    padding: 2px 6px;
+    background: #f3f4f6;
+    border-radius: 10px;
+}
+
 /* ---- CLINICAL REASONING ---- */
 .reasoning-section {
     background: #fffbf0;

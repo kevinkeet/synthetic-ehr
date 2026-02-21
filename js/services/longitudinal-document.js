@@ -407,6 +407,16 @@ class LongitudinalClinicalDocument {
             patientConversation: [],
             nurseConversation: []
         };
+
+        // AI's accumulated understanding — persists across sessions
+        this.aiMemory = {
+            patientSummary: '',            // AI's 2-3 paragraph mental model of the patient
+            problemInsights: new Map(),     // Map<problemId, string> per-problem AI understanding
+            interactionLog: [],            // Last 20 interaction summaries
+            clinicalDecisions: [],         // Clinical decisions the doctor has made
+            lastFullIngestion: null,       // When PKB was last fully analyzed by LLM
+            version: 0                     // Increments on meaningful updates
+        };
     }
 
     // Get a problem timeline by ID
@@ -518,6 +528,14 @@ class LongitudinalClinicalDocument {
             longitudinalData: this.serializeLongitudinalData(),
             clinicalNarrative: this.clinicalNarrative,
             sessionContext: this.sessionContext,
+            aiMemory: {
+                patientSummary: this.aiMemory.patientSummary,
+                problemInsights: Array.from(this.aiMemory.problemInsights.entries()),
+                interactionLog: this.aiMemory.interactionLog.slice(-20),
+                clinicalDecisions: this.aiMemory.clinicalDecisions.slice(-30),
+                lastFullIngestion: this.aiMemory.lastFullIngestion,
+                version: this.aiMemory.version
+            },
             options: {
                 timePeriods: this.options.timePeriods,
                 maxVitalsPerPeriod: this.options.maxVitalsPerPeriod,
@@ -606,6 +624,22 @@ class LongitudinalClinicalDocument {
         doc.patientSnapshot = data.patientSnapshot;
         doc.clinicalNarrative = data.clinicalNarrative;
         doc.sessionContext = data.sessionContext;
+
+        // Deserialize AI memory
+        if (data.aiMemory) {
+            doc.aiMemory.patientSummary = data.aiMemory.patientSummary || '';
+            doc.aiMemory.interactionLog = data.aiMemory.interactionLog || [];
+            doc.aiMemory.clinicalDecisions = data.aiMemory.clinicalDecisions || [];
+            doc.aiMemory.lastFullIngestion = data.aiMemory.lastFullIngestion || null;
+            doc.aiMemory.version = data.aiMemory.version || 0;
+            // Restore problemInsights Map from array of entries
+            doc.aiMemory.problemInsights = new Map();
+            if (data.aiMemory.problemInsights && Array.isArray(data.aiMemory.problemInsights)) {
+                for (const [id, insight] of data.aiMemory.problemInsights) {
+                    doc.aiMemory.problemInsights.set(id, insight);
+                }
+            }
+        }
 
         // Deserialize problem matrix
         if (data.problemMatrix) {

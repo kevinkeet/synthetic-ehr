@@ -28,6 +28,11 @@ const AICoworker = {
     longitudinalDocBuilder: null,
     useLongitudinalContext: true, // Toggle between legacy and longitudinal context
 
+    // Memory System (4-layer architecture)
+    sessionContext: null,       // SessionContext — ephemeral session tracking
+    workingMemory: null,        // WorkingMemoryAssembler — focused context assembly
+    contextAssembler: null,     // ContextAssembler — unified prompt building
+
     // Default state
     state: {
         status: 'ready', // ready, thinking, alert
@@ -194,6 +199,16 @@ const AICoworker = {
             // Sync any existing session state to the document
             this.syncSessionStateToDocument();
 
+            // Initialize Memory System (4-layer architecture)
+            this.sessionContext = new SessionContext();
+            this.workingMemory = new WorkingMemoryAssembler(
+                this.longitudinalDoc,
+                this.sessionContext,
+                this.longitudinalDocRenderer
+            );
+            this.contextAssembler = new ContextAssembler(this.workingMemory);
+            console.log('Memory system initialized (SessionContext + WorkingMemory + ContextAssembler)');
+
             // Save the initialized document
             this.saveLongitudinalDoc();
 
@@ -203,6 +218,8 @@ const AICoworker = {
             console.log(`  - Vitals: ${this.longitudinalDoc.longitudinalData.vitals.length}`);
             console.log(`  - Narrative trajectory: ${this.longitudinalDoc.clinicalNarrative.trajectoryAssessment ? 'YES' : 'empty'}`);
             console.log(`  - Key findings: ${this.longitudinalDoc.clinicalNarrative.keyFindings.length}`);
+            console.log(`  - AI Memory: ${this.longitudinalDoc.aiMemory.patientSummary ? 'HAS SUMMARY' : 'empty'}`);
+            console.log(`  - Problem Insights: ${this.longitudinalDoc.aiMemory.problemInsights.size}`);
 
         } catch (error) {
             console.error('Failed to initialize longitudinal document:', error);
@@ -340,6 +357,69 @@ const AICoworker = {
             trajectory: !!llmResult.trajectoryAssessment,
             keyFindings: llmResult.keyFindings?.length || 0,
             openQuestions: llmResult.openQuestions?.length || 0
+        });
+    },
+
+    /**
+     * Write memory updates back to the AI Memory layer of the PKB.
+     * Called after every LLM interaction to accumulate understanding.
+     *
+     * @param {Object} memUpdates - Parsed memory updates from ContextAssembler.parseMemoryUpdates()
+     * @param {string} interactionType - 'ask', 'dictate', 'refresh', etc.
+     * @param {string} inputSummary - Brief description of what triggered this interaction
+     */
+    writeBackMemoryUpdates(memUpdates, interactionType, inputSummary) {
+        if (!this.longitudinalDoc) return;
+
+        const mem = this.longitudinalDoc.aiMemory;
+
+        // 1. Update patient summary (THE core memory)
+        if (memUpdates.patientSummaryUpdate) {
+            mem.patientSummary = memUpdates.patientSummaryUpdate;
+            mem.version = (mem.version || 0) + 1;
+            console.log('🧠 AI Memory: Patient summary updated (v' + mem.version + ')');
+        }
+
+        // 2. Update per-problem insights
+        if (memUpdates.problemInsightUpdates && memUpdates.problemInsightUpdates.length > 0) {
+            for (const update of memUpdates.problemInsightUpdates) {
+                if (update.problemId && update.insight) {
+                    mem.problemInsights.set(update.problemId, update.insight);
+                }
+            }
+            console.log('🧠 AI Memory: Updated insights for', memUpdates.problemInsightUpdates.length, 'problems');
+        }
+
+        // 3. Log the interaction
+        const digest = memUpdates.interactionDigest || `${interactionType}: ${(inputSummary || '').substring(0, 100)}`;
+        mem.interactionLog.push({
+            type: interactionType,
+            summary: digest,
+            timestamp: new Date().toISOString()
+        });
+        // Cap at 20 entries
+        if (mem.interactionLog.length > 20) {
+            mem.interactionLog = mem.interactionLog.slice(-20);
+        }
+
+        // 4. Update last full ingestion timestamp if this was a refresh
+        if (interactionType === 'refresh') {
+            mem.lastFullIngestion = new Date().toISOString();
+        }
+
+        // 5. Mark session context interaction
+        if (this.sessionContext) {
+            this.sessionContext.markAIInteraction();
+        }
+
+        // Persist
+        this.saveLongitudinalDoc();
+
+        console.log('🧠 AI Memory write-back complete:', {
+            hasSummary: !!mem.patientSummary,
+            problemInsights: mem.problemInsights.size,
+            interactionLog: mem.interactionLog.length,
+            version: mem.version
         });
     },
 
@@ -707,19 +787,33 @@ const AICoworker = {
         const pageName = this.getPageName(page);
         if (pageName) {
             this.markReviewed('Viewed: ' + pageName);
+
+            // Track in session context for memory system
+            if (this.sessionContext) {
+                this.sessionContext.trackNavigation(page, pageName);
+            }
         }
     },
 
     getPageName(page) {
         const pageNames = {
-            'chart': 'Chart Overview',
-            'labs': 'Lab Results',
-            'vitals': 'Vital Signs',
+            'chart-review': 'Chart Review',
+            'chart': 'Chart Review',
+            'labs': 'Labs',
+            'vitals': 'Vitals',
+            'medications': 'Medications',
             'meds': 'Medications',
             'orders': 'Orders',
-            'notes': 'Clinical Notes',
+            'notes': 'Notes',
             'imaging': 'Imaging',
-            'results': 'Results'
+            'results': 'Labs',
+            'problems': 'Problem List',
+            'allergies': 'Allergies',
+            'social-history': 'Social History',
+            'family-history': 'Family History',
+            'immunizations': 'Immunizations',
+            'encounters': 'Encounters',
+            'procedures': 'Procedures'
         };
         for (const [key, name] of Object.entries(pageNames)) {
             if (page.toLowerCase().includes(key)) return name;
@@ -847,28 +941,56 @@ const AICoworker = {
 
     renderAlertBar() {
         const alerts = [];
+        const seen = new Set(); // dedup by text
 
-        // Allergy violations
-        if (typeof SimulationScoreTracker !== 'undefined' && SimulationScoreTracker.allergyViolations.length > 0) {
+        // Allergy violations (simulation)
+        if (typeof SimulationScoreTracker !== 'undefined' && SimulationScoreTracker.allergyViolations && SimulationScoreTracker.allergyViolations.length > 0) {
             SimulationScoreTracker.allergyViolations.forEach(v => {
-                alerts.push({ text: `ALLERGY VIOLATION: ${v.medication} — patient has ${v.allergen} (${v.reaction})`, severity: 'critical' });
+                const text = `ALLERGY VIOLATION: ${v.medication} — patient has ${v.allergen} (${v.reaction})`;
+                if (!seen.has(text)) {
+                    alerts.push({ text, severity: 'critical' });
+                    seen.add(text);
+                }
             });
         }
 
         // Safety flags from state
         if (this.state.flags && this.state.flags.length > 0) {
             this.state.flags.slice(0, 3).forEach(f => {
-                alerts.push({ text: f.text, severity: f.severity || 'warning' });
+                if (!seen.has(f.text)) {
+                    alerts.push({ text: f.text, severity: f.severity || 'warning' });
+                    seen.add(f.text);
+                }
             });
         }
 
-        // Critical vitals
+        // Critical vitals (simulation)
         if (typeof SimulationEngine !== 'undefined' && SimulationEngine.isRunning) {
             const vitals = SimulationEngine.patientState?.vitals;
             if (vitals) {
                 if (vitals.spO2 < 88) alerts.push({ text: `Critical: SpO2 ${vitals.spO2}% — consider urgent intervention`, severity: 'critical' });
                 if (vitals.systolic < 85) alerts.push({ text: `Critical: SBP ${vitals.systolic} — hypotension`, severity: 'critical' });
                 if (vitals.heartRate > 150) alerts.push({ text: `Critical: HR ${vitals.heartRate} — tachycardia`, severity: 'critical' });
+            }
+        } else if (this.longitudinalDoc) {
+            // Non-simulation: check chart vitals for critical values
+            const chartVitals = this.longitudinalDoc.longitudinalData.vitals;
+            if (chartVitals && chartVitals.length > 0) {
+                const v = chartVitals[0];
+                if (v.spO2 && v.spO2 < 88) alerts.push({ text: `Critical: SpO2 ${v.spO2}% — from latest chart vitals`, severity: 'critical' });
+                if (v.systolic && v.systolic < 85) alerts.push({ text: `Critical: SBP ${v.systolic} — from latest chart vitals`, severity: 'critical' });
+                if (v.heartRate && v.heartRate > 150) alerts.push({ text: `Critical: HR ${v.heartRate} — from latest chart vitals`, severity: 'critical' });
+            }
+
+            // Check for critical lab values from PKB
+            for (const [name, trend] of this.longitudinalDoc.longitudinalData.labs) {
+                if (trend.latestValue && trend.latestValue.flag === 'CRITICAL') {
+                    const text = `Critical lab: ${name} ${trend.latestValue.value} ${trend.latestValue.unit || ''}`;
+                    if (!seen.has(text)) {
+                        alerts.push({ text, severity: 'critical' });
+                        seen.add(text);
+                    }
+                }
             }
         }
 
@@ -899,7 +1021,7 @@ const AICoworker = {
             patientAge = p.age ? `${p.age}${p.gender === 'Male' ? 'M' : 'F'}` : '';
         }
 
-        // Get vitals
+        // Get vitals — prefer sim vitals, fall back to PKB/chart vitals
         let vitalsHtml = '<span class="snapshot-placeholder">Vitals pending...</span>';
         let trendHtml = '';
         let uopHtml = '';
@@ -927,13 +1049,30 @@ const AICoworker = {
             if (phys && phys.urineOutput !== undefined) {
                 uopHtml = this._vitalBadge('UOP', `${Math.round(phys.urineOutput)} mL/hr`, phys.urineOutput < 30 ? 'warning' : 'normal');
             }
+        } else if (this.longitudinalDoc && this.longitudinalDoc.longitudinalData.vitals.length > 0) {
+            // Fall back to chart vitals from PKB
+            const v = this.longitudinalDoc.longitudinalData.vitals[0]; // most recent
+            vitalsHtml = '';
+            if (v.systolic) vitalsHtml += this._vitalBadge('BP', `${Math.round(v.systolic)}/${Math.round(v.diastolic || 0)}`, v.systolic > 160 || v.systolic < 90 ? 'critical' : v.systolic > 140 ? 'warning' : 'normal');
+            if (v.heartRate) vitalsHtml += this._vitalBadge('HR', Math.round(v.heartRate), v.heartRate > 120 ? 'critical' : v.heartRate > 100 ? 'warning' : 'normal');
+            if (v.respiratoryRate) vitalsHtml += this._vitalBadge('RR', Math.round(v.respiratoryRate), v.respiratoryRate > 24 ? 'critical' : v.respiratoryRate > 20 ? 'warning' : 'normal');
+            if (v.spO2) vitalsHtml += this._vitalBadge('SpO2', `${Math.round(v.spO2)}%`, v.spO2 < 90 ? 'critical' : v.spO2 < 94 ? 'warning' : 'normal');
+            if (v.weight) vitalsHtml += this._vitalBadge('Wt', `${v.weight}kg`, '', true);
+
+            // Use AI memory trajectory if available
+            if (this.longitudinalDoc.aiMemory && this.longitudinalDoc.aiMemory.patientSummary) {
+                trendHtml = `<span class="snapshot-trend trend-stable">&#9644; Chart Review</span>`;
+            }
         }
 
-        // Sim time
+        // Sim time or session time
         let simTime = '';
         if (simRunning) {
             const elapsed = SimulationEngine.getElapsedMinutes();
             simTime = `${Math.round(elapsed)} min elapsed`;
+        } else if (this.sessionContext) {
+            const sessionMin = this.sessionContext.getSessionDuration();
+            if (sessionMin > 0) simTime = `${sessionMin} min in chart`;
         }
 
         // Working diagnosis
@@ -976,8 +1115,25 @@ const AICoworker = {
     },
 
     renderProgressTracker() {
-        if (typeof SimulationScoreTracker === 'undefined') return '';
+        const simAvailable = typeof SimulationScoreTracker !== 'undefined' && typeof SimulationEngine !== 'undefined' && SimulationEngine.isRunning;
 
+        // Simulation mode: use score tracker
+        if (simAvailable) {
+            return this._renderSimulationProgress();
+        }
+
+        // Chart review mode: show chart review progress from session context
+        if (this.sessionContext) {
+            return this._renderChartReviewProgress();
+        }
+
+        return '';
+    },
+
+    /**
+     * Render simulation-based progress tracker (original behavior)
+     */
+    _renderSimulationProgress() {
         const progress = SimulationScoreTracker.getProgressSummary();
         const nudges = SimulationScoreTracker.getTopNudges(3);
         const temporalNudges = SimulationScoreTracker.getTemporalNudges();
@@ -1024,6 +1180,55 @@ const AICoworker = {
                 html += `<span class="nudge-pts">${n.points}pts</span>`;
                 html += '</div>';
             });
+            html += '</div>';
+        }
+
+        html += '</div></div>';
+        return html;
+    },
+
+    /**
+     * Render chart review progress (non-simulation mode)
+     * Shows which chart sections the doctor has visited this session
+     */
+    _renderChartReviewProgress() {
+        const checklist = this.sessionContext.getChartReviewChecklist();
+        const visited = checklist.filter(s => s.visited).length;
+        const total = checklist.length;
+        const pct = Math.round((visited / total) * 100);
+
+        let html = '<div class="copilot-section progress-section">';
+        html += `<div class="copilot-section-header"><span>&#128200;</span> Chart Review <span class="progress-overall">${pct}%</span></div>`;
+        html += '<div class="copilot-section-body">';
+
+        // Checklist of sections
+        html += '<div class="chart-review-checklist">';
+        checklist.forEach(s => {
+            const icon = s.visited ? '&#10003;' : '&#9675;';
+            const cls = s.visited ? 'checklist-done' : 'checklist-pending';
+            html += `<a href="${s.route}" class="checklist-item ${cls}">`;
+            html += `<span class="checklist-icon">${icon}</span>`;
+            html += `<span class="checklist-name">${this.escapeHtml(s.name)}</span>`;
+            html += '</a>';
+        });
+        html += '</div>';
+
+        // Suggest unvisited sections
+        const unvisited = checklist.filter(s => !s.visited);
+        if (unvisited.length > 0 && unvisited.length < total) {
+            html += '<div class="review-suggestion">';
+            html += `<span class="suggestion-icon">&#128161;</span> `;
+            html += `${unvisited.length} section${unvisited.length > 1 ? 's' : ''} not yet reviewed`;
+            html += '</div>';
+        }
+
+        // Session stats
+        const summary = this.sessionContext.getSessionSummary();
+        if (summary.questionsAsked > 0 || summary.dictationsGiven > 0 || summary.ordersPlaced > 0) {
+            html += '<div class="session-stats">';
+            if (summary.questionsAsked > 0) html += `<span class="stat-chip">&#128172; ${summary.questionsAsked} question${summary.questionsAsked > 1 ? 's' : ''}</span>`;
+            if (summary.dictationsGiven > 0) html += `<span class="stat-chip">&#127897; ${summary.dictationsGiven} dictation${summary.dictationsGiven > 1 ? 's' : ''}</span>`;
+            if (summary.ordersPlaced > 0) html += `<span class="stat-chip">&#128203; ${summary.ordersPlaced} order${summary.ordersPlaced > 1 ? 's' : ''}</span>`;
             html += '</div>';
         }
 
@@ -1157,11 +1362,17 @@ const AICoworker = {
     },
 
     renderQuickActions() {
+        const simRunning = typeof SimulationEngine !== 'undefined' && SimulationEngine.isRunning;
+
         let html = '<div class="copilot-quick-actions">';
         html += '<button class="quick-action-btn" onclick="AICoworker.openDictationModal()"><span>&#127897;</span> Dictate</button>';
         html += '<button class="quick-action-btn" onclick="AICoworker.openAskModal()"><span>&#128172;</span> Ask AI</button>';
         html += '<button class="quick-action-btn" onclick="AICoworker.openNoteModal()"><span>&#128221;</span> Write Note</button>';
-        html += '<button class="quick-action-btn" onclick="AICoworker.showScoreSummary()"><span>&#128202;</span> Score</button>';
+        if (simRunning) {
+            html += '<button class="quick-action-btn" onclick="AICoworker.showScoreSummary()"><span>&#128202;</span> Score</button>';
+        } else {
+            html += '<button class="quick-action-btn" onclick="AICoworker.refreshThinking()"><span>&#128260;</span> Refresh</button>';
+        }
         html += '</div>';
         return html;
     },
@@ -2205,11 +2416,26 @@ Respond with ONLY the JSON, no preamble.`;
         // Show generating state
         this.openNoteEditor(noteTypeName, null);
 
-        // Build context - use full longitudinal context + specific note prompt
-        const clinicalContext = this.buildFullClinicalContext();
-        const notePrompt = this.buildNotePrompt(noteType, includeSources, instructions);
+        // Track note writing in session context
+        if (this.sessionContext) {
+            this.sessionContext.trackNote(noteType);
+        }
 
-        const systemPrompt = `You are a physician writing a clinical note in an EHR system. Write a professional, thorough clinical note based on the patient data provided. Use standard medical documentation conventions.
+        // Use context assembler for note context, fall back to legacy
+        let systemPrompt, userMessage;
+        if (this.contextAssembler) {
+            this.syncSessionStateToDocument();
+            const prompt = this.contextAssembler.buildNotePrompt(
+                noteType, noteTypeName, includeSources, instructions,
+                this.state.chartData, this.state.dictation
+            );
+            systemPrompt = prompt.systemPrompt;
+            userMessage = prompt.userMessage;
+            console.log(`📊 Note context: ${userMessage.length} chars (full)`);
+        } else {
+            const clinicalContext = this.buildFullClinicalContext();
+            const notePrompt = this.buildNotePrompt(noteType, includeSources, instructions);
+            systemPrompt = `You are a physician writing a clinical note in an EHR system. Write a professional, thorough clinical note based on the patient data provided. Use standard medical documentation conventions.
 
 Write the note in plain text with clear section headers. Do NOT use markdown formatting like ** or #. Use UPPERCASE for section headers followed by a colon.
 
@@ -2219,12 +2445,8 @@ IMPORTANT:
 - Include the patient and nurse conversation data if relevant to the clinical picture
 - Structure the note according to the requested format
 - Write as if you are the attending physician documenting the encounter`;
-
-        const userMessage = `## Full Clinical Context
-${clinicalContext}
-
-## Note Request
-${notePrompt}`;
+            userMessage = `## Full Clinical Context\n${clinicalContext}\n\n## Note Request\n${notePrompt}`;
+        }
 
         try {
             const response = await this.callLLM(systemPrompt, userMessage, 4096);
@@ -2880,13 +3102,21 @@ Format your response as JSON:
     },
 
     refreshDebugContext() {
-        // Build current clinical context
-        const clinicalContext = this.buildFullClinicalContext();
+        // Build current clinical context — use memory-aware assembler if available
+        let clinicalContext;
+        if (this.contextAssembler) {
+            this.syncSessionStateToDocument();
+            clinicalContext = this.contextAssembler.buildDebugContextPrompt();
+        } else {
+            clinicalContext = this.buildFullClinicalContext();
+        }
 
         // Add header showing which context type is being used
-        const contextType = (this.useLongitudinalContext && this.longitudinalDoc)
-            ? '=== LONGITUDINAL CLINICAL DOCUMENT ===\n\n'
-            : '=== LEGACY CLINICAL CONTEXT ===\n\n';
+        const contextType = this.contextAssembler
+            ? '=== MEMORY-AWARE CONTEXT (Working Memory Assembler) ===\n\n'
+            : (this.useLongitudinalContext && this.longitudinalDoc)
+                ? '=== LONGITUDINAL CLINICAL DOCUMENT ===\n\n'
+                : '=== LEGACY CLINICAL CONTEXT ===\n\n';
 
         document.getElementById('debug-context-text').value = contextType + clinicalContext;
 
@@ -3183,7 +3413,22 @@ ${ctx.nurseConversation.length > 0
         this.state.status = 'thinking';
         this.render();
 
-        const systemPrompt = `You are an AI clinical assistant helping a physician manage a patient case. You maintain a durable "living memory" of this patient that persists across interactions.
+        // Track dictation in session context
+        if (this.sessionContext) {
+            this.sessionContext.trackDictation(doctorThoughts);
+        }
+
+        // Use context assembler for focused context, fall back to legacy
+        let systemPrompt, userMessage, clinicalContext;
+        if (this.contextAssembler) {
+            this.syncSessionStateToDocument();
+            const prompt = this.contextAssembler.buildDictationPrompt(doctorThoughts);
+            systemPrompt = prompt.systemPrompt;
+            userMessage = prompt.userMessage;
+            clinicalContext = userMessage;
+            console.log(`📊 Dictation context: ${userMessage.length} chars (focused)`);
+        } else {
+            systemPrompt = `You are an AI clinical assistant helping a physician manage a patient case. You maintain a durable "living memory" of this patient that persists across interactions.
 
 Your role:
 1. Synthesize the doctor's clinical reasoning with the available patient data
@@ -3218,15 +3463,9 @@ RULES:
 - keyFindings should be durable insights, not transient observations
 - openQuestions are things that still need to be resolved`;
 
-        const clinicalContext = this.buildFullClinicalContext();
-
-        const userMessage = `## Current Clinical Context
-${clinicalContext}
-
-## Doctor's Current Assessment/Thoughts
-"${doctorThoughts}"
-
-Based on the doctor's thoughts and the clinical context above, provide an updated synthesis. Update the trajectory assessment, key findings, and open questions based on this new information.`;
+            clinicalContext = this.buildFullClinicalContext();
+            userMessage = `## Current Clinical Context\n${clinicalContext}\n\n## Doctor's Current Assessment/Thoughts\n"${doctorThoughts}"\n\nBased on the doctor's thoughts and the clinical context above, provide an updated synthesis. Update the trajectory assessment, key findings, and open questions based on this new information.`;
+        }
 
         // Store clinical context for debug panel
         this.lastApiCall.clinicalContext = clinicalContext;
@@ -3272,6 +3511,12 @@ Based on the doctor's thoughts and the clinical context above, provide an update
             // === LLM WRITE-BACK: Update longitudinal document with AI insights ===
             this.writeBackToDocument(result);
 
+            // === MEMORY WRITE-BACK: Update AI memory with persistent understanding ===
+            if (this.contextAssembler) {
+                const memUpdates = this.contextAssembler.parseMemoryUpdates(JSON.stringify(result));
+                this.writeBackMemoryUpdates(memUpdates, 'dictate', doctorThoughts);
+            }
+
             this.state.status = 'ready';
             this.saveState();
             this.render();
@@ -3304,7 +3549,17 @@ Based on the doctor's thoughts and the clinical context above, provide an update
             btn.classList.add('spinning');
         }
 
-        const systemPrompt = `You are an AI clinical assistant embedded in an EHR system. Analyze this patient case and provide a comprehensive synthesis.
+        // Use context assembler for comprehensive context, fall back to legacy
+        let systemPrompt, userMessage, clinicalContext;
+        if (this.contextAssembler) {
+            this.syncSessionStateToDocument();
+            const prompt = this.contextAssembler.buildRefreshPrompt(this.state.dictation);
+            systemPrompt = prompt.systemPrompt;
+            userMessage = prompt.userMessage;
+            clinicalContext = userMessage;
+            console.log(`📊 Refresh context: ${userMessage.length} chars (full)`);
+        } else {
+            systemPrompt = `You are an AI clinical assistant embedded in an EHR system. Analyze this patient case and provide a comprehensive synthesis.
 
 You maintain a LONGITUDINAL CLINICAL DOCUMENT that persists across sessions. Your insights are written back into this document so they accumulate over time. Think of yourself as building a living understanding of this patient.
 
@@ -3335,14 +3590,9 @@ RULES:
 - keyFindings should be durable insights worth remembering across sessions
 - openQuestions are things that still need to be resolved`;
 
-        const clinicalContext = this.buildFullClinicalContext();
-
-        const userMessage = `## Clinical Context
-${clinicalContext}
-
-${this.state.dictation ? `## Doctor's Current Assessment\n"${this.state.dictation}"` : '## No doctor assessment recorded yet'}
-
-Provide a comprehensive case synthesis. Build a trajectory assessment covering all active problems.`;
+            clinicalContext = this.buildFullClinicalContext();
+            userMessage = `## Clinical Context\n${clinicalContext}\n\n${this.state.dictation ? `## Doctor's Current Assessment\n"${this.state.dictation}"` : '## No doctor assessment recorded yet'}\n\nProvide a comprehensive case synthesis. Build a trajectory assessment covering all active problems.`;
+        }
 
         // Store clinical context for debug panel
         this.lastApiCall.clinicalContext = clinicalContext;
@@ -3377,6 +3627,12 @@ Provide a comprehensive case synthesis. Build a trajectory assessment covering a
 
             // === LLM WRITE-BACK: Update longitudinal document with AI insights ===
             this.writeBackToDocument(result);
+
+            // === MEMORY WRITE-BACK: Update AI memory with persistent understanding ===
+            if (this.contextAssembler) {
+                const memUpdates = this.contextAssembler.parseMemoryUpdates(JSON.stringify(result));
+                this.writeBackMemoryUpdates(memUpdates, 'refresh', 'Full case refresh');
+            }
 
             this.state.status = 'ready';
             this.state.lastUpdated = new Date().toISOString();
@@ -3420,19 +3676,36 @@ Provide a comprehensive case synthesis. Build a trajectory assessment covering a
         // Show response modal in loading state
         this.openResponseModal(item, null);
 
-        const clinicalContext = this.buildFullClinicalContext();
+        // Track the question in session context
+        if (this.sessionContext) {
+            this.sessionContext.trackQuestion(item);
+        }
 
-        const systemPrompt = `You are an AI clinical assistant helping a physician. Answer their question or help with their task using the clinical context provided. Be concise, clinically relevant, and actionable. Use plain text, not markdown.`;
-
-        const userMessage = `## Clinical Context
-${clinicalContext}
-
-## Physician's Request
-${item}`;
+        // Use context assembler for focused context, fall back to legacy
+        let systemPrompt, userMessage, maxTokens;
+        if (this.contextAssembler) {
+            this.syncSessionStateToDocument();
+            const prompt = this.contextAssembler.buildAskPrompt(item);
+            systemPrompt = prompt.systemPrompt;
+            userMessage = prompt.userMessage;
+            maxTokens = prompt.maxTokens;
+            console.log(`📊 Ask AI context: ${userMessage.length} chars (focused)`);
+        } else {
+            const clinicalContext = this.buildFullClinicalContext();
+            systemPrompt = `You are an AI clinical assistant helping a physician. Answer their question or help with their task using the clinical context provided. Be concise, clinically relevant, and actionable. Use plain text, not markdown.`;
+            userMessage = `## Clinical Context\n${clinicalContext}\n\n## Physician's Request\n${item}`;
+            maxTokens = 2048;
+        }
 
         try {
-            const response = await this.callLLM(systemPrompt, userMessage, 2048);
+            const response = await this.callLLM(systemPrompt, userMessage, maxTokens);
             this.openResponseModal(item, response);
+
+            // Write back any memory updates from the ask response
+            if (this.contextAssembler) {
+                const memUpdates = this.contextAssembler.parseMemoryUpdates(response);
+                this.writeBackMemoryUpdates(memUpdates, 'ask', item);
+            }
         } catch (error) {
             if (error.message === 'API key not configured') {
                 this.closeResponseModal();
