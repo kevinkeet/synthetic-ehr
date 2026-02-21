@@ -601,6 +601,194 @@ const SimulationScoreTracker = {
             allergyViolations: this.allergyViolations.length,
             emotionalTriggerFired: this.emotionalTriggerFired
         };
+    },
+
+    // ========== COPILOT SUPPORT METHODS ==========
+
+    /**
+     * Get progress summary for each scoring domain
+     * Returns { domainName: { earned, total, percentage, count, countTotal } }
+     */
+    getProgressSummary() {
+        const summary = {};
+
+        // Patient History
+        const phItems = Object.values(this.patientHistoryItems);
+        const phEarned = phItems.filter(i => i.asked).reduce((s, i) => s + i.points, 0);
+        const phTotal = phItems.reduce((s, i) => s + i.points, 0);
+        summary.patientHistory = {
+            earned: phEarned, total: phTotal,
+            percentage: phTotal > 0 ? Math.round((phEarned / phTotal) * 100) : 0,
+            count: phItems.filter(i => i.asked).length, countTotal: phItems.length,
+            label: 'Hx', fullLabel: 'Patient History'
+        };
+
+        // Nurse Interaction
+        const niItems = Object.values(this.nurseHistoryItems);
+        const niEarned = niItems.filter(i => i.asked).reduce((s, i) => s + i.points, 0);
+        const niTotal = niItems.reduce((s, i) => s + i.points, 0);
+        summary.nurseInteraction = {
+            earned: niEarned, total: niTotal,
+            percentage: niTotal > 0 ? Math.round((niEarned / niTotal) * 100) : 0,
+            count: niItems.filter(i => i.asked).length, countTotal: niItems.length,
+            label: 'Nurse', fullLabel: 'Nurse Interaction'
+        };
+
+        // Chart Review
+        const crItems = Object.values(this.chartReviewItems);
+        const crEarned = crItems.filter(i => i.viewed).reduce((s, i) => s + i.points, 0);
+        const crTotal = crItems.reduce((s, i) => s + i.points, 0);
+        summary.chartReview = {
+            earned: crEarned, total: crTotal,
+            percentage: crTotal > 0 ? Math.round((crEarned / crTotal) * 100) : 0,
+            count: crItems.filter(i => i.viewed).length, countTotal: crItems.length,
+            label: 'Chart', fullLabel: 'Chart Review'
+        };
+
+        // Medication Orders (exclude safety items)
+        const moItems = Object.entries(this.medicationOrders).filter(([k, v]) => v.category !== 'safety');
+        const moEarned = moItems.filter(([k, v]) => v.ordered).reduce((s, [k, v]) => s + v.points, 0);
+        const moTotal = moItems.reduce((s, [k, v]) => s + v.points, 0);
+        summary.orders = {
+            earned: moEarned, total: moTotal,
+            percentage: moTotal > 0 ? Math.round((moEarned / moTotal) * 100) : 0,
+            count: moItems.filter(([k, v]) => v.ordered).length, countTotal: moItems.length,
+            label: 'Orders', fullLabel: 'Medication Management'
+        };
+
+        // Safety
+        const safetyItems = Object.entries(this.medicationOrders).filter(([k, v]) => v.category === 'safety');
+        const allSafe = safetyItems.every(([k, v]) => v.safe);
+        summary.safety = {
+            earned: allSafe ? 100 : 0, total: 100,
+            percentage: allSafe ? 100 : (100 - this.allergyViolations.length * 30),
+            count: safetyItems.filter(([k, v]) => v.safe).length, countTotal: safetyItems.length,
+            label: 'Safety', fullLabel: 'Safety & Allergies',
+            isSafe: allSafe
+        };
+
+        // Empathy
+        if (!this.emotionalTriggerFired) {
+            summary.empathy = {
+                earned: 0, total: 0, percentage: -1, // -1 = not yet applicable
+                count: 0, countTotal: 0,
+                label: 'Empathy', fullLabel: 'Empathy & Communication'
+            };
+        } else {
+            const emItems = Object.values(this.empathyItems);
+            const emEarned = emItems.filter(i => i.earned).reduce((s, i) => s + i.points, 0);
+            const emTotal = emItems.reduce((s, i) => s + i.points, 0);
+            summary.empathy = {
+                earned: emEarned, total: emTotal,
+                percentage: emTotal > 0 ? Math.round((emEarned / emTotal) * 100) : 0,
+                count: emItems.filter(i => i.earned).length, countTotal: emItems.length,
+                label: 'Empathy', fullLabel: 'Empathy & Communication'
+            };
+        }
+
+        // Overall
+        const weights = { patientHistory: 0.20, nurseInteraction: 0.15, chartReview: 0.15, orders: 0.30, safety: 0.10, empathy: 0.10 };
+        let overall = 0;
+        for (const [key, weight] of Object.entries(weights)) {
+            const pct = summary[key].percentage === -1 ? 50 : summary[key].percentage;
+            overall += pct * weight;
+        }
+        summary.overall = Math.round(overall);
+
+        return summary;
+    },
+
+    /**
+     * Get top priority nudges — highest-point uncompleted items
+     */
+    getTopNudges(count = 3) {
+        const nudges = [];
+
+        // Patient history items not yet asked
+        for (const [key, item] of Object.entries(this.patientHistoryItems)) {
+            if (!item.asked) {
+                nudges.push({
+                    domain: 'Patient', text: item.label.replace('Asked about ', 'Ask about '),
+                    points: item.points, action: null, domainColor: '#3b82f6'
+                });
+            }
+        }
+
+        // Nurse items not yet asked
+        for (const [key, item] of Object.entries(this.nurseHistoryItems)) {
+            if (!item.asked) {
+                nudges.push({
+                    domain: 'Nurse', text: item.label.replace('Asked ', 'Ask ').replace('Communicated ', 'Communicate '),
+                    points: item.points, action: null, domainColor: '#8b5cf6'
+                });
+            }
+        }
+
+        // Chart review items not viewed
+        const routeMap = {
+            problemList: '/problems', resolvedProblems: '/problems',
+            medicationList: '/medications', allergyList: '/allergies',
+            labResults: '/labs', notes: '/notes', giConsultNote: '/notes'
+        };
+        for (const [key, item] of Object.entries(this.chartReviewItems)) {
+            if (!item.viewed) {
+                nudges.push({
+                    domain: 'Chart', text: item.label.replace('Viewed ', 'Review ').replace('Read ', 'Read '),
+                    points: item.points, action: `#${routeMap[key] || '/chart-review'}`, domainColor: '#10b981'
+                });
+            }
+        }
+
+        // Critical/important medication orders not yet placed
+        for (const [key, item] of Object.entries(this.medicationOrders)) {
+            if ('ordered' in item && !item.ordered && (item.category === 'critical' || item.category === 'important')) {
+                nudges.push({
+                    domain: 'Orders', text: `Order: ${item.label}`,
+                    points: item.points, action: '#/orders', domainColor: '#f59e0b'
+                });
+            }
+        }
+
+        // Sort by points descending
+        nudges.sort((a, b) => b.points - a.points);
+        return nudges.slice(0, count);
+    },
+
+    /**
+     * Get time-sensitive nudges based on elapsed simulation time
+     */
+    getTemporalNudges() {
+        if (typeof SimulationEngine === 'undefined' || !SimulationEngine.isRunning) return [];
+
+        const elapsed = SimulationEngine.getElapsedMinutes();
+        const nudges = [];
+
+        // After 15 min, if no diuretic ordered
+        if (elapsed >= 15 && !this.medicationOrders.ivFurosemide.ordered) {
+            nudges.push({
+                text: `${Math.round(elapsed)} min elapsed — no diuretic ordered yet`,
+                severity: elapsed >= 30 ? 'critical' : 'warning'
+            });
+        }
+
+        // After 10 min, if allergies not reviewed
+        if (elapsed >= 10 && !this.chartReviewItems.allergyList.viewed) {
+            nudges.push({
+                text: 'Review the allergy list before ordering medications',
+                severity: 'warning'
+            });
+        }
+
+        // After 20 min, if patient history sparse
+        const historyAsked = Object.values(this.patientHistoryItems).filter(i => i.asked).length;
+        if (elapsed >= 20 && historyAsked < 4) {
+            nudges.push({
+                text: 'Limited patient history gathered — keep asking questions',
+                severity: 'info'
+            });
+        }
+
+        return nudges;
     }
 };
 

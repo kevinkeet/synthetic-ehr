@@ -1,14 +1,16 @@
 /**
  * AI Panel Component
- * Manages the AI side panel with stacked layout:
- * - Assistant section on top (always visible, collapsible)
- * - Patient and Nurse chat panels side by side below
+ * Manages the AI side panel with tabbed layout:
+ * - Copilot tab (AI assistant, default)
+ * - Patient chat tab
+ * - Nurse chat tab
+ * With notification badges on inactive tabs
  */
 
 const AIPanel = {
     isCollapsed: false,
-    isAssistantCollapsed: false,
     isSettingsOpen: false,
+    currentTab: 'copilot',
 
     /**
      * Initialize the AI panel
@@ -16,7 +18,6 @@ const AIPanel = {
     init() {
         // Load collapsed state from localStorage
         this.isCollapsed = localStorage.getItem('ai-panel-collapsed') === 'true';
-        this.isAssistantCollapsed = localStorage.getItem('ai-assistant-collapsed') === 'true';
 
         // Apply initial state
         if (this.isCollapsed) {
@@ -28,14 +29,6 @@ const AIPanel = {
             }
         }
 
-        // Apply assistant collapsed state
-        if (this.isAssistantCollapsed) {
-            const body = document.getElementById('assistant-tab-body');
-            const icon = document.getElementById('assistant-collapse-icon');
-            if (body) body.style.display = 'none';
-            if (icon) icon.innerHTML = '&#9654;';
-        }
-
         // Load saved settings
         this.loadSettings();
 
@@ -43,6 +36,60 @@ const AIPanel = {
         this.initVoiceOptions();
 
         console.log('AI Panel initialized');
+    },
+
+    /**
+     * Switch between tabs (copilot, patient, nurse)
+     */
+    switchTab(tabName) {
+        this.currentTab = tabName;
+
+        // Update tab buttons
+        document.querySelectorAll('#ai-panel-tabs .ai-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.tab === tabName);
+        });
+
+        // Update tab content
+        document.querySelectorAll('.ai-tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        const activeContent = document.getElementById(`tab-${tabName}`);
+        if (activeContent) {
+            activeContent.classList.add('active');
+        }
+
+        // Clear badge on the tab we're switching to
+        this.clearBadge(tabName);
+
+        // Scroll chat to bottom when switching to a chat tab
+        if (tabName === 'patient' || tabName === 'nurse') {
+            this.scrollToBottom(tabName);
+        }
+    },
+
+    /**
+     * Show notification badge on a tab
+     */
+    showBadge(tabName) {
+        // Don't show badge if we're already on that tab
+        if (this.currentTab === tabName) return;
+
+        const badgeId = tabName === 'patient' ? 'patient-badge' : 'nurse-badge';
+        const badge = document.getElementById(badgeId);
+        if (badge) {
+            badge.classList.add('visible');
+        }
+    },
+
+    /**
+     * Clear notification badge on a tab
+     */
+    clearBadge(tabName) {
+        const badgeId = tabName === 'patient' ? 'patient-badge' : 'nurse-badge';
+        const badge = document.getElementById(badgeId);
+        if (badge) {
+            badge.classList.remove('visible');
+        }
     },
 
     /**
@@ -94,24 +141,6 @@ const AIPanel = {
         }
         this.isCollapsed = false;
         localStorage.setItem('ai-panel-collapsed', 'false');
-    },
-
-    /**
-     * Toggle the assistant section collapse
-     */
-    toggleAssistant() {
-        this.isAssistantCollapsed = !this.isAssistantCollapsed;
-        const body = document.getElementById('assistant-tab-body');
-        const icon = document.getElementById('assistant-collapse-icon');
-
-        if (body) {
-            body.style.display = this.isAssistantCollapsed ? 'none' : '';
-        }
-        if (icon) {
-            icon.innerHTML = this.isAssistantCollapsed ? '&#9654;' : '&#9660;';
-        }
-
-        localStorage.setItem('ai-assistant-collapsed', this.isAssistantCollapsed ? 'true' : 'false');
     },
 
     /**
@@ -340,6 +369,11 @@ const AIPanel = {
 
         messagesContainer.appendChild(messageDiv);
         this.scrollToBottom(tabName);
+
+        // Show notification badge if we're not on this tab
+        if (role === 'assistant' && this.currentTab !== tabName) {
+            this.showBadge(tabName);
+        }
 
         return messageDiv;
     },

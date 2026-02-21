@@ -46,6 +46,9 @@ const AICoworker = {
         // Suggested next actions (user can click to execute via Claude)
         suggestedActions: [],
 
+        // Key considerations (structured safety/clinical concerns)
+        keyConsiderations: [],
+
         // What the doctor has reviewed/found (AI mirrors this back)
         reviewed: [],
 
@@ -125,6 +128,7 @@ const AICoworker = {
             summary: '',
             thinking: '',
             suggestedActions: [],
+            keyConsiderations: [],
             reviewed: [],
             observations: [],
             flags: [],
@@ -543,6 +547,15 @@ const AICoworker = {
             SimulationEngine.on('orderPlaced', (data) => this.onOrderPlaced(data));
             SimulationEngine.on('consultResponse', (data) => this.onConsultResponse(data));
             SimulationEngine.on('timeUpdate', (data) => this.onTimeUpdate(data));
+
+            // Lightweight tick listener for real-time snapshot + progress updates
+            // Throttled to update every 3 ticks (~3 seconds real time)
+            let tickCount = 0;
+            SimulationEngine.on('tick', () => {
+                tickCount++;
+                if (tickCount % 3 !== 0) return;
+                this.updateLiveSections();
+            });
         }
 
         // Listen for keyboard shortcuts
@@ -748,156 +761,409 @@ const AICoworker = {
      */
     render() {
         const body = document.getElementById('assistant-tab-body');
-
         if (!body) return;
 
         let html = '';
 
-        // Footer toolbar (action buttons at top for easy access)
-        html += '<div class="assistant-toolbar">';
-        html += '<button class="assistant-toolbar-btn" onclick="AICoworker.refreshThinking()" title="Refresh AI thinking">🔄</button>';
-        html += '<button class="assistant-toolbar-btn" onclick="AICoworker.openDictationModal()" title="Dictate your thoughts">🎤 Dictate</button>';
-        html += '<button class="assistant-toolbar-btn" onclick="AICoworker.openNoteModal()" title="Write a note">📝 Note</button>';
-        html += '<button class="assistant-toolbar-btn" onclick="AICoworker.openAskModal()" title="Ask AI">💬 Ask</button>';
-        html += '<button class="assistant-toolbar-btn" onclick="AICoworker.openDebugPanel()" title="Debug">🔍</button>';
-        html += '</div>';
+        // ===== SECTION 1: ALERT BAR (sticky, only when alerts exist) =====
+        html += this.renderAlertBar();
 
-        // Safety Flags (always show first if present) - these are critical
-        if (this.state.flags && this.state.flags.length > 0) {
-            html += '<div class="ai-section flags-section">';
-            html += '<div class="ai-section-header"><span class="icon">⚠️</span> Safety Flags</div>';
-            html += '<div class="ai-flags-list">';
-            // Cap at 5 most recent flags
-            this.state.flags.slice(0, 5).forEach((flag, index) => {
-                html += '<div class="ai-flag ' + (flag.severity || 'warning') + '">';
-                html += '<span class="flag-text">' + this.escapeHtml(flag.text) + '</span>';
-                html += '<button class="flag-dismiss" onclick="AICoworker.dismissFlag(' + index + ')" title="Acknowledge">✓</button>';
-                html += '</div>';
-            });
-            html += '</div>';
-            html += '</div>';
-        }
+        // ===== SECTION 2: PATIENT SNAPSHOT =====
+        html += this.renderPatientSnapshot();
 
-        // Doctor's Dictation (their thoughts - prominent position)
-        if (this.state.dictation) {
-            html += '<div class="ai-section dictation-section">';
-            html += '<div class="ai-section-header">';
-            html += '<span class="icon">🎤</span> Your Thoughts';
-            html += '<button class="section-edit-btn" onclick="AICoworker.openDictationModal()" title="Edit">✏️</button>';
-            html += '</div>';
-            html += '<div class="ai-dictation">' + this.formatText(this.state.dictation) + '</div>';
-            html += '</div>';
-        }
+        // ===== SECTION 3: PROGRESS TRACKER =====
+        html += this.renderProgressTracker();
 
-        // AI Summary (how the AI understands the case)
-        if (this.state.summary) {
-            html += '<div class="ai-section summary-section">';
-            html += '<div class="ai-section-header"><span class="icon">📋</span> Case Summary</div>';
-            html += '<div class="ai-summary">' + this.formatText(this.state.summary) + '</div>';
-            html += '</div>';
-        }
+        // ===== SECTION 4: CLINICAL REASONING =====
+        html += this.renderClinicalReasoning();
 
-        // AI Thinking (current reasoning)
-        if (this.state.thinking) {
-            html += '<div class="ai-section thinking-section">';
-            html += '<div class="ai-section-header"><span class="icon">💭</span> Current Thinking</div>';
-            html += '<div class="ai-thinking">' + this.formatText(this.state.thinking) + '</div>';
-            html += '</div>';
-        }
+        // ===== SECTION 5: SUGGESTED NEXT STEPS =====
+        html += this.renderNextSteps();
 
-        // AI Summary
-        if (this.state.summary) {
-            html += '<div class="ai-section summary-section">';
-            html += '<div class="ai-section-header"><span class="icon">📋</span> Case Summary</div>';
-            html += '<div class="ai-summary">' + this.formatText(this.state.summary) + '</div>';
-            html += '</div>';
-        }
-
-        // AI Thinking
-        if (this.state.thinking) {
-            html += '<div class="ai-section thinking-section">';
-            html += '<div class="ai-section-header"><span class="icon">💭</span> Current Thinking</div>';
-            html += '<div class="ai-thinking">' + this.formatText(this.state.thinking) + '</div>';
-            html += '</div>';
-        }
-
-        // Suggested Actions (cap at 5)
-        if (this.state.suggestedActions && this.state.suggestedActions.length > 0) {
-            html += '<div class="ai-section actions-section">';
-            html += '<div class="ai-section-header"><span class="icon">💡</span> Suggested Actions</div>';
-            html += '<div class="ai-actions-list">';
-            this.state.suggestedActions.slice(0, 5).forEach((action, index) => {
-                const actionText = typeof action === 'string' ? action : action.text;
-                html += '<div class="ai-suggested-action">';
-                html += '<span class="action-text">' + this.escapeHtml(actionText) + '</span>';
-                html += '<div class="action-buttons">';
-                html += '<button class="action-do-btn" onclick="AICoworker.executeAction(' + index + ')" title="Do this">▶</button>';
-                html += '<button class="action-dismiss-btn" onclick="AICoworker.dismissAction(' + index + ')" title="Dismiss">×</button>';
-                html += '</div>';
-                html += '</div>';
-            });
-            html += '</div>';
-            html += '</div>';
-        }
-
-        // Observations (cap at 8 most recent)
-        if (this.state.observations && this.state.observations.length > 0) {
-            const recentObs = this.state.observations.slice(-8);
-            const startIdx = this.state.observations.length - recentObs.length;
-            html += '<div class="ai-section observations-section">';
-            html += '<div class="ai-section-header"><span class="icon">👁</span> Observations <span class="section-count">(' + this.state.observations.length + ')</span></div>';
-            html += '<div class="ai-observations-list">';
-            recentObs.forEach((obs, i) => {
-                const actualIdx = startIdx + i;
-                html += '<div class="ai-observation">';
-                html += '<span class="obs-text">' + this.escapeHtml(obs) + '</span>';
-                html += '<button class="obs-dismiss" onclick="AICoworker.dismissObservation(' + actualIdx + ')" title="Dismiss">×</button>';
-                html += '</div>';
-            });
-            html += '</div>';
-            html += '</div>';
-        }
-
-        // Doctor's Task List
-        if (this.state.tasks && this.state.tasks.length > 0) {
-            html += '<div class="ai-section tasks-section">';
-            html += '<div class="ai-section-header"><span class="icon">☐</span> Your Tasks</div>';
-            html += '<div class="ai-tasks-list">';
-            this.state.tasks.forEach((task, index) => {
-                const isDone = task.done;
-                html += '<div class="ai-task ' + (isDone ? 'done' : '') + '">';
-                html += '<input type="checkbox" ' + (isDone ? 'checked' : '') + ' onchange="AICoworker.toggleTask(' + index + ')">';
-                html += '<span class="task-text">' + this.escapeHtml(task.text) + '</span>';
-                html += '<button class="task-remove" onclick="AICoworker.removeTask(' + index + ')" title="Remove">×</button>';
-                html += '</div>';
-            });
-            html += '</div>';
-            html += '</div>';
-        }
-
-        // AI Response (when doctor asks for help)
+        // ===== AI RESPONSE (from Ask) =====
         if (this.state.aiResponse) {
-            html += '<div class="ai-section response-section">';
-            html += '<div class="ai-section-header"><span class="icon">💬</span> AI Response</div>';
-            html += '<div class="ai-response">' + this.formatText(this.state.aiResponse) + '</div>';
-            html += '<button class="ai-clear-response" onclick="AICoworker.clearResponse()">Clear</button>';
+            html += '<div class="copilot-section response-section">';
+            html += '<div class="copilot-section-header"><span>&#128172;</span> AI Response <button class="section-action-btn" onclick="AICoworker.clearResponse()">Clear</button></div>';
+            html += '<div class="copilot-section-body"><div class="ai-response-text">' + this.formatText(this.state.aiResponse) + '</div></div>';
             html += '</div>';
         }
 
-        // If only the toolbar was rendered, show empty state below it
-        const hasContent = this.state.flags?.length || this.state.dictation || this.state.summary ||
-            this.state.thinking || this.state.suggestedActions?.length || this.state.observations?.length ||
-            this.state.tasks?.length || this.state.aiResponse;
-
-        if (!hasContent) {
-            html += '<div class="ai-empty">';
-            html += '<div class="empty-icon">✨</div>';
-            html += '<div class="empty-text">Ready to assist</div>';
-            html += '<div class="empty-hint">I\'ll track what you review and flag safety concerns. Use the buttons above to dictate, ask, or write notes.</div>';
-            html += '</div>';
-        }
+        // ===== SECTION 6: QUICK ACTIONS BAR (sticky bottom) =====
+        html += this.renderQuickActions();
 
         body.innerHTML = html;
+    },
+
+    /**
+     * Lightweight update of live-data sections only (snapshot + alert bar + progress)
+     * Called on sim ticks without re-rendering the entire panel
+     */
+    updateLiveSections() {
+        const body = document.getElementById('assistant-tab-body');
+        if (!body) return;
+
+        // Update snapshot in-place
+        const snapshot = body.querySelector('.copilot-snapshot');
+        if (snapshot) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = this.renderPatientSnapshot();
+            const newSnapshot = tempDiv.firstElementChild;
+            if (newSnapshot) {
+                snapshot.innerHTML = newSnapshot.innerHTML;
+            }
+        }
+
+        // Update alert bar in-place
+        const alertBar = body.querySelector('.copilot-alert-bar');
+        const newAlertHtml = this.renderAlertBar();
+        if (newAlertHtml && !alertBar) {
+            // Alert appeared — need to add it at top
+            body.insertAdjacentHTML('afterbegin', newAlertHtml);
+        } else if (!newAlertHtml && alertBar) {
+            // Alerts cleared
+            alertBar.remove();
+        } else if (newAlertHtml && alertBar) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = newAlertHtml;
+            const newBar = tempDiv.firstElementChild;
+            if (newBar) {
+                alertBar.innerHTML = newBar.innerHTML;
+            }
+        }
+
+        // Update progress tracker in-place
+        const progressSection = body.querySelector('.progress-section');
+        if (progressSection) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = this.renderProgressTracker();
+            const newProgress = tempDiv.firstElementChild;
+            if (newProgress) {
+                progressSection.innerHTML = newProgress.innerHTML;
+            }
+        }
+    },
+
+    // ==================== Copilot Section Renderers ====================
+
+    renderAlertBar() {
+        const alerts = [];
+
+        // Allergy violations
+        if (typeof SimulationScoreTracker !== 'undefined' && SimulationScoreTracker.allergyViolations.length > 0) {
+            SimulationScoreTracker.allergyViolations.forEach(v => {
+                alerts.push({ text: `ALLERGY VIOLATION: ${v.medication} — patient has ${v.allergen} (${v.reaction})`, severity: 'critical' });
+            });
+        }
+
+        // Safety flags from state
+        if (this.state.flags && this.state.flags.length > 0) {
+            this.state.flags.slice(0, 3).forEach(f => {
+                alerts.push({ text: f.text, severity: f.severity || 'warning' });
+            });
+        }
+
+        // Critical vitals
+        if (typeof SimulationEngine !== 'undefined' && SimulationEngine.isRunning) {
+            const vitals = SimulationEngine.patientState?.vitals;
+            if (vitals) {
+                if (vitals.spO2 < 88) alerts.push({ text: `Critical: SpO2 ${vitals.spO2}% — consider urgent intervention`, severity: 'critical' });
+                if (vitals.systolic < 85) alerts.push({ text: `Critical: SBP ${vitals.systolic} — hypotension`, severity: 'critical' });
+                if (vitals.heartRate > 150) alerts.push({ text: `Critical: HR ${vitals.heartRate} — tachycardia`, severity: 'critical' });
+            }
+        }
+
+        if (alerts.length === 0) return '';
+
+        let html = '<div class="copilot-alert-bar">';
+        alerts.forEach((alert, i) => {
+            html += `<div class="copilot-alert ${alert.severity}">`;
+            html += `<span class="alert-icon">&#9888;</span>`;
+            html += `<span class="alert-text">${this.escapeHtml(alert.text)}</span>`;
+            html += `<button class="alert-dismiss" onclick="AICoworker.dismissFlag(${i})" title="Acknowledge">&#10003;</button>`;
+            html += '</div>';
+        });
+        html += '</div>';
+        return html;
+    },
+
+    renderPatientSnapshot() {
+        const simRunning = typeof SimulationEngine !== 'undefined' && SimulationEngine.isRunning;
+
+        // Get patient info
+        let patientName = 'Patient';
+        let patientAge = '';
+        let room = '412';
+        if (typeof PatientHeader !== 'undefined' && PatientHeader.patient) {
+            const p = PatientHeader.patient;
+            patientName = `${p.firstName || ''} ${p.lastName || ''}`.trim() || 'Patient';
+            patientAge = p.age ? `${p.age}${p.gender === 'Male' ? 'M' : 'F'}` : '';
+        }
+
+        // Get vitals
+        let vitalsHtml = '<span class="snapshot-placeholder">Vitals pending...</span>';
+        let trendHtml = '';
+        let uopHtml = '';
+
+        if (simRunning && SimulationEngine.patientState) {
+            const v = SimulationEngine.patientState.vitals;
+            const phys = SimulationEngine.patientState.physiology;
+            const trajectory = SimulationEngine.patientState.trajectory || 'stable';
+
+            if (v) {
+                vitalsHtml = '';
+                vitalsHtml += this._vitalBadge('BP', `${Math.round(v.systolic)}/${Math.round(v.diastolic)}`, v.systolic > 160 || v.systolic < 90 ? 'critical' : v.systolic > 140 ? 'warning' : 'normal');
+                vitalsHtml += this._vitalBadge('HR', Math.round(v.heartRate), v.heartRate > 120 ? 'critical' : v.heartRate > 100 ? 'warning' : 'normal');
+                vitalsHtml += this._vitalBadge('RR', Math.round(v.respiratoryRate), v.respiratoryRate > 24 ? 'critical' : v.respiratoryRate > 20 ? 'warning' : 'normal');
+                vitalsHtml += this._vitalBadge('SpO2', `${Math.round(v.spO2)}%`, v.spO2 < 90 ? 'critical' : v.spO2 < 94 ? 'warning' : 'normal');
+                vitalsHtml += this._vitalBadge('Wt', `${(v.weight || 0).toFixed(1)}kg`, '', true);
+            }
+
+            // Trend
+            const trendArrow = trajectory === 'worsening' ? '&#9660;' : trajectory === 'improving' ? '&#9650;' : '&#9644;';
+            const trendClass = trajectory === 'worsening' ? 'trend-bad' : trajectory === 'improving' ? 'trend-good' : 'trend-stable';
+            trendHtml = `<span class="snapshot-trend ${trendClass}">${trendArrow} ${trajectory.charAt(0).toUpperCase() + trajectory.slice(1)}</span>`;
+
+            // UOP
+            if (phys && phys.urineOutput !== undefined) {
+                uopHtml = this._vitalBadge('UOP', `${Math.round(phys.urineOutput)} mL/hr`, phys.urineOutput < 30 ? 'warning' : 'normal');
+            }
+        }
+
+        // Sim time
+        let simTime = '';
+        if (simRunning) {
+            const elapsed = SimulationEngine.getElapsedMinutes();
+            simTime = `${Math.round(elapsed)} min elapsed`;
+        }
+
+        // Working diagnosis
+        let dx = this.state.summary
+            ? this.formatText(this.state.summary)
+            : '<span class="snapshot-placeholder-dx">Dictate your assessment to set diagnosis...</span>';
+
+        // Allergies
+        let allergyHtml = '';
+        if (typeof PatientHeader !== 'undefined' && PatientHeader.patient?.allergies) {
+            const allergies = PatientHeader.patient.allergies;
+            if (allergies.length > 0) {
+                allergyHtml = '<div class="snapshot-allergies">';
+                allergyHtml += '<span class="allergy-label">&#9888; Allergies:</span> ';
+                allergyHtml += allergies.map(a => {
+                    const name = typeof a === 'string' ? a : (a.allergen || a.name || 'Unknown');
+                    const reaction = typeof a === 'object' ? (a.reaction || '') : '';
+                    return `<span class="allergy-chip">${this.escapeHtml(name)}${reaction ? ` (${reaction})` : ''}</span>`;
+                }).join(' ');
+                allergyHtml += '</div>';
+            }
+        }
+
+        let html = '<div class="copilot-snapshot">';
+        html += '<div class="snapshot-header">';
+        html += `<span class="snapshot-patient">${this.escapeHtml(patientName)}${patientAge ? ', ' + patientAge : ''}</span>`;
+        html += `<span class="snapshot-meta">Room ${room}${simTime ? ' &middot; ' + simTime : ''}</span>`;
+        html += '</div>';
+        html += `<div class="snapshot-dx">${dx}</div>`;
+        html += `<div class="snapshot-vitals">${vitalsHtml}${uopHtml}</div>`;
+        if (trendHtml) html += `<div class="snapshot-trend-row">${trendHtml}</div>`;
+        if (allergyHtml) html += allergyHtml;
+        html += '</div>';
+        return html;
+    },
+
+    _vitalBadge(label, value, status, muted) {
+        const cls = status === 'critical' ? 'vital-critical' : status === 'warning' ? 'vital-warning' : (muted ? 'vital-muted' : 'vital-normal');
+        return `<span class="vital-badge ${cls}"><span class="vital-label">${label}</span> <span class="vital-value">${value}</span></span>`;
+    },
+
+    renderProgressTracker() {
+        if (typeof SimulationScoreTracker === 'undefined') return '';
+
+        const progress = SimulationScoreTracker.getProgressSummary();
+        const nudges = SimulationScoreTracker.getTopNudges(3);
+        const temporalNudges = SimulationScoreTracker.getTemporalNudges();
+
+        let html = '<div class="copilot-section progress-section">';
+        html += `<div class="copilot-section-header"><span>&#128200;</span> Your Progress <span class="progress-overall">${progress.overall}%</span></div>`;
+        html += '<div class="copilot-section-body">';
+
+        // Progress bars
+        html += '<div class="progress-bars">';
+        const domains = ['patientHistory', 'nurseInteraction', 'chartReview', 'orders', 'safety', 'empathy'];
+        domains.forEach(key => {
+            const d = progress[key];
+            const pct = d.percentage === -1 ? 0 : d.percentage;
+            const barClass = d.percentage === -1 ? 'bar-na' : pct >= 66 ? 'bar-good' : pct >= 33 ? 'bar-mid' : 'bar-low';
+            const displayText = d.percentage === -1 ? '--' :
+                (key === 'safety' ? (d.isSafe ? '&#10003;' : '&#10007;') : `${d.count}/${d.countTotal}`);
+            html += '<div class="progress-item">';
+            html += `<div class="progress-bar-track"><div class="progress-bar-fill ${barClass}" style="width:${pct}%"></div></div>`;
+            html += `<div class="progress-label">${d.label}</div>`;
+            html += `<div class="progress-count">${displayText}</div>`;
+            html += '</div>';
+        });
+        html += '</div>';
+
+        // Temporal nudges (time warnings)
+        if (temporalNudges.length > 0) {
+            html += '<div class="temporal-nudges">';
+            temporalNudges.forEach(n => {
+                html += `<div class="temporal-nudge ${n.severity}">&#9200; ${this.escapeHtml(n.text)}</div>`;
+            });
+            html += '</div>';
+        }
+
+        // Priority nudges
+        if (nudges.length > 0) {
+            html += '<div class="priority-nudges">';
+            html += '<div class="nudges-label">Next steps:</div>';
+            nudges.forEach(n => {
+                const clickable = n.action ? ` onclick="window.location.hash='${n.action}'" style="cursor:pointer"` : '';
+                html += `<div class="priority-nudge"${clickable}>`;
+                html += `<span class="nudge-domain" style="background:${n.domainColor}">${n.domain}</span>`;
+                html += `<span class="nudge-text">${this.escapeHtml(n.text)}</span>`;
+                html += `<span class="nudge-pts">${n.points}pts</span>`;
+                html += '</div>';
+            });
+            html += '</div>';
+        }
+
+        html += '</div></div>';
+        return html;
+    },
+
+    renderClinicalReasoning() {
+        const hasDictation = !!this.state.dictation;
+        const hasSummary = !!this.state.summary;
+        const hasThinking = !!this.state.thinking;
+        const isThinking = this.state.status === 'thinking';
+
+        let html = '<div class="copilot-section reasoning-section">';
+        html += '<div class="copilot-section-header">';
+        html += '<span>&#129504;</span> Clinical Reasoning';
+        html += '<div class="section-actions">';
+        if (hasDictation) {
+            html += '<button class="section-action-btn" onclick="AICoworker.openDictationModal()" title="Edit thoughts">&#9998;</button>';
+        }
+        html += '<button class="section-action-btn" onclick="AICoworker.refreshThinking()" title="Refresh">&#128260;</button>';
+        html += '</div></div>';
+        html += '<div class="copilot-section-body">';
+
+        if (isThinking) {
+            html += '<div class="reasoning-loading"><div class="typing-indicator"><span></span><span></span><span></span></div> Synthesizing...</div>';
+        } else if (!hasDictation && !hasSummary) {
+            html += '<div class="reasoning-placeholder">';
+            html += '<p>&#128173; <strong>Assessment pending</strong></p>';
+            html += '<p>Dictate your clinical reasoning to activate the AI copilot.</p>';
+            html += '</div>';
+        } else {
+            // Assessment
+            if (hasSummary) {
+                html += '<div class="reasoning-block">';
+                html += '<div class="reasoning-label">ASSESSMENT</div>';
+                html += '<div class="reasoning-text">' + this.formatText(this.state.summary) + '</div>';
+                html += '</div>';
+            }
+
+            // Key Considerations
+            if (this.state.keyConsiderations && this.state.keyConsiderations.length > 0) {
+                html += '<div class="reasoning-block">';
+                html += '<div class="reasoning-label">KEY CONSIDERATIONS</div>';
+                html += '<div class="reasoning-considerations">';
+                this.state.keyConsiderations.forEach(c => {
+                    const icon = c.severity === 'critical' ? '&#9888;' : c.severity === 'important' ? '&#10071;' : '&#8226;';
+                    const cls = c.severity === 'critical' ? 'consideration-critical' : c.severity === 'important' ? 'consideration-important' : '';
+                    html += `<div class="consideration ${cls}">${icon} ${this.escapeHtml(c.text)}</div>`;
+                });
+                html += '</div></div>';
+            }
+
+            // Trajectory / Thinking
+            if (hasThinking) {
+                html += '<div class="reasoning-block">';
+                html += '<div class="reasoning-label">TRAJECTORY</div>';
+                html += '<div class="reasoning-text">' + this.formatText(this.state.thinking) + '</div>';
+                html += '</div>';
+            }
+
+            // Doctor's dictation (collapsed summary)
+            if (hasDictation) {
+                html += '<div class="reasoning-block dictation-block">';
+                html += '<div class="reasoning-label">&#127897; YOUR THOUGHTS</div>';
+                html += '<div class="reasoning-text dictation-text">' + this.formatText(this.state.dictation) + '</div>';
+                html += '</div>';
+            }
+        }
+
+        html += '</div></div>';
+        return html;
+    },
+
+    renderNextSteps() {
+        // Combine LLM suggested actions with score-tracker-driven suggestions
+        const suggestions = [];
+
+        // LLM-generated suggestions
+        if (this.state.suggestedActions && this.state.suggestedActions.length > 0) {
+            this.state.suggestedActions.slice(0, 5).forEach((action, index) => {
+                const text = typeof action === 'string' ? action : action.text;
+                suggestions.push({ text, source: 'ai', index, domain: this._inferDomain(text) });
+            });
+        }
+
+        // If no LLM suggestions, use score tracker nudges as fallback
+        if (suggestions.length === 0 && typeof SimulationScoreTracker !== 'undefined') {
+            const nudges = SimulationScoreTracker.getTopNudges(5);
+            nudges.forEach(n => {
+                suggestions.push({ text: n.text, source: 'tracker', domain: n.domain, action: n.action, domainColor: n.domainColor });
+            });
+        }
+
+        if (suggestions.length === 0) return '';
+
+        let html = '<div class="copilot-section nextsteps-section">';
+        html += '<div class="copilot-section-header"><span>&#128161;</span> Next Steps</div>';
+        html += '<div class="copilot-section-body"><div class="nextsteps-list">';
+
+        suggestions.forEach((s, i) => {
+            const domainColor = s.domainColor || this._domainColor(s.domain);
+            html += '<div class="nextstep-item">';
+            html += `<span class="nextstep-domain" style="background:${domainColor}">${s.domain}</span>`;
+            html += `<span class="nextstep-text">${this.escapeHtml(s.text)}</span>`;
+            if (s.source === 'ai') {
+                html += `<button class="nextstep-do" onclick="AICoworker.executeAction(${s.index})" title="Do this">&#9654;</button>`;
+                html += `<button class="nextstep-dismiss" onclick="AICoworker.dismissAction(${s.index})" title="Dismiss">&times;</button>`;
+            } else if (s.action) {
+                html += `<button class="nextstep-go" onclick="window.location.hash='${s.action}'" title="Go">&#10132;</button>`;
+            }
+            html += '</div>';
+        });
+
+        html += '</div></div></div>';
+        return html;
+    },
+
+    _inferDomain(text) {
+        const t = text.toLowerCase();
+        if (t.includes('order') || t.includes('furosemide') || t.includes('diure') || t.includes('oxygen') || t.includes('telemetry')) return 'Orders';
+        if (t.includes('ask patient') || t.includes('history')) return 'Patient';
+        if (t.includes('nurse') || t.includes('urine')) return 'Nurse';
+        if (t.includes('review') || t.includes('check') || t.includes('chart') || t.includes('allergy') || t.includes('note')) return 'Chart';
+        return 'Clinical';
+    },
+
+    _domainColor(domain) {
+        const colors = { Orders: '#f59e0b', Patient: '#3b82f6', Nurse: '#8b5cf6', Chart: '#10b981', Clinical: '#6b7280' };
+        return colors[domain] || '#6b7280';
+    },
+
+    renderQuickActions() {
+        let html = '<div class="copilot-quick-actions">';
+        html += '<button class="quick-action-btn" onclick="AICoworker.openDictationModal()"><span>&#127897;</span> Dictate</button>';
+        html += '<button class="quick-action-btn" onclick="AICoworker.openAskModal()"><span>&#128172;</span> Ask AI</button>';
+        html += '<button class="quick-action-btn" onclick="AICoworker.openNoteModal()"><span>&#128221;</span> Write Note</button>';
+        html += '<button class="quick-action-btn" onclick="AICoworker.showScoreSummary()"><span>&#128202;</span> Score</button>';
+        html += '</div>';
+        return html;
     },
 
     // ==================== User Actions ====================
@@ -1003,6 +1269,52 @@ const AICoworker = {
         this.render();
     },
 
+    /**
+     * Show score summary in-panel (mini debrief)
+     */
+    showScoreSummary() {
+        if (typeof SimulationScoreTracker === 'undefined') {
+            App.showToast('Score tracker not available', 'error');
+            return;
+        }
+        const progress = SimulationScoreTracker.getProgressSummary();
+        const domains = ['patientHistory', 'nurseInteraction', 'chartReview', 'orders', 'safety', 'empathy'];
+
+        let html = '<div class="score-summary-modal">';
+        html += '<div class="score-summary-header">';
+        html += '<h3>Performance Score</h3>';
+        html += '<button class="score-close-btn" onclick="document.getElementById(\'score-summary-overlay\').remove()">&#10005;</button>';
+        html += '</div>';
+        html += `<div class="score-overall"><span class="score-number">${progress.overall}%</span><span class="score-label">Overall</span></div>`;
+        html += '<div class="score-domains">';
+        domains.forEach(key => {
+            const d = progress[key];
+            const pct = d.percentage === -1 ? 0 : d.percentage;
+            const barClass = d.percentage === -1 ? 'bar-na' : pct >= 66 ? 'bar-good' : pct >= 33 ? 'bar-mid' : 'bar-low';
+            html += '<div class="score-domain-row">';
+            html += `<span class="score-domain-label">${d.fullLabel}</span>`;
+            html += `<div class="score-bar-track"><div class="score-bar-fill ${barClass}" style="width:${pct}%"></div></div>`;
+            html += `<span class="score-domain-pct">${d.percentage === -1 ? '--' : d.percentage + '%'}</span>`;
+            html += '</div>';
+        });
+        html += '</div>';
+        html += '<div class="score-actions">';
+        if (typeof SimulationDebrief !== 'undefined') {
+            html += '<button class="btn btn-sm" onclick="document.getElementById(\'score-summary-overlay\').remove(); SimulationDebrief.show();">Full Debrief</button>';
+        }
+        html += '</div></div>';
+
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.id = 'score-summary-overlay';
+        overlay.className = 'score-summary-overlay';
+        overlay.innerHTML = html;
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.remove();
+        });
+        document.body.appendChild(overlay);
+    },
+
     // ==================== Modals ====================
 
     openAskModal() {
@@ -1079,7 +1391,13 @@ const AICoworker = {
             modal.classList.add('visible');
             const input = document.getElementById('ai-dictation-input');
             if (input) {
-                input.value = this.state.dictation || '';
+                // Pre-fill with template on first use
+                if (!this.state.dictation && this.state.dictationHistory.length === 0) {
+                    input.value = 'Working diagnosis: \nTriggers/Causes: \nKey concerns: \nPlan: ';
+                    input.setSelectionRange(20, 20); // Cursor after "Working diagnosis: "
+                } else {
+                    input.value = this.state.dictation || '';
+                }
                 input.focus();
             }
             this.updateDictationCount();
@@ -1231,17 +1549,23 @@ ${this.state.openItems && this.state.openItems.length > 0
 
 ---
 
-Based on the doctor's thoughts, provide UPDATED versions of all three:
+Based on the doctor's thoughts, provide UPDATED versions of all four:
 
 1. **Summary** (1-2 sentences): Concise case summary reflecting the doctor's working diagnosis, triggers, and key decisions. Use **bold** for diagnosis and key decisions.
 
-2. **Thinking** (2-4 sentences): Your synthesis of the doctor's clinical reasoning with the case data. Acknowledge their assessment, note supporting data, highlight any safety considerations. Use **bold** for key decisions. Write from AI perspective.
+2. **Key Considerations** (2-5 items): Safety alerts, clinical concerns, and important context. Each has a severity level (critical for contraindications/allergies, important for significant concerns, info for contextual notes).
 
-3. **Suggested Actions** (3-5 items): Prioritized next steps that ALIGN with the doctor's stated plan. Don't contradict their decisions - support them. Include follow-through items for plans they mentioned.
+3. **Thinking** (2-4 sentences): Patient trajectory and clinical trajectory synthesis. Where is the patient heading? Is the situation improving, worsening, or stable? Include supporting data points.
+
+4. **Suggested Actions** (3-5 items): Prioritized next steps that ALIGN with the doctor's stated plan. Don't contradict their decisions - support them. Include follow-through items for plans they mentioned.
 
 Format your response as JSON:
 {
   "summary": "...",
+  "keyConsiderations": [
+    {"text": "GI bleed history (2023) — anticoagulation contraindicated", "severity": "critical"},
+    {"text": "CKD3 (eGFR ~40) — adjust diuretic dosing", "severity": "important"}
+  ],
   "thinking": "...",
   "suggestedActions": ["action 1", "action 2", "action 3"]
 }
@@ -1303,6 +1627,12 @@ Respond with ONLY the JSON, no preamble.`;
             }
             if (data.summary) {
                 this.state.summary = data.summary;
+            }
+            if (data.keyConsiderations && Array.isArray(data.keyConsiderations)) {
+                this.state.keyConsiderations = data.keyConsiderations.map(c => ({
+                    text: typeof c === 'string' ? c : c.text,
+                    severity: (typeof c === 'object' && c.severity) || 'info'
+                }));
             }
             if (data.suggestedActions && Array.isArray(data.suggestedActions)) {
                 this.state.suggestedActions = data.suggestedActions.map((action, idx) => ({
@@ -1623,6 +1953,58 @@ Respond with ONLY the JSON, no preamble.`;
             }
         }
 
+        // ===== BUILD KEY CONSIDERATIONS =====
+        let newKeyConsiderations = [];
+
+        // Pull from safety flags
+        if (this.state.flags && this.state.flags.length > 0) {
+            this.state.flags.forEach(f => {
+                newKeyConsiderations.push({
+                    text: f.text,
+                    severity: f.severity || 'critical'
+                });
+            });
+        }
+
+        // Add allergy-related considerations
+        if (typeof PatientHeader !== 'undefined' && PatientHeader.patient?.allergies) {
+            const allergies = PatientHeader.patient.allergies;
+            allergies.forEach(a => {
+                const name = typeof a === 'string' ? a : (a.allergen || a.name || '');
+                const reaction = typeof a === 'object' ? (a.reaction || '') : '';
+                if (name && reaction && (reaction.toLowerCase().includes('anaphylaxis') || reaction.toLowerCase().includes('angioedema'))) {
+                    newKeyConsiderations.push({
+                        text: `${name} allergy (${reaction}) — avoid related medications`,
+                        severity: 'critical'
+                    });
+                }
+            });
+        }
+
+        // Add considerations based on detected patterns
+        if (needsIschemicWorkup) {
+            newKeyConsiderations.push({
+                text: 'Ischemic workup indicated — serial troponins and EKG monitoring',
+                severity: 'important'
+            });
+        }
+
+        if (keyDecisions.includes('No anticoagulation')) {
+            newKeyConsiderations.push({
+                text: 'Anticoagulation held per doctor decision — monitor closely',
+                severity: 'important'
+            });
+        }
+
+        // Deduplicate by text
+        const seen = new Set();
+        newKeyConsiderations = newKeyConsiderations.filter(c => {
+            const key = c.text.toLowerCase().substring(0, 40);
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+
         // ===== UPDATE STATE =====
         // Update thinking
         if (newThinking.length > 50) {
@@ -1634,6 +2016,11 @@ Respond with ONLY the JSON, no preamble.`;
         // Update summary if we built a meaningful one
         if (newSummary && newSummary.length > 30 && workingDiagnosis) {
             this.state.summary = newSummary.trim();
+        }
+
+        // Update key considerations
+        if (newKeyConsiderations.length > 0) {
+            this.state.keyConsiderations = newKeyConsiderations.slice(0, 6);
         }
 
         // Update suggested actions
@@ -2811,7 +3198,10 @@ IMPORTANT: The doctor drives decision-making. You support by organizing informat
 Respond in this exact JSON format:
 {
     "summary": "1-2 sentence case summary with **bold** for key diagnoses and decisions",
-    "thinking": "2-4 sentences synthesizing doctor's assessment with clinical data. Use **bold** for key findings.",
+    "keyConsiderations": [
+        {"text": "Safety concern or important clinical factor", "severity": "critical|important|info"}
+    ],
+    "thinking": "2-4 sentences about patient trajectory. Where is the patient heading? Is the situation improving, worsening, or stable? Include supporting data points.",
     "suggestedActions": ["action 1", "action 2", "action 3", "action 4", "action 5"],
     "observations": ["any new observations based on the data"],
     "trajectoryAssessment": "Brief assessment of each active problem's trajectory (improving, worsening, stable). Include key data points supporting each assessment. This persists across sessions as your memory of the patient.",
@@ -2858,6 +3248,12 @@ Based on the doctor's thoughts and the clinical context above, provide an update
             }
             if (result.thinking) {
                 this.state.thinking = result.thinking;
+            }
+            if (result.keyConsiderations && Array.isArray(result.keyConsiderations)) {
+                this.state.keyConsiderations = result.keyConsiderations.map(c => ({
+                    text: typeof c === 'string' ? c : c.text,
+                    severity: (typeof c === 'object' && c.severity) || 'info'
+                }));
             }
             if (result.suggestedActions && Array.isArray(result.suggestedActions)) {
                 this.state.suggestedActions = result.suggestedActions.map((action, idx) => ({
@@ -2915,7 +3311,10 @@ You maintain a LONGITUDINAL CLINICAL DOCUMENT that persists across sessions. You
 Respond in this exact JSON format:
 {
     "summary": "1-2 sentence case summary with **bold** for key diagnoses",
-    "thinking": "2-4 sentences with your clinical analysis. Note key findings, concerns, and what needs attention.",
+    "keyConsiderations": [
+        {"text": "Safety concern or important clinical factor", "severity": "critical|important|info"}
+    ],
+    "thinking": "2-4 sentences about patient trajectory. Where is the patient heading? Include supporting data points.",
     "suggestedActions": ["action 1", "action 2", "action 3", "action 4", "action 5"],
     "observations": ["key observations from the data"],
     "trajectoryAssessment": "A paragraph synthesizing disease trajectories. For each active problem, describe current status, recent trend, and concerning patterns. This is DURABLE - it persists and gets refined over time.",
@@ -2924,12 +3323,14 @@ Respond in this exact JSON format:
 }
 
 Prioritize:
-1. Safety concerns and critical values
+1. Safety concerns and critical values (put these in keyConsiderations with severity "critical")
 2. Alignment with doctor's stated assessment (if any)
 3. Actionable next steps
 4. Things that haven't been addressed yet
 
 RULES:
+- keyConsiderations should include allergies, contraindications, drug interactions, and clinical concerns
+- Use severity "critical" for life-threatening concerns, "important" for significant issues, "info" for context
 - trajectoryAssessment should be comprehensive - describe how each problem is trending
 - keyFindings should be durable insights worth remembering across sessions
 - openQuestions are things that still need to be resolved`;
@@ -2958,6 +3359,12 @@ Provide a comprehensive case synthesis. Build a trajectory assessment covering a
 
             if (result.summary) this.state.summary = result.summary;
             if (result.thinking) this.state.thinking = result.thinking;
+            if (result.keyConsiderations && Array.isArray(result.keyConsiderations)) {
+                this.state.keyConsiderations = result.keyConsiderations.map(c => ({
+                    text: typeof c === 'string' ? c : c.text,
+                    severity: (typeof c === 'object' && c.severity) || 'info'
+                }));
+            }
             if (result.suggestedActions && Array.isArray(result.suggestedActions)) {
                 this.state.suggestedActions = result.suggestedActions.map((action, idx) => ({
                     id: 'refresh_' + Date.now() + '_' + idx,
@@ -3222,18 +3629,14 @@ ${item}`;
     // ==================== Panel Controls ====================
 
     /**
-     * Ensure the AI panel is visible (assistant section is always on top)
+     * Ensure the AI panel is visible and switch to copilot tab
      */
     toggle() {
         if (typeof AIPanel !== 'undefined') {
-            // Expand panel if collapsed
             if (AIPanel.isCollapsed) {
                 AIPanel.expand();
             }
-            // Un-collapse assistant section if it's collapsed
-            if (AIPanel.isAssistantCollapsed) {
-                AIPanel.toggleAssistant();
-            }
+            AIPanel.switchTab('copilot');
         }
     },
 
