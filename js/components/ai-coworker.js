@@ -3222,14 +3222,17 @@ ${item}`;
     // ==================== Panel Controls ====================
 
     /**
-     * Show the assistant tab in the AI panel sidebar
+     * Ensure the AI panel is visible (assistant section is always on top)
      */
     toggle() {
-        // Switch to assistant tab in the AI panel
         if (typeof AIPanel !== 'undefined') {
-            AIPanel.switchTab('assistant');
+            // Expand panel if collapsed
             if (AIPanel.isCollapsed) {
                 AIPanel.expand();
+            }
+            // Un-collapse assistant section if it's collapsed
+            if (AIPanel.isAssistantCollapsed) {
+                AIPanel.toggleAssistant();
             }
         }
     },

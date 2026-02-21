@@ -103,7 +103,7 @@ const DynamicImaging = {
                     const nurseMessage = `Doctor, the ${study.name} results are back. ${this.getSummaryForNurse(study, report)}`;
                     NurseChat.messages.push({ role: 'assistant', content: nurseMessage });
                     NurseChat.saveHistory();
-                    if (typeof AIPanel !== 'undefined' && AIPanel.currentTab === 'nurse') {
+                    if (typeof AIPanel !== 'undefined') {
                         AIPanel.addMessage('nurse', 'assistant', nurseMessage);
                     }
                 }

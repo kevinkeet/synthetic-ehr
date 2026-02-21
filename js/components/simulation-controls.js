@@ -320,8 +320,8 @@ const SimulationControls = {
             });
             NurseChat.saveHistory();
 
-            // Update UI if nurse tab is active
-            if (AIPanel.currentTab === 'nurse') {
+            // Update UI - both chat panels are always visible
+            if (typeof AIPanel !== 'undefined') {
                 AIPanel.addMessage('nurse', 'assistant', data.message);
             }
         }

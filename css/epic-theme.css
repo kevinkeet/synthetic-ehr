@@ -1848,7 +1848,7 @@ html, body {
    AI Side Panel
    ============================================ */
 :root {
-    --ai-panel-width: 360px;
+    --ai-panel-width: 520px;
 }
 
 .ai-panel {
@@ -1868,81 +1868,194 @@ html, body {
     opacity: 0;
 }
 
-.ai-panel-header {
+/* Top bar */
+.ai-panel-topbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 16px;
+    padding: 8px 12px;
     background: var(--primary);
-    color: var(--text-white);
+    color: white;
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.ai-panel-topbar-title {
+    font-size: 13px;
+}
+
+/* AI Assistant Section (top, always visible) */
+.ai-assistant-section {
+    flex-shrink: 0;
+    border-bottom: 2px solid var(--border-medium);
+    max-height: 40vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.ai-assistant-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
     flex-shrink: 0;
 }
 
-.ai-panel-title {
-    font-weight: 600;
-    font-size: 14px;
+.ai-assistant-section-header:hover {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
 }
 
-.ai-panel-controls {
+.section-collapse-icon {
+    font-size: 10px;
+    transition: transform 0.2s ease;
+}
+
+.ai-assistant-section-body {
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Chat Split Layout (Patient + Nurse side by side) */
+.ai-chat-split {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.ai-chat-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+}
+
+.ai-chat-column + .ai-chat-column {
+    border-left: 1px solid var(--border-medium);
+}
+
+.chat-column-header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background: var(--bg-light);
+    border-bottom: 1px solid var(--border-light);
+    flex-shrink: 0;
+}
+
+.chat-column-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.clear-chat-btn-sm {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+.clear-chat-btn-sm:hover {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+/* Compact chat styles for side-by-side layout */
+.chat-input-area.compact {
+    padding: 6px 8px;
+}
+
+.voice-controls.compact {
+    margin-bottom: 4px;
+    gap: 4px;
+}
+
+.voice-btn.compact,
+.voice-output-btn.compact {
+    padding: 4px;
+    font-size: 11px;
+}
+
+.chat-welcome.compact {
+    padding: 12px 8px;
+    text-align: center;
+}
+
+.chat-welcome.compact p {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* Compact chat messages in side-by-side columns */
+.ai-chat-column .chat-messages {
+    padding: 8px;
     gap: 8px;
 }
 
-.ai-panel-btn {
+.ai-chat-column .chat-message {
+    max-width: 95%;
+}
+
+.ai-chat-column .message-content {
+    font-size: 12px;
+    padding: 6px 10px;
+}
+
+.ai-chat-column .message-avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+}
+
+.ai-chat-column .chat-input {
+    font-size: 12px;
+    padding: 6px 8px;
+}
+
+.ai-chat-column .send-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+}
+
+/* AI Panel Header Actions (topbar buttons) */
+.ai-panel-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ai-settings-btn-header {
     background: rgba(255, 255, 255, 0.2);
     border: none;
     color: white;
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
+    width: 26px;
+    height: 26px;
+    border-radius: 5px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: 14px;
     transition: background 0.15s ease;
 }
 
-.ai-panel-btn:hover {
+.ai-settings-btn-header:hover {
     background: rgba(255, 255, 255, 0.3);
-}
-
-/* AI Panel Tabs */
-.ai-panel-tabs {
-    display: flex;
-    background: var(--primary);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    flex-shrink: 0;
-}
-
-.ai-panel-tab {
-    flex: 1;
-    padding: 12px;
-    text-align: center;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-muted);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: all 0.15s ease;
-}
-
-.ai-panel-tab:hover {
-    color: var(--text-primary);
-    background: var(--bg-hover);
-}
-
-.ai-panel-tab.active {
-    color: var(--primary);
-    border-bottom-color: var(--primary);
-    background: var(--bg-white);
-}
-
-.ai-panel-tab-icon {
-    font-size: 16px;
-    margin-bottom: 4px;
-    display: block;
 }
 
 /* AI Panel Content */
@@ -1953,22 +2066,12 @@ html, body {
     overflow: hidden;
 }
 
-.ai-tab-content {
-    display: none;
-    flex: 1;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.ai-tab-content.active {
-    display: flex;
-}
-
 /* Chat Interface */
 .chat-container {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
     overflow: hidden;
 }
 
@@ -2309,13 +2412,23 @@ html, body {
 }
 
 /* Responsive AI Panel */
+@media (max-width: 1400px) {
+    :root {
+        --ai-panel-width: 440px;
+    }
+}
+
 @media (max-width: 1200px) {
     :root {
-        --ai-panel-width: 320px;
+        --ai-panel-width: 380px;
     }
 }
 
 @media (max-width: 1024px) {
+    :root {
+        --ai-panel-width: 440px;
+    }
+
     .ai-panel {
         position: fixed;
         right: 0;
@@ -2345,52 +2458,19 @@ html, body {
         --ai-panel-width: 100%;
     }
 
+    /* Stack chat columns vertically on small screens */
+    .ai-chat-split {
+        flex-direction: column;
+    }
+
+    .ai-chat-column + .ai-chat-column {
+        border-left: none;
+        border-top: 1px solid var(--border-medium);
+    }
+
     .order-type-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-}
-
-/* Additional AI Panel Styles */
-.ai-tab {
-    flex: 1;
-    padding: 8px 6px;
-    background: transparent;
-    border: none;
-    color: rgba(255, 255, 255, 0.7);
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 600;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    transition: all 0.15s ease;
-}
-
-.ai-tab:hover {
-    color: white;
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.ai-tab.active {
-    color: white;
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.ai-tab .tab-icon {
-    font-size: 16px;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #f0f4ff;
-    border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.5);
-}
-
-.ai-tab .tab-label {
-    color: white;
 }
 
 .ai-panel-toggle {

@@ -1,11 +1,13 @@
 /**
  * AI Panel Component
- * Manages the AI simulation panel with patient and nurse chat tabs
+ * Manages the AI side panel with stacked layout:
+ * - Assistant section on top (always visible, collapsible)
+ * - Patient and Nurse chat panels side by side below
  */
 
 const AIPanel = {
     isCollapsed: false,
-    currentTab: 'patient',
+    isAssistantCollapsed: false,
     isSettingsOpen: false,
 
     /**
@@ -14,16 +16,24 @@ const AIPanel = {
     init() {
         // Load collapsed state from localStorage
         this.isCollapsed = localStorage.getItem('ai-panel-collapsed') === 'true';
+        this.isAssistantCollapsed = localStorage.getItem('ai-assistant-collapsed') === 'true';
 
         // Apply initial state
         if (this.isCollapsed) {
             this.collapse();
         } else {
-            // Ensure floating button is hidden if panel is expanded
             const floatingBtn = document.getElementById('ai-panel-floating-btn');
             if (floatingBtn) {
                 floatingBtn.classList.remove('visible');
             }
+        }
+
+        // Apply assistant collapsed state
+        if (this.isAssistantCollapsed) {
+            const body = document.getElementById('assistant-tab-body');
+            const icon = document.getElementById('assistant-collapse-icon');
+            if (body) body.style.display = 'none';
+            if (icon) icon.innerHTML = '&#9654;';
         }
 
         // Load saved settings
@@ -87,29 +97,21 @@ const AIPanel = {
     },
 
     /**
-     * Switch between patient and nurse tabs
+     * Toggle the assistant section collapse
      */
-    switchTab(tabName) {
-        this.currentTab = tabName;
+    toggleAssistant() {
+        this.isAssistantCollapsed = !this.isAssistantCollapsed;
+        const body = document.getElementById('assistant-tab-body');
+        const icon = document.getElementById('assistant-collapse-icon');
 
-        // Update tab buttons
-        document.querySelectorAll('.ai-tab').forEach(tab => {
-            tab.classList.toggle('active', tab.dataset.tab === tabName);
-        });
-
-        // Update tab content
-        document.querySelectorAll('.ai-tab-content').forEach(content => {
-            const contentId = content.id;
-            const isActive = (tabName === 'patient' && contentId === 'patient-chat-tab') ||
-                           (tabName === 'nurse' && contentId === 'nurse-chat-tab') ||
-                           (tabName === 'assistant' && contentId === 'assistant-chat-tab');
-            content.classList.toggle('active', isActive);
-        });
-
-        // Scroll to bottom of active chat
-        if (tabName !== 'assistant') {
-            this.scrollToBottom(tabName);
+        if (body) {
+            body.style.display = this.isAssistantCollapsed ? 'none' : '';
         }
+        if (icon) {
+            icon.innerHTML = this.isAssistantCollapsed ? '&#9654;' : '&#9660;';
+        }
+
+        localStorage.setItem('ai-assistant-collapsed', this.isAssistantCollapsed ? 'true' : 'false');
     },
 
     /**
@@ -152,25 +154,16 @@ const AIPanel = {
         const apiKey = localStorage.getItem('claude-api-key');
         const patientUrl = localStorage.getItem('patient-context-url');
         const nurseUrl = localStorage.getItem('nurse-context-url');
-        const voiceId = localStorage.getItem('patient-voice-id');
 
-        // Populate input fields
         const apiKeyInput = document.getElementById('claude-api-key');
-        if (apiKeyInput && apiKey) {
-            apiKeyInput.value = apiKey;
-        }
+        if (apiKeyInput && apiKey) apiKeyInput.value = apiKey;
 
         const patientUrlInput = document.getElementById('patient-context-url');
-        if (patientUrlInput && patientUrl) {
-            patientUrlInput.value = patientUrl;
-        }
+        if (patientUrlInput && patientUrl) patientUrlInput.value = patientUrl;
 
         const nurseUrlInput = document.getElementById('nurse-context-url');
-        if (nurseUrlInput && nurseUrl) {
-            nurseUrlInput.value = nurseUrl;
-        }
+        if (nurseUrlInput && nurseUrl) nurseUrlInput.value = nurseUrl;
 
-        // Set the API key in the service
         if (apiKey && typeof ClaudeAPI !== 'undefined') {
             ClaudeAPI.setApiKey(apiKey);
         }
@@ -202,7 +195,6 @@ const AIPanel = {
             localStorage.setItem(`${type}-context-url`, url);
             App.showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} context URL saved`, 'success');
 
-            // Refresh context if available
             if (type === 'patient' && typeof PatientChat !== 'undefined') {
                 PatientChat.refreshContext();
             } else if (type === 'nurse' && typeof NurseChat !== 'undefined') {
@@ -227,30 +219,24 @@ const AIPanel = {
                 return;
             }
 
-            // Filter for English voices and sort
             const englishVoices = voices.filter(v => v.lang.startsWith('en'));
             const sortedVoices = englishVoices.sort((a, b) => {
-                // Prioritize local voices
                 if (a.localService && !b.localService) return -1;
                 if (!a.localService && b.localService) return 1;
                 return a.name.localeCompare(b.name);
             });
 
-            sortedVoices.forEach((voice, index) => {
+            sortedVoices.forEach((voice) => {
                 const option = document.createElement('option');
                 option.value = voice.name;
                 option.textContent = `${voice.name} (${voice.lang})`;
                 voiceSelect.appendChild(option);
             });
 
-            // Load saved voice preference
             const savedVoice = localStorage.getItem('patient-voice-id');
-            if (savedVoice) {
-                voiceSelect.value = savedVoice;
-            }
+            if (savedVoice) voiceSelect.value = savedVoice;
         };
 
-        // Voices may load asynchronously
         if (speechSynthesis.onvoiceschanged !== undefined) {
             speechSynthesis.onvoiceschanged = populateVoices;
         }
@@ -312,13 +298,8 @@ const AIPanel = {
             localStorage.removeItem('patient-chat-history');
             localStorage.removeItem('nurse-chat-history');
 
-            // Clear UI
-            if (typeof PatientChat !== 'undefined') {
-                PatientChat.clearChat();
-            }
-            if (typeof NurseChat !== 'undefined') {
-                NurseChat.clearChat();
-            }
+            if (typeof PatientChat !== 'undefined') PatientChat.clearChat();
+            if (typeof NurseChat !== 'undefined') NurseChat.clearChat();
 
             App.showToast('Chat history cleared', 'success');
         }
@@ -334,9 +315,7 @@ const AIPanel = {
 
         // Remove welcome message if exists
         const welcomeMsg = messagesContainer.querySelector('.chat-welcome');
-        if (welcomeMsg) {
-            welcomeMsg.remove();
-        }
+        if (welcomeMsg) welcomeMsg.remove();
 
         const messageDiv = document.createElement('div');
         messageDiv.className = `chat-message ${role}`;
@@ -373,9 +352,7 @@ const AIPanel = {
         const messagesContainer = document.getElementById(messagesId);
         if (messagesContainer) {
             const typingMsg = messagesContainer.querySelector('.chat-message.typing');
-            if (typingMsg) {
-                typingMsg.remove();
-            }
+            if (typingMsg) typingMsg.remove();
         }
     },
 
@@ -385,13 +362,11 @@ const AIPanel = {
     formatMessage(content) {
         if (!content) return '';
 
-        // Escape HTML
         let formatted = content
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;');
 
-        // Basic markdown
         formatted = formatted
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.*?)\*/g, '<em>$1</em>')

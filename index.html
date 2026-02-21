@@ -127,23 +127,11 @@
                 <div class="loading">Loading...</div>
             </main>
 
-            <!-- AI Simulation Panel -->
+            <!-- AI Side Panel -->
             <aside class="ai-panel" id="ai-panel">
-                <div class="ai-panel-header">
-                    <div class="ai-panel-tabs">
-                        <button class="ai-tab active" data-tab="patient" onclick="AIPanel.switchTab('patient')">
-                            <span class="tab-icon">&#128100;</span>
-                            <span class="tab-label">Patient</span>
-                        </button>
-                        <button class="ai-tab" data-tab="nurse" onclick="AIPanel.switchTab('nurse')">
-                            <span class="tab-icon">&#128105;&#8205;&#9877;&#65039;</span>
-                            <span class="tab-label">Nurse</span>
-                        </button>
-                        <button class="ai-tab" data-tab="assistant" onclick="AIPanel.switchTab('assistant')">
-                            <span class="tab-icon">&#10024;</span>
-                            <span class="tab-label">Assistant</span>
-                        </button>
-                    </div>
+                <!-- Top bar with settings + collapse -->
+                <div class="ai-panel-topbar">
+                    <span class="ai-panel-topbar-title">&#10024; AI Panel</span>
                     <div class="ai-panel-header-actions">
                         <button class="ai-settings-btn-header" onclick="AIPanel.openSettings()" title="AI Settings">
                             <span>&#9881;</span>
@@ -154,88 +142,85 @@
                     </div>
                 </div>
 
-                <!-- Patient Chat Tab -->
-                <div class="ai-tab-content active" id="patient-chat-tab">
-                    <div class="chat-header-bar">
-                        <span class="chat-header-title">Patient Simulation</span>
-                        <button class="clear-chat-btn" onclick="PatientChat.clearChat()" title="Clear chat history">
-                            <span>&#128465;</span> Clear
-                        </button>
+                <!-- AI Assistant Section (always visible, top) -->
+                <div class="ai-assistant-section" id="ai-assistant-section">
+                    <div class="ai-assistant-section-header" onclick="AIPanel.toggleAssistant()">
+                        <span>&#10024; Assistant</span>
+                        <span class="section-collapse-icon" id="assistant-collapse-icon">&#9660;</span>
                     </div>
-                    <div class="chat-container" id="patient-chat-container">
-                        <div class="chat-messages" id="patient-messages">
-                            <div class="chat-welcome">
-                                <div class="welcome-avatar">&#128100;</div>
-                                <h3>Patient Simulation</h3>
-                                <p>Chat with a simulated patient. Use voice or text to practice clinical communication.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="chat-input-area">
-                        <div class="voice-controls">
-                            <button class="voice-btn" id="patient-voice-btn" onclick="PatientChat.toggleVoiceInput()" title="Voice Input">
-                                <span class="voice-icon">&#127908;</span>
-                            </button>
-                            <button class="voice-output-btn" id="patient-voice-output-btn" onclick="PatientChat.toggleVoiceOutput()" title="Toggle Voice Output">
-                                <span class="speaker-icon">&#128266;</span>
-                            </button>
-                        </div>
-                        <div class="chat-input-wrapper">
-                            <textarea
-                                id="patient-input"
-                                class="chat-input"
-                                placeholder="Type a message or use voice..."
-                                rows="1"
-                                onkeydown="PatientChat.handleKeyDown(event)"
-                            ></textarea>
-                            <button class="send-btn" onclick="PatientChat.sendMessage()" title="Send">
-                                <span>&#10148;</span>
-                            </button>
+                    <div class="ai-assistant-section-body" id="assistant-tab-body">
+                        <div class="ai-empty">
+                            <div class="empty-icon">&#10024;</div>
+                            <div class="empty-text">Ready to assist</div>
+                            <div class="empty-hint">I'll track what you review and flag safety concerns.</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Nurse Chat Tab -->
-                <div class="ai-tab-content" id="nurse-chat-tab">
-                    <div class="chat-header-bar">
-                        <span class="chat-header-title">Nurse Communication</span>
-                        <button class="clear-chat-btn" onclick="NurseChat.clearChat()" title="Clear chat history">
-                            <span>&#128465;</span> Clear
-                        </button>
-                    </div>
-                    <div class="chat-container" id="nurse-chat-container">
-                        <div class="chat-messages" id="nurse-messages">
-                            <div class="chat-welcome">
-                                <div class="welcome-avatar">&#128105;&#8205;&#9877;</div>
-                                <h3>Nurse Communication</h3>
-                                <p>Practice communication with nursing staff for handoffs, clarifications, and coordination.</p>
+                <!-- Chat Panels (Patient + Nurse side by side) -->
+                <div class="ai-chat-split">
+                    <!-- Patient Chat -->
+                    <div class="ai-chat-column" id="patient-chat-column">
+                        <div class="chat-column-header">
+                            <span class="chat-column-title">&#128100; Patient</span>
+                            <button class="clear-chat-btn-sm" onclick="PatientChat.clearChat()" title="Clear">&#128465;</button>
+                        </div>
+                        <div class="chat-container" id="patient-chat-container">
+                            <div class="chat-messages" id="patient-messages">
+                                <div class="chat-welcome compact">
+                                    <p>Chat with the patient...</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-input-area compact">
+                            <div class="voice-controls compact">
+                                <button class="voice-btn compact" id="patient-voice-btn" onclick="PatientChat.toggleVoiceInput()" title="Voice Input">
+                                    <span class="voice-icon">&#127908;</span>
+                                </button>
+                                <button class="voice-output-btn compact" id="patient-voice-output-btn" onclick="PatientChat.toggleVoiceOutput()" title="Voice Output">
+                                    <span class="speaker-icon">&#128266;</span>
+                                </button>
+                            </div>
+                            <div class="chat-input-wrapper">
+                                <textarea
+                                    id="patient-input"
+                                    class="chat-input"
+                                    placeholder="Talk to patient..."
+                                    rows="1"
+                                    onkeydown="PatientChat.handleKeyDown(event)"
+                                ></textarea>
+                                <button class="send-btn" onclick="PatientChat.sendMessage()" title="Send">
+                                    <span>&#10148;</span>
+                                </button>
                             </div>
                         </div>
                     </div>
-                    <div class="chat-input-area">
-                        <div class="chat-input-wrapper" style="margin-left: 0;">
-                            <textarea
-                                id="nurse-input"
-                                class="chat-input"
-                                placeholder="Type a message..."
-                                rows="1"
-                                onkeydown="NurseChat.handleKeyDown(event)"
-                            ></textarea>
-                            <button class="send-btn" onclick="NurseChat.sendMessage()" title="Send">
-                                <span>&#10148;</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Assistant Tab -->
-                <div class="ai-tab-content" id="assistant-chat-tab">
-                    <div class="assistant-tab-container">
-                        <div class="assistant-tab-scroll" id="assistant-tab-body">
-                            <div class="ai-empty">
-                                <div class="empty-icon">&#10024;</div>
-                                <div class="empty-text">Ready to assist</div>
-                                <div class="empty-hint">I'll track what you review and flag safety concerns.</div>
+                    <!-- Nurse Chat -->
+                    <div class="ai-chat-column" id="nurse-chat-column">
+                        <div class="chat-column-header">
+                            <span class="chat-column-title">&#128105;&#8205;&#9877;&#65039; Nurse</span>
+                            <button class="clear-chat-btn-sm" onclick="NurseChat.clearChat()" title="Clear">&#128465;</button>
+                        </div>
+                        <div class="chat-container" id="nurse-chat-container">
+                            <div class="chat-messages" id="nurse-messages">
+                                <div class="chat-welcome compact">
+                                    <p>Talk to the nurse...</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-input-area compact">
+                            <div class="chat-input-wrapper">
+                                <textarea
+                                    id="nurse-input"
+                                    class="chat-input"
+                                    placeholder="Talk to nurse..."
+                                    rows="1"
+                                    onkeydown="NurseChat.handleKeyDown(event)"
+                                ></textarea>
+                                <button class="send-btn" onclick="NurseChat.sendMessage()" title="Send">
+                                    <span>&#10148;</span>
+                                </button>
                             </div>
                         </div>
                     </div>

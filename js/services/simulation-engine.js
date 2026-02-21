@@ -175,8 +175,7 @@ const SimulationEngine = {
                         AIPanel.addMessage('patient', 'assistant', patientOpening);
                     }
 
-                    // Switch to patient tab - the patient is talking to you
-                    AIPanel.switchTab('patient');
+                    // Ensure AI panel is visible
                     AIPanel.expand();
 
                     if (typeof SpeechService !== 'undefined' && PatientChat.voiceOutputEnabled) {
@@ -411,8 +410,7 @@ const SimulationEngine = {
                 NurseChat.messages.push({ role: 'assistant', content: trigger.message });
                 NurseChat.saveHistory();
                 if (typeof AIPanel !== 'undefined') {
-                    // Switch to nurse tab and show the message
-                    AIPanel.switchTab('nurse');
+                    // Ensure AI panel is visible
                     AIPanel.expand();
                     AIPanel.addMessage('nurse', 'assistant', trigger.message);
                 }
@@ -452,8 +450,7 @@ const SimulationEngine = {
                 PatientChat.messages.push({ role: 'assistant', content: trigger.message });
                 PatientChat.saveHistory();
                 if (typeof AIPanel !== 'undefined') {
-                    // Switch to patient tab and show the message
-                    AIPanel.switchTab('patient');
+                    // Ensure AI panel is visible
                     AIPanel.expand();
                     AIPanel.addMessage('patient', 'assistant', trigger.message);
                 }
