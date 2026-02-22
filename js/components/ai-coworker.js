@@ -839,7 +839,7 @@ const AICoworker = {
         }
         } catch (err) {
             console.error('Error rendering AI copilot panel:', err);
-            body.innerHTML = '<div class="ai-empty"><div class="empty-icon">&#10024;</div><div class="empty-text">Clinical Copilot</div><div class="empty-hint">Loading patient data...</div></div>';
+            body.innerHTML = '<div class="ai-empty"><div class="empty-icon">&#10024;</div><div class="empty-text"><span class="logo-ai">A</span>cting <span class="logo-ai">I</span>ntern</div><div class="empty-hint">Loading patient data...</div></div>';
         }
     },
 

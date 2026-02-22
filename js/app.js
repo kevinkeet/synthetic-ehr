@@ -12,7 +12,7 @@ const App = {
      * Initialize the application
      */
     async init() {
-        console.log('Initializing SyntheticEHR...');
+        console.log('Initializing Acting Intern...');
 
         // Start clock
         this.startClock();
@@ -56,7 +56,7 @@ const App = {
         // Initialize router
         router.init();
 
-        console.log('SyntheticEHR initialized successfully');
+        console.log('Acting Intern initialized successfully');
     },
 
     /**
@@ -536,7 +536,7 @@ const App = {
     </div>
 
     <div class="footer">
-        <p>Generated from SyntheticEHR on ${new Date().toLocaleString()}</p>
+        <p>Generated from Acting Intern on ${new Date().toLocaleString()}</p>
         <p>This is synthetic data for testing purposes only.</p>
     </div>
 </body>

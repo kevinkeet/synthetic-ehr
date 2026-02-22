@@ -1,5 +1,5 @@
 /* ============================================
-   SyntheticEHR - EPIC-Style Theme
+   Acting Intern - EPIC-Style Theme
    ============================================ */
 
 /* CSS Variables for theming */
@@ -100,6 +100,17 @@ html, body {
     font-size: 18px;
     font-weight: 700;
     letter-spacing: -0.5px;
+}
+
+.logo-ai {
+    color: #4fc3f7;
+    font-weight: 800;
+}
+
+/* On light backgrounds, use a deeper blue for the AI accent */
+.ai-empty .logo-ai,
+.copilot-content .logo-ai {
+    color: #0288d1;
 }
 
 .patient-search {
