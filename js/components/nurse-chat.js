@@ -44,6 +44,15 @@ const NurseChat = {
             }
         }
 
+        // Check for custom prompt override first
+        const customNursePrompt = localStorage.getItem('customPrompt_nurse_chat');
+        if (customNursePrompt !== null) {
+            this.systemPrompt = customNursePrompt;
+            this.contextLoaded = true;
+            console.log('📝 Using CUSTOM nurse chat system prompt');
+            return;
+        }
+
         // Build context from current scenario
         this.systemPrompt = this.buildNurseContext();
         this.contextLoaded = true;

@@ -46,6 +46,15 @@ const PatientChat = {
             }
         }
 
+        // Check for custom prompt override first
+        const customPatientPrompt = localStorage.getItem('customPrompt_patient_chat');
+        if (customPatientPrompt !== null) {
+            this.systemPrompt = customPatientPrompt;
+            this.contextLoaded = true;
+            console.log('📝 Using CUSTOM patient chat system prompt');
+            return;
+        }
+
         // Build context from current scenario
         this.systemPrompt = this.buildScenarioContext();
         this.contextLoaded = true;

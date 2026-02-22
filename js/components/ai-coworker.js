@@ -1519,6 +1519,7 @@ const AICoworker = {
         html += '<button class="inline-action-btn inline-more-btn" onclick="AICoworker.toggleMoreMenu()" title="More actions"><span>&#8943;</span> More</button>';
         html += '<div class="inline-more-menu" id="inline-more-menu">';
         html += '<button onclick="AICoworker.refreshThinking()">&#128260; Refresh Analysis</button>';
+        html += '<button onclick="AICoworker.openPromptEditor()">&#9999; Edit Prompts</button>';
         html += '<button onclick="AICoworker.openDebugPanel()">&#128269; Debug Prompts</button>';
         html += '<button onclick="AICoworker.clearMemory()">&#128465; Clear Memory</button>';
         html += '</div>';
@@ -2286,6 +2287,12 @@ Respond with ONLY the JSON, no preamble.`;
             );
             systemPrompt = prompt.systemPrompt;
             userMessage = prompt.userMessage;
+            // Apply custom prompt override if user has edited it
+            const customNote = localStorage.getItem('customPrompt_note_system');
+            if (customNote !== null) {
+                systemPrompt = customNote;
+                console.log('📝 Using CUSTOM note system prompt');
+            }
             console.log(`📊 Note context: ${userMessage.length} chars (full)`);
         } else {
             const clinicalContext = this.buildFullClinicalContext();
@@ -2983,6 +2990,309 @@ ${document.getElementById('debug-response-text').value}
         App.showToast('Debug info exported', 'success');
     },
 
+    // ==================== Prompt Editor ====================
+
+    /**
+     * Registry of all editable prompts.
+     * Each entry has: id, label, category, getDefault (function returning the default text),
+     * and description of what the prompt controls.
+     */
+    getPromptRegistry() {
+        return [
+            {
+                id: 'dictation_system',
+                label: 'Dictation — System Prompt',
+                category: 'AI Copilot',
+                description: 'Controls how the AI processes doctor dictation/thinking. Includes the JSON response format, clinical summary rules, problem list format, and memory classification instructions.',
+                getDefault: () => {
+                    if (this.contextAssembler) {
+                        const p = this.contextAssembler.buildDictationPrompt('(placeholder)');
+                        return p.systemPrompt;
+                    }
+                    return '(Context assembler not initialized)';
+                }
+            },
+            {
+                id: 'refresh_system',
+                label: 'Refresh — System Prompt',
+                category: 'AI Copilot',
+                description: 'Controls the full case analysis/refresh. Used when "Refresh Analysis" is clicked. Includes comprehensive synthesis instructions and memory update format.',
+                getDefault: () => {
+                    if (this.contextAssembler) {
+                        const p = this.contextAssembler.buildRefreshPrompt('');
+                        return p.systemPrompt;
+                    }
+                    return '(Context assembler not initialized)';
+                }
+            },
+            {
+                id: 'ask_system',
+                label: 'Ask AI — System Prompt',
+                category: 'AI Copilot',
+                description: 'Controls how the AI answers direct questions from the physician. Includes memory update instructions.',
+                getDefault: () => {
+                    if (this.contextAssembler) {
+                        const p = this.contextAssembler.buildAskPrompt('(placeholder question)');
+                        return p.systemPrompt;
+                    }
+                    return '(Context assembler not initialized)';
+                }
+            },
+            {
+                id: 'note_system',
+                label: 'Note Writing — System Prompt',
+                category: 'AI Copilot',
+                description: 'Controls how clinical notes are generated. Includes documentation conventions and note structure.',
+                getDefault: () => {
+                    if (this.contextAssembler) {
+                        const p = this.contextAssembler.buildNotePrompt('progress', 'Progress Note', {}, {}, '');
+                        return p.systemPrompt;
+                    }
+                    return '(Context assembler not initialized)';
+                }
+            },
+            {
+                id: 'patient_chat',
+                label: 'Patient Chat — System Prompt',
+                category: 'Simulation Chats',
+                description: 'Controls the simulated patient behavior: personality, symptom disclosure rules, graduated reveal, communication style, and what the patient knows.',
+                getDefault: () => {
+                    if (typeof PatientChat !== 'undefined') {
+                        return PatientChat.buildScenarioContext();
+                    }
+                    return '(PatientChat not initialized)';
+                }
+            },
+            {
+                id: 'nurse_chat',
+                label: 'Nurse Chat — System Prompt',
+                category: 'Simulation Chats',
+                description: 'Controls the simulated nurse behavior: SBAR communication, what clinical information the nurse shares, current patient status reporting, and medication awareness.',
+                getDefault: () => {
+                    if (typeof NurseChat !== 'undefined') {
+                        return NurseChat.buildNurseContext();
+                    }
+                    return '(NurseChat not initialized)';
+                }
+            }
+        ];
+    },
+
+    /**
+     * Load a prompt — returns custom version from localStorage if edited, otherwise default
+     */
+    loadPrompt(promptId) {
+        const custom = localStorage.getItem(`customPrompt_${promptId}`);
+        if (custom !== null) return { text: custom, isCustom: true };
+        const registry = this.getPromptRegistry();
+        const entry = registry.find(p => p.id === promptId);
+        if (entry) return { text: entry.getDefault(), isCustom: false };
+        return { text: '', isCustom: false };
+    },
+
+    /**
+     * Save a custom prompt override
+     */
+    savePrompt(promptId, text) {
+        localStorage.setItem(`customPrompt_${promptId}`, text);
+    },
+
+    /**
+     * Reset a prompt to its default
+     */
+    resetPrompt(promptId) {
+        localStorage.removeItem(`customPrompt_${promptId}`);
+    },
+
+    /**
+     * Check if a custom prompt exists
+     */
+    hasCustomPrompt(promptId) {
+        return localStorage.getItem(`customPrompt_${promptId}`) !== null;
+    },
+
+    /**
+     * Open the prompt editor modal
+     */
+    openPromptEditor() {
+        // Close the More menu
+        const moreMenu = document.getElementById('inline-more-menu');
+        if (moreMenu) moreMenu.classList.remove('visible');
+
+        let modal = document.getElementById('prompt-editor-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'prompt-editor-modal';
+            modal.className = 'ai-modal prompt-editor-modal';
+            modal.innerHTML = `
+                <div class="ai-modal-content prompt-editor-content">
+                    <div class="ai-modal-header">
+                        <h3>&#9999; Prompt Editor</h3>
+                        <button onclick="AICoworker.closePromptEditor()">&#10005;</button>
+                    </div>
+                    <div class="ai-modal-body prompt-editor-body">
+                        <div class="prompt-editor-sidebar" id="prompt-editor-sidebar"></div>
+                        <div class="prompt-editor-main">
+                            <div class="prompt-editor-header" id="prompt-editor-header">
+                                <div class="prompt-header-title">
+                                    <h4 id="prompt-editor-title">Select a prompt</h4>
+                                    <p id="prompt-editor-desc" class="prompt-editor-description">Choose a prompt from the left to view and edit it.</p>
+                                </div>
+                                <div class="prompt-header-badges" id="prompt-header-badges"></div>
+                            </div>
+                            <textarea id="prompt-editor-textarea" class="prompt-editor-textarea" placeholder="Select a prompt to edit..."></textarea>
+                            <div class="prompt-editor-actions">
+                                <div class="prompt-editor-actions-left">
+                                    <button class="btn btn-secondary" id="prompt-reset-btn" onclick="AICoworker.resetCurrentPrompt()" disabled>&#128260; Reset to Default</button>
+                                    <span id="prompt-char-count" class="prompt-char-count"></span>
+                                </div>
+                                <div class="prompt-editor-actions-right">
+                                    <button class="btn btn-secondary" id="prompt-copy-btn" onclick="AICoworker.copyCurrentPrompt()">&#128203; Copy</button>
+                                    <button class="btn btn-primary" id="prompt-save-btn" onclick="AICoworker.saveCurrentPrompt()" disabled>&#128190; Save Changes</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        this.populatePromptSidebar();
+        modal.classList.add('visible');
+    },
+
+    closePromptEditor() {
+        const modal = document.getElementById('prompt-editor-modal');
+        if (modal) modal.classList.remove('visible');
+    },
+
+    populatePromptSidebar() {
+        const sidebar = document.getElementById('prompt-editor-sidebar');
+        if (!sidebar) return;
+
+        const registry = this.getPromptRegistry();
+        const categories = {};
+        for (const p of registry) {
+            if (!categories[p.category]) categories[p.category] = [];
+            categories[p.category].push(p);
+        }
+
+        let html = '';
+        for (const [cat, prompts] of Object.entries(categories)) {
+            html += `<div class="prompt-sidebar-category">${cat}</div>`;
+            for (const p of prompts) {
+                const isCustom = this.hasCustomPrompt(p.id);
+                html += `<button class="prompt-sidebar-item" data-prompt-id="${p.id}" onclick="AICoworker.selectPrompt('${p.id}')">
+                    <span class="prompt-sidebar-label">${p.label}</span>
+                    ${isCustom ? '<span class="prompt-custom-badge">edited</span>' : ''}
+                </button>`;
+            }
+        }
+
+        sidebar.innerHTML = html;
+    },
+
+    _currentPromptId: null,
+
+    selectPrompt(promptId) {
+        this._currentPromptId = promptId;
+
+        // Update sidebar active state
+        document.querySelectorAll('.prompt-sidebar-item').forEach(btn => btn.classList.remove('active'));
+        const activeBtn = document.querySelector(`[data-prompt-id="${promptId}"]`);
+        if (activeBtn) activeBtn.classList.add('active');
+
+        // Load prompt text
+        const registry = this.getPromptRegistry();
+        const entry = registry.find(p => p.id === promptId);
+        if (!entry) return;
+
+        const { text, isCustom } = this.loadPrompt(promptId);
+
+        // Update header
+        document.getElementById('prompt-editor-title').textContent = entry.label;
+        document.getElementById('prompt-editor-desc').textContent = entry.description;
+
+        const badges = document.getElementById('prompt-header-badges');
+        badges.innerHTML = isCustom
+            ? '<span class="prompt-badge prompt-badge-custom">Custom</span>'
+            : '<span class="prompt-badge prompt-badge-default">Default</span>';
+
+        // Update textarea
+        const textarea = document.getElementById('prompt-editor-textarea');
+        textarea.value = text;
+        textarea.disabled = false;
+
+        // Update char count
+        this.updatePromptCharCount();
+
+        // Wire up char count on input
+        textarea.oninput = () => this.updatePromptCharCount();
+
+        // Enable buttons
+        document.getElementById('prompt-reset-btn').disabled = !isCustom;
+        document.getElementById('prompt-save-btn').disabled = false;
+    },
+
+    updatePromptCharCount() {
+        const textarea = document.getElementById('prompt-editor-textarea');
+        const counter = document.getElementById('prompt-char-count');
+        if (textarea && counter) {
+            const len = textarea.value.length;
+            counter.textContent = `${len.toLocaleString()} chars (~${Math.round(len / 4).toLocaleString()} tokens)`;
+        }
+    },
+
+    saveCurrentPrompt() {
+        if (!this._currentPromptId) return;
+        const textarea = document.getElementById('prompt-editor-textarea');
+        if (!textarea) return;
+
+        this.savePrompt(this._currentPromptId, textarea.value);
+
+        // Update badges
+        const badges = document.getElementById('prompt-header-badges');
+        badges.innerHTML = '<span class="prompt-badge prompt-badge-custom">Custom</span>';
+
+        // Enable reset button
+        document.getElementById('prompt-reset-btn').disabled = false;
+
+        // Refresh sidebar to show edited badge
+        this.populatePromptSidebar();
+        const activeBtn = document.querySelector(`[data-prompt-id="${this._currentPromptId}"]`);
+        if (activeBtn) activeBtn.classList.add('active');
+
+        App.showToast('Prompt saved. Changes take effect on next LLM call.', 'success');
+    },
+
+    resetCurrentPrompt() {
+        if (!this._currentPromptId) return;
+        if (!confirm('Reset this prompt to its default? Your customizations will be lost.')) return;
+
+        this.resetPrompt(this._currentPromptId);
+
+        // Re-select to reload the default
+        this.selectPrompt(this._currentPromptId);
+
+        // Refresh sidebar
+        this.populatePromptSidebar();
+        const activeBtn = document.querySelector(`[data-prompt-id="${this._currentPromptId}"]`);
+        if (activeBtn) activeBtn.classList.add('active');
+
+        App.showToast('Prompt reset to default', 'success');
+    },
+
+    copyCurrentPrompt() {
+        const textarea = document.getElementById('prompt-editor-textarea');
+        if (!textarea) return;
+        navigator.clipboard.writeText(textarea.value).then(() => {
+            App.showToast('Prompt copied to clipboard', 'success');
+        });
+    },
+
+    // ==================== End Prompt Editor ====================
+
     /**
      * Build the full clinical context for the LLM
      * Uses longitudinal document if available, falls back to legacy method
@@ -3175,6 +3485,12 @@ ${ctx.dictationHistory.length > 0
             const prompt = this.contextAssembler.buildDictationPrompt(doctorThoughts);
             systemPrompt = prompt.systemPrompt;
             userMessage = prompt.userMessage;
+            // Apply custom prompt override if user has edited it
+            const customDictation = localStorage.getItem('customPrompt_dictation_system');
+            if (customDictation !== null) {
+                systemPrompt = customDictation;
+                console.log('📝 Using CUSTOM dictation system prompt');
+            }
             clinicalContext = userMessage;
             console.log(`📊 Dictation context: ${userMessage.length} chars (focused)`);
         } else {
@@ -3329,6 +3645,12 @@ RULES:
             const prompt = this.contextAssembler.buildRefreshPrompt(this.state.dictation);
             systemPrompt = prompt.systemPrompt;
             userMessage = prompt.userMessage;
+            // Apply custom prompt override if user has edited it
+            const customRefresh = localStorage.getItem('customPrompt_refresh_system');
+            if (customRefresh !== null) {
+                systemPrompt = customRefresh;
+                console.log('📝 Using CUSTOM refresh system prompt');
+            }
             clinicalContext = userMessage;
             console.log(`📊 Refresh context: ${userMessage.length} chars (full)`);
         } else {
@@ -3500,6 +3822,12 @@ RULES:
             systemPrompt = prompt.systemPrompt;
             userMessage = prompt.userMessage;
             maxTokens = prompt.maxTokens;
+            // Apply custom prompt override if user has edited it
+            const customAsk = localStorage.getItem('customPrompt_ask_system');
+            if (customAsk !== null) {
+                systemPrompt = customAsk;
+                console.log('📝 Using CUSTOM ask system prompt');
+            }
             console.log(`📊 Ask AI context: ${userMessage.length} chars (focused)`);
         } else {
             const clinicalContext = this.buildFullClinicalContext();
