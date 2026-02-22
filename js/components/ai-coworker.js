@@ -123,10 +123,12 @@ const AICoworker = {
      * Called after patient data has finished loading.
      * Safe to access PatientHeader, dataLoader, and chart data.
      */
-    onPatientLoaded(patientId) {
+    async onPatientLoaded(patientId) {
         console.log('🧠 AI Copilot: patient loaded, initializing longitudinal doc for', patientId);
         this.gatherChartData();
-        this.initializeLongitudinalDocument(patientId);
+        await this.initializeLongitudinalDocument(patientId);
+        // Re-render now that longitudinal data is fully loaded
+        this.render();
     },
 
     /**
@@ -837,7 +839,7 @@ const AICoworker = {
             allergies = PatientHeader.currentPatient.allergies;
         }
         if (allergies.length > 0) {
-            const names = allergies.slice(0, 3).map(a => typeof a === 'string' ? a : (a.allergen || a.name || '?'));
+            const names = allergies.slice(0, 3).map(a => typeof a === 'string' ? a : (a.substance || a.allergen || a.name || '?'));
             allergyLine = `<div class="brief-allergy">&#9888; ${names.join(', ')}${allergies.length > 3 ? ` +${allergies.length - 3}` : ''}</div>`;
         }
 

@@ -72,7 +72,7 @@ const App = {
         // Now that patient data is loaded, initialize the AI copilot's
         // longitudinal document and re-render with real data
         if (typeof AICoworker !== 'undefined') {
-            AICoworker.onPatientLoaded(patientId);
+            await AICoworker.onPatientLoaded(patientId);
         }
     },
 
