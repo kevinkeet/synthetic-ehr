@@ -115,8 +115,18 @@ const AICoworker = {
 
         console.log('AI Assistant initialized');
 
-        // Initialize longitudinal document for current patient
-        this.initializeLongitudinalDocument();
+        // NOTE: initializeLongitudinalDocument() is NOT called here.
+        // It must be called AFTER patient data loads (see App.loadPatient).
+    },
+
+    /**
+     * Called after patient data has finished loading.
+     * Safe to access PatientHeader, dataLoader, and chart data.
+     */
+    onPatientLoaded(patientId) {
+        console.log('🧠 AI Copilot: patient loaded, initializing longitudinal doc for', patientId);
+        this.gatherChartData();
+        this.initializeLongitudinalDocument(patientId);
     },
 
     /**
@@ -768,10 +778,20 @@ const AICoworker = {
         // Get patient info
         let patientName = 'Patient';
         let patientAge = '';
-        if (typeof PatientHeader !== 'undefined' && PatientHeader.patient) {
-            const p = PatientHeader.patient;
+        if (typeof PatientHeader !== 'undefined' && PatientHeader.currentPatient) {
+            const p = PatientHeader.currentPatient;
             patientName = `${p.firstName || ''} ${p.lastName || ''}`.trim() || 'Patient';
-            patientAge = p.age ? `${p.age}${p.gender === 'Male' ? 'M' : 'F'}` : '';
+            // Compute age from DOB
+            let age = p.age;
+            if (!age && p.dateOfBirth) {
+                const dob = new Date(p.dateOfBirth);
+                const today = new Date();
+                age = today.getFullYear() - dob.getFullYear();
+                const m = today.getMonth() - dob.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+            }
+            const sex = (p.sex || p.gender || '').charAt(0).toUpperCase(); // M or F
+            patientAge = age ? `${age}${sex}` : '';
         }
 
         // AI's one-line summary
@@ -791,9 +811,10 @@ const AICoworker = {
         let problemsHtml = '';
         if (this.longitudinalDoc && this.longitudinalDoc.problemMatrix.size > 0) {
             const problems = [];
-            for (const [id, problem] of this.longitudinalDoc.problemMatrix) {
-                if (problem.status === 'active' || !problem.status) {
-                    problems.push(problem.name || id);
+            for (const [id, timeline] of this.longitudinalDoc.problemMatrix) {
+                const prob = timeline.problem || timeline;
+                if (prob.status === 'active' || !prob.status) {
+                    problems.push(prob.name || id);
                 }
             }
             if (problems.length > 0) {
@@ -810,12 +831,14 @@ const AICoworker = {
 
         // Key allergy (most critical, one-line)
         let allergyLine = '';
-        if (typeof PatientHeader !== 'undefined' && PatientHeader.patient?.allergies) {
-            const allergies = PatientHeader.patient.allergies;
-            if (allergies.length > 0) {
-                const names = allergies.slice(0, 3).map(a => typeof a === 'string' ? a : (a.allergen || a.name || '?'));
-                allergyLine = `<div class="brief-allergy">&#9888; ${names.join(', ')}${allergies.length > 3 ? ` +${allergies.length - 3}` : ''}</div>`;
-            }
+        // Try longitudinal doc first, then PatientHeader
+        let allergies = this.longitudinalDoc?.patientSnapshot?.allergies || [];
+        if (allergies.length === 0 && typeof PatientHeader !== 'undefined' && PatientHeader.currentPatient?.allergies) {
+            allergies = PatientHeader.currentPatient.allergies;
+        }
+        if (allergies.length > 0) {
+            const names = allergies.slice(0, 3).map(a => typeof a === 'string' ? a : (a.allergen || a.name || '?'));
+            allergyLine = `<div class="brief-allergy">&#9888; ${names.join(', ')}${allergies.length > 3 ? ` +${allergies.length - 3}` : ''}</div>`;
         }
 
         let html = '<div class="copilot-brief">';
@@ -1020,7 +1043,8 @@ const AICoworker = {
                 }
                 case 'Problem List': {
                     let active = 0, resolved = 0;
-                    for (const [, prob] of doc.problemMatrix) {
+                    for (const [, timeline] of doc.problemMatrix) {
+                        const prob = timeline.problem || timeline;
                         if (prob.status === 'resolved') resolved++;
                         else active++;
                     }
@@ -1732,8 +1756,8 @@ Respond with ONLY the JSON, no preamble.`;
         };
 
         // Get patient info from PatientHeader if available
-        if (typeof PatientHeader !== 'undefined' && PatientHeader.patient) {
-            chartData.patientInfo = PatientHeader.patient;
+        if (typeof PatientHeader !== 'undefined' && PatientHeader.currentPatient) {
+            chartData.patientInfo = PatientHeader.currentPatient;
         }
 
         // Get vitals from VitalsDisplay if available
@@ -1989,7 +2013,7 @@ IMPORTANT:
 
         const now = new Date();
         const noteId = 'NOTE_AI_' + now.getTime();
-        const patientName = window.PatientHeader?.patient?.name || 'Unknown Patient';
+        const patientName = window.PatientHeader?.currentPatient?.name || 'Unknown Patient';
 
         const newNote = {
             id: noteId,

@@ -68,6 +68,12 @@ const App = {
         SearchUtils.buildSearchIndex(patientId).then(() => {
             console.log('Search index ready');
         });
+
+        // Now that patient data is loaded, initialize the AI copilot's
+        // longitudinal document and re-render with real data
+        if (typeof AICoworker !== 'undefined') {
+            AICoworker.onPatientLoaded(patientId);
+        }
     },
 
     /**
