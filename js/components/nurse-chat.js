@@ -270,7 +270,7 @@ Keep responses concise and professional, like a real nurse-physician interaction
 
         container.innerHTML = '';
         this.messages.forEach(msg => {
-            AIPanel.addMessage('nurse', msg.role, msg.content);
+            FloatingChat.addMessage('nurse', msg.role, msg.content);
         });
     },
 
@@ -286,8 +286,7 @@ Keep responses concise and professional, like a real nurse-physician interaction
 
         // Check if API is configured
         if (!ClaudeAPI.isConfigured()) {
-            App.showToast('Please configure your API key in settings', 'error');
-            AIPanel.openSettings();
+            App.showToast('Please configure your API key in AI Settings (gear icon in copilot panel)', 'error');
             return;
         }
 
@@ -297,7 +296,7 @@ Keep responses concise and professional, like a real nurse-physician interaction
 
         // Add user message to UI and history
         this.messages.push({ role: 'user', content: text });
-        AIPanel.addMessage('nurse', 'user', text);
+        FloatingChat.addMessage('nurse', 'user', text);
         this.saveHistory();
 
         // Track for simulation scoring
@@ -307,7 +306,7 @@ Keep responses concise and professional, like a real nurse-physician interaction
 
         // Show typing indicator
         this.isLoading = true;
-        AIPanel.addMessage('nurse', 'assistant', '', true);
+        FloatingChat.addMessage('nurse', 'assistant', '', true);
 
         try {
             // Ensure context is loaded
@@ -325,16 +324,16 @@ Keep responses concise and professional, like a real nurse-physician interaction
             const response = await ClaudeAPI.chat(this.systemPrompt, apiMessages);
 
             // Remove typing indicator
-            AIPanel.removeTypingIndicator('nurse');
+            FloatingChat.removeTypingIndicator('nurse');
 
             // Add response to UI and history
             this.messages.push({ role: 'assistant', content: response });
-            AIPanel.addMessage('nurse', 'assistant', response);
+            FloatingChat.addMessage('nurse', 'assistant', response);
             this.saveHistory();
 
         } catch (error) {
             console.error('Chat error:', error);
-            AIPanel.removeTypingIndicator('nurse');
+            FloatingChat.removeTypingIndicator('nurse');
             App.showToast(`Error: ${error.message}`, 'error');
         } finally {
             this.isLoading = false;

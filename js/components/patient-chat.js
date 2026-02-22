@@ -283,7 +283,7 @@ CURRENT SYMPTOMS:`;
 
         container.innerHTML = '';
         this.messages.forEach(msg => {
-            AIPanel.addMessage('patient', msg.role, msg.content);
+            FloatingChat.addMessage('patient', msg.role, msg.content);
         });
     },
 
@@ -299,8 +299,7 @@ CURRENT SYMPTOMS:`;
 
         // Check if API is configured
         if (!ClaudeAPI.isConfigured()) {
-            App.showToast('Please configure your API key in settings', 'error');
-            AIPanel.openSettings();
+            App.showToast('Please configure your API key in AI Settings (gear icon in copilot panel)', 'error');
             return;
         }
 
@@ -310,7 +309,7 @@ CURRENT SYMPTOMS:`;
 
         // Add user message to UI and history
         this.messages.push({ role: 'user', content: text });
-        AIPanel.addMessage('patient', 'user', text);
+        FloatingChat.addMessage('patient', 'user', text);
         this.saveHistory();
 
         // Track for simulation scoring
@@ -320,7 +319,7 @@ CURRENT SYMPTOMS:`;
 
         // Show typing indicator
         this.isLoading = true;
-        AIPanel.addMessage('patient', 'assistant', '', true);
+        FloatingChat.addMessage('patient', 'assistant', '', true);
 
         try {
             // Ensure context is loaded
@@ -368,11 +367,11 @@ CURRENT SYMPTOMS:`;
             const response = await ClaudeAPI.chat(dynamicPrompt, apiMessages);
 
             // Remove typing indicator
-            AIPanel.removeTypingIndicator('patient');
+            FloatingChat.removeTypingIndicator('patient');
 
             // Add response to UI and history
             this.messages.push({ role: 'assistant', content: response });
-            AIPanel.addMessage('patient', 'assistant', response);
+            FloatingChat.addMessage('patient', 'assistant', response);
             this.saveHistory();
 
             // Speak response if voice output is enabled
@@ -382,7 +381,7 @@ CURRENT SYMPTOMS:`;
 
         } catch (error) {
             console.error('Chat error:', error);
-            AIPanel.removeTypingIndicator('patient');
+            FloatingChat.removeTypingIndicator('patient');
             App.showToast(`Error: ${error.message}`, 'error');
         } finally {
             this.isLoading = false;

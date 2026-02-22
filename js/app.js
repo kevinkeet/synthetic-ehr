@@ -41,6 +41,7 @@ const App = {
         DynamicImaging.init();
         SimulationDebrief.init();
         ClinicalImages.init();
+        FloatingChat.init();
         AICoworker.init();
 
         // Load default patient

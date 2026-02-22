@@ -321,6 +321,14 @@ const AICoworker = {
         // Sync from current state
         this.longitudinalDocUpdater.syncFromAIState(this.state);
 
+        // Sync patient and nurse chat messages into the longitudinal doc
+        if (typeof PatientChat !== 'undefined' && PatientChat.messages.length > 0) {
+            this.longitudinalDocUpdater.syncPatientConversation(PatientChat.messages);
+        }
+        if (typeof NurseChat !== 'undefined' && NurseChat.messages.length > 0) {
+            this.longitudinalDocUpdater.syncNurseConversation(NurseChat.messages);
+        }
+
         // Detect nurse questions that should become pending decisions
         if (this.longitudinalDoc?.sessionContext?.nurseConversation) {
             const nurseMsgs = this.longitudinalDoc.sessionContext.nurseConversation
@@ -1616,23 +1624,82 @@ const AICoworker = {
     },
 
     /**
-     * Clear AI memory for this patient
+     * Clear AI memory for this patient — full reset.
+     * Wipes the longitudinal document, session context, active clinical state,
+     * conflicts, observations, and localStorage. The AI starts completely fresh.
      */
     clearMemory() {
-        if (!confirm('Clear AI memory for this patient? The AI will forget its analysis.')) return;
+        if (!confirm('Clear ALL AI memory for this patient?\n\nThis will erase:\n• Clinical narrative & trajectory\n• AI observations & insights\n• Pending decisions & conflicts\n• Session context & conversation history\n• Patient/nurse chat history\n\nThe AI will rebuild its understanding from scratch.')) return;
+
         if (this.longitudinalDoc) {
+            const patientId = this.longitudinalDoc.metadata.patientId;
+
+            // 1. Clear AI Memory layer
             this.longitudinalDoc.aiMemory.patientSummary = '';
             this.longitudinalDoc.aiMemory.problemInsights = new Map();
             this.longitudinalDoc.aiMemory.interactionLog = [];
             this.longitudinalDoc.aiMemory.version = 0;
+
+            // 2. Clear Clinical Narrative
             this.longitudinalDoc.clinicalNarrative.trajectoryAssessment = '';
             this.longitudinalDoc.clinicalNarrative.keyFindings = [];
             this.longitudinalDoc.clinicalNarrative.openQuestions = [];
-            this.saveLongitudinalDoc();
+
+            // 3. Clear Session Context — all layers
+            const sc = this.longitudinalDoc.sessionContext;
+            sc.doctorDictation = [];
+            sc.aiObservations = [];
+            sc.safetyFlags = [];
+            sc.reviewedItems = [];
+            sc.pendingItems = [];
+            sc.patientConversation = [];
+            sc.nurseConversation = [];
+
+            // 4. Clear Active Clinical State (new v2 layer)
+            if (sc.activeClinicalState) {
+                sc.activeClinicalState.pendingDecisions = [];
+                sc.activeClinicalState.activeConditions = [];
+                sc.activeClinicalState.backgroundFacts = [];
+            }
+
+            // 5. Clear Conflicts
+            if (sc.conflicts) {
+                sc.conflicts.length = 0;
+            }
+
+            // 6. Remove from localStorage entirely so it's rebuilt fresh
+            const key = `longitudinalDoc_${patientId}`;
+            localStorage.removeItem(key);
+            console.log(`Removed longitudinal doc from localStorage: ${key}`);
         }
+
+        // 7. Clear patient and nurse chat histories
+        localStorage.removeItem('patient-chat-history');
+        localStorage.removeItem('nurse-chat-history');
+        if (typeof PatientChat !== 'undefined') {
+            PatientChat.messages = [];
+        }
+        if (typeof NurseChat !== 'undefined') {
+            NurseChat.messages = [];
+        }
+
+        // 8. Reset in-memory session state
         this.resetSessionState();
+
+        // 9. Null out the longitudinal doc so it gets rebuilt
+        this.longitudinalDoc = null;
+        this.longitudinalDocUpdater = null;
+        this.longitudinalDocRenderer = null;
+        this.longitudinalDocBuilder = null;
+
+        // 10. Re-initialize with current patient
+        const patient = PatientHeader.getPatient();
+        if (patient) {
+            this.onPatientLoaded(patient.id || patient.patientId || 'default');
+        }
+
         this.render();
-        App.showToast('AI memory cleared', 'success');
+        App.showToast('AI memory cleared — starting fresh', 'success');
     },
 
     /**
