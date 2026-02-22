@@ -815,10 +815,7 @@ const AICoworker = {
         // ===== SECTION 1: SAFETY BAR (sticky top, only when alerts exist) =====
         html += this.renderAlertBar();
 
-        // ===== SECTION 2: AI LIVE STATUS LINE =====
-        html += this.renderStatusLine();
-
-        // ===== SECTION 3: CLINICAL SUMMARY (3 sentences) =====
+        // ===== SECTION 2: CLINICAL SUMMARY (3 sentences) =====
         html += this.renderClinicalSummary();
 
         // ===== SECTION 4: PROBLEM LIST =====
@@ -1250,18 +1247,41 @@ const AICoworker = {
 
     /**
      * Build a local problem list from problemMatrix (no LLM).
-     * Returns [{name, urgency, ddx: null, plan: null}] sorted by priority.
+     * Problem #1 is always the chief complaint with placeholder DDx.
+     * Returns [{name, urgency, ddx, plan}] sorted by priority.
      */
     _buildLocalProblemList() {
         try {
             const doc = this.longitudinalDoc;
             if (!doc || !doc.problemMatrix || doc.problemMatrix.size === 0) return [];
 
+            // Try to get the chief complaint from scenario data or symptoms
+            let chiefComplaint = '';
+            if (typeof SimulationEngine !== 'undefined' && SimulationEngine.scenarioData?.clinicalContext?.hpiDetails?.chiefComplaint) {
+                chiefComplaint = SimulationEngine.scenarioData.clinicalContext.hpiDetails.chiefComplaint;
+            } else if (this.state.symptoms) {
+                // Infer from symptoms
+                if (this.state.symptoms.dyspnea && this.state.symptoms.dyspnea >= 5) chiefComplaint = 'Acute dyspnea';
+                else if (this.state.symptoms.chestPain) chiefComplaint = 'Chest pain';
+                else if (this.state.symptoms.alteredMentalStatus) chiefComplaint = 'Altered mental status';
+            }
+
             const problems = [];
+
+            // Problem #1: Chief complaint with DDx placeholder
+            if (chiefComplaint) {
+                problems.push({
+                    name: chiefComplaint,
+                    urgency: 'urgent',
+                    ddx: 'Analyze for differential diagnosis',
+                    plan: null
+                });
+            }
+
+            // Remaining problems from problem matrix
             for (const [id, timeline] of doc.problemMatrix) {
                 const prob = timeline.problem || timeline;
                 if (prob.status === 'active' || !prob.status) {
-                    // Map priority to urgency
                     let urgency = 'active';
                     if (prob.priority === 'High') urgency = 'urgent';
                     else if (prob.priority === 'Low') urgency = 'monitoring';
@@ -1276,11 +1296,17 @@ const AICoworker = {
                 }
             }
 
-            // Sort by urgency
+            // Sort problems #2+ by urgency (keep #1 as chief complaint)
+            if (chiefComplaint && problems.length > 1) {
+                const rest = problems.slice(1);
+                const order = { 'urgent': 0, 'active': 1, 'monitoring': 2 };
+                rest.sort((a, b) => (order[a.urgency] ?? 1) - (order[b.urgency] ?? 1));
+                return [problems[0], ...rest.slice(0, 4)];
+            }
+
+            // Fallback sort if no chief complaint
             const order = { 'urgent': 0, 'active': 1, 'monitoring': 2 };
             problems.sort((a, b) => (order[a.urgency] ?? 1) - (order[b.urgency] ?? 1));
-
-            // Limit to 5
             return problems.slice(0, 5);
         } catch (err) {
             console.warn('Error building local problem list:', err);
@@ -1297,54 +1323,23 @@ const AICoworker = {
      */
     renderClinicalSummary() {
         try {
-            // Get patient name for header
-            let patientName = 'Patient';
-            let patientAge = '';
-            if (typeof PatientHeader !== 'undefined' && PatientHeader.currentPatient) {
-                const p = PatientHeader.currentPatient;
-                patientName = `${p.firstName || ''} ${p.lastName || ''}`.trim() || 'Patient';
-                let age = p.age;
-                if (!age && p.dateOfBirth) {
-                    const dob = new Date(p.dateOfBirth);
-                    const today = new Date();
-                    age = today.getFullYear() - dob.getFullYear();
-                    const m = today.getMonth() - dob.getMonth();
-                    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
-                }
-                const sex = (p.sex || p.gender || '').charAt(0).toUpperCase();
-                patientAge = age ? `${age}${sex}` : '';
-            }
-
             // Use LLM summary if available, else local
             const summary = this.state.clinicalSummary || this._buildLocalSummary();
 
             let html = '<div class="clinical-summary">';
-            html += '<div class="clinical-summary-header">';
-            html += `<span class="summary-patient-name">${this.escapeHtml(patientName)}${patientAge ? ', ' + patientAge : ''}</span>`;
-            html += '</div>';
 
             if (summary) {
                 if (summary.demographics) {
                     html += `<div class="summary-sentence"><span class="sentence-label">HPI</span>${this.formatText(summary.demographics)}</div>`;
                 }
                 if (summary.functional) {
-                    html += `<div class="summary-sentence"><span class="sentence-label">Social</span>${this.formatText(summary.functional)}</div>`;
+                    html += `<div class="summary-sentence"><span class="sentence-label">USOH</span>${this.formatText(summary.functional)}</div>`;
                 }
                 if (summary.presentation) {
                     html += `<div class="summary-sentence"><span class="sentence-label">Presentation</span>${this.formatText(summary.presentation)}</div>`;
                 }
             } else {
                 html += '<div class="summary-sentence summary-placeholder">Loading patient data...</div>';
-            }
-
-            // Allergies line (always show if allergies exist)
-            let allergies = this.longitudinalDoc?.patientSnapshot?.allergies || [];
-            if (allergies.length === 0 && typeof PatientHeader !== 'undefined' && PatientHeader.currentPatient?.allergies) {
-                allergies = PatientHeader.currentPatient.allergies;
-            }
-            if (allergies.length > 0) {
-                const names = allergies.slice(0, 4).map(a => typeof a === 'string' ? a : (a.substance || a.allergen || a.name || '?'));
-                html += `<div class="summary-allergies">&#9888; Allergies: ${names.join(', ')}${allergies.length > 4 ? ` +${allergies.length - 4}` : ''}</div>`;
             }
 
             html += '</div>';

@@ -76,7 +76,8 @@ Respond in this exact JSON format:
         "presentation": "One sentence: chief complaint with timeline, significant positive exam findings, pertinent negatives, and key abnormal labs/imaging with actual values"
     },
     "problemList": [
-        {"name": "Most urgent problem first", "urgency": "urgent|active|monitoring", "ddx": "One sentence differential diagnosis if clinically relevant, or null", "plan": "1-2 sentence plan"}
+        {"name": "Problem #1 MUST be the chief complaint/presenting symptom (e.g. 'Acute dyspnea'), NOT a specific diagnosis yet", "urgency": "urgent|active|monitoring", "ddx": "REQUIRED for #1: list 2-4 plausible diagnoses with brief reasoning (e.g. 'CHF exacerbation (missed diuretics, volume overload on exam), ACS (age, risk factors, though no chest pain), PE (AFib, immobility), pneumonia (crackles, though afebrile)')", "plan": "1-2 sentence plan"},
+        {"name": "Subsequent problems: specific diagnoses or active issues", "urgency": "urgent|active|monitoring", "ddx": "DDx if differential is clinically meaningful, or null", "plan": "1-2 sentence plan"}
     ],
     "categorizedActions": {
         "communication": ["Talk to patient/nurse actions — e.g. Ask about dietary K intake, Verify med compliance"],
@@ -130,7 +131,11 @@ RULES:
   * Significant POSITIVE exam findings with specifics (e.g. "JVP elevated to angle of jaw, bibasilar crackles 1/3 up, 3+ pitting edema bilateral LE, S3 gallop")
   * Pertinent NEGATIVES (e.g. "afebrile, no chest pain")
   * Key abnormal lab values with actual numbers (e.g. "BNP 1850, Cr 2.4 (above baseline 1.8), K 5.1")
-- problemList: 3-5 problems MAX, most urgent first. Include DDx only when differential is clinically meaningful
+- problemList: 3-5 problems MAX.
+  * Problem #1 MUST ALWAYS be the CHIEF COMPLAINT or presenting symptom (e.g. "Acute dyspnea", "Chest pain", "Altered mental status") — NOT a specific diagnosis. Don't jump to the diagnosis too quickly.
+  * Problem #1 MUST ALWAYS have a DDx with 2-4 plausible differential diagnoses, each with brief supporting/refuting evidence from the patient's data
+  * Problems #2+ can be specific active diagnoses (e.g. "Hyperkalemia", "AKI on CKD") with plans
+  * The DDx for #1 should demonstrate clinical reasoning — what could this be and why?
 - categorizedActions: Be specific and actionable. Empty array is fine for categories with no actions needed
 - suggestedActions should ALIGN with the doctor's stated plan, not contradict it
 - If doctor says "no anticoagulation", don't suggest anticoagulation
@@ -179,7 +184,8 @@ Respond in this exact JSON format:
         "presentation": "One sentence: chief complaint with timeline, significant positive exam findings, pertinent negatives, and key abnormal labs/imaging with actual values"
     },
     "problemList": [
-        {"name": "Most urgent problem first", "urgency": "urgent|active|monitoring", "ddx": "One sentence differential diagnosis if clinically relevant, or null", "plan": "1-2 sentence plan"}
+        {"name": "Problem #1 MUST be the chief complaint/presenting symptom (e.g. 'Acute dyspnea'), NOT a specific diagnosis yet", "urgency": "urgent|active|monitoring", "ddx": "REQUIRED for #1: list 2-4 plausible diagnoses with brief reasoning", "plan": "1-2 sentence plan"},
+        {"name": "Subsequent problems: specific diagnoses or active issues", "urgency": "urgent|active|monitoring", "ddx": "DDx if meaningful, or null", "plan": "1-2 sentence plan"}
     ],
     "categorizedActions": {
         "communication": ["Talk to patient/nurse actions"],
@@ -239,7 +245,11 @@ RULES:
   * Significant POSITIVE exam findings with specifics (e.g. "JVP elevated to angle of jaw, bibasilar crackles 1/3 up, 3+ pitting edema bilateral LE, S3 gallop")
   * Pertinent NEGATIVES (e.g. "afebrile, no chest pain")
   * Key abnormal lab values with actual numbers (e.g. "BNP 1850, Cr 2.4 (above baseline 1.8), K 5.1")
-- problemList: 3-5 problems MAX, most urgent first. DDx only when differential is meaningful
+- problemList: 3-5 problems MAX.
+  * Problem #1 MUST ALWAYS be the CHIEF COMPLAINT or presenting symptom (e.g. "Acute dyspnea", "Chest pain") — NOT a specific diagnosis. Don't jump to the diagnosis too quickly.
+  * Problem #1 MUST ALWAYS have a DDx with 2-4 plausible differential diagnoses, each with brief supporting/refuting evidence
+  * Problems #2+ can be specific active diagnoses with plans
+  * The DDx for #1 should demonstrate clinical reasoning — what could this be and why?
 - categorizedActions: Specific and actionable. Empty array fine for categories with nothing needed
 - keyConsiderations should include allergies, contraindications, drug interactions, and clinical concerns
 - Use severity "critical" for life-threatening concerns, "important" for significant issues, "info" for context
