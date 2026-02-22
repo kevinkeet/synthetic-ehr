@@ -141,6 +141,7 @@ const AICoworker = {
             openItems: [],
             context: '',
             aiResponse: null,
+            conversationThread: [], // Session-only inline messages
             chartData: {
                 patientInfo: null,
                 vitals: [],
@@ -208,6 +209,9 @@ const AICoworker = {
             );
             this.contextAssembler = new ContextAssembler(this.workingMemory);
             console.log('Memory system initialized (SessionContext + WorkingMemory + ContextAssembler)');
+
+            // === MEMORY HYDRATION: Populate panel state from persisted AI memory ===
+            this.hydrateFromMemory();
 
             // Save the initialized document
             this.saveLongitudinalDoc();
@@ -300,15 +304,39 @@ const AICoworker = {
 
         // Sync from current state
         this.longitudinalDocUpdater.syncFromAIState(this.state);
+    },
 
-        // Sync patient conversation if available
-        if (window.PatientChat && window.PatientChat.messages && window.PatientChat.messages.length > 0) {
-            this.longitudinalDocUpdater.syncPatientConversation(window.PatientChat.messages);
+    /**
+     * Hydrate panel state from persisted AI memory.
+     * Called on init so the panel has content immediately, no LLM call needed.
+     */
+    hydrateFromMemory() {
+        if (!this.longitudinalDoc) return;
+
+        const mem = this.longitudinalDoc.aiMemory;
+        const narrative = this.longitudinalDoc.clinicalNarrative;
+
+        // Hydrate summary from AI memory
+        if (mem.patientSummary && !this.state.summary) {
+            this.state.summary = mem.patientSummary;
         }
 
-        // Sync nurse conversation if available
-        if (window.NurseChat && window.NurseChat.messages && window.NurseChat.messages.length > 0) {
-            this.longitudinalDocUpdater.syncNurseConversation(window.NurseChat.messages);
+        // Hydrate trajectory from clinical narrative
+        if (narrative.trajectoryAssessment && !this.state.thinking) {
+            this.state.thinking = narrative.trajectoryAssessment;
+        }
+
+        // Hydrate open questions as info-level key considerations
+        if (narrative.openQuestions && narrative.openQuestions.length > 0 && this.state.keyConsiderations.length === 0) {
+            this.state.keyConsiderations = narrative.openQuestions.map(q => ({
+                text: q,
+                severity: 'info'
+            }));
+        }
+
+        if (mem.patientSummary || narrative.trajectoryAssessment) {
+            console.log('🧠 Panel state hydrated from AI memory');
+            this.render();
         }
     },
 
@@ -427,73 +455,11 @@ const AICoworker = {
      * Create modals (no longer creates a floating panel - renders into AI panel tab)
      */
     createPanel() {
-        // Create ask modal
-        this.createAskModal();
-
-        // Create add task modal
-        this.createAddTaskModal();
-
         // Create dictation modal
         this.createDictationModal();
 
         // Create note writing modal
         this.createNoteModal();
-    },
-
-    /**
-     * Create the "Ask AI" modal
-     */
-    createAskModal() {
-        const modal = document.createElement('div');
-        modal.id = 'ai-ask-modal';
-        modal.className = 'ai-modal';
-        modal.innerHTML = `
-            <div class="ai-modal-content">
-                <div class="ai-modal-header">
-                    <h3>💬 Ask AI</h3>
-                    <button onclick="AICoworker.closeAskModal()">×</button>
-                </div>
-                <div class="ai-modal-body">
-                    <p class="ai-modal-hint">Ask the AI to help with your clinical reasoning. The AI will provide information to support your decision-making.</p>
-                    <textarea id="ai-ask-input" rows="3" placeholder="e.g., What's this patient's bleeding history? or Help me think through the differential..."></textarea>
-                    <div class="ai-quick-asks">
-                        <button onclick="AICoworker.quickAsk('summarize')">Summarize what I've found</button>
-                        <button onclick="AICoworker.quickAsk('missing')">What haven't I checked?</button>
-                        <button onclick="AICoworker.quickAsk('history')">Relevant history</button>
-                    </div>
-                </div>
-                <div class="ai-modal-footer">
-                    <button class="btn btn-secondary" onclick="AICoworker.closeAskModal()">Cancel</button>
-                    <button class="btn btn-primary" onclick="AICoworker.submitAsk()">Ask</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-    },
-
-    /**
-     * Create the "Add Task" modal
-     */
-    createAddTaskModal() {
-        const modal = document.createElement('div');
-        modal.id = 'ai-task-modal';
-        modal.className = 'ai-modal';
-        modal.innerHTML = `
-            <div class="ai-modal-content small">
-                <div class="ai-modal-header">
-                    <h3>+ Add Task</h3>
-                    <button onclick="AICoworker.closeAddTask()">×</button>
-                </div>
-                <div class="ai-modal-body">
-                    <input type="text" id="ai-task-input" placeholder="e.g., Check renal function before diuretics">
-                </div>
-                <div class="ai-modal-footer">
-                    <button class="btn btn-secondary" onclick="AICoworker.closeAddTask()">Cancel</button>
-                    <button class="btn btn-primary" onclick="AICoworker.submitTask()">Add</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
     },
 
     /**
@@ -617,170 +583,22 @@ const AICoworker = {
      * Setup event listeners
      */
     setupEventListeners() {
-        // Listen to simulation events for dynamic AI updates
-        if (typeof SimulationEngine !== 'undefined') {
-            SimulationEngine.on('nurseAlert', (data) => this.onAlert(data));
-            SimulationEngine.on('patientAlert', (data) => this.onAlert(data));
-            SimulationEngine.on('vitalsUpdate', (data) => this.onVitalsUpdate(data));
-            SimulationEngine.on('labsReady', (data) => this.onLabsReady(data));
-            SimulationEngine.on('medicationGiven', (data) => this.onMedicationGiven(data));
-            SimulationEngine.on('orderPlaced', (data) => this.onOrderPlaced(data));
-            SimulationEngine.on('consultResponse', (data) => this.onConsultResponse(data));
-            SimulationEngine.on('timeUpdate', (data) => this.onTimeUpdate(data));
-
-            // Lightweight tick listener for real-time snapshot + progress updates
-            // Throttled to update every 3 ticks (~3 seconds real time)
-            let tickCount = 0;
-            SimulationEngine.on('tick', () => {
-                tickCount++;
-                if (tickCount % 3 !== 0) return;
-                this.updateLiveSections();
-            });
-        }
-
         // Listen for keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                this.closeAskModal();
-                this.closeAddTask();
                 this.closeDictationModal();
                 this.closeNoteModal();
                 this.closeNoteEditor();
-                this.closeResponseModal();
             }
         });
 
-        // Listen for page navigation to gather context
+        // Listen for page navigation to gather context and update nudge
         window.addEventListener('hashchange', () => this.onPageChange());
         window.addEventListener('popstate', () => this.onPageChange());
     },
 
     /**
-     * Handle vitals updates - AI should notice significant changes
-     */
-    onVitalsUpdate(data) {
-        // Check for concerning vital changes
-        if (data.hr > 120 || data.hr < 50) {
-            this.addObservation('Heart rate ' + (data.hr > 120 ? 'elevated' : 'low') + ' at ' + data.hr + ' bpm');
-        }
-        if (data.sbp < 90) {
-            this.addFlag('Hypotension: SBP ' + data.sbp + ' mmHg', 'critical');
-        }
-        if (data.spo2 < 92) {
-            this.addFlag('Hypoxia: SpO2 ' + data.spo2 + '%', 'critical');
-        }
-
-        // Update chart data
-        if (!this.state.chartData.vitals) this.state.chartData.vitals = [];
-        this.state.chartData.vitals.push({
-            ...data,
-            timestamp: new Date().toISOString()
-        });
-        // Keep last 20 entries
-        if (this.state.chartData.vitals.length > 20) {
-            this.state.chartData.vitals = this.state.chartData.vitals.slice(-20);
-        }
-        this.saveState();
-    },
-
-    /**
-     * Handle labs becoming ready
-     */
-    onLabsReady(data) {
-        this.addObservation('New lab results available: ' + (data.panel || data.name || 'Labs'));
-
-        // Check for critical values
-        if (data.results) {
-            data.results.forEach(lab => {
-                if (lab.critical) {
-                    this.addFlag('Critical lab: ' + lab.name + ' = ' + lab.value + ' ' + (lab.unit || ''), 'critical');
-                }
-            });
-        }
-
-        // Store labs
-        if (data.results) {
-            if (!this.state.chartData.labs) this.state.chartData.labs = [];
-            this.state.chartData.labs = [...this.state.chartData.labs, ...data.results];
-        }
-        this.saveState();
-    },
-
-    /**
-     * Handle medication administered
-     */
-    onMedicationGiven(data) {
-        const medName = data.medication || data.name || 'medication';
-        this.markReviewed('Administered: ' + medName);
-
-        // Update thinking if relevant to case
-        if (medName.toLowerCase().includes('furosemide') || medName.toLowerCase().includes('lasix')) {
-            this.addObservation('Diuretic given - monitor urine output and electrolytes');
-        }
-    },
-
-    /**
-     * Handle orders being placed
-     */
-    onOrderPlaced(data) {
-        const orderName = data.order || data.name || 'order';
-
-        // Move from open items to reviewed if it was pending
-        if (this.state.openItems) {
-            const idx = this.state.openItems.findIndex(item =>
-                item.toLowerCase().includes(orderName.toLowerCase())
-            );
-            if (idx !== -1) {
-                this.markAddressed(idx);
-            }
-        }
-
-        this.markReviewed('Ordered: ' + orderName);
-    },
-
-    /**
-     * Handle consult responses
-     */
-    onConsultResponse(data) {
-        const specialty = data.specialty || data.service || 'Consult';
-        this.addObservation(specialty + ' consult note available');
-
-        // Store consult note
-        if (!this.state.chartData.previousNotes) this.state.chartData.previousNotes = [];
-        this.state.chartData.previousNotes.push({
-            type: 'consult',
-            specialty: specialty,
-            content: data.note || data.content,
-            timestamp: new Date().toISOString()
-        });
-        this.saveState();
-    },
-
-    /**
-     * Handle simulation time updates - for time-based triggers
-     */
-    onTimeUpdate(data) {
-        const minutes = data.minutes || data.elapsed || 0;
-
-        // Example: At 45 minutes, prompt about A-fib anticoagulation decision
-        if (minutes >= 45 && minutes < 47 && !this.state._afibPromptShown) {
-            this.state._afibPromptShown = true;
-            if (this.state.flags && this.state.flags.some(f => f.text.toLowerCase().includes('gi bleed'))) {
-                // Patient has GI bleed history - this is the anticoagulation dilemma
-                this.addObservation('A-fib confirmed on telemetry - anticoagulation decision needed');
-                if (!this.state.suggestedActions) this.state.suggestedActions = [];
-                this.state.suggestedActions.push({
-                    id: 'afib_decision',
-                    text: 'Review anticoagulation options given GI bleed history'
-                });
-                this.saveState();
-                this.render();
-            }
-        }
-    },
-
-    /**
-     * Handle page navigation - update context
+     * Handle page navigation - update context and nudge
      */
     onPageChange() {
         const page = window.location.hash || window.location.pathname;
@@ -791,6 +609,17 @@ const AICoworker = {
             // Track in session context for memory system
             if (this.sessionContext) {
                 this.sessionContext.trackNavigation(page, pageName);
+            }
+
+            // Update contextual nudge in-place
+            const nudgeEl = document.querySelector('.nudge-section');
+            if (nudgeEl) {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = this.renderContextualNudge();
+                const newNudge = tempDiv.firstElementChild;
+                if (newNudge) {
+                    nudgeEl.replaceWith(newNudge);
+                }
             }
         }
     },
@@ -859,81 +688,27 @@ const AICoworker = {
 
         let html = '';
 
-        // ===== SECTION 1: ALERT BAR (sticky, only when alerts exist) =====
+        // ===== SECTION 1: SAFETY BAR (sticky top, only when alerts exist) =====
         html += this.renderAlertBar();
 
-        // ===== SECTION 2: PATIENT SNAPSHOT =====
-        html += this.renderPatientSnapshot();
+        // ===== SECTION 2: PATIENT BRIEF =====
+        html += this.renderPatientBrief();
 
-        // ===== SECTION 3: PROGRESS TRACKER =====
-        html += this.renderProgressTracker();
+        // ===== SECTION 3: AI INSIGHT (the core section) =====
+        html += this.renderAIInsight();
 
-        // ===== SECTION 4: CLINICAL REASONING =====
-        html += this.renderClinicalReasoning();
+        // ===== SECTION 4: CONTEXTUAL NUDGE =====
+        html += this.renderContextualNudge();
 
-        // ===== SECTION 5: SUGGESTED NEXT STEPS =====
-        html += this.renderNextSteps();
-
-        // ===== AI RESPONSE (from Ask) =====
-        if (this.state.aiResponse) {
-            html += '<div class="copilot-section response-section">';
-            html += '<div class="copilot-section-header"><span>&#128172;</span> AI Response <button class="section-action-btn" onclick="AICoworker.clearResponse()">Clear</button></div>';
-            html += '<div class="copilot-section-body"><div class="ai-response-text">' + this.formatText(this.state.aiResponse) + '</div></div>';
-            html += '</div>';
-        }
-
-        // ===== SECTION 6: QUICK ACTIONS BAR (sticky bottom) =====
-        html += this.renderQuickActions();
+        // ===== SECTION 5: INLINE INPUT (sticky bottom) =====
+        html += this.renderInlineInput();
 
         body.innerHTML = html;
-    },
 
-    /**
-     * Lightweight update of live-data sections only (snapshot + alert bar + progress)
-     * Called on sim ticks without re-rendering the entire panel
-     */
-    updateLiveSections() {
-        const body = document.getElementById('assistant-tab-body');
-        if (!body) return;
-
-        // Update snapshot in-place
-        const snapshot = body.querySelector('.copilot-snapshot');
-        if (snapshot) {
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = this.renderPatientSnapshot();
-            const newSnapshot = tempDiv.firstElementChild;
-            if (newSnapshot) {
-                snapshot.innerHTML = newSnapshot.innerHTML;
-            }
-        }
-
-        // Update alert bar in-place
-        const alertBar = body.querySelector('.copilot-alert-bar');
-        const newAlertHtml = this.renderAlertBar();
-        if (newAlertHtml && !alertBar) {
-            // Alert appeared — need to add it at top
-            body.insertAdjacentHTML('afterbegin', newAlertHtml);
-        } else if (!newAlertHtml && alertBar) {
-            // Alerts cleared
-            alertBar.remove();
-        } else if (newAlertHtml && alertBar) {
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = newAlertHtml;
-            const newBar = tempDiv.firstElementChild;
-            if (newBar) {
-                alertBar.innerHTML = newBar.innerHTML;
-            }
-        }
-
-        // Update progress tracker in-place
-        const progressSection = body.querySelector('.progress-section');
-        if (progressSection) {
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = this.renderProgressTracker();
-            const newProgress = tempDiv.firstElementChild;
-            if (newProgress) {
-                progressSection.innerHTML = newProgress.innerHTML;
-            }
+        // Auto-resize inline textarea
+        const textarea = document.getElementById('copilot-inline-input');
+        if (textarea) {
+            textarea.addEventListener('input', () => this._autoResizeTextarea(textarea));
         }
     },
 
@@ -941,18 +716,7 @@ const AICoworker = {
 
     renderAlertBar() {
         const alerts = [];
-        const seen = new Set(); // dedup by text
-
-        // Allergy violations (simulation)
-        if (typeof SimulationScoreTracker !== 'undefined' && SimulationScoreTracker.allergyViolations && SimulationScoreTracker.allergyViolations.length > 0) {
-            SimulationScoreTracker.allergyViolations.forEach(v => {
-                const text = `ALLERGY VIOLATION: ${v.medication} — patient has ${v.allergen} (${v.reaction})`;
-                if (!seen.has(text)) {
-                    alerts.push({ text, severity: 'critical' });
-                    seen.add(text);
-                }
-            });
-        }
+        const seen = new Set();
 
         // Safety flags from state
         if (this.state.flags && this.state.flags.length > 0) {
@@ -964,25 +728,17 @@ const AICoworker = {
             });
         }
 
-        // Critical vitals (simulation)
-        if (typeof SimulationEngine !== 'undefined' && SimulationEngine.isRunning) {
-            const vitals = SimulationEngine.patientState?.vitals;
-            if (vitals) {
-                if (vitals.spO2 < 88) alerts.push({ text: `Critical: SpO2 ${vitals.spO2}% — consider urgent intervention`, severity: 'critical' });
-                if (vitals.systolic < 85) alerts.push({ text: `Critical: SBP ${vitals.systolic} — hypotension`, severity: 'critical' });
-                if (vitals.heartRate > 150) alerts.push({ text: `Critical: HR ${vitals.heartRate} — tachycardia`, severity: 'critical' });
-            }
-        } else if (this.longitudinalDoc) {
-            // Non-simulation: check chart vitals for critical values
+        if (this.longitudinalDoc) {
+            // Critical vitals from chart
             const chartVitals = this.longitudinalDoc.longitudinalData.vitals;
             if (chartVitals && chartVitals.length > 0) {
                 const v = chartVitals[0];
-                if (v.spO2 && v.spO2 < 88) alerts.push({ text: `Critical: SpO2 ${v.spO2}% — from latest chart vitals`, severity: 'critical' });
-                if (v.systolic && v.systolic < 85) alerts.push({ text: `Critical: SBP ${v.systolic} — from latest chart vitals`, severity: 'critical' });
-                if (v.heartRate && v.heartRate > 150) alerts.push({ text: `Critical: HR ${v.heartRate} — from latest chart vitals`, severity: 'critical' });
+                if (v.spO2 && v.spO2 < 88) alerts.push({ text: `Critical: SpO2 ${v.spO2}%`, severity: 'critical' });
+                if (v.systolic && v.systolic < 85) alerts.push({ text: `Critical: SBP ${v.systolic}`, severity: 'critical' });
+                if (v.heartRate && v.heartRate > 150) alerts.push({ text: `Critical: HR ${v.heartRate}`, severity: 'critical' });
             }
 
-            // Check for critical lab values from PKB
+            // Critical lab values from PKB
             for (const [name, trend] of this.longitudinalDoc.longitudinalData.labs) {
                 if (trend.latestValue && trend.latestValue.flag === 'CRITICAL') {
                     const text = `Critical lab: ${name} ${trend.latestValue.value} ${trend.latestValue.unit || ''}`;
@@ -1008,373 +764,477 @@ const AICoworker = {
         return html;
     },
 
-    renderPatientSnapshot() {
-        const simRunning = typeof SimulationEngine !== 'undefined' && SimulationEngine.isRunning;
-
+    renderPatientBrief() {
         // Get patient info
         let patientName = 'Patient';
         let patientAge = '';
-        let room = '412';
         if (typeof PatientHeader !== 'undefined' && PatientHeader.patient) {
             const p = PatientHeader.patient;
             patientName = `${p.firstName || ''} ${p.lastName || ''}`.trim() || 'Patient';
             patientAge = p.age ? `${p.age}${p.gender === 'Male' ? 'M' : 'F'}` : '';
         }
 
-        // Get vitals — prefer sim vitals, fall back to PKB/chart vitals
-        let vitalsHtml = '<span class="snapshot-placeholder">Vitals pending...</span>';
-        let trendHtml = '';
-        let uopHtml = '';
+        // AI's one-line summary
+        let summaryLine = '';
+        if (this.longitudinalDoc && this.longitudinalDoc.aiMemory.patientSummary) {
+            // First sentence of the AI's summary
+            const full = this.longitudinalDoc.aiMemory.patientSummary;
+            const firstSentence = full.split(/\.\s/)[0];
+            summaryLine = `<div class="brief-summary">${this.formatText(firstSentence + (firstSentence.endsWith('.') ? '' : '.'))}</div>`;
+        } else if (this.state.summary) {
+            summaryLine = `<div class="brief-summary">${this.formatText(this.state.summary)}</div>`;
+        } else {
+            summaryLine = '<div class="brief-summary brief-placeholder">Analyze chart to build understanding</div>';
+        }
 
-        if (simRunning && SimulationEngine.patientState) {
-            const v = SimulationEngine.patientState.vitals;
-            const phys = SimulationEngine.patientState.physiology;
-            const trajectory = SimulationEngine.patientState.trajectory || 'stable';
-
-            if (v) {
-                vitalsHtml = '';
-                vitalsHtml += this._vitalBadge('BP', `${Math.round(v.systolic)}/${Math.round(v.diastolic)}`, v.systolic > 160 || v.systolic < 90 ? 'critical' : v.systolic > 140 ? 'warning' : 'normal');
-                vitalsHtml += this._vitalBadge('HR', Math.round(v.heartRate), v.heartRate > 120 ? 'critical' : v.heartRate > 100 ? 'warning' : 'normal');
-                vitalsHtml += this._vitalBadge('RR', Math.round(v.respiratoryRate), v.respiratoryRate > 24 ? 'critical' : v.respiratoryRate > 20 ? 'warning' : 'normal');
-                vitalsHtml += this._vitalBadge('SpO2', `${Math.round(v.spO2)}%`, v.spO2 < 90 ? 'critical' : v.spO2 < 94 ? 'warning' : 'normal');
-                vitalsHtml += this._vitalBadge('Wt', `${(v.weight || 0).toFixed(1)}kg`, '', true);
+        // Active problem chips
+        let problemsHtml = '';
+        if (this.longitudinalDoc && this.longitudinalDoc.problemMatrix.size > 0) {
+            const problems = [];
+            for (const [id, problem] of this.longitudinalDoc.problemMatrix) {
+                if (problem.status === 'active' || !problem.status) {
+                    problems.push(problem.name || id);
+                }
             }
-
-            // Trend
-            const trendArrow = trajectory === 'worsening' ? '&#9660;' : trajectory === 'improving' ? '&#9650;' : '&#9644;';
-            const trendClass = trajectory === 'worsening' ? 'trend-bad' : trajectory === 'improving' ? 'trend-good' : 'trend-stable';
-            trendHtml = `<span class="snapshot-trend ${trendClass}">${trendArrow} ${trajectory.charAt(0).toUpperCase() + trajectory.slice(1)}</span>`;
-
-            // UOP
-            if (phys && phys.urineOutput !== undefined) {
-                uopHtml = this._vitalBadge('UOP', `${Math.round(phys.urineOutput)} mL/hr`, phys.urineOutput < 30 ? 'warning' : 'normal');
-            }
-        } else if (this.longitudinalDoc && this.longitudinalDoc.longitudinalData.vitals.length > 0) {
-            // Fall back to chart vitals from PKB
-            const v = this.longitudinalDoc.longitudinalData.vitals[0]; // most recent
-            vitalsHtml = '';
-            if (v.systolic) vitalsHtml += this._vitalBadge('BP', `${Math.round(v.systolic)}/${Math.round(v.diastolic || 0)}`, v.systolic > 160 || v.systolic < 90 ? 'critical' : v.systolic > 140 ? 'warning' : 'normal');
-            if (v.heartRate) vitalsHtml += this._vitalBadge('HR', Math.round(v.heartRate), v.heartRate > 120 ? 'critical' : v.heartRate > 100 ? 'warning' : 'normal');
-            if (v.respiratoryRate) vitalsHtml += this._vitalBadge('RR', Math.round(v.respiratoryRate), v.respiratoryRate > 24 ? 'critical' : v.respiratoryRate > 20 ? 'warning' : 'normal');
-            if (v.spO2) vitalsHtml += this._vitalBadge('SpO2', `${Math.round(v.spO2)}%`, v.spO2 < 90 ? 'critical' : v.spO2 < 94 ? 'warning' : 'normal');
-            if (v.weight) vitalsHtml += this._vitalBadge('Wt', `${v.weight}kg`, '', true);
-
-            // Use AI memory trajectory if available
-            if (this.longitudinalDoc.aiMemory && this.longitudinalDoc.aiMemory.patientSummary) {
-                trendHtml = `<span class="snapshot-trend trend-stable">&#9644; Chart Review</span>`;
+            if (problems.length > 0) {
+                problemsHtml = '<div class="brief-problems">';
+                problems.slice(0, 6).forEach(name => {
+                    problemsHtml += `<span class="problem-chip">${this.escapeHtml(name)}</span>`;
+                });
+                if (problems.length > 6) {
+                    problemsHtml += `<span class="problem-chip problem-more">+${problems.length - 6} more</span>`;
+                }
+                problemsHtml += '</div>';
             }
         }
 
-        // Sim time or session time
-        let simTime = '';
-        if (simRunning) {
-            const elapsed = SimulationEngine.getElapsedMinutes();
-            simTime = `${Math.round(elapsed)} min elapsed`;
-        } else if (this.sessionContext) {
-            const sessionMin = this.sessionContext.getSessionDuration();
-            if (sessionMin > 0) simTime = `${sessionMin} min in chart`;
-        }
-
-        // Working diagnosis
-        let dx = this.state.summary
-            ? this.formatText(this.state.summary)
-            : '<span class="snapshot-placeholder-dx">Dictate your assessment to set diagnosis...</span>';
-
-        // Allergies
-        let allergyHtml = '';
+        // Key allergy (most critical, one-line)
+        let allergyLine = '';
         if (typeof PatientHeader !== 'undefined' && PatientHeader.patient?.allergies) {
             const allergies = PatientHeader.patient.allergies;
             if (allergies.length > 0) {
-                allergyHtml = '<div class="snapshot-allergies">';
-                allergyHtml += '<span class="allergy-label">&#9888; Allergies:</span> ';
-                allergyHtml += allergies.map(a => {
-                    const name = typeof a === 'string' ? a : (a.allergen || a.name || 'Unknown');
-                    const reaction = typeof a === 'object' ? (a.reaction || '') : '';
-                    return `<span class="allergy-chip">${this.escapeHtml(name)}${reaction ? ` (${reaction})` : ''}</span>`;
-                }).join(' ');
-                allergyHtml += '</div>';
+                const names = allergies.slice(0, 3).map(a => typeof a === 'string' ? a : (a.allergen || a.name || '?'));
+                allergyLine = `<div class="brief-allergy">&#9888; ${names.join(', ')}${allergies.length > 3 ? ` +${allergies.length - 3}` : ''}</div>`;
             }
         }
 
-        let html = '<div class="copilot-snapshot">';
-        html += '<div class="snapshot-header">';
-        html += `<span class="snapshot-patient">${this.escapeHtml(patientName)}${patientAge ? ', ' + patientAge : ''}</span>`;
-        html += `<span class="snapshot-meta">Room ${room}${simTime ? ' &middot; ' + simTime : ''}</span>`;
+        let html = '<div class="copilot-brief">';
+        html += '<div class="brief-header">';
+        html += `<span class="brief-patient">${this.escapeHtml(patientName)}${patientAge ? ', ' + patientAge : ''}</span>`;
         html += '</div>';
-        html += `<div class="snapshot-dx">${dx}</div>`;
-        html += `<div class="snapshot-vitals">${vitalsHtml}${uopHtml}</div>`;
-        if (trendHtml) html += `<div class="snapshot-trend-row">${trendHtml}</div>`;
-        if (allergyHtml) html += allergyHtml;
+        html += summaryLine;
+        html += problemsHtml;
+        html += allergyLine;
         html += '</div>';
-        return html;
-    },
-
-    _vitalBadge(label, value, status, muted) {
-        const cls = status === 'critical' ? 'vital-critical' : status === 'warning' ? 'vital-warning' : (muted ? 'vital-muted' : 'vital-normal');
-        return `<span class="vital-badge ${cls}"><span class="vital-label">${label}</span> <span class="vital-value">${value}</span></span>`;
-    },
-
-    renderProgressTracker() {
-        const simAvailable = typeof SimulationScoreTracker !== 'undefined' && typeof SimulationEngine !== 'undefined' && SimulationEngine.isRunning;
-
-        // Simulation mode: use score tracker
-        if (simAvailable) {
-            return this._renderSimulationProgress();
-        }
-
-        // Chart review mode: show chart review progress from session context
-        if (this.sessionContext) {
-            return this._renderChartReviewProgress();
-        }
-
-        return '';
-    },
-
-    /**
-     * Render simulation-based progress tracker (original behavior)
-     */
-    _renderSimulationProgress() {
-        const progress = SimulationScoreTracker.getProgressSummary();
-        const nudges = SimulationScoreTracker.getTopNudges(3);
-        const temporalNudges = SimulationScoreTracker.getTemporalNudges();
-
-        let html = '<div class="copilot-section progress-section">';
-        html += `<div class="copilot-section-header"><span>&#128200;</span> Your Progress <span class="progress-overall">${progress.overall}%</span></div>`;
-        html += '<div class="copilot-section-body">';
-
-        // Progress bars
-        html += '<div class="progress-bars">';
-        const domains = ['patientHistory', 'nurseInteraction', 'chartReview', 'orders', 'safety', 'empathy'];
-        domains.forEach(key => {
-            const d = progress[key];
-            const pct = d.percentage === -1 ? 0 : d.percentage;
-            const barClass = d.percentage === -1 ? 'bar-na' : pct >= 66 ? 'bar-good' : pct >= 33 ? 'bar-mid' : 'bar-low';
-            const displayText = d.percentage === -1 ? '--' :
-                (key === 'safety' ? (d.isSafe ? '&#10003;' : '&#10007;') : `${d.count}/${d.countTotal}`);
-            html += '<div class="progress-item">';
-            html += `<div class="progress-bar-track"><div class="progress-bar-fill ${barClass}" style="width:${pct}%"></div></div>`;
-            html += `<div class="progress-label">${d.label}</div>`;
-            html += `<div class="progress-count">${displayText}</div>`;
-            html += '</div>';
-        });
-        html += '</div>';
-
-        // Temporal nudges (time warnings)
-        if (temporalNudges.length > 0) {
-            html += '<div class="temporal-nudges">';
-            temporalNudges.forEach(n => {
-                html += `<div class="temporal-nudge ${n.severity}">&#9200; ${this.escapeHtml(n.text)}</div>`;
-            });
-            html += '</div>';
-        }
-
-        // Priority nudges
-        if (nudges.length > 0) {
-            html += '<div class="priority-nudges">';
-            html += '<div class="nudges-label">Next steps:</div>';
-            nudges.forEach(n => {
-                const clickable = n.action ? ` onclick="window.location.hash='${n.action}'" style="cursor:pointer"` : '';
-                html += `<div class="priority-nudge"${clickable}>`;
-                html += `<span class="nudge-domain" style="background:${n.domainColor}">${n.domain}</span>`;
-                html += `<span class="nudge-text">${this.escapeHtml(n.text)}</span>`;
-                html += `<span class="nudge-pts">${n.points}pts</span>`;
-                html += '</div>';
-            });
-            html += '</div>';
-        }
-
-        html += '</div></div>';
         return html;
     },
 
     /**
-     * Render chart review progress (non-simulation mode)
-     * Shows which chart sections the doctor has visited this session
+     * Render the AI Insight section — the core cognitive aid.
+     * Shows the AI's accumulated understanding, or a prompt to analyze the chart.
      */
-    _renderChartReviewProgress() {
-        const checklist = this.sessionContext.getChartReviewChecklist();
-        const visited = checklist.filter(s => s.visited).length;
-        const total = checklist.length;
-        const pct = Math.round((visited / total) * 100);
-
-        let html = '<div class="copilot-section progress-section">';
-        html += `<div class="copilot-section-header"><span>&#128200;</span> Chart Review <span class="progress-overall">${pct}%</span></div>`;
-        html += '<div class="copilot-section-body">';
-
-        // Checklist of sections
-        html += '<div class="chart-review-checklist">';
-        checklist.forEach(s => {
-            const icon = s.visited ? '&#10003;' : '&#9675;';
-            const cls = s.visited ? 'checklist-done' : 'checklist-pending';
-            html += `<a href="${s.route}" class="checklist-item ${cls}">`;
-            html += `<span class="checklist-icon">${icon}</span>`;
-            html += `<span class="checklist-name">${this.escapeHtml(s.name)}</span>`;
-            html += '</a>';
-        });
-        html += '</div>';
-
-        // Suggest unvisited sections
-        const unvisited = checklist.filter(s => !s.visited);
-        if (unvisited.length > 0 && unvisited.length < total) {
-            html += '<div class="review-suggestion">';
-            html += `<span class="suggestion-icon">&#128161;</span> `;
-            html += `${unvisited.length} section${unvisited.length > 1 ? 's' : ''} not yet reviewed`;
-            html += '</div>';
-        }
-
-        // Session stats
-        const summary = this.sessionContext.getSessionSummary();
-        if (summary.questionsAsked > 0 || summary.dictationsGiven > 0 || summary.ordersPlaced > 0) {
-            html += '<div class="session-stats">';
-            if (summary.questionsAsked > 0) html += `<span class="stat-chip">&#128172; ${summary.questionsAsked} question${summary.questionsAsked > 1 ? 's' : ''}</span>`;
-            if (summary.dictationsGiven > 0) html += `<span class="stat-chip">&#127897; ${summary.dictationsGiven} dictation${summary.dictationsGiven > 1 ? 's' : ''}</span>`;
-            if (summary.ordersPlaced > 0) html += `<span class="stat-chip">&#128203; ${summary.ordersPlaced} order${summary.ordersPlaced > 1 ? 's' : ''}</span>`;
-            html += '</div>';
-        }
-
-        html += '</div></div>';
-        return html;
-    },
-
-    renderClinicalReasoning() {
-        const hasDictation = !!this.state.dictation;
-        const hasSummary = !!this.state.summary;
-        const hasThinking = !!this.state.thinking;
+    renderAIInsight() {
+        const hasMemory = this.longitudinalDoc &&
+            (this.longitudinalDoc.aiMemory.patientSummary || this.state.summary);
         const isThinking = this.state.status === 'thinking';
 
-        let html = '<div class="copilot-section reasoning-section">';
+        let html = '<div class="copilot-section insight-section">';
         html += '<div class="copilot-section-header">';
-        html += '<span>&#129504;</span> Clinical Reasoning';
+        html += '<span>&#129504;</span> AI Insight';
         html += '<div class="section-actions">';
-        if (hasDictation) {
-            html += '<button class="section-action-btn" onclick="AICoworker.openDictationModal()" title="Edit thoughts">&#9998;</button>';
-        }
-        html += '<button class="section-action-btn" onclick="AICoworker.refreshThinking()" title="Refresh">&#128260;</button>';
+        html += '<button class="section-action-btn" onclick="AICoworker.refreshThinking()" title="Refresh analysis">&#128260;</button>';
         html += '</div></div>';
         html += '<div class="copilot-section-body">';
 
         if (isThinking) {
-            html += '<div class="reasoning-loading"><div class="typing-indicator"><span></span><span></span><span></span></div> Synthesizing...</div>';
-        } else if (!hasDictation && !hasSummary) {
-            html += '<div class="reasoning-placeholder">';
-            html += '<p>&#128173; <strong>Assessment pending</strong></p>';
-            html += '<p>Dictate your clinical reasoning to activate the AI copilot.</p>';
-            html += '</div>';
+            html += '<div class="insight-loading"><div class="typing-indicator"><span></span><span></span><span></span></div> Analyzing...</div>';
+        } else if (!hasMemory) {
+            // Mode B: No memory — prompt to analyze
+            html += this._renderAnalyzePrompt();
         } else {
-            // Assessment
-            if (hasSummary) {
-                html += '<div class="reasoning-block">';
-                html += '<div class="reasoning-label">ASSESSMENT</div>';
-                html += '<div class="reasoning-text">' + this.formatText(this.state.summary) + '</div>';
-                html += '</div>';
-            }
+            // Mode A: Memory exists — show understanding
+            html += this._renderInsightContent();
+        }
 
-            // Key Considerations
-            if (this.state.keyConsiderations && this.state.keyConsiderations.length > 0) {
-                html += '<div class="reasoning-block">';
-                html += '<div class="reasoning-label">KEY CONSIDERATIONS</div>';
-                html += '<div class="reasoning-considerations">';
-                this.state.keyConsiderations.forEach(c => {
-                    const icon = c.severity === 'critical' ? '&#9888;' : c.severity === 'important' ? '&#10071;' : '&#8226;';
-                    const cls = c.severity === 'critical' ? 'consideration-critical' : c.severity === 'important' ? 'consideration-important' : '';
-                    html += `<div class="consideration ${cls}">${icon} ${this.escapeHtml(c.text)}</div>`;
-                });
-                html += '</div></div>';
-            }
-
-            // Trajectory / Thinking
-            if (hasThinking) {
-                html += '<div class="reasoning-block">';
-                html += '<div class="reasoning-label">TRAJECTORY</div>';
-                html += '<div class="reasoning-text">' + this.formatText(this.state.thinking) + '</div>';
-                html += '</div>';
-            }
-
-            // Doctor's dictation (collapsed summary)
-            if (hasDictation) {
-                html += '<div class="reasoning-block dictation-block">';
-                html += '<div class="reasoning-label">&#127897; YOUR THOUGHTS</div>';
-                html += '<div class="reasoning-text dictation-text">' + this.formatText(this.state.dictation) + '</div>';
-                html += '</div>';
-            }
+        // Conversation thread (always show if messages exist)
+        if (this.state.conversationThread && this.state.conversationThread.length > 0) {
+            html += this._renderConversationThread();
         }
 
         html += '</div></div>';
         return html;
     },
 
-    renderNextSteps() {
-        // Combine LLM suggested actions with score-tracker-driven suggestions
-        const suggestions = [];
-
-        // LLM-generated suggestions
-        if (this.state.suggestedActions && this.state.suggestedActions.length > 0) {
-            this.state.suggestedActions.slice(0, 5).forEach((action, index) => {
-                const text = typeof action === 'string' ? action : action.text;
-                suggestions.push({ text, source: 'ai', index, domain: this._inferDomain(text) });
-            });
+    _renderAnalyzePrompt() {
+        let stats = '';
+        if (this.longitudinalDoc) {
+            const problems = this.longitudinalDoc.problemMatrix.size;
+            const meds = this.longitudinalDoc.longitudinalData.medications?.current?.length || 0;
+            const labs = this.longitudinalDoc.longitudinalData.labs.size;
+            stats = `This patient has ${problems} active problem${problems !== 1 ? 's' : ''}, ${meds} medication${meds !== 1 ? 's' : ''}, and ${labs} lab panel${labs !== 1 ? 's' : ''} on file.`;
+        } else {
+            stats = 'Patient data is loading...';
         }
 
-        // If no LLM suggestions, use score tracker nudges as fallback
-        if (suggestions.length === 0 && typeof SimulationScoreTracker !== 'undefined') {
-            const nudges = SimulationScoreTracker.getTopNudges(5);
-            nudges.forEach(n => {
-                suggestions.push({ text: n.text, source: 'tracker', domain: n.domain, action: n.action, domainColor: n.domainColor });
-            });
+        let html = '<div class="analyze-prompt">';
+        html += `<div class="analyze-stats">${stats}</div>`;
+        html += '<button class="analyze-btn" onclick="AICoworker.refreshThinking()">&#10024; Analyze Chart</button>';
+        html += '<div class="analyze-hint">or ask a question below</div>';
+        html += '</div>';
+        return html;
+    },
+
+    _renderInsightContent() {
+        let html = '';
+
+        // Assessment
+        const summary = this.state.summary || (this.longitudinalDoc && this.longitudinalDoc.aiMemory.patientSummary) || '';
+        if (summary) {
+            html += '<div class="insight-block">';
+            html += '<div class="insight-label">ASSESSMENT</div>';
+            html += '<div class="insight-text">' + this.formatText(summary) + '</div>';
+            html += '</div>';
         }
 
-        if (suggestions.length === 0) return '';
+        // Key Considerations
+        if (this.state.keyConsiderations && this.state.keyConsiderations.length > 0) {
+            html += '<div class="insight-block">';
+            html += '<div class="insight-label">KEY CONSIDERATIONS</div>';
+            html += '<div class="insight-considerations">';
+            this.state.keyConsiderations.forEach(c => {
+                const icon = c.severity === 'critical' ? '&#9888;' : c.severity === 'important' ? '&#10071;' : '&#8226;';
+                const cls = c.severity === 'critical' ? 'consideration-critical' : c.severity === 'important' ? 'consideration-important' : '';
+                html += `<div class="consideration ${cls}">${icon} ${this.escapeHtml(c.text)}</div>`;
+            });
+            html += '</div></div>';
+        }
 
-        let html = '<div class="copilot-section nextsteps-section">';
-        html += '<div class="copilot-section-header"><span>&#128161;</span> Next Steps</div>';
-        html += '<div class="copilot-section-body"><div class="nextsteps-list">';
+        // Trajectory
+        const trajectory = this.state.thinking ||
+            (this.longitudinalDoc && this.longitudinalDoc.clinicalNarrative.trajectoryAssessment) || '';
+        if (trajectory) {
+            html += '<div class="insight-block">';
+            html += '<div class="insight-label">TRAJECTORY</div>';
+            html += '<div class="insight-text">' + this.formatText(trajectory) + '</div>';
+            html += '</div>';
+        }
 
-        suggestions.forEach((s, i) => {
-            const domainColor = s.domainColor || this._domainColor(s.domain);
-            html += '<div class="nextstep-item">';
-            html += `<span class="nextstep-domain" style="background:${domainColor}">${s.domain}</span>`;
-            html += `<span class="nextstep-text">${this.escapeHtml(s.text)}</span>`;
-            if (s.source === 'ai') {
-                html += `<button class="nextstep-do" onclick="AICoworker.executeAction(${s.index})" title="Do this">&#9654;</button>`;
-                html += `<button class="nextstep-dismiss" onclick="AICoworker.dismissAction(${s.index})" title="Dismiss">&times;</button>`;
-            } else if (s.action) {
-                html += `<button class="nextstep-go" onclick="window.location.hash='${s.action}'" title="Go">&#10132;</button>`;
-            }
+        // Open Questions
+        const openQs = (this.longitudinalDoc && this.longitudinalDoc.clinicalNarrative.openQuestions) || [];
+        if (openQs.length > 0) {
+            html += '<div class="insight-block">';
+            html += '<div class="insight-label">OPEN QUESTIONS</div>';
+            html += '<div class="insight-questions">';
+            openQs.forEach(q => {
+                html += `<div class="open-question">&#9679; ${this.escapeHtml(q)}</div>`;
+            });
+            html += '</div></div>';
+        }
+
+        // Doctor's dictation (if present)
+        if (this.state.dictation) {
+            html += '<div class="insight-block dictation-block">';
+            html += '<div class="insight-label">&#127897; YOUR THINKING</div>';
+            html += '<div class="insight-text dictation-text">' + this.formatText(this.state.dictation) + '</div>';
+            html += '</div>';
+        }
+
+        return html;
+    },
+
+    _renderConversationThread() {
+        let html = '<div class="conversation-thread">';
+        html += '<div class="thread-divider"><span>Conversation</span></div>';
+
+        this.state.conversationThread.slice(-10).forEach(msg => {
+            const cls = msg.role === 'user' ? 'thread-msg-user' : 'thread-msg-ai';
+            const label = msg.role === 'user' ? (msg.type === 'think' ? '&#127897; You' : '&#128100; You') : '&#10024; AI';
+            html += `<div class="thread-msg ${cls}">`;
+            html += `<div class="thread-msg-label">${label}</div>`;
+            html += `<div class="thread-msg-text">${msg.role === 'ai' ? this.formatText(msg.text) : this.escapeHtml(msg.text)}</div>`;
             html += '</div>';
         });
 
-        html += '</div></div></div>';
-        return html;
-    },
-
-    _inferDomain(text) {
-        const t = text.toLowerCase();
-        if (t.includes('order') || t.includes('furosemide') || t.includes('diure') || t.includes('oxygen') || t.includes('telemetry')) return 'Orders';
-        if (t.includes('ask patient') || t.includes('history')) return 'Patient';
-        if (t.includes('nurse') || t.includes('urine')) return 'Nurse';
-        if (t.includes('review') || t.includes('check') || t.includes('chart') || t.includes('allergy') || t.includes('note')) return 'Chart';
-        return 'Clinical';
-    },
-
-    _domainColor(domain) {
-        const colors = { Orders: '#f59e0b', Patient: '#3b82f6', Nurse: '#8b5cf6', Chart: '#10b981', Clinical: '#6b7280' };
-        return colors[domain] || '#6b7280';
-    },
-
-    renderQuickActions() {
-        const simRunning = typeof SimulationEngine !== 'undefined' && SimulationEngine.isRunning;
-
-        let html = '<div class="copilot-quick-actions">';
-        html += '<button class="quick-action-btn" onclick="AICoworker.openDictationModal()"><span>&#127897;</span> Dictate</button>';
-        html += '<button class="quick-action-btn" onclick="AICoworker.openAskModal()"><span>&#128172;</span> Ask AI</button>';
-        html += '<button class="quick-action-btn" onclick="AICoworker.openNoteModal()"><span>&#128221;</span> Write Note</button>';
-        if (simRunning) {
-            html += '<button class="quick-action-btn" onclick="AICoworker.showScoreSummary()"><span>&#128202;</span> Score</button>';
-        } else {
-            html += '<button class="quick-action-btn" onclick="AICoworker.refreshThinking()"><span>&#128260;</span> Refresh</button>';
-        }
         html += '</div>';
         return html;
+    },
+
+    // renderClinicalReasoning removed — replaced by renderAIInsight()
+
+    /**
+     * Render contextual nudge — navigation-reactive hints from local data (no LLM).
+     * Shows relevant data summary for the current chart section.
+     */
+    renderContextualNudge() {
+        const page = window.location.hash || '';
+        const section = this.getPageName(page) || 'Chart Review';
+        const doc = this.longitudinalDoc;
+
+        let nudgeContent = '';
+
+        if (doc) {
+            switch (section) {
+                case 'Labs': {
+                    let abnormalCount = 0;
+                    let criticals = [];
+                    for (const [name, trend] of doc.longitudinalData.labs) {
+                        if (trend.latestValue) {
+                            if (trend.latestValue.flag === 'CRITICAL') {
+                                criticals.push(`${name}: ${trend.latestValue.value}`);
+                            }
+                            if (trend.latestValue.flag === 'HIGH' || trend.latestValue.flag === 'LOW' || trend.latestValue.flag === 'CRITICAL') {
+                                abnormalCount++;
+                            }
+                        }
+                    }
+                    if (criticals.length > 0) {
+                        nudgeContent = `<span class="nudge-icon">&#9888;</span> ${criticals.length} critical value${criticals.length !== 1 ? 's' : ''}: ${criticals.slice(0, 3).join(', ')}`;
+                    } else if (abnormalCount > 0) {
+                        nudgeContent = `<span class="nudge-icon">&#128300;</span> ${abnormalCount} abnormal lab${abnormalCount !== 1 ? 's' : ''} — review flagged values`;
+                    } else {
+                        nudgeContent = `<span class="nudge-icon">&#9989;</span> All labs within normal limits`;
+                    }
+                    break;
+                }
+                case 'Medications': {
+                    const meds = doc.longitudinalData.medications?.current || [];
+                    const highAlert = meds.filter(m => {
+                        const n = (m.name || '').toLowerCase();
+                        return n.includes('warfarin') || n.includes('heparin') || n.includes('insulin') || n.includes('digoxin') || n.includes('amiodarone') || n.includes('opioid') || n.includes('methotrexate');
+                    });
+                    nudgeContent = `<span class="nudge-icon">&#128138;</span> ${meds.length} active medication${meds.length !== 1 ? 's' : ''}`;
+                    if (highAlert.length > 0) {
+                        nudgeContent += ` &mdash; ${highAlert.length} high-alert: ${highAlert.map(m => m.name).join(', ')}`;
+                    }
+                    break;
+                }
+                case 'Notes': {
+                    const notes = doc.longitudinalData.notes || [];
+                    if (notes.length > 0) {
+                        const latest = notes[0];
+                        nudgeContent = `<span class="nudge-icon">&#128196;</span> ${notes.length} note${notes.length !== 1 ? 's' : ''} on file &mdash; latest: ${latest.type || 'Note'} (${latest.date || 'recent'})`;
+                    } else {
+                        nudgeContent = `<span class="nudge-icon">&#128196;</span> No notes on file`;
+                    }
+                    break;
+                }
+                case 'Problem List': {
+                    let active = 0, resolved = 0;
+                    for (const [, prob] of doc.problemMatrix) {
+                        if (prob.status === 'resolved') resolved++;
+                        else active++;
+                    }
+                    nudgeContent = `<span class="nudge-icon">&#9733;</span> ${active} active, ${resolved} resolved problem${active + resolved !== 1 ? 's' : ''}`;
+                    break;
+                }
+                case 'Vitals': {
+                    const vitals = doc.longitudinalData.vitals;
+                    if (vitals && vitals.length > 0) {
+                        const v = vitals[0];
+                        let concerns = [];
+                        if (v.heartRate && (v.heartRate > 100 || v.heartRate < 60)) concerns.push(`HR ${v.heartRate}`);
+                        if (v.systolic && v.systolic < 90) concerns.push(`SBP ${v.systolic}`);
+                        if (v.spO2 && v.spO2 < 94) concerns.push(`SpO2 ${v.spO2}%`);
+                        if (concerns.length > 0) {
+                            nudgeContent = `<span class="nudge-icon">&#9888;</span> Concerning: ${concerns.join(', ')}`;
+                        } else {
+                            nudgeContent = `<span class="nudge-icon">&#10084;</span> Latest vitals within normal range`;
+                        }
+                    } else {
+                        nudgeContent = `<span class="nudge-icon">&#10084;</span> No vitals recorded`;
+                    }
+                    break;
+                }
+                case 'Allergies': {
+                    const allergies = doc.patientSnapshot.allergies || [];
+                    const meds = doc.longitudinalData.medications?.current || [];
+                    nudgeContent = `<span class="nudge-icon">&#9888;</span> ${allergies.length} known allerg${allergies.length !== 1 ? 'ies' : 'y'}`;
+                    if (allergies.length > 0 && meds.length > 0) {
+                        nudgeContent += ' &mdash; cross-reference with active medications';
+                    }
+                    break;
+                }
+                default: {
+                    // Default: show suggested actions if any
+                    if (this.state.suggestedActions && this.state.suggestedActions.length > 0) {
+                        const actions = this.state.suggestedActions.slice(0, 3);
+                        nudgeContent = '<div class="nudge-actions">';
+                        actions.forEach((a, i) => {
+                            const text = typeof a === 'string' ? a : a.text;
+                            nudgeContent += `<div class="nudge-action-item" onclick="AICoworker.executeAction(${i})">&#8226; ${this.escapeHtml(text)}</div>`;
+                        });
+                        nudgeContent += '</div>';
+                    }
+                    break;
+                }
+            }
+        }
+
+        if (!nudgeContent) return '';
+
+        let html = '<div class="copilot-section nudge-section">';
+        html += `<div class="nudge-content">${nudgeContent}</div>`;
+        html += '</div>';
+        return html;
+    },
+
+    /**
+     * Render the inline input section — persistent textarea at the bottom of the panel.
+     * Replaces both Ask Modal and Quick Actions bar.
+     */
+    renderInlineInput() {
+        let html = '<div class="copilot-inline-input">';
+
+        // Suggestion chips
+        html += '<div class="inline-chips">';
+        html += '<button class="suggestion-chip" onclick="AICoworker.handleChip(\'Summarize case\')">Summarize</button>';
+        html += '<button class="suggestion-chip" onclick="AICoworker.handleChip(\'What are the key concerns?\')">Concerns?</button>';
+        html += '<button class="suggestion-chip" onclick="AICoworker.handleChip(\'What haven\\\'t I checked yet?\')">Missing?</button>';
+        html += '</div>';
+
+        // Input row
+        html += '<div class="inline-input-row">';
+        html += '<textarea id="copilot-inline-input" class="inline-textarea" rows="1" placeholder="Ask a question or share your thinking..." onkeydown="AICoworker.handleInputKeydown(event)"></textarea>';
+        html += '<button class="inline-send-btn" onclick="AICoworker.handleInlineSubmit()" title="Send">&#9654;</button>';
+        html += '</div>';
+
+        // Action buttons
+        html += '<div class="inline-action-bar">';
+        html += '<button class="inline-action-btn" onclick="AICoworker.openDictationModal()" title="Voice dictation"><span>&#127897;</span> Voice</button>';
+        html += '<button class="inline-action-btn" onclick="AICoworker.openNoteModal()" title="Write clinical note"><span>&#128221;</span> Write Note</button>';
+        html += '<button class="inline-action-btn inline-more-btn" onclick="AICoworker.toggleMoreMenu()" title="More actions"><span>&#8943;</span> More</button>';
+        html += '<div class="inline-more-menu" id="inline-more-menu">';
+        html += '<button onclick="AICoworker.refreshThinking()">&#128260; Refresh Analysis</button>';
+        html += '<button onclick="AICoworker.openDebugPanel()">&#128269; Debug Prompts</button>';
+        html += '<button onclick="AICoworker.clearMemory()">&#128465; Clear Memory</button>';
+        html += '</div>';
+        html += '</div>';
+
+        html += '</div>';
+        return html;
+    },
+
+    /**
+     * Handle inline input submission with smart routing.
+     * Questions → askClaudeAbout(), clinical thinking → synthesizeWithLLM()
+     */
+    handleInlineSubmit() {
+        const textarea = document.getElementById('copilot-inline-input');
+        if (!textarea) return;
+        const text = textarea.value.trim();
+        if (!text) return;
+
+        textarea.value = '';
+        this._autoResizeTextarea(textarea);
+
+        // Smart routing: detect question vs. clinical thinking
+        const isQuestion = /\?$/.test(text) ||
+            /^(what|why|how|when|where|who|which|is|are|does|do|can|could|should|would|will|tell|explain|describe|summarize|list|compare)/i.test(text);
+
+        if (isQuestion) {
+            this._pushToThread('user', 'ask', text);
+            this.askClaudeAbout(text);
+        } else {
+            this._pushToThread('user', 'think', text);
+            // Save as dictation and synthesize
+            if (this.state.dictation) {
+                if (!this.state.dictationHistory) this.state.dictationHistory = [];
+                this.state.dictationHistory.push({
+                    text: this.state.dictation,
+                    timestamp: this.state.lastUpdated || new Date().toISOString()
+                });
+                if (this.state.dictationHistory.length > 10) {
+                    this.state.dictationHistory = this.state.dictationHistory.slice(-10);
+                }
+            }
+            this.state.dictation = text;
+            this.saveState();
+            this.render();
+            this.onDictationUpdated(text);
+        }
+    },
+
+    /**
+     * Handle suggestion chip click
+     */
+    handleChip(text) {
+        this._pushToThread('user', 'ask', text);
+        this.askClaudeAbout(text);
+    },
+
+    /**
+     * Handle keyboard events in inline input
+     */
+    handleInputKeydown(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            this.handleInlineSubmit();
+        }
+    },
+
+    /**
+     * Push a message to the session conversation thread
+     */
+    _pushToThread(role, type, text) {
+        if (!this.state.conversationThread) this.state.conversationThread = [];
+        this.state.conversationThread.push({
+            role,
+            type,
+            text,
+            timestamp: new Date().toISOString()
+        });
+        // Keep last 10 messages
+        if (this.state.conversationThread.length > 10) {
+            this.state.conversationThread = this.state.conversationThread.slice(-10);
+        }
+    },
+
+    /**
+     * Toggle the "More" dropdown menu
+     */
+    toggleMoreMenu() {
+        const menu = document.getElementById('inline-more-menu');
+        if (menu) {
+            menu.classList.toggle('visible');
+            // Auto-close on click outside
+            if (menu.classList.contains('visible')) {
+                const closeHandler = (e) => {
+                    if (!menu.contains(e.target) && !e.target.classList.contains('inline-more-btn')) {
+                        menu.classList.remove('visible');
+                        document.removeEventListener('click', closeHandler);
+                    }
+                };
+                setTimeout(() => document.addEventListener('click', closeHandler), 0);
+            }
+        }
+    },
+
+    /**
+     * Clear AI memory for this patient
+     */
+    clearMemory() {
+        if (!confirm('Clear AI memory for this patient? The AI will forget its analysis.')) return;
+        if (this.longitudinalDoc) {
+            this.longitudinalDoc.aiMemory.patientSummary = '';
+            this.longitudinalDoc.aiMemory.problemInsights = new Map();
+            this.longitudinalDoc.aiMemory.interactionLog = [];
+            this.longitudinalDoc.aiMemory.version = 0;
+            this.longitudinalDoc.clinicalNarrative.trajectoryAssessment = '';
+            this.longitudinalDoc.clinicalNarrative.keyFindings = [];
+            this.longitudinalDoc.clinicalNarrative.openQuestions = [];
+            this.saveLongitudinalDoc();
+        }
+        this.resetSessionState();
+        this.render();
+        App.showToast('AI memory cleared', 'success');
+    },
+
+    /**
+     * Auto-resize textarea to fit content
+     */
+    _autoResizeTextarea(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
     },
 
     // ==================== User Actions ====================
@@ -1480,119 +1340,7 @@ const AICoworker = {
         this.render();
     },
 
-    /**
-     * Show score summary in-panel (mini debrief)
-     */
-    showScoreSummary() {
-        if (typeof SimulationScoreTracker === 'undefined') {
-            App.showToast('Score tracker not available', 'error');
-            return;
-        }
-        const progress = SimulationScoreTracker.getProgressSummary();
-        const domains = ['patientHistory', 'nurseInteraction', 'chartReview', 'orders', 'safety', 'empathy'];
-
-        let html = '<div class="score-summary-modal">';
-        html += '<div class="score-summary-header">';
-        html += '<h3>Performance Score</h3>';
-        html += '<button class="score-close-btn" onclick="document.getElementById(\'score-summary-overlay\').remove()">&#10005;</button>';
-        html += '</div>';
-        html += `<div class="score-overall"><span class="score-number">${progress.overall}%</span><span class="score-label">Overall</span></div>`;
-        html += '<div class="score-domains">';
-        domains.forEach(key => {
-            const d = progress[key];
-            const pct = d.percentage === -1 ? 0 : d.percentage;
-            const barClass = d.percentage === -1 ? 'bar-na' : pct >= 66 ? 'bar-good' : pct >= 33 ? 'bar-mid' : 'bar-low';
-            html += '<div class="score-domain-row">';
-            html += `<span class="score-domain-label">${d.fullLabel}</span>`;
-            html += `<div class="score-bar-track"><div class="score-bar-fill ${barClass}" style="width:${pct}%"></div></div>`;
-            html += `<span class="score-domain-pct">${d.percentage === -1 ? '--' : d.percentage + '%'}</span>`;
-            html += '</div>';
-        });
-        html += '</div>';
-        html += '<div class="score-actions">';
-        if (typeof SimulationDebrief !== 'undefined') {
-            html += '<button class="btn btn-sm" onclick="document.getElementById(\'score-summary-overlay\').remove(); SimulationDebrief.show();">Full Debrief</button>';
-        }
-        html += '</div></div>';
-
-        // Create overlay
-        const overlay = document.createElement('div');
-        overlay.id = 'score-summary-overlay';
-        overlay.className = 'score-summary-overlay';
-        overlay.innerHTML = html;
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) overlay.remove();
-        });
-        document.body.appendChild(overlay);
-    },
-
-    // ==================== Modals ====================
-
-    openAskModal() {
-        const modal = document.getElementById('ai-ask-modal');
-        if (modal) {
-            modal.classList.add('visible');
-            document.getElementById('ai-ask-input').focus();
-        }
-    },
-
-    closeAskModal() {
-        const modal = document.getElementById('ai-ask-modal');
-        if (modal) {
-            modal.classList.remove('visible');
-            document.getElementById('ai-ask-input').value = '';
-        }
-    },
-
-    openAddTask() {
-        const modal = document.getElementById('ai-task-modal');
-        if (modal) {
-            modal.classList.add('visible');
-            document.getElementById('ai-task-input').focus();
-        }
-    },
-
-    closeAddTask() {
-        const modal = document.getElementById('ai-task-modal');
-        if (modal) {
-            modal.classList.remove('visible');
-            document.getElementById('ai-task-input').value = '';
-        }
-    },
-
-    submitAsk() {
-        const input = document.getElementById('ai-ask-input');
-        const question = input.value.trim();
-        if (!question) return;
-
-        // Close the ask modal first
-        this.closeAskModal();
-
-        // Use the Claude extension integration
-        this.askClaudeAbout(question);
-    },
-
-    quickAsk(type) {
-        const questions = {
-            'summarize': 'Please summarize what I\'ve found so far in this case.',
-            'missing': 'What aspects of this case haven\'t I reviewed yet?',
-            'history': 'What relevant history should I be aware of for this patient?'
-        };
-        document.getElementById('ai-ask-input').value = questions[type] || '';
-    },
-
-    submitTask() {
-        const input = document.getElementById('ai-task-input');
-        const taskText = input.value.trim();
-        if (!taskText) return;
-
-        if (!this.state.tasks) this.state.tasks = [];
-        this.state.tasks.push({ text: taskText, done: false });
-        this.saveState();
-        this.render();
-        this.closeAddTask();
-        App.showToast('Task added', 'success');
-    },
+    // showScoreSummary removed — simulation feature
 
     // ==================== Dictation ====================
 
@@ -1868,385 +1616,7 @@ Respond with ONLY the JSON, no preamble.`;
         }
     },
 
-    /**
-     * Local synthesis when Claude is not available
-     * Provides immediate feedback by combining doctor's thoughts with existing AI state
-     * Updates Summary, Thinking, AND Suggested Actions based on dictation
-     */
-    localThinkingSynthesis(doctorThoughts) {
-        // Extract key phrases from doctor's input
-        const lowerThoughts = doctorThoughts.toLowerCase();
-
-        // ===== BUILD UPDATED THINKING =====
-        let newThinking = '';
-        let workingDiagnosis = '';
-        let triggers = [];
-        let keyDecisions = [];
-        let planItems = [];
-
-        // Detect key symptoms/findings that modify differential
-        const hasChestPain = lowerThoughts.includes('chest pain') || lowerThoughts.includes(' cp ') || lowerThoughts.includes('angina') || lowerThoughts.includes('chest pressure') || lowerThoughts.includes('substernal');
-        const hasDyspnea = lowerThoughts.includes('dyspnea') || lowerThoughts.includes('sob') || lowerThoughts.includes('short of breath') || lowerThoughts.includes('breathing');
-        const hasEdema = lowerThoughts.includes('edema') || lowerThoughts.includes('swelling') || lowerThoughts.includes('wet') || lowerThoughts.includes('jvd');
-        const hasFever = lowerThoughts.includes('fever') || lowerThoughts.includes('febrile') || lowerThoughts.includes('temp');
-        const hasIschemia = lowerThoughts.includes('ischemi') || lowerThoughts.includes('st change') || lowerThoughts.includes('ekg change') || lowerThoughts.includes('troponin');
-        const hasCHF = lowerThoughts.includes('chf') || lowerThoughts.includes('heart failure');
-        const hasACS = lowerThoughts.includes('acs') || lowerThoughts.includes(' mi ') || lowerThoughts.includes('stemi') || lowerThoughts.includes('nstemi') || lowerThoughts.includes('infarct');
-
-        // Debug log to help diagnose
-        console.log('AI Synthesis - Detected:', { hasChestPain, hasIschemia, hasCHF, hasACS, hasEdema, text: lowerThoughts.substring(0, 100) });
-
-        // Track if we need ischemic workup
-        let needsIschemicWorkup = false;
-
-        // Identify working diagnosis with nuanced differentials
-        if (hasCHF) {
-            // CHF - check for ischemic trigger
-            if (hasChestPain || hasIschemia || hasACS) {
-                workingDiagnosis = 'CHF exacerbation, possibly triggered by ischemia';
-                newThinking += 'Doctor suspects **CHF exacerbation, possibly triggered by new ischemic event**. ';
-                triggers.push('possible ischemia');
-                needsIschemicWorkup = true;
-                console.log('AI Synthesis - CHF with ischemic trigger detected');
-            } else if (lowerThoughts.includes('arrhythmia') || lowerThoughts.includes('afib') || lowerThoughts.includes('rvr')) {
-                workingDiagnosis = 'CHF exacerbation, triggered by arrhythmia';
-                newThinking += 'Doctor suspects **CHF exacerbation triggered by arrhythmia**. ';
-                triggers.push('arrhythmia');
-            } else {
-                workingDiagnosis = 'CHF exacerbation';
-                newThinking += 'Doctor has confirmed **CHF exacerbation** as the working diagnosis. ';
-            }
-        } else if (hasEdema) {
-            // Volume overload without explicit CHF
-            if (hasChestPain || hasIschemia) {
-                workingDiagnosis = 'Volume overload with possible ischemic trigger';
-                newThinking += 'Doctor notes **volume overload with concern for ischemia**. ';
-                needsIschemicWorkup = true;
-            } else {
-                workingDiagnosis = 'Volume overload';
-                newThinking += 'Doctor notes **volume overload**. ';
-            }
-        } else if (hasChestPain && !lowerThoughts.includes('non-cardiac') && !lowerThoughts.includes('msk') && !lowerThoughts.includes('musculoskeletal')) {
-            // Chest pain without explicit CHF - consider cardiac causes
-            if (hasACS || hasIschemia) {
-                workingDiagnosis = 'ACS';
-                newThinking += 'Doctor is evaluating for **acute coronary syndrome**. ';
-                needsIschemicWorkup = true;
-            } else {
-                workingDiagnosis = 'Chest pain - cardiac workup indicated';
-                newThinking += 'Doctor is working up **chest pain** - ruling out cardiac etiology. ';
-                needsIschemicWorkup = true;
-            }
-        } else if (hasACS) {
-            workingDiagnosis = 'ACS';
-            newThinking += 'Doctor is evaluating for **acute coronary syndrome**. ';
-            needsIschemicWorkup = true;
-        } else if (lowerThoughts.includes('sepsis') || lowerThoughts.includes('infection')) {
-            workingDiagnosis = 'Sepsis/Infection';
-            newThinking += 'Doctor is considering **infectious etiology**. ';
-        } else if (lowerThoughts.includes('copd') || lowerThoughts.includes('asthma') || lowerThoughts.includes('bronch')) {
-            workingDiagnosis = 'COPD/Asthma exacerbation';
-            newThinking += 'Doctor is treating **respiratory exacerbation**. ';
-        } else if (lowerThoughts.includes('pneumonia') || lowerThoughts.includes('pna')) {
-            workingDiagnosis = 'Pneumonia';
-            newThinking += 'Doctor suspects **pneumonia**. ';
-        } else if (lowerThoughts.includes('pe') || lowerThoughts.includes('pulmonary embolism') || lowerThoughts.includes('embolus')) {
-            workingDiagnosis = 'Pulmonary embolism';
-            newThinking += 'Doctor is evaluating for **pulmonary embolism**. ';
-        }
-
-        // Identify triggers/causes
-        if (lowerThoughts.includes('diet') || lowerThoughts.includes('salt') || lowerThoughts.includes('sodium') || lowerThoughts.includes('salty')) {
-            triggers.push('dietary indiscretion');
-            newThinking += 'Dietary indiscretion identified as trigger. ';
-        }
-        if (lowerThoughts.includes('missed') || lowerThoughts.includes('non-compliance') || lowerThoughts.includes('noncompliance') || lowerThoughts.includes('not taking')) {
-            triggers.push('medication non-adherence');
-            newThinking += 'Medication non-adherence contributing. ';
-        }
-        if ((lowerThoughts.includes('arrhythmia') || lowerThoughts.includes('afib') || lowerThoughts.includes('a-fib') || lowerThoughts.includes('rvr')) && !triggers.includes('arrhythmia')) {
-            triggers.push('arrhythmia');
-        }
-        if (hasChestPain && !triggers.includes('possible ischemia')) {
-            triggers.push('chest pain - needs cardiac workup');
-            needsIschemicWorkup = true;
-        }
-
-        // Handle anticoagulation decision (key scenario)
-        if (lowerThoughts.includes('anticoagulat') || lowerThoughts.includes('blood thinner') || lowerThoughts.includes('coumadin') || lowerThoughts.includes('eliquis') || lowerThoughts.includes('xarelto')) {
-            if (lowerThoughts.includes('not') || lowerThoughts.includes("won't") || lowerThoughts.includes('hold') || lowerThoughts.includes('avoid') || lowerThoughts.includes("don't")) {
-                keyDecisions.push('No anticoagulation');
-                newThinking += '**Key decision: Doctor has decided against anticoagulation** - ';
-                if (this.state.flags && this.state.flags.some(f => f.text.toLowerCase().includes('gi bleed') || f.text.toLowerCase().includes('bleeding'))) {
-                    newThinking += 'this aligns with GI recommendations given recent bleed history. ';
-                } else {
-                    newThinking += 'will monitor for bleeding risk factors. ';
-                }
-            } else if (lowerThoughts.includes('start') || lowerThoughts.includes('begin') || lowerThoughts.includes('initiate')) {
-                keyDecisions.push('Starting anticoagulation');
-                newThinking += '**Note: Doctor planning to start anticoagulation** - ';
-                if (this.state.flags && this.state.flags.some(f => f.text.toLowerCase().includes('gi bleed') || f.text.toLowerCase().includes('bleeding'))) {
-                    newThinking += '⚠️ please review GI bleed history before proceeding. ';
-                }
-            }
-        }
-
-        // Identify plan items from dictation
-        if (lowerThoughts.includes('diure') || lowerThoughts.includes('lasix') || lowerThoughts.includes('furosemide') || lowerThoughts.includes('bumex')) {
-            planItems.push('Diuresis');
-            newThinking += 'Plan includes diuresis. ';
-        }
-        if (lowerThoughts.includes('consult') || lowerThoughts.includes('cards') || lowerThoughts.includes('cardiology')) {
-            planItems.push('Cardiology consult');
-            newThinking += 'Cardiology involvement planned. ';
-        }
-        if (lowerThoughts.includes('echo') || lowerThoughts.includes('echocardiogram')) {
-            planItems.push('Echocardiogram');
-        }
-        if (lowerThoughts.includes('cath') || lowerThoughts.includes('angiogram')) {
-            planItems.push('Cardiac catheterization');
-        }
-        if (lowerThoughts.includes('ekg') || lowerThoughts.includes('ecg') || lowerThoughts.includes('12 lead') || lowerThoughts.includes('12-lead')) {
-            planItems.push('EKG');
-        }
-        if (lowerThoughts.includes('troponin') || lowerThoughts.includes('cardiac enzyme') || lowerThoughts.includes('cardiac marker')) {
-            planItems.push('Troponins');
-        }
-        if (lowerThoughts.includes('stress') || lowerThoughts.includes('perfusion') || lowerThoughts.includes('nuclear') || lowerThoughts.includes('mibi')) {
-            planItems.push('Stress/perfusion testing');
-        }
-        if (lowerThoughts.includes('antibiotic') || lowerThoughts.includes('abx')) {
-            planItems.push('Antibiotics');
-        }
-        if (lowerThoughts.includes('steroid') || lowerThoughts.includes('prednisone') || lowerThoughts.includes('solumedrol')) {
-            planItems.push('Steroids');
-        }
-        if (lowerThoughts.includes('bipap') || lowerThoughts.includes('cpap') || lowerThoughts.includes('niv') || lowerThoughts.includes('high flow')) {
-            planItems.push('Respiratory support');
-        }
-        if (lowerThoughts.includes('admit') || lowerThoughts.includes('admission')) {
-            planItems.push('Hospital admission');
-        }
-        if (lowerThoughts.includes('icu') || lowerThoughts.includes('intensive care')) {
-            planItems.push('ICU admission');
-        }
-
-        // Detect "ischemic workup" explicitly mentioned
-        if (lowerThoughts.includes('ischemic workup') || lowerThoughts.includes('cardiac workup') || lowerThoughts.includes('rule out acs') || lowerThoughts.includes('r/o acs')) {
-            needsIschemicWorkup = true;
-            if (!planItems.includes('Ischemic workup')) {
-                planItems.push('Ischemic workup');
-            }
-        }
-
-        // If ischemic workup needed, add to plan thinking
-        if (needsIschemicWorkup) {
-            newThinking += 'Ischemic workup indicated given presentation. ';
-            // Add ischemic workup to plan if not already there
-            if (!planItems.some(p => p.toLowerCase().includes('ischemic') || p.toLowerCase().includes('ekg') || p.toLowerCase().includes('troponin'))) {
-                planItems.push('Ischemic workup');
-            }
-        }
-
-        // Add supporting observations if relevant
-        if (this.state.observations && this.state.observations.length > 0) {
-            const relevantObs = this.state.observations.find(o =>
-                o.toLowerCase().includes('bnp') ||
-                o.toLowerCase().includes('creatinine') ||
-                o.toLowerCase().includes('missed')
-            );
-            if (relevantObs) {
-                newThinking += 'Supporting data: ' + relevantObs.split(':')[0] + '. ';
-            }
-        }
-
-        // ===== BUILD UPDATED SUMMARY =====
-        let newSummary = this.state.summary || '';
-        if (workingDiagnosis) {
-            // Update summary to reflect doctor's diagnosis
-            const patientInfo = this.state.chartData?.patientInfo;
-            const age = patientInfo?.age || '72';
-            const name = patientInfo?.name || 'Patient';
-
-            newSummary = `${age}yo presenting with **${workingDiagnosis}**`;
-            if (triggers.length > 0) {
-                newSummary += ` triggered by ${triggers.join(' and ')}`;
-            }
-            newSummary += '. ';
-            if (keyDecisions.length > 0) {
-                newSummary += `Key decision: **${keyDecisions.join(', ')}**. `;
-            }
-            if (planItems.length > 0) {
-                newSummary += `Plan: ${planItems.slice(0, 3).join(', ')}.`;
-            }
-        }
-
-        // ===== BUILD UPDATED SUGGESTED ACTIONS =====
-        let newSuggestions = [];
-
-        // Add ischemic workup suggestions if needed
-        if (needsIschemicWorkup) {
-            if (!planItems.includes('EKG') && !this.state.reviewed?.some(r => r.toLowerCase().includes('ekg') || r.toLowerCase().includes('ecg'))) {
-                newSuggestions.push('Stat EKG to evaluate for ischemia');
-            }
-            if (!planItems.includes('Troponins')) {
-                newSuggestions.push('Serial troponins (q6h x3)');
-            }
-            if (!planItems.includes('Stress/perfusion testing') && !planItems.includes('Cardiac catheterization')) {
-                newSuggestions.push('Consider stress test or perfusion imaging if troponins negative');
-            }
-        }
-
-        // Add suggestions based on diagnosis
-        if (workingDiagnosis.includes('CHF')) {
-            if (!planItems.includes('Diuresis')) {
-                newSuggestions.push('Start IV diuresis (furosemide 40mg IV)');
-            }
-            newSuggestions.push('Check BMP in AM for electrolytes and renal function');
-            newSuggestions.push('Order daily weights and strict I/Os');
-            if (!planItems.includes('Echocardiogram') && !this.state.reviewed?.some(r => r.toLowerCase().includes('echo'))) {
-                newSuggestions.push('Consider TTE to assess current EF');
-            }
-        } else if (workingDiagnosis === 'Sepsis/Infection') {
-            newSuggestions.push('Obtain blood cultures x2');
-            newSuggestions.push('Start empiric antibiotics');
-            newSuggestions.push('IV fluid resuscitation');
-            newSuggestions.push('Lactate level');
-        } else if (workingDiagnosis === 'ACS' || workingDiagnosis.includes('Chest pain')) {
-            if (!newSuggestions.some(s => s.includes('troponin'))) {
-                newSuggestions.push('Serial troponins q6h');
-            }
-            if (!planItems.includes('Cardiology consult')) {
-                newSuggestions.push('Cardiology consult for cath consideration');
-            }
-            newSuggestions.push('Continuous telemetry monitoring');
-            // Check for bleeding risk before antiplatelet
-            if (this.state.flags && this.state.flags.some(f => f.text.toLowerCase().includes('bleed'))) {
-                newSuggestions.push('Review bleeding history before antiplatelet therapy');
-            } else {
-                newSuggestions.push('Start antiplatelet therapy if not contraindicated');
-            }
-        } else if (workingDiagnosis === 'Pulmonary embolism') {
-            newSuggestions.push('CT angiogram chest');
-            newSuggestions.push('D-dimer if low pretest probability');
-            newSuggestions.push('Start anticoagulation if confirmed (check bleeding risk)');
-        }
-
-        // Add suggestions based on open items
-        if (this.state.openItems && this.state.openItems.length > 0) {
-            this.state.openItems.forEach(item => {
-                if (item.toLowerCase().includes('code status') && !newSuggestions.some(s => s.toLowerCase().includes('code'))) {
-                    newSuggestions.push('Discuss code status with patient/family');
-                }
-            });
-        }
-
-        // Add safety-related suggestions based on flags
-        if (this.state.flags && this.state.flags.length > 0) {
-            this.state.flags.forEach(flag => {
-                if (flag.text.toLowerCase().includes('gi bleed') && !keyDecisions.includes('No anticoagulation')) {
-                    if (!newSuggestions.some(s => s.includes('bleed'))) {
-                        newSuggestions.push('Document bleeding history before any anticoagulation');
-                    }
-                }
-                if (flag.text.toLowerCase().includes('ckd') || flag.text.toLowerCase().includes('renal')) {
-                    if (!newSuggestions.some(s => s.includes('renal'))) {
-                        newSuggestions.push('Adjust medications for renal function');
-                    }
-                }
-            });
-        }
-
-        // Add follow-through items from plan mentioned in dictation
-        if (planItems.includes('Cardiology consult') && !this.state.reviewed?.some(r => r.toLowerCase().includes('cardiology'))) {
-            if (!newSuggestions.some(s => s.toLowerCase().includes('cardiology'))) {
-                newSuggestions.push('Place cardiology consult order');
-            }
-        }
-
-        // ===== BUILD KEY CONSIDERATIONS =====
-        let newKeyConsiderations = [];
-
-        // Pull from safety flags
-        if (this.state.flags && this.state.flags.length > 0) {
-            this.state.flags.forEach(f => {
-                newKeyConsiderations.push({
-                    text: f.text,
-                    severity: f.severity || 'critical'
-                });
-            });
-        }
-
-        // Add allergy-related considerations
-        if (typeof PatientHeader !== 'undefined' && PatientHeader.patient?.allergies) {
-            const allergies = PatientHeader.patient.allergies;
-            allergies.forEach(a => {
-                const name = typeof a === 'string' ? a : (a.allergen || a.name || '');
-                const reaction = typeof a === 'object' ? (a.reaction || '') : '';
-                if (name && reaction && (reaction.toLowerCase().includes('anaphylaxis') || reaction.toLowerCase().includes('angioedema'))) {
-                    newKeyConsiderations.push({
-                        text: `${name} allergy (${reaction}) — avoid related medications`,
-                        severity: 'critical'
-                    });
-                }
-            });
-        }
-
-        // Add considerations based on detected patterns
-        if (needsIschemicWorkup) {
-            newKeyConsiderations.push({
-                text: 'Ischemic workup indicated — serial troponins and EKG monitoring',
-                severity: 'important'
-            });
-        }
-
-        if (keyDecisions.includes('No anticoagulation')) {
-            newKeyConsiderations.push({
-                text: 'Anticoagulation held per doctor decision — monitor closely',
-                severity: 'important'
-            });
-        }
-
-        // Deduplicate by text
-        const seen = new Set();
-        newKeyConsiderations = newKeyConsiderations.filter(c => {
-            const key = c.text.toLowerCase().substring(0, 40);
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-        });
-
-        // ===== UPDATE STATE =====
-        // Update thinking
-        if (newThinking.length > 50) {
-            this.state.thinking = newThinking.trim();
-        } else {
-            this.state.thinking = `Doctor's assessment: "${doctorThoughts.substring(0, 150)}${doctorThoughts.length > 150 ? '...' : ''}"`;
-        }
-
-        // Update summary if we built a meaningful one
-        if (newSummary && newSummary.length > 30 && workingDiagnosis) {
-            this.state.summary = newSummary.trim();
-        }
-
-        // Update key considerations
-        if (newKeyConsiderations.length > 0) {
-            this.state.keyConsiderations = newKeyConsiderations.slice(0, 6);
-        }
-
-        // Update suggested actions
-        if (newSuggestions.length > 0) {
-            const uniqueSuggestions = [...new Set(newSuggestions)].slice(0, 5);
-            this.state.suggestedActions = uniqueSuggestions.map((text, idx) => ({
-                id: 'dictation_action_' + idx,
-                text: text
-            }));
-        }
-
-        this.state.status = 'ready';
-        this.saveState();
-        this.render();
-    },
+    // localThinkingSynthesis removed — LLM-only synthesis
 
     // Voice recording (Web Speech API)
     isRecording: false,
@@ -2384,10 +1754,8 @@ Respond with ONLY the JSON, no preamble.`;
             } catch (e) {}
         }
 
-        // Get nursing notes from SimulationEngine if available
-        if (typeof SimulationEngine !== 'undefined') {
-            chartData.nursingNotes = SimulationEngine.nursingNotes || [];
-        }
+        // Nursing notes from chart data (if any)
+        chartData.nursingNotes = this.state.chartData?.nursingNotes || [];
 
         this.state.chartData = chartData;
     },
@@ -2844,107 +2212,7 @@ Format your response as JSON:
         }
     },
 
-    /**
-     * Local refresh analysis when Claude is not available
-     */
-    localRefreshAnalysis() {
-        const lowerDictation = (this.state.dictation || '').toLowerCase();
-
-        // Build updated thinking based on current state
-        let newThinking = '';
-        let newSuggestions = [];
-
-        // Analyze based on dictation content
-        if (lowerDictation.includes('chf') || lowerDictation.includes('heart failure') || lowerDictation.includes('volume overload')) {
-            newThinking += 'Working diagnosis: **CHF exacerbation**. ';
-
-            // Check for triggers mentioned
-            if (lowerDictation.includes('diet') || lowerDictation.includes('salt')) {
-                newThinking += 'Dietary indiscretion identified as trigger. ';
-            }
-            if (lowerDictation.includes('missed') || lowerDictation.includes('compliance')) {
-                newThinking += 'Medication non-adherence contributing. ';
-            }
-
-            // Suggest diuresis if not already mentioned
-            if (!this.state.reviewed?.some(r => r.toLowerCase().includes('diure') || r.toLowerCase().includes('lasix'))) {
-                newSuggestions.push('Consider IV diuresis with furosemide');
-            }
-            newSuggestions.push('Monitor daily weights and I/Os');
-            newSuggestions.push('Recheck BMP in AM for electrolytes');
-        }
-
-        // Check for anticoagulation decision
-        if (lowerDictation.includes('anticoagulat') || lowerDictation.includes('a-fib') || lowerDictation.includes('afib')) {
-            if (lowerDictation.includes('not') || lowerDictation.includes("won't") || lowerDictation.includes('hold')) {
-                newThinking += '**Doctor has decided against anticoagulation**';
-                if (this.state.flags?.some(f => f.text.toLowerCase().includes('bleed'))) {
-                    newThinking += ' - aligns with bleeding history. ';
-                } else {
-                    newThinking += '. ';
-                }
-            }
-        }
-
-        // Add suggestions based on open items
-        if (this.state.openItems && this.state.openItems.length > 0) {
-            this.state.openItems.forEach(item => {
-                if (item.toLowerCase().includes('echo')) {
-                    newSuggestions.push('Order echocardiogram to assess current EF');
-                }
-                if (item.toLowerCase().includes('code status')) {
-                    newSuggestions.push('Discuss code status with patient/family');
-                }
-            });
-        }
-
-        // Add suggestions based on flags
-        if (this.state.flags && this.state.flags.length > 0) {
-            this.state.flags.forEach(flag => {
-                if (flag.text.toLowerCase().includes('gi bleed') && !newSuggestions.some(s => s.includes('GI'))) {
-                    newSuggestions.push('Document GI bleed history in anticoagulation decision');
-                }
-            });
-        }
-
-        // Check labs for actionable items
-        if (this.state.chartData.labs) {
-            const cr = this.state.chartData.labs.find(l => l.name.toLowerCase().includes('creatinine'));
-            if (cr && parseFloat(cr.value) > 1.5) {
-                newThinking += 'Noting elevated creatinine - monitor renal function with diuresis. ';
-                if (!newSuggestions.some(s => s.includes('renal'))) {
-                    newSuggestions.push('Monitor creatinine closely with diuresis');
-                }
-            }
-        }
-
-        // Add cardiology consult if heart failure and not already done
-        if ((lowerDictation.includes('chf') || lowerDictation.includes('heart failure')) &&
-            !this.state.reviewed?.some(r => r.toLowerCase().includes('cardiology'))) {
-            if (!newSuggestions.some(s => s.includes('cardiology'))) {
-                newSuggestions.push('Consider cardiology consult');
-            }
-        }
-
-        // Update state if we generated meaningful content
-        if (newThinking.length > 30) {
-            this.state.thinking = newThinking.trim();
-        }
-
-        if (newSuggestions.length > 0) {
-            // Deduplicate and limit to 5
-            const uniqueSuggestions = [...new Set(newSuggestions)].slice(0, 5);
-            this.state.suggestedActions = uniqueSuggestions.map((text, idx) => ({
-                id: 'local_refresh_' + idx,
-                text: text
-            }));
-        }
-
-        this.state.status = 'ready';
-        this.state.lastUpdated = new Date().toISOString();
-        this.saveState();
-        this.render();
-    },
+    // localRefreshAnalysis removed — LLM-only refresh
 
     // ==================== LLM API Integration ====================
 
@@ -3256,15 +2524,7 @@ ${document.getElementById('debug-response-text').value}
             openItems: this.state.openItems || [],
             previousSummary: this.state.summary || '',
             previousThinking: this.state.thinking || '',
-            dictationHistory: this.state.dictationHistory?.slice(-3) || [],
-            patientConversation: (window.PatientChat?.messages || []).slice(-20).map(m => ({
-                role: m.role === 'user' ? 'doctor' : 'patient',
-                content: m.content
-            })),
-            nurseConversation: (window.NurseChat?.messages || []).slice(-20).map(m => ({
-                role: m.role === 'user' ? 'doctor' : 'nurse',
-                content: m.content
-            }))
+            dictationHistory: this.state.dictationHistory?.slice(-3) || []
         };
 
         let contextStr = `## Patient Information
@@ -3321,17 +2581,7 @@ ${ctx.previousThinking || 'None'}
 ## Doctor's Previous Thoughts (for context)
 ${ctx.dictationHistory.length > 0
     ? ctx.dictationHistory.map(d => `- "${d.text}"`).join('\n')
-    : 'None'}
-
-## Patient Interview (Recent)
-${ctx.patientConversation.length > 0
-    ? ctx.patientConversation.map(m => `${m.role === 'doctor' ? 'Doctor' : 'Patient'}: ${m.content}`).join('\n')
-    : 'No patient conversation yet'}
-
-## Nurse Communication (Recent)
-${ctx.nurseConversation.length > 0
-    ? ctx.nurseConversation.map(m => `${m.role === 'doctor' ? 'Doctor' : 'Nurse'}: ${m.content}`).join('\n')
-    : 'No nurse conversation yet'}`;
+    : 'None'}`;
 
         return contextStr;
     },
@@ -3517,6 +2767,11 @@ RULES:
                 this.writeBackMemoryUpdates(memUpdates, 'dictate', doctorThoughts);
             }
 
+            // Push synthesis summary to conversation thread
+            if (result.summary) {
+                this._pushToThread('ai', 'think', result.summary);
+            }
+
             this.state.status = 'ready';
             this.saveState();
             this.render();
@@ -3524,13 +2779,11 @@ RULES:
 
         } catch (error) {
             console.error('LLM synthesis error:', error);
-
+            this.state.status = 'ready';
+            this.render();
             if (error.message === 'API key not configured') {
-                console.warn('⚠️ API key not configured - falling back to LOCAL/RULES-BASED synthesis');
-                this.localThinkingSynthesis(doctorThoughts);
+                App.showToast('Configure API key in settings to enable AI synthesis', 'warning');
             } else {
-                this.state.status = 'ready';
-                this.render();
                 App.showToast('Error: ' + error.message, 'error');
             }
         }
@@ -3642,14 +2895,11 @@ RULES:
 
         } catch (error) {
             console.error('LLM refresh error:', error);
-
+            this.state.status = 'ready';
+            this.render();
             if (error.message === 'API key not configured') {
-                // Modal already shown, fall back to local refresh
-                console.warn('⚠️ API key not configured - falling back to LOCAL/RULES-BASED refresh');
-                this.localRefreshAnalysis();
+                App.showToast('Configure API key in settings to enable AI analysis', 'warning');
             } else {
-                this.state.status = 'ready';
-                this.render();
                 App.showToast('Error: ' + error.message, 'error');
             }
         } finally {
@@ -3673,8 +2923,9 @@ RULES:
             return;
         }
 
-        // Show response modal in loading state
-        this.openResponseModal(item, null);
+        // Show thinking state
+        this.state.status = 'thinking';
+        this.render();
 
         // Track the question in session context
         if (this.sessionContext) {
@@ -3699,20 +2950,31 @@ RULES:
 
         try {
             const response = await this.callLLM(systemPrompt, userMessage, maxTokens);
-            this.openResponseModal(item, response);
+
+            // Strip memory_update block from display text
+            const displayText = response.replace(/<memory_update>[\s\S]*?<\/memory_update>/, '').trim();
+
+            // Push AI response to conversation thread
+            this._pushToThread('ai', 'ask', displayText);
 
             // Write back any memory updates from the ask response
             if (this.contextAssembler) {
                 const memUpdates = this.contextAssembler.parseMemoryUpdates(response);
                 this.writeBackMemoryUpdates(memUpdates, 'ask', item);
             }
+
+            this.state.status = 'ready';
+            this.saveState();
+            this.render();
         } catch (error) {
+            this.state.status = 'ready';
             if (error.message === 'API key not configured') {
-                this.closeResponseModal();
+                this._pushToThread('ai', 'ask', 'Configure your API key in settings to enable AI responses.');
             } else {
-                this.openResponseModal(item, 'Error: ' + error.message);
+                this._pushToThread('ai', 'ask', 'Error: ' + error.message);
                 App.showToast('Error: ' + error.message, 'error');
             }
+            this.render();
         }
     },
 
@@ -3751,153 +3013,7 @@ RULES:
         return context;
     },
 
-    // ==================== AI Response Modal ====================
-
-    openResponseModal(question, content) {
-        let modal = document.getElementById('ai-response-modal');
-        if (!modal) {
-            modal = document.createElement('div');
-            modal.id = 'ai-response-modal';
-            modal.className = 'ai-modal';
-            document.body.appendChild(modal);
-        }
-
-        const isLoading = content === null;
-
-        modal.innerHTML = `
-            <div class="ai-modal-content note-editor-modal">
-                <div class="ai-modal-header">
-                    <h3>AI Response</h3>
-                    <button onclick="AICoworker.closeResponseModal()">×</button>
-                </div>
-                <div class="ai-modal-body note-editor-body">
-                    <div class="response-question">${this.escapeHtml(question)}</div>
-                    ${isLoading
-                        ? '<div class="note-generating"><div class="ai-assistant-spinner"></div><span>Thinking...</span></div>'
-                        : '<div class="ai-response-content" id="ai-response-text"></div>'
-                    }
-                </div>
-                <div class="ai-modal-footer">
-                    <button class="btn btn-secondary" onclick="AICoworker.closeResponseModal()">Close</button>
-                    <button class="btn btn-secondary" onclick="AICoworker.copyResponseToClipboard()" ${isLoading ? 'disabled' : ''}>Copy</button>
-                </div>
-            </div>
-        `;
-
-        modal.classList.add('visible');
-
-        if (!isLoading && content) {
-            const el = document.getElementById('ai-response-text');
-            if (el) el.textContent = content;
-        }
-    },
-
-    closeResponseModal() {
-        const modal = document.getElementById('ai-response-modal');
-        if (modal) modal.classList.remove('visible');
-    },
-
-    copyResponseToClipboard() {
-        const el = document.getElementById('ai-response-text');
-        if (!el) return;
-        navigator.clipboard.writeText(el.textContent).then(() => {
-            App.showToast('Response copied to clipboard', 'success');
-        });
-    },
-
-    /**
-     * Fallback: Copy prompt to clipboard and notify user (legacy)
-     */
-    copyToClipboardAndNotify(prompt, item) {
-        navigator.clipboard.writeText(prompt).then(() => {
-            App.showToast('📋 Copied to clipboard - paste into Claude', 'info', 4000);
-
-            // Also show a more detailed modal
-            this.showClaudeHelperModal(item, prompt);
-        }).catch(() => {
-            // If clipboard fails, just show the modal
-            this.showClaudeHelperModal(item, prompt);
-        });
-    },
-
-    /**
-     * Show modal with instructions for using Claude
-     */
-    showClaudeHelperModal(item, prompt) {
-        // Check if modal already exists
-        let modal = document.getElementById('claude-helper-modal');
-        if (!modal) {
-            modal = document.createElement('div');
-            modal.id = 'claude-helper-modal';
-            modal.className = 'ai-modal';
-            modal.innerHTML = `
-                <div class="ai-modal-content">
-                    <div class="ai-modal-header">
-                        <h3>🤖 Ask Claude</h3>
-                        <button onclick="AICoworker.closeClaudeHelperModal()">×</button>
-                    </div>
-                    <div class="ai-modal-body">
-                        <p class="ai-modal-hint">The prompt has been copied to your clipboard. You can:</p>
-                        <div class="claude-helper-options">
-                            <a href="https://claude.ai/new" target="_blank" class="claude-option-btn">
-                                <span class="option-icon">💬</span>
-                                <span class="option-text">Open Claude.ai</span>
-                            </a>
-                            <button onclick="AICoworker.openClaudeSidepanel()" class="claude-option-btn">
-                                <span class="option-icon">📌</span>
-                                <span class="option-text">Open Extension Sidepanel</span>
-                            </button>
-                        </div>
-                        <div class="claude-prompt-preview">
-                            <label>Prompt (already copied):</label>
-                            <textarea id="claude-prompt-text" readonly rows="6"></textarea>
-                        </div>
-                    </div>
-                    <div class="ai-modal-footer">
-                        <button class="btn btn-secondary" onclick="AICoworker.closeClaudeHelperModal()">Close</button>
-                        <button class="btn btn-primary" onclick="AICoworker.copyPromptAgain()">📋 Copy Again</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-        }
-
-        // Update prompt text
-        document.getElementById('claude-prompt-text').value = prompt;
-        modal.classList.add('visible');
-    },
-
-    closeClaudeHelperModal() {
-        const modal = document.getElementById('claude-helper-modal');
-        if (modal) modal.classList.remove('visible');
-    },
-
-    copyPromptAgain() {
-        const prompt = document.getElementById('claude-prompt-text').value;
-        navigator.clipboard.writeText(prompt).then(() => {
-            App.showToast('📋 Copied!', 'success');
-        });
-    },
-
-    /**
-     * Try to open Claude extension sidepanel
-     */
-    openClaudeSidepanel() {
-        // Try keyboard shortcut simulation (Cmd+Shift+P or Ctrl+Shift+P often opens sidepanel)
-        // This won't work programmatically, but we can guide the user
-
-        // Try extension-specific APIs
-        if (chrome && chrome.runtime && chrome.runtime.sendMessage) {
-            // Try to message the extension
-            try {
-                chrome.runtime.sendMessage('claude-extension-id', { action: 'openSidepanel' });
-            } catch (e) {
-                // Extension not available
-            }
-        }
-
-        App.showToast('Press Cmd+Shift+. to open Claude sidepanel', 'info', 5000);
-    },
+    // Response modal and Claude helper modal removed — responses render inline
 
     // ==================== Panel Controls ====================
 
@@ -3909,7 +3025,6 @@ RULES:
             if (AIPanel.isCollapsed) {
                 AIPanel.expand();
             }
-            AIPanel.switchTab('copilot');
         }
     },
 
@@ -3919,23 +3034,6 @@ RULES:
 
     toggleMinimize() {
         // No-op - panel is now integrated into sidebar
-    },
-
-    // ==================== Event Handlers ====================
-
-    onAlert(data) {
-        // Add safety-critical alerts as flags
-        if (data.priority === 'urgent' || data.priority === 'critical') {
-            if (!this.state.flags) this.state.flags = [];
-            this.state.flags.unshift({
-                text: data.message,
-                severity: data.priority,
-                timestamp: new Date().toISOString()
-            });
-            this.state.flags = this.state.flags.slice(0, 5);
-            this.saveState();
-            this.render();
-        }
     },
 
     // ==================== External API ====================

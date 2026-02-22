@@ -29,10 +29,8 @@ const App = {
         // Initialize order entry
         OrderEntry.init();
 
-        // Initialize AI panel and chat components
+        // Initialize AI panel
         AIPanel.init();
-        PatientChat.init();
-        NurseChat.init();
 
         // Initialize simulation engine and controls
         SimulationEngine.init();

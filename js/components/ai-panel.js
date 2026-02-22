@@ -1,16 +1,12 @@
 /**
  * AI Panel Component
- * Manages the AI side panel with tabbed layout:
- * - Copilot tab (AI assistant, default)
- * - Patient chat tab
- * - Nurse chat tab
- * With notification badges on inactive tabs
+ * Manages the AI side panel — single panel with collapse/expand + settings.
+ * No tabs, no chat — just the Clinical Copilot.
  */
 
 const AIPanel = {
     isCollapsed: false,
     isSettingsOpen: false,
-    currentTab: 'copilot',
 
     /**
      * Initialize the AI panel
@@ -32,64 +28,7 @@ const AIPanel = {
         // Load saved settings
         this.loadSettings();
 
-        // Initialize voice options
-        this.initVoiceOptions();
-
         console.log('AI Panel initialized');
-    },
-
-    /**
-     * Switch between tabs (copilot, patient, nurse)
-     */
-    switchTab(tabName) {
-        this.currentTab = tabName;
-
-        // Update tab buttons
-        document.querySelectorAll('#ai-panel-tabs .ai-tab').forEach(tab => {
-            tab.classList.toggle('active', tab.dataset.tab === tabName);
-        });
-
-        // Update tab content
-        document.querySelectorAll('.ai-tab-content').forEach(content => {
-            content.classList.remove('active');
-        });
-        const activeContent = document.getElementById(`tab-${tabName}`);
-        if (activeContent) {
-            activeContent.classList.add('active');
-        }
-
-        // Clear badge on the tab we're switching to
-        this.clearBadge(tabName);
-
-        // Scroll chat to bottom when switching to a chat tab
-        if (tabName === 'patient' || tabName === 'nurse') {
-            this.scrollToBottom(tabName);
-        }
-    },
-
-    /**
-     * Show notification badge on a tab
-     */
-    showBadge(tabName) {
-        // Don't show badge if we're already on that tab
-        if (this.currentTab === tabName) return;
-
-        const badgeId = tabName === 'patient' ? 'patient-badge' : 'nurse-badge';
-        const badge = document.getElementById(badgeId);
-        if (badge) {
-            badge.classList.add('visible');
-        }
-    },
-
-    /**
-     * Clear notification badge on a tab
-     */
-    clearBadge(tabName) {
-        const badgeId = tabName === 'patient' ? 'patient-badge' : 'nurse-badge';
-        const badge = document.getElementById(badgeId);
-        if (badge) {
-            badge.classList.remove('visible');
-        }
     },
 
     /**
@@ -144,17 +83,6 @@ const AIPanel = {
     },
 
     /**
-     * Scroll chat to bottom
-     */
-    scrollToBottom(tabName) {
-        const messagesId = tabName === 'patient' ? 'patient-messages' : 'nurse-messages';
-        const messagesContainer = document.getElementById(messagesId);
-        if (messagesContainer) {
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-    },
-
-    /**
      * Open settings panel
      */
     openSettings() {
@@ -181,17 +109,9 @@ const AIPanel = {
      */
     loadSettings() {
         const apiKey = localStorage.getItem('claude-api-key');
-        const patientUrl = localStorage.getItem('patient-context-url');
-        const nurseUrl = localStorage.getItem('nurse-context-url');
 
         const apiKeyInput = document.getElementById('claude-api-key');
         if (apiKeyInput && apiKey) apiKeyInput.value = apiKey;
-
-        const patientUrlInput = document.getElementById('patient-context-url');
-        if (patientUrlInput && patientUrl) patientUrlInput.value = patientUrl;
-
-        const nurseUrlInput = document.getElementById('nurse-context-url');
-        if (nurseUrlInput && nurseUrl) nurseUrlInput.value = nurseUrl;
 
         if (apiKey && typeof ClaudeAPI !== 'undefined') {
             ClaudeAPI.setApiKey(apiKey);
@@ -210,79 +130,6 @@ const AIPanel = {
                 ClaudeAPI.setApiKey(key);
             }
             App.showToast('API key saved', 'success');
-        }
-    },
-
-    /**
-     * Save context URL
-     */
-    saveContextUrl(type) {
-        const inputId = type === 'patient' ? 'patient-context-url' : 'nurse-context-url';
-        const input = document.getElementById(inputId);
-        if (input) {
-            const url = input.value.trim();
-            localStorage.setItem(`${type}-context-url`, url);
-            App.showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} context URL saved`, 'success');
-
-            if (type === 'patient' && typeof PatientChat !== 'undefined') {
-                PatientChat.refreshContext();
-            } else if (type === 'nurse' && typeof NurseChat !== 'undefined') {
-                NurseChat.refreshContext();
-            }
-        }
-    },
-
-    /**
-     * Initialize voice options dropdown
-     */
-    initVoiceOptions() {
-        const voiceSelect = document.getElementById('voice-select');
-        if (!voiceSelect) return;
-
-        const populateVoices = () => {
-            const voices = speechSynthesis.getVoices();
-            voiceSelect.innerHTML = '';
-
-            if (voices.length === 0) {
-                voiceSelect.innerHTML = '<option value="">No voices available</option>';
-                return;
-            }
-
-            const englishVoices = voices.filter(v => v.lang.startsWith('en'));
-            const sortedVoices = englishVoices.sort((a, b) => {
-                if (a.localService && !b.localService) return -1;
-                if (!a.localService && b.localService) return 1;
-                return a.name.localeCompare(b.name);
-            });
-
-            sortedVoices.forEach((voice) => {
-                const option = document.createElement('option');
-                option.value = voice.name;
-                option.textContent = `${voice.name} (${voice.lang})`;
-                voiceSelect.appendChild(option);
-            });
-
-            const savedVoice = localStorage.getItem('patient-voice-id');
-            if (savedVoice) voiceSelect.value = savedVoice;
-        };
-
-        if (speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = populateVoices;
-        }
-        populateVoices();
-    },
-
-    /**
-     * Save selected voice
-     */
-    saveVoice() {
-        const voiceSelect = document.getElementById('voice-select');
-        if (voiceSelect) {
-            localStorage.setItem('patient-voice-id', voiceSelect.value);
-            if (typeof SpeechService !== 'undefined') {
-                SpeechService.setVoice(voiceSelect.value);
-            }
-            App.showToast('Voice preference saved', 'success');
         }
     },
 
@@ -317,96 +164,6 @@ const AIPanel = {
             console.error('API test failed:', error);
             App.showToast(`Connection failed: ${error.message}`, 'error');
         }
-    },
-
-    /**
-     * Clear all chat history
-     */
-    clearChatHistory() {
-        if (confirm('Are you sure you want to clear all chat history?')) {
-            localStorage.removeItem('patient-chat-history');
-            localStorage.removeItem('nurse-chat-history');
-
-            if (typeof PatientChat !== 'undefined') PatientChat.clearChat();
-            if (typeof NurseChat !== 'undefined') NurseChat.clearChat();
-
-            App.showToast('Chat history cleared', 'success');
-        }
-    },
-
-    /**
-     * Add a message to chat UI
-     */
-    addMessage(tabName, role, content, isTyping = false) {
-        const messagesId = tabName === 'patient' ? 'patient-messages' : 'nurse-messages';
-        const messagesContainer = document.getElementById(messagesId);
-        if (!messagesContainer) return;
-
-        // Remove welcome message if exists
-        const welcomeMsg = messagesContainer.querySelector('.chat-welcome');
-        if (welcomeMsg) welcomeMsg.remove();
-
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `chat-message ${role}`;
-
-        if (isTyping) {
-            messageDiv.classList.add('typing');
-            messageDiv.innerHTML = `
-                <div class="message-content">
-                    <div class="typing-indicator">
-                        <span></span><span></span><span></span>
-                    </div>
-                </div>
-            `;
-        } else {
-            const avatarIcon = role === 'user' ? '&#128100;' :
-                             (tabName === 'patient' ? '&#129489;' : '&#128105;&#8205;&#9877;');
-            messageDiv.innerHTML = `
-                <div class="message-avatar">${avatarIcon}</div>
-                <div class="message-content">${this.formatMessage(content)}</div>
-            `;
-        }
-
-        messagesContainer.appendChild(messageDiv);
-        this.scrollToBottom(tabName);
-
-        // Show notification badge if we're not on this tab
-        if (role === 'assistant' && this.currentTab !== tabName) {
-            this.showBadge(tabName);
-        }
-
-        return messageDiv;
-    },
-
-    /**
-     * Remove typing indicator
-     */
-    removeTypingIndicator(tabName) {
-        const messagesId = tabName === 'patient' ? 'patient-messages' : 'nurse-messages';
-        const messagesContainer = document.getElementById(messagesId);
-        if (messagesContainer) {
-            const typingMsg = messagesContainer.querySelector('.chat-message.typing');
-            if (typingMsg) typingMsg.remove();
-        }
-    },
-
-    /**
-     * Format message content (basic markdown support)
-     */
-    formatMessage(content) {
-        if (!content) return '';
-
-        let formatted = content
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
-
-        formatted = formatted
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/\n/g, '<br>');
-
-        return formatted;
     }
 };
 

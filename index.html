@@ -142,96 +142,13 @@
                     </div>
                 </div>
 
-                <!-- Tab Switcher -->
-                <div class="ai-panel-tabs" id="ai-panel-tabs">
-                    <button class="ai-tab active" data-tab="copilot" onclick="AIPanel.switchTab('copilot')">
-                        &#10024; Copilot
-                    </button>
-                    <button class="ai-tab" data-tab="patient" onclick="AIPanel.switchTab('patient')">
-                        &#128100; Patient
-                        <span class="tab-badge" id="patient-badge"></span>
-                    </button>
-                    <button class="ai-tab" data-tab="nurse" onclick="AIPanel.switchTab('nurse')">
-                        &#128105;&#8205;&#9877;&#65039; Nurse
-                        <span class="tab-badge" id="nurse-badge"></span>
-                    </button>
-                </div>
-
-                <!-- Tab Content: Copilot -->
-                <div class="ai-tab-content active" id="tab-copilot">
+                <!-- Copilot Content -->
+                <div class="copilot-content" id="tab-copilot">
                     <div id="assistant-tab-body">
                         <div class="ai-empty">
                             <div class="empty-icon">&#10024;</div>
                             <div class="empty-text">Clinical Copilot</div>
-                            <div class="empty-hint">Start the simulation to activate the copilot.</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tab Content: Patient Chat -->
-                <div class="ai-tab-content" id="tab-patient">
-                    <div class="chat-tab-header">
-                        <span class="chat-tab-title">&#128100; Patient Chat</span>
-                        <div class="chat-tab-actions">
-                            <button class="voice-btn" id="patient-voice-btn" onclick="PatientChat.toggleVoiceInput()" title="Voice Input">
-                                <span class="voice-icon">&#127908;</span>
-                            </button>
-                            <button class="voice-output-btn" id="patient-voice-output-btn" onclick="PatientChat.toggleVoiceOutput()" title="Voice Output">
-                                <span class="speaker-icon">&#128266;</span>
-                            </button>
-                            <button class="clear-chat-btn-sm" onclick="PatientChat.clearChat()" title="Clear Chat">&#128465;</button>
-                        </div>
-                    </div>
-                    <div class="chat-container" id="patient-chat-container">
-                        <div class="chat-messages" id="patient-messages">
-                            <div class="chat-welcome">
-                                <p>Chat with the patient...</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="chat-input-area">
-                        <div class="chat-input-wrapper">
-                            <textarea
-                                id="patient-input"
-                                class="chat-input"
-                                placeholder="Talk to patient..."
-                                rows="1"
-                                onkeydown="PatientChat.handleKeyDown(event)"
-                            ></textarea>
-                            <button class="send-btn" onclick="PatientChat.sendMessage()" title="Send">
-                                <span>&#10148;</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tab Content: Nurse Chat -->
-                <div class="ai-tab-content" id="tab-nurse">
-                    <div class="chat-tab-header">
-                        <span class="chat-tab-title">&#128105;&#8205;&#9877;&#65039; Nurse Chat</span>
-                        <div class="chat-tab-actions">
-                            <button class="clear-chat-btn-sm" onclick="NurseChat.clearChat()" title="Clear Chat">&#128465;</button>
-                        </div>
-                    </div>
-                    <div class="chat-container" id="nurse-chat-container">
-                        <div class="chat-messages" id="nurse-messages">
-                            <div class="chat-welcome">
-                                <p>Talk to the nurse...</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="chat-input-area">
-                        <div class="chat-input-wrapper">
-                            <textarea
-                                id="nurse-input"
-                                class="chat-input"
-                                placeholder="Talk to nurse..."
-                                rows="1"
-                                onkeydown="NurseChat.handleKeyDown(event)"
-                            ></textarea>
-                            <button class="send-btn" onclick="NurseChat.sendMessage()" title="Send">
-                                <span>&#10148;</span>
-                            </button>
+                            <div class="empty-hint">Loading patient data...</div>
                         </div>
                     </div>
                 </div>
@@ -248,25 +165,9 @@
                             <input type="password" id="claude-api-key" placeholder="sk-ant-..." onchange="AIPanel.saveApiKey()">
                             <small>Your API key is stored locally in your browser.</small>
                         </div>
-                        <div class="settings-group">
-                            <label for="patient-context-url">Patient Context URL</label>
-                            <input type="url" id="patient-context-url" placeholder="https://docs.google.com/document/d/.../pub" onchange="AIPanel.saveContextUrl('patient')">
-                            <small>Published Google Doc URL for patient persona.</small>
-                        </div>
-                        <div class="settings-group">
-                            <label for="nurse-context-url">Nurse Context URL</label>
-                            <input type="url" id="nurse-context-url" placeholder="https://docs.google.com/document/d/.../pub" onchange="AIPanel.saveContextUrl('nurse')">
-                            <small>Published Google Doc URL for nurse persona.</small>
-                        </div>
-                        <div class="settings-group">
-                            <label for="voice-select">Voice for Patient</label>
-                            <select id="voice-select" onchange="AIPanel.saveVoice()">
-                                <option value="">Loading voices...</option>
-                            </select>
-                        </div>
                         <div class="settings-actions">
                             <button class="btn btn-sm" onclick="AIPanel.testConnection()">Test API Connection</button>
-                            <button class="btn btn-sm btn-secondary" onclick="AIPanel.clearChatHistory()">Clear Chat History</button>
+                            <button class="btn btn-sm btn-secondary" onclick="AICoworker.clearMemory()">Clear AI Memory</button>
                         </div>
                     </div>
                 </div>

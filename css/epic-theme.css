@@ -5314,7 +5314,450 @@ html, body {
     background: rgba(255,255,255,0.5);
 }
 
-/* ---- PATIENT SNAPSHOT ---- */
+/* ---- PATIENT BRIEF ---- */
+.copilot-brief {
+    padding: 10px 12px;
+    background: linear-gradient(135deg, #f0f9ff 0%, #f8fafc 100%);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.brief-header {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.brief-patient {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary-dark);
+}
+
+.brief-summary {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin-bottom: 6px;
+}
+
+.brief-summary strong {
+    color: var(--text-primary);
+}
+
+.brief-placeholder {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.brief-problems {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.problem-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 500;
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+    white-space: nowrap;
+}
+
+.problem-more {
+    background: #f1f5f9;
+    color: var(--text-muted);
+    border-color: var(--border-light);
+}
+
+.brief-allergy {
+    font-size: 10px;
+    color: #b91c1c;
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+/* ---- AI INSIGHT SECTION ---- */
+.insight-section {
+    padding-bottom: 4px;
+}
+
+.insight-loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 0;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+/* Analyze prompt (no-memory state) */
+.analyze-prompt {
+    text-align: center;
+    padding: 16px 0;
+}
+
+.analyze-stats {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+.analyze-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.analyze-btn:hover {
+    background: var(--primary-dark);
+}
+
+.analyze-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 8px;
+}
+
+/* Insight content blocks */
+.insight-block {
+    margin-bottom: 10px;
+}
+
+.insight-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 3px;
+}
+
+.insight-text {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-primary);
+}
+
+.insight-text strong {
+    color: var(--primary-dark);
+}
+
+.insight-considerations {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.consideration {
+    font-size: 11px;
+    line-height: 1.3;
+    padding: 3px 6px;
+    border-radius: 4px;
+}
+
+.consideration-critical {
+    background: #fef2f2;
+    color: #991b1b;
+    font-weight: 500;
+}
+
+.consideration-important {
+    background: #fffbeb;
+    color: #92400e;
+}
+
+.insight-questions {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.open-question {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.3;
+    padding-left: 4px;
+}
+
+.dictation-block {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    padding: 8px;
+}
+
+.dictation-text {
+    font-style: italic;
+}
+
+/* ---- CONVERSATION THREAD ---- */
+.conversation-thread {
+    border-top: 1px solid var(--border-light);
+    margin-top: 8px;
+    padding-top: 8px;
+}
+
+.thread-divider {
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.thread-divider span {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    background: white;
+    padding: 0 8px;
+    position: relative;
+}
+
+.thread-msg {
+    margin-bottom: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.thread-msg-user {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+}
+
+.thread-msg-ai {
+    background: #f8fafc;
+    border: 1px solid var(--border-light);
+}
+
+.thread-msg-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+}
+
+.thread-msg-text {
+    color: var(--text-primary);
+}
+
+.thread-msg-text strong {
+    color: var(--primary-dark);
+}
+
+/* ---- CONTEXTUAL NUDGE ---- */
+.nudge-section {
+    padding: 6px 12px;
+    background: #fefce8;
+    border-bottom: 1px solid #fde68a;
+}
+
+.nudge-content {
+    font-size: 11px;
+    color: #713f12;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1.4;
+}
+
+.nudge-icon {
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.nudge-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: 100%;
+}
+
+.nudge-action-item {
+    font-size: 11px;
+    color: #713f12;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 3px;
+    transition: background 0.1s;
+}
+
+.nudge-action-item:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+/* ---- INLINE INPUT ---- */
+.copilot-inline-input {
+    padding: 8px 12px;
+    border-top: 1px solid var(--border-light);
+    background: #fafafa;
+    position: sticky;
+    bottom: 0;
+}
+
+.inline-chips {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+}
+
+.suggestion-chip {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 500;
+    background: white;
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.suggestion-chip:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.inline-input-row {
+    display: flex;
+    gap: 6px;
+    align-items: flex-end;
+    margin-bottom: 6px;
+}
+
+.inline-textarea {
+    flex: 1;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-family: inherit;
+    resize: none;
+    line-height: 1.4;
+    min-height: 34px;
+    max-height: 120px;
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.inline-textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.inline-send-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+
+.inline-send-btn:hover {
+    background: var(--primary-dark);
+}
+
+.inline-action-bar {
+    display: flex;
+    gap: 4px;
+    position: relative;
+}
+
+.inline-action-btn {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    background: none;
+    border: 1px solid var(--border-light);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    transition: all 0.15s;
+}
+
+.inline-action-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    border-color: var(--border-medium);
+}
+
+.inline-more-menu {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid var(--border-medium);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 4px;
+    margin-bottom: 4px;
+    z-index: 10;
+}
+
+.inline-more-menu.visible {
+    display: block;
+}
+
+.inline-more-menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 6px 10px;
+    border: none;
+    background: none;
+    font-size: 11px;
+    color: var(--text-primary);
+    cursor: pointer;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.inline-more-menu button:hover {
+    background: var(--bg-hover);
+}
+
+/* ---- COPILOT CONTENT AREA ---- */
+.copilot-content {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+#assistant-tab-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ---- OLD SNAPSHOT (kept for backward compat) ---- */
 .copilot-snapshot {
     padding: 10px 12px;
     background: linear-gradient(135deg, #f0f9ff 0%, #f8fafc 100%);
