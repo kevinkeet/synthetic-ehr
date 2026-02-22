@@ -159,6 +159,9 @@ const AICoworker = {
             aiOneLiner: '', // AI's one-sentence gestalt of the patient
             agents: [], // Agentic task system UI state
             agentsCollapsed: false, // Whether agents section is collapsed
+            clinicalSummary: null, // LLM-refined 3-sentence summary {demographics, functional, presentation}
+            problemList: [], // Prioritized problem list [{name, urgency, ddx, plan}]
+            categorizedActions: null, // Actions by category {communication, labs, imaging, medications, other}
             chartData: {
                 patientInfo: null,
                 vitals: [],
@@ -633,17 +636,6 @@ const AICoworker = {
             if (this.sessionContext) {
                 this.sessionContext.trackNavigation(page, pageName);
             }
-
-            // Update contextual nudge in-place
-            const nudgeEl = document.querySelector('.nudge-section');
-            if (nudgeEl) {
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = this.renderContextualNudge();
-                const newNudge = tempDiv.firstElementChild;
-                if (newNudge) {
-                    nudgeEl.replaceWith(newNudge);
-                }
-            }
         }
     },
 
@@ -717,19 +709,22 @@ const AICoworker = {
         // ===== SECTION 2: AI LIVE STATUS LINE =====
         html += this.renderStatusLine();
 
-        // ===== SECTION 3: PATIENT BRIEF =====
-        html += this.renderPatientBrief();
+        // ===== SECTION 3: CLINICAL SUMMARY (3 sentences) =====
+        html += this.renderClinicalSummary();
 
         // ===== SECTION 4: AGENT TASKS =====
         html += this.renderAgentTasks();
 
-        // ===== SECTION 5: AI INSIGHT (the core section) =====
-        html += this.renderAIInsight();
+        // ===== SECTION 5: PROBLEM LIST =====
+        html += this.renderProblemList();
 
-        // ===== SECTION 6: CONTEXTUAL NUDGE =====
-        html += this.renderContextualNudge();
+        // ===== SECTION 6: SUGGESTED ACTIONS =====
+        html += this.renderSuggestedActions();
 
-        // ===== SECTION 7: INLINE INPUT (sticky bottom) =====
+        // ===== SECTION 7: CONVERSATION THREAD =====
+        html += this.renderConversationThread();
+
+        // ===== SECTION 8: INLINE INPUT (sticky bottom) =====
         html += this.renderInlineInput();
 
         body.innerHTML = html;
@@ -808,6 +803,187 @@ const AICoworker = {
         </div>`;
     },
 
+    // ==================== Local Data Builders ====================
+
+    /**
+     * Build a 3-sentence clinical summary from local patient data (no LLM needed).
+     * Returns {demographics, functional, presentation} or null if insufficient data.
+     */
+    _buildLocalSummary() {
+        const doc = this.longitudinalDoc;
+        if (!doc) return null;
+
+        // ---- Sentence 1: Age, sex, PMH ----
+        let demographics = '';
+        let patientAge = '';
+        let sex = '';
+        if (typeof PatientHeader !== 'undefined' && PatientHeader.currentPatient) {
+            const p = PatientHeader.currentPatient;
+            let age = p.age;
+            if (!age && p.dateOfBirth) {
+                const dob = new Date(p.dateOfBirth);
+                const today = new Date();
+                age = today.getFullYear() - dob.getFullYear();
+                const m = today.getMonth() - dob.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+            }
+            patientAge = age ? `${age}` : '';
+            sex = (p.sex || p.gender || '').toLowerCase();
+            if (sex === 'male' || sex === 'm') sex = 'male';
+            else if (sex === 'female' || sex === 'f') sex = 'female';
+            else sex = '';
+        }
+
+        // Get active problems sorted by priority
+        const problems = [];
+        for (const [id, timeline] of doc.problemMatrix) {
+            const prob = timeline.problem || timeline;
+            if (prob.status === 'active' || !prob.status) {
+                problems.push({
+                    name: prob.name || id,
+                    priority: prob.priority || 'Medium'
+                });
+            }
+        }
+        // Sort: High first, then Medium, then Low
+        const priorityOrder = { 'High': 0, 'Medium': 1, 'Low': 2 };
+        problems.sort((a, b) => (priorityOrder[a.priority] ?? 1) - (priorityOrder[b.priority] ?? 1));
+        const topProblems = problems.slice(0, 5).map(p => p.name);
+
+        if (patientAge && topProblems.length > 0) {
+            demographics = `${patientAge}-year-old ${sex} with ${topProblems.join(', ')}`;
+        } else if (patientAge) {
+            demographics = `${patientAge}-year-old ${sex}`;
+        }
+
+        // ---- Sentence 2: Functional status + living situation ----
+        let functional = '';
+        const social = doc.patientSnapshot?.socialHistory;
+        if (social) {
+            const parts = [];
+            // Occupation/retirement
+            if (social.occupation) {
+                const occ = typeof social.occupation === 'string' ? social.occupation :
+                    (social.occupation.status === 'Retired' ? `Retired ${social.occupation.previous || ''}`.trim() :
+                    social.occupation.current || social.occupation.status || '');
+                if (occ) parts.push(occ);
+            }
+            // Living situation
+            if (social.livingSituation) {
+                // Extract key info — first sentence or first 80 chars
+                const living = typeof social.livingSituation === 'string' ? social.livingSituation : '';
+                if (living) {
+                    const firstPart = living.split('.')[0].trim();
+                    parts.push(firstPart.charAt(0).toLowerCase() + firstPart.slice(1));
+                }
+            }
+            // Exercise/mobility
+            if (social.exercise) {
+                const exercise = typeof social.exercise === 'string' ? social.exercise : '';
+                if (exercise) {
+                    const firstPart = exercise.split('.')[0].trim();
+                    if (firstPart.length < 60) {
+                        parts.push(firstPart.charAt(0).toLowerCase() + firstPart.slice(1));
+                    }
+                }
+            }
+            if (parts.length > 0) {
+                functional = parts.join('; ');
+                // Capitalize first letter
+                functional = functional.charAt(0).toUpperCase() + functional.slice(1);
+            }
+        }
+        if (!functional) {
+            functional = 'Functional status and living situation not yet documented';
+        }
+
+        // ---- Sentence 3: Chief complaint + key findings ----
+        let presentation = '';
+        const parts3 = [];
+
+        // Chief complaint from latest note or encounter
+        const notes = doc.longitudinalData.notes || [];
+        let chiefComplaint = '';
+        if (notes.length > 0) {
+            chiefComplaint = notes[0].chiefComplaint || '';
+        }
+        if (!chiefComplaint) {
+            // Try encounters
+            const encounters = doc.longitudinalData.encounters || [];
+            if (encounters.length > 0) {
+                chiefComplaint = encounters[0].chiefComplaint || '';
+            }
+        }
+        if (chiefComplaint) {
+            parts3.push(`Presents with ${chiefComplaint.charAt(0).toLowerCase() + chiefComplaint.slice(1)}`);
+        }
+
+        // Flagged labs
+        const flaggedLabs = [];
+        for (const [name, trend] of doc.longitudinalData.labs) {
+            if (trend.latestValue && (trend.latestValue.flag === 'CRITICAL' || trend.latestValue.flag === 'HIGH' || trend.latestValue.flag === 'LOW' || trend.latestValue.flag === 'HH' || trend.latestValue.flag === 'LL')) {
+                const arrow = (trend.latestValue.flag === 'HIGH' || trend.latestValue.flag === 'HH') ? '\u2191' : '\u2193';
+                flaggedLabs.push(`${name} ${trend.latestValue.value}${arrow}`);
+            }
+        }
+        if (flaggedLabs.length > 0) {
+            parts3.push(flaggedLabs.slice(0, 4).join(', ') + (flaggedLabs.length > 4 ? ` (+${flaggedLabs.length - 4} more)` : ''));
+        }
+
+        // Recent vital concerns
+        const vitals = doc.longitudinalData.vitals;
+        if (vitals && vitals.length > 0) {
+            const v = vitals[0];
+            const concerns = [];
+            if (v.heartRate && (v.heartRate > 100 || v.heartRate < 60)) concerns.push(`HR ${v.heartRate}`);
+            if (v.systolic && v.systolic < 90) concerns.push(`SBP ${v.systolic}`);
+            if (v.spO2 && v.spO2 < 94) concerns.push(`SpO2 ${v.spO2}%`);
+            if (v.temperature && v.temperature > 38.3) concerns.push(`Temp ${v.temperature}`);
+            if (concerns.length > 0) {
+                parts3.push('vitals: ' + concerns.join(', '));
+            }
+        }
+
+        presentation = parts3.length > 0 ? parts3.join('; ') : 'No chief complaint documented yet';
+
+        return { demographics, functional, presentation };
+    },
+
+    /**
+     * Build a local problem list from problemMatrix (no LLM).
+     * Returns [{name, urgency, ddx: null, plan: null}] sorted by priority.
+     */
+    _buildLocalProblemList() {
+        const doc = this.longitudinalDoc;
+        if (!doc || doc.problemMatrix.size === 0) return [];
+
+        const problems = [];
+        for (const [id, timeline] of doc.problemMatrix) {
+            const prob = timeline.problem || timeline;
+            if (prob.status === 'active' || !prob.status) {
+                // Map priority to urgency
+                let urgency = 'active';
+                if (prob.priority === 'High') urgency = 'urgent';
+                else if (prob.priority === 'Low') urgency = 'monitoring';
+
+                problems.push({
+                    name: prob.name || id,
+                    urgency,
+                    ddx: null,
+                    plan: null,
+                    _priority: prob.priority || 'Medium'
+                });
+            }
+        }
+
+        // Sort by urgency
+        const order = { 'urgent': 0, 'active': 1, 'monitoring': 2 };
+        problems.sort((a, b) => (order[a.urgency] ?? 1) - (order[b.urgency] ?? 1));
+
+        // Limit to 5
+        return problems.slice(0, 5);
+    },
+
     /**
      * Render the agentic task system — shows AI "agents" working on clinical tasks
      */
@@ -874,14 +1050,17 @@ const AICoworker = {
         return html;
     },
 
-    renderPatientBrief() {
-        // Get patient info
+    /**
+     * Render a structured 3-sentence clinical summary.
+     * Uses LLM-refined data if available, falls back to locally-built sentences.
+     */
+    renderClinicalSummary() {
+        // Get patient name for header
         let patientName = 'Patient';
         let patientAge = '';
         if (typeof PatientHeader !== 'undefined' && PatientHeader.currentPatient) {
             const p = PatientHeader.currentPatient;
             patientName = `${p.firstName || ''} ${p.lastName || ''}`.trim() || 'Patient';
-            // Compute age from DOB
             let age = p.age;
             if (!age && p.dateOfBirth) {
                 const dob = new Date(p.dateOfBirth);
@@ -890,64 +1069,42 @@ const AICoworker = {
                 const m = today.getMonth() - dob.getMonth();
                 if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
             }
-            const sex = (p.sex || p.gender || '').charAt(0).toUpperCase(); // M or F
+            const sex = (p.sex || p.gender || '').charAt(0).toUpperCase();
             patientAge = age ? `${age}${sex}` : '';
         }
 
-        // AI's one-line summary
-        let summaryLine = '';
-        if (this.longitudinalDoc && this.longitudinalDoc.aiMemory.patientSummary) {
-            // First sentence of the AI's summary
-            const full = this.longitudinalDoc.aiMemory.patientSummary;
-            const firstSentence = full.split(/\.\s/)[0];
-            summaryLine = `<div class="brief-summary">${this.formatText(firstSentence + (firstSentence.endsWith('.') ? '' : '.'))}</div>`;
-        } else if (this.state.summary) {
-            summaryLine = `<div class="brief-summary">${this.formatText(this.state.summary)}</div>`;
+        // Use LLM summary if available, else local
+        const summary = this.state.clinicalSummary || this._buildLocalSummary();
+
+        let html = '<div class="clinical-summary">';
+        html += '<div class="clinical-summary-header">';
+        html += `<span class="summary-patient-name">${this.escapeHtml(patientName)}${patientAge ? ', ' + patientAge : ''}</span>`;
+        html += '</div>';
+
+        if (summary) {
+            if (summary.demographics) {
+                html += `<div class="summary-sentence"><span class="sentence-label">HPI</span>${this.formatText(summary.demographics)}</div>`;
+            }
+            if (summary.functional) {
+                html += `<div class="summary-sentence"><span class="sentence-label">Social</span>${this.formatText(summary.functional)}</div>`;
+            }
+            if (summary.presentation) {
+                html += `<div class="summary-sentence"><span class="sentence-label">Presentation</span>${this.formatText(summary.presentation)}</div>`;
+            }
         } else {
-            summaryLine = '<div class="brief-summary brief-placeholder">Analyze chart to build understanding</div>';
+            html += '<div class="summary-sentence summary-placeholder">Loading patient data...</div>';
         }
 
-        // Active problem chips
-        let problemsHtml = '';
-        if (this.longitudinalDoc && this.longitudinalDoc.problemMatrix.size > 0) {
-            const problems = [];
-            for (const [id, timeline] of this.longitudinalDoc.problemMatrix) {
-                const prob = timeline.problem || timeline;
-                if (prob.status === 'active' || !prob.status) {
-                    problems.push(prob.name || id);
-                }
-            }
-            if (problems.length > 0) {
-                problemsHtml = '<div class="brief-problems">';
-                problems.slice(0, 6).forEach(name => {
-                    problemsHtml += `<span class="problem-chip">${this.escapeHtml(name)}</span>`;
-                });
-                if (problems.length > 6) {
-                    problemsHtml += `<span class="problem-chip problem-more">+${problems.length - 6} more</span>`;
-                }
-                problemsHtml += '</div>';
-            }
-        }
-
-        // Key allergy (most critical, one-line)
-        let allergyLine = '';
-        // Try longitudinal doc first, then PatientHeader
+        // Allergies line (always show if allergies exist)
         let allergies = this.longitudinalDoc?.patientSnapshot?.allergies || [];
         if (allergies.length === 0 && typeof PatientHeader !== 'undefined' && PatientHeader.currentPatient?.allergies) {
             allergies = PatientHeader.currentPatient.allergies;
         }
         if (allergies.length > 0) {
-            const names = allergies.slice(0, 3).map(a => typeof a === 'string' ? a : (a.substance || a.allergen || a.name || '?'));
-            allergyLine = `<div class="brief-allergy">&#9888; ${names.join(', ')}${allergies.length > 3 ? ` +${allergies.length - 3}` : ''}</div>`;
+            const names = allergies.slice(0, 4).map(a => typeof a === 'string' ? a : (a.substance || a.allergen || a.name || '?'));
+            html += `<div class="summary-allergies">&#9888; Allergies: ${names.join(', ')}${allergies.length > 4 ? ` +${allergies.length - 4}` : ''}</div>`;
         }
 
-        let html = '<div class="copilot-brief">';
-        html += '<div class="brief-header">';
-        html += `<span class="brief-patient">${this.escapeHtml(patientName)}${patientAge ? ', ' + patientAge : ''}</span>`;
-        html += '</div>';
-        html += summaryLine;
-        html += problemsHtml;
-        html += allergyLine;
         html += '</div>';
         return html;
     },
@@ -956,14 +1113,18 @@ const AICoworker = {
      * Render the AI Insight section — the core cognitive aid.
      * Shows the AI's accumulated understanding, or a prompt to analyze the chart.
      */
-    renderAIInsight() {
-        const hasMemory = this.longitudinalDoc &&
-            (this.longitudinalDoc.aiMemory.patientSummary || this.state.summary);
+    /**
+     * Render the problem list section.
+     * Shows 3-5 prioritized problems with DDx and plan (from LLM) or just names (local).
+     */
+    renderProblemList() {
         const isThinking = this.state.status === 'thinking';
+        const hasLLMData = this.state.problemList && this.state.problemList.length > 0 &&
+            this.state.problemList.some(p => p.plan);
 
-        let html = '<div class="copilot-section insight-section">';
+        let html = '<div class="copilot-section problem-list-section">';
         html += '<div class="copilot-section-header">';
-        html += '<span>&#129504;</span> AI Insight';
+        html += '<span>&#127973;</span> Problem List';
         html += '<div class="section-actions">';
         html += '<button class="section-action-btn" onclick="AICoworker.refreshThinking()" title="Refresh analysis">&#128260;</button>';
         html += '</div></div>';
@@ -971,102 +1132,57 @@ const AICoworker = {
 
         if (isThinking) {
             html += '<div class="insight-loading"><div class="typing-indicator"><span></span><span></span><span></span></div> Analyzing...</div>';
-        } else if (!hasMemory) {
-            // Mode B: No memory — prompt to analyze
-            html += this._renderAnalyzePrompt();
         } else {
-            // Mode A: Memory exists — show understanding
-            html += this._renderInsightContent();
-        }
+            // Use LLM problem list if available with plans, else local
+            const problems = hasLLMData ? this.state.problemList : this._buildLocalProblemList();
 
-        // Conversation thread (always show if messages exist)
-        if (this.state.conversationThread && this.state.conversationThread.length > 0) {
-            html += this._renderConversationThread();
+            if (problems.length === 0) {
+                html += '<div class="problem-empty">No active problems on file</div>';
+            } else {
+                problems.forEach((prob, idx) => {
+                    const urgencyClass = prob.urgency === 'urgent' ? 'urgency-urgent' :
+                        prob.urgency === 'monitoring' ? 'urgency-monitoring' : 'urgency-active';
+                    const urgencyLabel = prob.urgency === 'urgent' ? 'URGENT' :
+                        prob.urgency === 'monitoring' ? 'MONITOR' : 'ACTIVE';
+
+                    html += `<div class="problem-item">`;
+                    html += `<div class="problem-name-row">`;
+                    html += `<span class="problem-number">${idx + 1}.</span>`;
+                    html += `<span class="problem-name">${this.escapeHtml(prob.name)}</span>`;
+                    html += `<span class="problem-urgency ${urgencyClass}">${urgencyLabel}</span>`;
+                    html += `</div>`;
+
+                    if (prob.ddx) {
+                        html += `<div class="problem-ddx">DDx: ${this.escapeHtml(prob.ddx)}</div>`;
+                    }
+                    if (prob.plan) {
+                        html += `<div class="problem-plan">Plan: ${this.escapeHtml(prob.plan)}</div>`;
+                    }
+
+                    html += `</div>`;
+                });
+
+                // Show "Analyze" prompt if no LLM data yet
+                if (!hasLLMData) {
+                    html += '<div class="problem-analyze-hint">';
+                    html += '<button class="analyze-btn-sm" onclick="AICoworker.refreshThinking()">&#10024; Analyze for DDx &amp; Plans</button>';
+                    html += '</div>';
+                }
+            }
         }
 
         html += '</div></div>';
         return html;
     },
 
-    _renderAnalyzePrompt() {
-        let stats = '';
-        if (this.longitudinalDoc) {
-            const problems = this.longitudinalDoc.problemMatrix.size;
-            const meds = this.longitudinalDoc.longitudinalData.medications?.current?.length || 0;
-            const labs = this.longitudinalDoc.longitudinalData.labs.size;
-            stats = `This patient has ${problems} active problem${problems !== 1 ? 's' : ''}, ${meds} medication${meds !== 1 ? 's' : ''}, and ${labs} lab panel${labs !== 1 ? 's' : ''} on file.`;
-        } else {
-            stats = 'Patient data is loading...';
-        }
+    /**
+     * Render the conversation thread as a standalone section.
+     */
+    renderConversationThread() {
+        if (!this.state.conversationThread || this.state.conversationThread.length === 0) return '';
 
-        let html = '<div class="analyze-prompt">';
-        html += `<div class="analyze-stats">${stats}</div>`;
-        html += '<button class="analyze-btn" onclick="AICoworker.refreshThinking()">&#10024; Analyze Chart</button>';
-        html += '<div class="analyze-hint">or ask a question below</div>';
-        html += '</div>';
-        return html;
-    },
-
-    _renderInsightContent() {
-        let html = '';
-
-        // Assessment
-        const summary = this.state.summary || (this.longitudinalDoc && this.longitudinalDoc.aiMemory.patientSummary) || '';
-        if (summary) {
-            html += '<div class="insight-block">';
-            html += '<div class="insight-label">ASSESSMENT</div>';
-            html += '<div class="insight-text">' + this.formatText(summary) + '</div>';
-            html += '</div>';
-        }
-
-        // Key Considerations
-        if (this.state.keyConsiderations && this.state.keyConsiderations.length > 0) {
-            html += '<div class="insight-block">';
-            html += '<div class="insight-label">KEY CONSIDERATIONS</div>';
-            html += '<div class="insight-considerations">';
-            this.state.keyConsiderations.forEach(c => {
-                const icon = c.severity === 'critical' ? '&#9888;' : c.severity === 'important' ? '&#10071;' : '&#8226;';
-                const cls = c.severity === 'critical' ? 'consideration-critical' : c.severity === 'important' ? 'consideration-important' : '';
-                html += `<div class="consideration ${cls}">${icon} ${this.escapeHtml(c.text)}</div>`;
-            });
-            html += '</div></div>';
-        }
-
-        // Trajectory
-        const trajectory = this.state.thinking ||
-            (this.longitudinalDoc && this.longitudinalDoc.clinicalNarrative.trajectoryAssessment) || '';
-        if (trajectory) {
-            html += '<div class="insight-block">';
-            html += '<div class="insight-label">TRAJECTORY</div>';
-            html += '<div class="insight-text">' + this.formatText(trajectory) + '</div>';
-            html += '</div>';
-        }
-
-        // Open Questions
-        const openQs = (this.longitudinalDoc && this.longitudinalDoc.clinicalNarrative.openQuestions) || [];
-        if (openQs.length > 0) {
-            html += '<div class="insight-block">';
-            html += '<div class="insight-label">OPEN QUESTIONS</div>';
-            html += '<div class="insight-questions">';
-            openQs.forEach(q => {
-                html += `<div class="open-question">&#9679; ${this.escapeHtml(q)}</div>`;
-            });
-            html += '</div></div>';
-        }
-
-        // Doctor's dictation (if present)
-        if (this.state.dictation) {
-            html += '<div class="insight-block dictation-block">';
-            html += '<div class="insight-label">&#127897; YOUR THINKING</div>';
-            html += '<div class="insight-text dictation-text">' + this.formatText(this.state.dictation) + '</div>';
-            html += '</div>';
-        }
-
-        return html;
-    },
-
-    _renderConversationThread() {
-        let html = '<div class="conversation-thread">';
+        let html = '<div class="copilot-section conversation-section">';
+        html += '<div class="conversation-thread">';
         html += '<div class="thread-divider"><span>Conversation</span></div>';
 
         this.state.conversationThread.slice(-10).forEach(msg => {
@@ -1078,127 +1194,59 @@ const AICoworker = {
             html += '</div>';
         });
 
-        html += '</div>';
+        html += '</div></div>';
         return html;
     },
 
-    // renderClinicalReasoning removed — replaced by renderAIInsight()
-
     /**
-     * Render contextual nudge — navigation-reactive hints from local data (no LLM).
-     * Shows relevant data summary for the current chart section.
+     * Render suggested actions — 6 always-visible categories with specific LLM items.
      */
-    renderContextualNudge() {
-        const page = window.location.hash || '';
-        const section = this.getPageName(page) || 'Chart Review';
-        const doc = this.longitudinalDoc;
+    renderSuggestedActions() {
+        const actions = this.state.categorizedActions;
 
-        let nudgeContent = '';
+        const categories = [
+            { key: 'communication', icon: '&#128172;', label: 'Talk to patient/nurse', items: actions?.communication || [] },
+            { key: 'labs', icon: '&#128300;', label: 'Order labs', items: actions?.labs || [] },
+            { key: 'imaging', icon: '&#128247;', label: 'Order imaging', items: actions?.imaging || [] },
+            { key: 'medications', icon: '&#128138;', label: 'Medication orders', items: actions?.medications || [] },
+            { key: 'other', icon: '&#128203;', label: 'Other orders', items: actions?.other || [] },
+            { key: 'notes', icon: '&#128221;', label: 'Write a note', items: [] } // Static note options
+        ];
 
-        if (doc) {
-            switch (section) {
-                case 'Labs': {
-                    let abnormalCount = 0;
-                    let criticals = [];
-                    for (const [name, trend] of doc.longitudinalData.labs) {
-                        if (trend.latestValue) {
-                            if (trend.latestValue.flag === 'CRITICAL') {
-                                criticals.push(`${name}: ${trend.latestValue.value}`);
-                            }
-                            if (trend.latestValue.flag === 'HIGH' || trend.latestValue.flag === 'LOW' || trend.latestValue.flag === 'CRITICAL') {
-                                abnormalCount++;
-                            }
-                        }
-                    }
-                    if (criticals.length > 0) {
-                        nudgeContent = `<span class="nudge-icon">&#9888;</span> ${criticals.length} critical value${criticals.length !== 1 ? 's' : ''}: ${criticals.slice(0, 3).join(', ')}`;
-                    } else if (abnormalCount > 0) {
-                        nudgeContent = `<span class="nudge-icon">&#128300;</span> ${abnormalCount} abnormal lab${abnormalCount !== 1 ? 's' : ''} — review flagged values`;
-                    } else {
-                        nudgeContent = `<span class="nudge-icon">&#9989;</span> All labs within normal limits`;
-                    }
-                    break;
-                }
-                case 'Medications': {
-                    const meds = doc.longitudinalData.medications?.current || [];
-                    const highAlert = meds.filter(m => {
-                        const n = (m.name || '').toLowerCase();
-                        return n.includes('warfarin') || n.includes('heparin') || n.includes('insulin') || n.includes('digoxin') || n.includes('amiodarone') || n.includes('opioid') || n.includes('methotrexate');
-                    });
-                    nudgeContent = `<span class="nudge-icon">&#128138;</span> ${meds.length} active medication${meds.length !== 1 ? 's' : ''}`;
-                    if (highAlert.length > 0) {
-                        nudgeContent += ` &mdash; ${highAlert.length} high-alert: ${highAlert.map(m => m.name).join(', ')}`;
-                    }
-                    break;
-                }
-                case 'Notes': {
-                    const notes = doc.longitudinalData.notes || [];
-                    if (notes.length > 0) {
-                        const latest = notes[0];
-                        nudgeContent = `<span class="nudge-icon">&#128196;</span> ${notes.length} note${notes.length !== 1 ? 's' : ''} on file &mdash; latest: ${latest.type || 'Note'} (${latest.date || 'recent'})`;
-                    } else {
-                        nudgeContent = `<span class="nudge-icon">&#128196;</span> No notes on file`;
-                    }
-                    break;
-                }
-                case 'Problem List': {
-                    let active = 0, resolved = 0;
-                    for (const [, timeline] of doc.problemMatrix) {
-                        const prob = timeline.problem || timeline;
-                        if (prob.status === 'resolved') resolved++;
-                        else active++;
-                    }
-                    nudgeContent = `<span class="nudge-icon">&#9733;</span> ${active} active, ${resolved} resolved problem${active + resolved !== 1 ? 's' : ''}`;
-                    break;
-                }
-                case 'Vitals': {
-                    const vitals = doc.longitudinalData.vitals;
-                    if (vitals && vitals.length > 0) {
-                        const v = vitals[0];
-                        let concerns = [];
-                        if (v.heartRate && (v.heartRate > 100 || v.heartRate < 60)) concerns.push(`HR ${v.heartRate}`);
-                        if (v.systolic && v.systolic < 90) concerns.push(`SBP ${v.systolic}`);
-                        if (v.spO2 && v.spO2 < 94) concerns.push(`SpO2 ${v.spO2}%`);
-                        if (concerns.length > 0) {
-                            nudgeContent = `<span class="nudge-icon">&#9888;</span> Concerning: ${concerns.join(', ')}`;
-                        } else {
-                            nudgeContent = `<span class="nudge-icon">&#10084;</span> Latest vitals within normal range`;
-                        }
-                    } else {
-                        nudgeContent = `<span class="nudge-icon">&#10084;</span> No vitals recorded`;
-                    }
-                    break;
-                }
-                case 'Allergies': {
-                    const allergies = doc.patientSnapshot.allergies || [];
-                    const meds = doc.longitudinalData.medications?.current || [];
-                    nudgeContent = `<span class="nudge-icon">&#9888;</span> ${allergies.length} known allerg${allergies.length !== 1 ? 'ies' : 'y'}`;
-                    if (allergies.length > 0 && meds.length > 0) {
-                        nudgeContent += ' &mdash; cross-reference with active medications';
-                    }
-                    break;
-                }
-                default: {
-                    // Default: show suggested actions if any
-                    if (this.state.suggestedActions && this.state.suggestedActions.length > 0) {
-                        const actions = this.state.suggestedActions.slice(0, 3);
-                        nudgeContent = '<div class="nudge-actions">';
-                        actions.forEach((a, i) => {
-                            const text = typeof a === 'string' ? a : a.text;
-                            nudgeContent += `<div class="nudge-action-item" onclick="AICoworker.executeAction(${i})">&#8226; ${this.escapeHtml(text)}</div>`;
-                        });
-                        nudgeContent += '</div>';
-                    }
-                    break;
-                }
-            }
-        }
-
-        if (!nudgeContent) return '';
-
-        let html = '<div class="copilot-section nudge-section">';
-        html += `<div class="nudge-content">${nudgeContent}</div>`;
+        let html = '<div class="copilot-section actions-section">';
+        html += '<div class="copilot-section-header">';
+        html += '<span>&#9989;</span> Suggested Actions';
         html += '</div>';
+        html += '<div class="copilot-section-body">';
+
+        categories.forEach(cat => {
+            html += `<div class="action-category" data-category="${cat.key}">`;
+            html += `<div class="action-category-header">`;
+            html += `<span class="action-cat-icon">${cat.icon}</span>`;
+            html += `<span class="action-cat-label">${cat.label}</span>`;
+            html += `</div>`;
+
+            if (cat.key === 'notes') {
+                // Static note-writing buttons
+                html += '<div class="action-items">';
+                html += '<button class="action-note-btn" onclick="AICoworker.openNoteModal()">Progress Note</button>';
+                html += '<button class="action-note-btn" onclick="AICoworker.openNoteModal()">H&amp;P</button>';
+                html += '<button class="action-note-btn" onclick="AICoworker.openNoteModal()">Discharge Summary</button>';
+                html += '<button class="action-note-btn" onclick="AICoworker.openNoteModal()">Consult Note</button>';
+                html += '</div>';
+            } else if (cat.items.length > 0) {
+                html += '<div class="action-items">';
+                cat.items.forEach(item => {
+                    const text = typeof item === 'string' ? item : item.text || item;
+                    html += `<div class="action-item" onclick="AICoworker.askClaudeAbout('Help me: ${this.escapeHtml(text)}')">${this.escapeHtml(text)}</div>`;
+                });
+                html += '</div>';
+            }
+
+            html += `</div>`;
+        });
+
+        html += '</div></div>';
         return html;
     },
 
@@ -3327,6 +3375,17 @@ RULES:
                 this.state.aiOneLiner = result.oneLiner;
             }
 
+            // Update clinical summary, problem list, categorized actions
+            if (result.clinicalSummary) {
+                this.state.clinicalSummary = result.clinicalSummary;
+            }
+            if (result.problemList && Array.isArray(result.problemList)) {
+                this.state.problemList = result.problemList;
+            }
+            if (result.categorizedActions) {
+                this.state.categorizedActions = result.categorizedActions;
+            }
+
             // Push synthesis summary to conversation thread
             if (result.summary) {
                 this._pushToThread('ai', 'think', result.summary);
@@ -3453,6 +3512,17 @@ RULES:
             // Update one-liner
             if (result.oneLiner) {
                 this.state.aiOneLiner = result.oneLiner;
+            }
+
+            // Update clinical summary, problem list, categorized actions
+            if (result.clinicalSummary) {
+                this.state.clinicalSummary = result.clinicalSummary;
+            }
+            if (result.problemList && Array.isArray(result.problemList)) {
+                this.state.problemList = result.problemList;
+            }
+            if (result.categorizedActions) {
+                this.state.categorizedActions = result.categorizedActions;
             }
 
             // Regenerate agent tasks with new data

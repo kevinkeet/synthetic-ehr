@@ -5314,76 +5314,63 @@ html, body {
     background: rgba(255,255,255,0.5);
 }
 
-/* ---- PATIENT BRIEF ---- */
-.copilot-brief {
+/* ---- CLINICAL SUMMARY (3 sentences) ---- */
+.clinical-summary {
     padding: 10px 12px;
     background: linear-gradient(135deg, #f0f9ff 0%, #f8fafc 100%);
     border-bottom: 1px solid var(--border-light);
 }
 
-.brief-header {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    margin-bottom: 4px;
+.clinical-summary-header {
+    margin-bottom: 6px;
 }
 
-.brief-patient {
+.summary-patient-name {
     font-size: 13px;
     font-weight: 700;
     color: var(--primary-dark);
 }
 
-.brief-summary {
+.summary-sentence {
     font-size: 11px;
-    color: var(--text-secondary);
-    line-height: 1.4;
-    margin-bottom: 6px;
-}
-
-.brief-summary strong {
     color: var(--text-primary);
+    line-height: 1.45;
+    padding: 2px 0;
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
 }
 
-.brief-placeholder {
+.summary-sentence strong {
+    color: var(--primary-dark);
+}
+
+.summary-placeholder {
     color: var(--text-muted);
     font-style: italic;
 }
 
-.brief-problems {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    margin-bottom: 4px;
-}
-
-.problem-chip {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 10px;
-    font-weight: 500;
-    background: #e0f2fe;
-    color: #0369a1;
-    border: 1px solid #bae6fd;
-    white-space: nowrap;
-}
-
-.problem-more {
-    background: #f1f5f9;
+.sentence-label {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
     color: var(--text-muted);
-    border-color: var(--border-light);
+    flex-shrink: 0;
+    min-width: 60px;
 }
 
-.brief-allergy {
+.summary-allergies {
     font-size: 10px;
     color: #b91c1c;
     font-weight: 500;
-    margin-top: 2px;
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px solid rgba(0,0,0,0.06);
 }
 
-/* ---- AI INSIGHT SECTION ---- */
-.insight-section {
+/* ---- PROBLEM LIST SECTION ---- */
+.problem-list-section {
     padding-bottom: 4px;
 }
 
@@ -5396,118 +5383,190 @@ html, body {
     font-size: 12px;
 }
 
-/* Analyze prompt (no-memory state) */
-.analyze-prompt {
-    text-align: center;
-    padding: 16px 0;
-}
-
-.analyze-stats {
+.problem-empty {
     font-size: 12px;
-    color: var(--text-secondary);
-    margin-bottom: 12px;
-    line-height: 1.4;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 10px 0;
+    text-align: center;
 }
 
-.analyze-btn {
+.problem-item {
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+
+.problem-item:last-child {
+    border-bottom: none;
+}
+
+.problem-name-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.problem-number {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    width: 16px;
+    flex-shrink: 0;
+}
+
+.problem-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    flex: 1;
+}
+
+.problem-urgency {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+}
+
+.urgency-urgent {
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+.urgency-active {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.urgency-monitoring {
+    background: #f0fdf4;
+    color: #166534;
+}
+
+.problem-ddx {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-style: italic;
+    padding-left: 21px;
+    margin-top: 2px;
+    line-height: 1.35;
+}
+
+.problem-plan {
+    font-size: 11px;
+    color: var(--text-primary);
+    padding-left: 21px;
+    margin-top: 2px;
+    line-height: 1.35;
+}
+
+.problem-analyze-hint {
+    text-align: center;
+    padding: 8px 0 4px;
+}
+
+.analyze-btn-sm {
     background: var(--primary);
     color: white;
     border: none;
-    padding: 8px 20px;
-    border-radius: 6px;
-    font-size: 13px;
+    padding: 5px 14px;
+    border-radius: 5px;
+    font-size: 11px;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.15s ease;
 }
 
-.analyze-btn:hover {
+.analyze-btn-sm:hover {
     background: var(--primary-dark);
 }
 
-.analyze-hint {
-    font-size: 11px;
-    color: var(--text-muted);
-    margin-top: 8px;
+/* ---- SUGGESTED ACTIONS SECTION ---- */
+.actions-section .copilot-section-body {
+    padding: 4px 0;
 }
 
-/* Insight content blocks */
-.insight-block {
-    margin-bottom: 10px;
+.action-category {
+    padding: 4px 12px;
 }
 
-.insight-label {
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-muted);
-    margin-bottom: 3px;
+.action-category + .action-category {
+    border-top: 1px solid rgba(0,0,0,0.04);
 }
 
-.insight-text {
+.action-category-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 0;
+}
+
+.action-cat-icon {
     font-size: 12px;
-    line-height: 1.5;
-    color: var(--text-primary);
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
 }
 
-.insight-text strong {
-    color: var(--primary-dark);
-}
-
-.insight-considerations {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.consideration {
+.action-cat-label {
     font-size: 11px;
-    line-height: 1.3;
-    padding: 3px 6px;
-    border-radius: 4px;
-}
-
-.consideration-critical {
-    background: #fef2f2;
-    color: #991b1b;
-    font-weight: 500;
-}
-
-.consideration-important {
-    background: #fffbeb;
-    color: #92400e;
-}
-
-.insight-questions {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-
-.open-question {
-    font-size: 11px;
+    font-weight: 600;
     color: var(--text-secondary);
-    line-height: 1.3;
-    padding-left: 4px;
 }
 
-.dictation-block {
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
-    border-radius: 6px;
-    padding: 8px;
+.action-items {
+    padding-left: 24px;
+    padding-bottom: 2px;
 }
 
-.dictation-text {
-    font-style: italic;
+.action-item {
+    font-size: 11px;
+    color: var(--text-primary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.1s;
+    line-height: 1.4;
+}
+
+.action-item:hover {
+    background: rgba(37, 99, 235, 0.06);
+    color: var(--primary);
+}
+
+.action-item::before {
+    content: '• ';
+    color: var(--text-muted);
+}
+
+.action-note-btn {
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border-light);
+    background: white;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    margin: 2px 3px 2px 0;
+}
+
+.action-note-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
 }
 
 /* ---- CONVERSATION THREAD ---- */
-.conversation-thread {
+.conversation-section {
     border-top: 1px solid var(--border-light);
-    margin-top: 8px;
-    padding-top: 8px;
+}
+
+.conversation-thread {
+    padding: 8px 12px;
 }
 
 .thread-divider {
@@ -5557,47 +5616,6 @@ html, body {
 
 .thread-msg-text strong {
     color: var(--primary-dark);
-}
-
-/* ---- CONTEXTUAL NUDGE ---- */
-.nudge-section {
-    padding: 6px 12px;
-    background: #fefce8;
-    border-bottom: 1px solid #fde68a;
-}
-
-.nudge-content {
-    font-size: 11px;
-    color: #713f12;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    line-height: 1.4;
-}
-
-.nudge-icon {
-    font-size: 13px;
-    flex-shrink: 0;
-}
-
-.nudge-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    width: 100%;
-}
-
-.nudge-action-item {
-    font-size: 11px;
-    color: #713f12;
-    cursor: pointer;
-    padding: 2px 4px;
-    border-radius: 3px;
-    transition: background 0.1s;
-}
-
-.nudge-action-item:hover {
-    background: rgba(0,0,0,0.05);
 }
 
 /* ---- AI LIVE STATUS LINE ---- */

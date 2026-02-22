@@ -70,6 +70,21 @@ IMPORTANT: The doctor drives decision-making. You support by organizing informat
 Respond in this exact JSON format:
 {
     "oneLiner": "A single clinical sentence (~15 words) capturing the current gestalt — what a senior resident would say in 3 seconds at handoff",
+    "clinicalSummary": {
+        "demographics": "One sentence: age, sex, and key past medical history (list top 4-5 diagnoses)",
+        "functional": "One sentence: baseline functional status, living situation, social support, occupation",
+        "presentation": "One sentence: chief complaint and key findings (pertinent exam, labs, imaging)"
+    },
+    "problemList": [
+        {"name": "Most urgent problem first", "urgency": "urgent|active|monitoring", "ddx": "One sentence differential diagnosis if clinically relevant, or null", "plan": "1-2 sentence plan"}
+    ],
+    "categorizedActions": {
+        "communication": ["Talk to patient/nurse actions — e.g. Ask about dietary K intake, Verify med compliance"],
+        "labs": ["Lab orders — e.g. Repeat BMP in AM, Check Mg and Phos"],
+        "imaging": ["Imaging orders — e.g. CXR to assess volume, or empty array if none needed"],
+        "medications": ["Medication changes — e.g. Hold spironolactone, Increase furosemide"],
+        "other": ["Other orders — e.g. Cardiology consult, Telemetry monitoring"]
+    },
     "summary": "1-2 sentence case summary with **bold** for key diagnoses and decisions",
     "keyConsiderations": [
         {"text": "Safety concern or important clinical factor", "severity": "critical|important|info"}
@@ -85,10 +100,14 @@ Respond in this exact JSON format:
 }
 
 RULES:
+- clinicalSummary.demographics: List top 4-5 diagnoses by clinical significance, use abbreviations (HFrEF, T2DM, AFib, CKD3b, HTN)
+- clinicalSummary.functional: Pull from social history — mention living situation, who patient lives with, mobility/activity level
+- clinicalSummary.presentation: Focus on chief complaint plus the 3-5 most pertinent findings across exam, labs, and imaging
+- problemList: 3-5 problems MAX, most urgent first. Include DDx only when differential is clinically meaningful
+- categorizedActions: Be specific and actionable. Empty array is fine for categories with no actions needed
 - suggestedActions should ALIGN with the doctor's stated plan, not contradict it
 - If doctor says "no anticoagulation", don't suggest anticoagulation
 - Always consider safety flags when making suggestions
-- Keep suggestions actionable and specific, maximum 5
 - trajectoryAssessment should BUILD ON any existing trajectory (don't lose prior context, refine it)
 - keyFindings should be durable insights, not transient observations
 - openQuestions are things that still need to be resolved
@@ -102,7 +121,7 @@ ${context}
 
 Based on the doctor's thoughts and the clinical context above, provide an updated synthesis. Update the trajectory assessment, key findings, open questions, AND your patient summary based on this new information.`;
 
-        return { systemPrompt, userMessage, maxTokens: 1500 };
+        return { systemPrompt, userMessage, maxTokens: 2500 };
     }
 
     /**
@@ -121,6 +140,21 @@ This is a FULL REFRESH — analyze everything comprehensively. If you have exist
 Respond in this exact JSON format:
 {
     "oneLiner": "A single clinical sentence (~15 words) capturing the current gestalt — what a senior resident would say in 3 seconds at handoff",
+    "clinicalSummary": {
+        "demographics": "One sentence: age, sex, and key past medical history (list top 4-5 diagnoses)",
+        "functional": "One sentence: baseline functional status, living situation, social support, occupation",
+        "presentation": "One sentence: chief complaint and key findings (pertinent exam, labs, imaging)"
+    },
+    "problemList": [
+        {"name": "Most urgent problem first", "urgency": "urgent|active|monitoring", "ddx": "One sentence differential diagnosis if clinically relevant, or null", "plan": "1-2 sentence plan"}
+    ],
+    "categorizedActions": {
+        "communication": ["Talk to patient/nurse actions"],
+        "labs": ["Lab orders"],
+        "imaging": ["Imaging orders or empty array"],
+        "medications": ["Medication changes"],
+        "other": ["Other orders"]
+    },
     "summary": "1-2 sentence case summary with **bold** for key diagnoses",
     "keyConsiderations": [
         {"text": "Safety concern or important clinical factor", "severity": "critical|important|info"}
@@ -142,6 +176,11 @@ Prioritize:
 4. Things that haven't been addressed yet
 
 RULES:
+- clinicalSummary.demographics: List top 4-5 diagnoses by clinical significance, use abbreviations
+- clinicalSummary.functional: Pull from social history — living situation, support system, mobility
+- clinicalSummary.presentation: Chief complaint + 3-5 most pertinent findings
+- problemList: 3-5 problems MAX, most urgent first. DDx only when differential is meaningful
+- categorizedActions: Specific and actionable. Empty array fine for categories with nothing needed
 - keyConsiderations should include allergies, contraindications, drug interactions, and clinical concerns
 - Use severity "critical" for life-threatening concerns, "important" for significant issues, "info" for context
 - trajectoryAssessment should be comprehensive — describe how each problem is trending
@@ -156,7 +195,7 @@ ${dictation ? `## Doctor's Current Assessment\n"${dictation}"` : '## No doctor a
 
 Provide a comprehensive case synthesis. Build a trajectory assessment covering all active problems. Write a thorough patient summary for your persistent memory.`;
 
-        return { systemPrompt, userMessage, maxTokens: 2048 };
+        return { systemPrompt, userMessage, maxTokens: 3000 };
     }
 
     /**
