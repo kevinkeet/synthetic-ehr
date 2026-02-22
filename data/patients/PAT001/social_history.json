@@ -29,7 +29,99 @@
   "livingSituation": "Lives at home with wife Patricia in single-story house. No stairs. Daughter lives nearby and visits weekly.",
   "exercise": "Limited due to heart failure. Walks around the block daily when feeling well. No formal exercise program.",
   "diet": "Following low-sodium diet (<2g/day) as instructed for heart failure. Wife prepares most meals. Diabetic diet with carbohydrate counting.",
-  "notes": "Retired with good family support. Wife is primary caregiver and manages medications. Patient is adherent to medical recommendations. Has advance directives on file.",
+
+  "functionalStatus": {
+    "summary": "Functionally limited at baseline due to HFrEF and diabetic neuropathy. Can perform most ADLs independently but requires assistance with some IADLs. Uses no assistive devices currently but walks slowly. Gets winded climbing more than 5-6 steps or walking more than 1 block. Sleeps in recliner most nights due to orthopnea.",
+    "baselineActivityLevel": "Sedentary to light activity. Able to do light housework, prepare simple meals. Cannot do yard work, grocery shopping, or prolonged standing without significant dyspnea and fatigue.",
+    "nyhaClass": "II-III (at baseline, worse with exacerbation)",
+    "sixMinuteWalk": "Not formally tested. Estimated <200 meters based on functional description.",
+    "adls": {
+      "bathing": "Independent but uses shower chair for safety due to dyspnea and neuropathy-related balance issues",
+      "dressing": "Independent. Wife helps with compression stockings when wearing them",
+      "toileting": "Independent",
+      "transferring": "Independent but slow. Uses armrests to push up from seated",
+      "continence": "Continent of bowel and bladder. Nocturia x3-4 (furosemide related)",
+      "feeding": "Independent"
+    },
+    "iadls": {
+      "managingMedications": "Wife Patricia manages medication schedule, fills pill organizer weekly. Patient cannot reliably manage on his own — missed refilling furosemide when wife was away visiting daughter",
+      "managingFinances": "Handles own finances (former accountant). Online banking.",
+      "shopping": "Cannot do independently — too much walking/standing. Wife or daughter shops for him",
+      "cooking": "Can prepare simple meals (sandwich, microwave). Wife does all significant cooking",
+      "housework": "Light housework only (wipe counters, load dishwasher). Cannot vacuum, mop, or do laundry",
+      "transportation": "Drives short distances (<10 miles) during daytime only. Wife drives for longer trips or appointments",
+      "telephone": "Independent. Uses smartphone with large text"
+    },
+    "mobilityAids": "None currently. Declines use of walker. Physical therapy recommended cane for fall prevention but patient refuses — 'I'm not that old yet'",
+    "fallRisk": "Moderate. Neuropathy with decreased sensation bilateral feet, balance impairment, nocturia, polypharmacy. No falls in past 6 months but wife reports 'a few close calls'",
+    "fallHistory": "1 fall 8 months ago (tripped on rug at night going to bathroom). No injury. Rugs removed from home after."
+  },
+
+  "chronicPain": {
+    "present": true,
+    "conditions": [
+      {
+        "location": "Bilateral feet",
+        "type": "Neuropathic — burning, tingling, numbness",
+        "severity": "4-6/10 at baseline",
+        "aggravators": "Prolonged standing, walking, cold weather, nighttime",
+        "alleviators": "Gabapentin, elevation, warm socks",
+        "currentTreatment": "Gabapentin 300mg TID",
+        "impact": "Limits walking distance and standing tolerance. Sleep disruption 2-3 nights/week despite gabapentin."
+      },
+      {
+        "location": "Bilateral lower extremities",
+        "type": "Heaviness/aching from chronic edema",
+        "severity": "2-4/10 when volume overloaded",
+        "aggravators": "Prolonged sitting/standing, salt intake, missed furosemide doses",
+        "alleviators": "Leg elevation, diuresis, compression stockings (wears inconsistently)",
+        "currentTreatment": "Furosemide 40mg daily (when taking it), leg elevation",
+        "impact": "Uncomfortable. Shoes don't fit when edema is bad."
+      }
+    ]
+  },
+
+  "usualStateOfHealth": {
+    "summary": "At baseline (when adherent to medications and not in acute exacerbation): NYHA Class II-III heart failure symptoms. Can walk 1 block and do light ADLs before getting dyspneic. Sleeps in recliner most nights. Bilateral foot pain from neuropathy managed with gabapentin. Chronic bilateral LE edema, typically 1-2+ pitting. Weight ~94 kg (dry weight). Creatinine runs 1.8-2.2. A1c 7.2-8.8%. Lives with wife who manages medications and most IADLs. Alert and oriented, good historian when directly asked, but tends to minimize symptoms and is a vague reporter unless pressed with specific questions.",
+    "baselineVitals": {
+      "bloodPressure": "130-140/80-85",
+      "heartRate": "72-82 (rate-controlled A-fib)",
+      "respiratoryRate": "16-18",
+      "oxygenSaturation": "94-96% on room air",
+      "weight": "94 kg (dry weight)"
+    },
+    "baselineLabs": {
+      "creatinine": "1.8-2.2",
+      "eGFR": "35-42",
+      "potassium": "4.2-4.8",
+      "sodium": "136-140",
+      "bnp": "400-600 (chronically elevated)",
+      "hemoglobin": "11-12 (anemia of CKD)",
+      "hbA1c": "7.2-8.8%",
+      "inr": "1.0-1.1 (not on anticoagulation)"
+    },
+    "lastEchocardiogram": {
+      "date": "2024-01-05",
+      "ejectionFraction": "35%",
+      "findings": "Severe LV systolic dysfunction, EF 35%. Moderate mitral regurgitation. Grade II diastolic dysfunction. Mildly dilated LV. No pericardial effusion.",
+      "priorEF": "40% (2021-03-15)"
+    },
+    "lastCardiology": {
+      "date": "2024-01-12",
+      "provider": "Dr. James Wilson",
+      "notes": "EF stable at 35% on GDMT. Continue current regimen. Consider SGLT2 inhibitor if renal function stable."
+    }
+  },
+
+  "socialSupport": {
+    "primaryCaregiver": "Wife Patricia, 69. In good health but has mild arthritis. Manages all medications, appointments, and most household tasks. Caregiver burden appears moderate.",
+    "family": "Daughter Amy lives 15 minutes away, visits weekly, helps with grocery shopping and heavier tasks. Son lives out of state, calls weekly.",
+    "community": "Member of local church. Has not been attending regularly due to fatigue/SOB. Former Rotary member.",
+    "mentalHealth": "No formal psychiatric diagnosis. Wife reports he has been 'down' and less interested in activities over the past 6 months as his health has declined. Denies suicidal ideation. Screens negative on PHQ-2 but wife and PCP suspect mild depression related to functional decline. Has not been referred for formal evaluation yet.",
+    "spirituality": "Christian faith. Important coping mechanism. Wants pastoral care if hospitalized."
+  },
+
+  "notes": "Retired with good family support. Wife is primary caregiver and manages medications. Patient is generally adherent to medical recommendations when wife oversees, but unreliable independently — evidenced by missed furosemide refill during wife's absence. Has advance directives on file. Brother died during a hospitalization which causes significant health-related anxiety.",
   "lastUpdated": "2024-01-10",
   "updatedBy": "Dr. Sarah Chen"
 }

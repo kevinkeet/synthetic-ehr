@@ -21,6 +21,52 @@
 
   "startTime": "2022-08-15T14:00:00.000Z",
 
+  "clinicalContext": {
+    "oneLiner": "72M with HFrEF (EF 35%), persistent A-fib NOT on anticoagulation (held after major GI bleed 9/2023), T2DM on insulin and metformin, CKD Stage 3b (baseline Cr 1.8-2.2), presenting with progressive dyspnea, orthopnea, and lower extremity edema after running out of furosemide ~5-7 days ago.",
+    "hpiDetails": {
+      "chiefComplaint": "Shortness of breath, progressive over 1 week",
+      "hpiNarrative": "Robert Morrison is a 72-year-old male with HFrEF (EF 35% on last echo, NYHA Class II-III at baseline), persistent atrial fibrillation on rate control only (anticoagulation stopped after major upper GI bleed in 9/2023 — GI recommended against restarting), T2DM on basal-bolus insulin and metformin (A1c 7.2-8.8%), CKD Stage 3b (baseline Cr 1.8-2.2, eGFR 35-42), hypertension, and diabetic peripheral neuropathy, who presents with 1 week of progressive dyspnea on exertion, orthopnea (sleeping in recliner), and bilateral lower extremity edema after running out of his furosemide approximately 5-7 days ago. Wife Patricia brought him in. He is a poor historian who minimizes symptoms.",
+      "activeProblems": [
+        "HFrEF — EF 35% on last echo, on carvedilol, Entresto, spironolactone, furosemide (ran out). NYHA II-III at baseline.",
+        "Persistent A-fib — rate-controlled with carvedilol. NOT on anticoagulation. CHA2DS2-VASc = 5. Warfarin stopped 9/2023 after major upper GI bleed. GI and cardiology agreed: no anticoagulation given high rebleed risk. On ASA 81mg only.",
+        "T2DM — on metformin 500 BID, Lantus 24u QHS, Humalog sliding scale. A1c 7.2-8.8%. Has diabetic nephropathy and neuropathy.",
+        "CKD Stage 3b — baseline Cr 1.8-2.2, eGFR 35-42. Likely diabetic nephropathy. Followed by nephrology.",
+        "HTN — on multiple agents (carvedilol, Entresto). Goal <130/80.",
+        "Resolved: Upper GI bleed 9/2023 — large gastric ulcer with visible vessel, ICU stay, 4u pRBC, H. pylori treated. On pantoprazole 40mg daily. This is the KEY reason anticoagulation is contraindicated.",
+        "Diabetic peripheral neuropathy — bilateral feet, burning/tingling, on gabapentin 300 TID.",
+        "Hyperlipidemia — atorvastatin 80mg."
+      ],
+      "keyMedications": [
+        "Carvedilol 25mg BID (HF + rate control)",
+        "Entresto 97/103mg BID (HF)",
+        "Furosemide 40mg daily (HF/edema) — RAN OUT ~5-7 days ago, precipitating this admission",
+        "Spironolactone 25mg daily (HF)",
+        "Metformin 500mg BID (T2DM)",
+        "Lantus 24u QHS + Humalog sliding scale (T2DM)",
+        "Aspirin 81mg daily (stroke risk reduction — replaces anticoagulation)",
+        "Pantoprazole 40mg daily (GI protection after GI bleed)",
+        "Gabapentin 300mg TID (neuropathy)",
+        "Atorvastatin 80mg QHS",
+        "Tamsulosin 0.4mg daily (BPH)",
+        "Vitamin D3 2000 IU daily"
+      ],
+      "allergies": [
+        "Penicillin — ANAPHYLAXIS",
+        "Sulfa drugs — rash",
+        "Lisinopril — angioedema",
+        "Shellfish"
+      ]
+    },
+    "functionalBaseline": {
+      "summary": "Functionally limited at baseline. NYHA Class II-III. Can walk ~1 block and perform light ADLs before becoming dyspneic. Sleeps in recliner most nights (orthopnea). Uses shower chair. Wife manages medications and most IADLs. Cannot shop, vacuum, or do laundry independently. Drives short distances only. Moderate fall risk (neuropathy, nocturia, polypharmacy). Chronic neuropathic pain bilateral feet (4-6/10) managed with gabapentin. Chronic LE edema at baseline (1-2+ pitting). Dry weight ~94kg.",
+      "adlStatus": "Independent in basic ADLs (bathing with shower chair, dressing, toileting, transfers, feeding). Needs help with compression stockings.",
+      "iadlStatus": "Dependent on wife for medication management, shopping, cooking, housework, and most transportation. Independent in finances and phone use.",
+      "cognitiveStatus": "Alert, oriented. Good historian when pressed with specific questions but tends to minimize and give vague answers. Former accountant — intact cognition.",
+      "psychosocial": "Retired accountant. Lives with wife Patricia in single-story home. Daughter nearby. Brother died in hospital — causes health anxiety. Possibly mildly depressed (functional decline). Christian faith important for coping."
+    },
+    "hiddenPitfall": "The critical teaching moment: patient has high stroke risk from A-fib (CHA2DS2-VASc = 5) and the nurse will suggest starting heparin when rapid A-fib develops. However, anticoagulation is CONTRAINDICATED due to major GI bleed just 5 months ago. The learner must recognize this contraindication by reviewing the chart or asking the right questions. The GI bleed history is buried — the patient won't volunteer it and the nurse doesn't know about it."
+  },
+
   "initialState": {
     "demographics": {
       "age": 72,

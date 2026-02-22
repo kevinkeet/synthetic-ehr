@@ -79,6 +79,93 @@ Code Status: ${doc.patientSnapshot.codeStatus || 'Full Code'}`;
             header += `\nAdvance Directives: Living Will on file`;
         }
 
+        // Social / Functional Baseline
+        const social = doc.patientSnapshot.socialHistory;
+        if (social) {
+            header += '\n\n### SOCIAL & FUNCTIONAL BASELINE:';
+
+            // Functional status
+            if (social.functionalStatus) {
+                const fs = social.functionalStatus;
+                if (fs.summary) {
+                    header += `\nFunctional Status: ${fs.summary}`;
+                }
+                if (fs.nyhaClass) {
+                    header += `\nNYHA Class: ${fs.nyhaClass}`;
+                }
+                if (fs.fallRisk) {
+                    header += `\nFall Risk: ${fs.fallRisk}`;
+                }
+                if (fs.mobilityAids) {
+                    header += `\nMobility Aids: ${fs.mobilityAids}`;
+                }
+                // ADLs summary
+                if (fs.adls) {
+                    const adlItems = Object.entries(fs.adls)
+                        .filter(([k, v]) => v && !v.toLowerCase().startsWith('independent'))
+                        .map(([k, v]) => `${k}: ${v}`);
+                    if (adlItems.length > 0) {
+                        header += `\nADL Notes: ${adlItems.join('; ')}`;
+                    }
+                }
+                // IADLs summary
+                if (fs.iadls) {
+                    const iadlItems = Object.entries(fs.iadls)
+                        .map(([k, v]) => `${k}: ${v}`);
+                    if (iadlItems.length > 0) {
+                        header += `\nIADL Status: ${iadlItems.join('; ')}`;
+                    }
+                }
+            }
+
+            // Chronic pain
+            if (social.chronicPain && social.chronicPain.present) {
+                const painItems = (social.chronicPain.conditions || [])
+                    .map(c => `${c.location}: ${c.type} (${c.severity}), tx: ${c.currentTreatment}`)
+                    .join('; ');
+                if (painItems) {
+                    header += `\nChronic Pain: ${painItems}`;
+                }
+            }
+
+            // Usual state of health
+            if (social.usualStateOfHealth) {
+                const ush = social.usualStateOfHealth;
+                if (ush.summary) {
+                    header += `\nUsual State of Health: ${ush.summary}`;
+                }
+                if (ush.baselineVitals) {
+                    const bv = ush.baselineVitals;
+                    header += `\nBaseline Vitals: BP ${bv.bloodPressure || '?'}, HR ${bv.heartRate || '?'}, SpO2 ${bv.oxygenSaturation || '?'}, Wt ${bv.weight || '?'}`;
+                }
+                if (ush.baselineLabs) {
+                    const bl = ush.baselineLabs;
+                    const labStr = Object.entries(bl).map(([k, v]) => `${k}: ${v}`).join(', ');
+                    header += `\nBaseline Labs: ${labStr}`;
+                }
+                if (ush.lastEchocardiogram) {
+                    const echo = ush.lastEchocardiogram;
+                    header += `\nLast Echo (${echo.date || '?'}): EF ${echo.ejectionFraction || '?'}. ${echo.findings || ''}`;
+                    if (echo.priorEF) header += ` Prior EF: ${echo.priorEF}`;
+                }
+            }
+
+            // Social support
+            if (social.socialSupport) {
+                const ss = social.socialSupport;
+                if (ss.primaryCaregiver) header += `\nPrimary Caregiver: ${ss.primaryCaregiver}`;
+                if (ss.mentalHealth) header += `\nMental Health: ${ss.mentalHealth}`;
+            }
+
+            // Living situation (fallback for simpler data)
+            if (!social.functionalStatus && social.livingSituation) {
+                header += `\nLiving Situation: ${social.livingSituation}`;
+            }
+            if (social.occupation) {
+                header += `\nOccupation: ${social.occupation.current || social.occupation.previous || 'Unknown'}`;
+            }
+        }
+
         return header;
     }
 

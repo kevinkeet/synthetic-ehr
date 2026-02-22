@@ -71,9 +71,9 @@ Respond in this exact JSON format:
 {
     "oneLiner": "A single clinical sentence (~15 words) capturing the current gestalt — what a senior resident would say in 3 seconds at handoff",
     "clinicalSummary": {
-        "demographics": "One sentence: age, sex, and key PMH using standard clinical abbreviations (e.g. HFrEF, T2DM, AFib, CKD3b, HTN, HLD, COPD, CAD)",
-        "functional": "One sentence: baseline functional status, living situation, social support, occupation",
-        "presentation": "One sentence: chief complaint, significant positive exam findings, pertinent negatives, and key abnormal labs/imaging"
+        "demographics": "One sentence HPI-style: age, sex, key PMH with SPECIFIC clinical qualifiers. E.g. 'HFrEF (EF 35%)', 'T2DM on basal-bolus insulin', 'persistent AFib not on anticoagulation (s/p GI bleed)', 'CKD3b (baseline Cr 1.8-2.2)'",
+        "functional": "One sentence: baseline functional status (NYHA class, ADL/IADL dependence, mobility aids, chronic pain, who manages meds/IADLs), living situation, key psychosocial factors",
+        "presentation": "One sentence: chief complaint with timeline, significant positive exam findings, pertinent negatives, and key abnormal labs/imaging with actual values"
     },
     "problemList": [
         {"name": "Most urgent problem first", "urgency": "urgent|active|monitoring", "ddx": "One sentence differential diagnosis if clinically relevant, or null", "plan": "1-2 sentence plan"}
@@ -109,9 +109,27 @@ Respond in this exact JSON format:
 }
 
 RULES:
-- clinicalSummary.demographics: Use format "72M w/ HFrEF, T2DM, AFib, CKD3b, HTN". Use standard clinical abbreviations. List top 4-5 diagnoses by significance
-- clinicalSummary.functional: Pull from social history — mention living situation, who patient lives with, mobility/activity level
-- clinicalSummary.presentation: Include chief complaint, significant POSITIVE exam findings (edema, irregular rhythm, JVD, crackles, etc.), pertinent NEGATIVES (no murmur, lungs clear, JVP not elevated, etc.), and key abnormal lab values with arrows
+- clinicalSummary.demographics: Write like a REAL HPI opening line. Include SPECIFIC clinical qualifiers for each diagnosis:
+  * Heart failure: include EF% and NYHA class (e.g. "HFrEF (EF 35%, NYHA III)")
+  * Diabetes: include treatment regimen (e.g. "T2DM on basal-bolus insulin" or "T2DM diet-controlled")
+  * A-fib: include anticoagulation status and WHY (e.g. "persistent AFib not on anticoagulation s/p major GI bleed" or "AFib on apixaban")
+  * CKD: include baseline Cr/eGFR (e.g. "CKD3b (baseline Cr 1.8)")
+  * Any condition where treatment status or severity matters: include it
+  * Format example: "72M w/ HFrEF (EF 35%), T2DM on insulin, persistent AFib not on anticoagulation (s/p GI bleed 9/2023), CKD3b (Cr 1.8-2.2)"
+- clinicalSummary.functional: This is the SOCIAL/FUNCTIONAL snapshot. Include:
+  * Functional class or baseline activity level (e.g. "NYHA class II-III at baseline")
+  * ADL/IADL status — who does what (e.g. "independent in ADLs, wife manages meds and IADLs")
+  * Chronic pain or symptoms at baseline (e.g. "chronic neuropathic foot pain on gabapentin")
+  * Living situation and caregiver (e.g. "lives with wife Patricia who is primary caregiver")
+  * Any mobility aids, fall risk, or cognitive concerns
+  * Key psychosocial factors (e.g. "brother died in hospital — health anxiety", "possible depression")
+  * Format example: "NYHA II-III at baseline, independent in ADLs (uses shower chair), wife manages meds/IADLs, chronic neuropathic foot pain (gabapentin), moderate fall risk, lives with wife Patricia"
+- clinicalSummary.presentation: Write like a REAL presentation line. Include:
+  * Chief complaint with timeline (e.g. "presenting with 1 week progressive dyspnea")
+  * Precipitant if known (e.g. "after running out of furosemide 5-7 days ago")
+  * Significant POSITIVE exam findings with specifics (e.g. "JVP elevated to angle of jaw, bibasilar crackles 1/3 up, 3+ pitting edema bilateral LE, S3 gallop")
+  * Pertinent NEGATIVES (e.g. "afebrile, no chest pain")
+  * Key abnormal lab values with actual numbers (e.g. "BNP 1850, Cr 2.4 (above baseline 1.8), K 5.1")
 - problemList: 3-5 problems MAX, most urgent first. Include DDx only when differential is clinically meaningful
 - categorizedActions: Be specific and actionable. Empty array is fine for categories with no actions needed
 - suggestedActions should ALIGN with the doctor's stated plan, not contradict it
@@ -156,9 +174,9 @@ Respond in this exact JSON format:
 {
     "oneLiner": "A single clinical sentence (~15 words) capturing the current gestalt — what a senior resident would say in 3 seconds at handoff",
     "clinicalSummary": {
-        "demographics": "One sentence: age, sex, and key PMH using standard clinical abbreviations (e.g. HFrEF, T2DM, AFib, CKD3b, HTN, HLD, COPD, CAD)",
-        "functional": "One sentence: baseline functional status, living situation, social support, occupation",
-        "presentation": "One sentence: chief complaint, significant positive exam findings, pertinent negatives, and key abnormal labs/imaging"
+        "demographics": "One sentence HPI-style: age, sex, key PMH with SPECIFIC clinical qualifiers. E.g. 'HFrEF (EF 35%)', 'T2DM on basal-bolus insulin', 'persistent AFib not on anticoagulation (s/p GI bleed)', 'CKD3b (baseline Cr 1.8-2.2)'",
+        "functional": "One sentence: baseline functional status (NYHA class, ADL/IADL dependence, chronic pain, who manages meds), living situation, key psychosocial factors",
+        "presentation": "One sentence: chief complaint with timeline, significant positive exam findings, pertinent negatives, and key abnormal labs/imaging with actual values"
     },
     "problemList": [
         {"name": "Most urgent problem first", "urgency": "urgent|active|monitoring", "ddx": "One sentence differential diagnosis if clinically relevant, or null", "plan": "1-2 sentence plan"}
@@ -200,9 +218,27 @@ Prioritize:
 4. Things that haven't been addressed yet
 
 RULES:
-- clinicalSummary.demographics: Use format "72M w/ HFrEF, T2DM, AFib, CKD3b, HTN". Use standard clinical abbreviations. List top 4-5 diagnoses by significance
-- clinicalSummary.functional: Pull from social history — living situation, support system, mobility
-- clinicalSummary.presentation: Include chief complaint, significant POSITIVE exam findings, pertinent NEGATIVES, and key abnormal lab values with arrows
+- clinicalSummary.demographics: Write like a REAL HPI opening line. Include SPECIFIC clinical qualifiers for each diagnosis:
+  * Heart failure: include EF% and NYHA class (e.g. "HFrEF (EF 35%, NYHA III)")
+  * Diabetes: include treatment regimen (e.g. "T2DM on basal-bolus insulin" or "T2DM diet-controlled")
+  * A-fib: include anticoagulation status and WHY (e.g. "persistent AFib not on anticoagulation s/p major GI bleed")
+  * CKD: include baseline Cr/eGFR (e.g. "CKD3b (baseline Cr 1.8)")
+  * Any condition where treatment status or severity matters: include it
+  * Format example: "72M w/ HFrEF (EF 35%), T2DM on insulin, persistent AFib not on anticoagulation (s/p GI bleed 9/2023), CKD3b (Cr 1.8-2.2)"
+- clinicalSummary.functional: This is the SOCIAL/FUNCTIONAL snapshot. Include:
+  * Functional class or baseline activity level (e.g. "NYHA class II-III at baseline")
+  * ADL/IADL status — who does what (e.g. "independent in ADLs, wife manages meds and IADLs")
+  * Chronic pain or symptoms at baseline (e.g. "chronic neuropathic foot pain on gabapentin")
+  * Living situation and caregiver (e.g. "lives with wife Patricia who is primary caregiver")
+  * Any mobility aids, fall risk, or cognitive concerns
+  * Key psychosocial factors (e.g. "brother died in hospital — health anxiety")
+  * Format example: "NYHA II-III at baseline, independent in ADLs (uses shower chair), wife manages meds/IADLs, chronic neuropathic foot pain (gabapentin), lives with wife Patricia"
+- clinicalSummary.presentation: Write like a REAL presentation line. Include:
+  * Chief complaint with timeline (e.g. "presenting with 1 week progressive dyspnea")
+  * Precipitant if known (e.g. "after running out of furosemide 5-7 days ago")
+  * Significant POSITIVE exam findings with specifics (e.g. "JVP elevated to angle of jaw, bibasilar crackles 1/3 up, 3+ pitting edema bilateral LE, S3 gallop")
+  * Pertinent NEGATIVES (e.g. "afebrile, no chest pain")
+  * Key abnormal lab values with actual numbers (e.g. "BNP 1850, Cr 2.4 (above baseline 1.8), K 5.1")
 - problemList: 3-5 problems MAX, most urgent first. DDx only when differential is meaningful
 - categorizedActions: Specific and actionable. Empty array fine for categories with nothing needed
 - keyConsiderations should include allergies, contraindications, drug interactions, and clinical concerns
