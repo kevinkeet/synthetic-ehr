@@ -69,6 +69,7 @@ IMPORTANT: The doctor drives decision-making. You support by organizing informat
 
 Respond in this exact JSON format:
 {
+    "oneLiner": "A single clinical sentence (~15 words) capturing the current gestalt — what a senior resident would say in 3 seconds at handoff",
     "summary": "1-2 sentence case summary with **bold** for key diagnoses and decisions",
     "keyConsiderations": [
         {"text": "Safety concern or important clinical factor", "severity": "critical|important|info"}
@@ -119,6 +120,7 @@ This is a FULL REFRESH — analyze everything comprehensively. If you have exist
 
 Respond in this exact JSON format:
 {
+    "oneLiner": "A single clinical sentence (~15 words) capturing the current gestalt — what a senior resident would say in 3 seconds at handoff",
     "summary": "1-2 sentence case summary with **bold** for key diagnoses",
     "keyConsiderations": [
         {"text": "Safety concern or important clinical factor", "severity": "critical|important|info"}

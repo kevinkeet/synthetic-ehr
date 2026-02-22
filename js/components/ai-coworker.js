@@ -127,6 +127,8 @@ const AICoworker = {
         console.log('🧠 AI Copilot: patient loaded, initializing longitudinal doc for', patientId);
         this.gatherChartData();
         await this.initializeLongitudinalDocument(patientId);
+        // Generate agent tasks from loaded data
+        this.generateAgentTasks();
         // Re-render now that longitudinal data is fully loaded
         this.render();
     },
@@ -154,6 +156,9 @@ const AICoworker = {
             context: '',
             aiResponse: null,
             conversationThread: [], // Session-only inline messages
+            aiOneLiner: '', // AI's one-sentence gestalt of the patient
+            agents: [], // Agentic task system UI state
+            agentsCollapsed: false, // Whether agents section is collapsed
             chartData: {
                 patientInfo: null,
                 vitals: [],
@@ -344,6 +349,12 @@ const AICoworker = {
                 text: q,
                 severity: 'info'
             }));
+        }
+
+        // Hydrate one-liner from first sentence of patient summary
+        if (mem.patientSummary && !this.state.aiOneLiner) {
+            const firstSentence = mem.patientSummary.split(/\.\s/)[0];
+            this.state.aiOneLiner = firstSentence + (firstSentence.endsWith('.') ? '' : '.');
         }
 
         if (mem.patientSummary || narrative.trajectoryAssessment) {
@@ -703,16 +714,22 @@ const AICoworker = {
         // ===== SECTION 1: SAFETY BAR (sticky top, only when alerts exist) =====
         html += this.renderAlertBar();
 
-        // ===== SECTION 2: PATIENT BRIEF =====
+        // ===== SECTION 2: AI LIVE STATUS LINE =====
+        html += this.renderStatusLine();
+
+        // ===== SECTION 3: PATIENT BRIEF =====
         html += this.renderPatientBrief();
 
-        // ===== SECTION 3: AI INSIGHT (the core section) =====
+        // ===== SECTION 4: AGENT TASKS =====
+        html += this.renderAgentTasks();
+
+        // ===== SECTION 5: AI INSIGHT (the core section) =====
         html += this.renderAIInsight();
 
-        // ===== SECTION 4: CONTEXTUAL NUDGE =====
+        // ===== SECTION 6: CONTEXTUAL NUDGE =====
         html += this.renderContextualNudge();
 
-        // ===== SECTION 5: INLINE INPUT (sticky bottom) =====
+        // ===== SECTION 7: INLINE INPUT (sticky bottom) =====
         html += this.renderInlineInput();
 
         body.innerHTML = html;
@@ -773,6 +790,87 @@ const AICoworker = {
             html += '</div>';
         });
         html += '</div>';
+        return html;
+    },
+
+    /**
+     * Render the AI live status line — a continuously updated one-sentence gestalt
+     */
+    renderStatusLine() {
+        if (!this.state.aiOneLiner) return '';
+
+        const isThinking = this.state.status === 'thinking';
+        const pulseClass = isThinking ? 'status-pulse thinking' : 'status-pulse live';
+
+        return `<div class="copilot-status-line">
+            <span class="${pulseClass}"></span>
+            <span class="status-line-text">${this.escapeHtml(this.state.aiOneLiner)}</span>
+        </div>`;
+    },
+
+    /**
+     * Render the agentic task system — shows AI "agents" working on clinical tasks
+     */
+    renderAgentTasks() {
+        if (!this.state.agents || this.state.agents.length === 0) return '';
+
+        const working = this.state.agents.filter(a => a.status === 'working').length;
+        const alerts = this.state.agents.filter(a => a.status === 'alert').length;
+        const done = this.state.agents.filter(a => a.status === 'done').length;
+
+        const summaryParts = [];
+        if (working > 0) summaryParts.push(`${working} working`);
+        if (alerts > 0) summaryParts.push(`${alerts} alert${alerts > 1 ? 's' : ''}`);
+        if (done > 0) summaryParts.push(`${done} done`);
+
+        let html = '<div class="copilot-section agents-section">';
+        html += `<div class="agents-header" onclick="AICoworker.toggleAgentsSection()">`;
+        html += `<span class="agents-header-left"><span class="agents-header-icon">⚡</span> Agents</span>`;
+        html += `<span class="agents-summary">${summaryParts.join(' · ')}</span>`;
+        html += `<span class="agents-toggle">${this.state.agentsCollapsed ? '▸' : '▾'}</span>`;
+        html += '</div>';
+
+        if (!this.state.agentsCollapsed) {
+            html += '<div class="agents-list">';
+
+            for (const agent of this.state.agents) {
+                html += `<div class="agent-item agent-${agent.status}" id="${agent.id}">`;
+                html += '<div class="agent-row">';
+                html += `<span class="agent-icon">${agent.icon}</span>`;
+                html += `<span class="agent-label">${this.escapeHtml(agent.label)}</span>`;
+
+                if (agent.status === 'working') {
+                    html += '<span class="agent-status-badge working">analyzing</span>';
+                } else if (agent.status === 'done') {
+                    html += '<span class="agent-status-badge done">✓ done</span>';
+                } else if (agent.status === 'alert') {
+                    html += '<span class="agent-status-badge alert">⚠ finding</span>';
+                } else {
+                    html += '<span class="agent-status-badge idle">idle</span>';
+                }
+
+                html += '</div>'; // agent-row
+
+                // Progress bar for working agents
+                if (agent.status === 'working') {
+                    html += '<div class="agent-progress">';
+                    html += `<div class="agent-progress-bar" style="width: ${Math.min(agent.progress * 100, 100)}%"></div>`;
+                    html += '</div>';
+                    html += `<div class="agent-status-text">${this.escapeHtml(agent.statusText)}</div>`;
+                }
+
+                // Finding for completed/alert agents
+                if (agent.finding && (agent.status === 'done' || agent.status === 'alert')) {
+                    html += `<div class="agent-finding ${agent.finding.severity}">${this.escapeHtml(agent.finding.text)}</div>`;
+                }
+
+                html += '</div>'; // agent-item
+            }
+
+            html += '</div>'; // agents-list
+        }
+
+        html += '</div>'; // agents-section
         return html;
     },
 
@@ -1138,6 +1236,437 @@ const AICoworker = {
 
         html += '</div>';
         return html;
+    },
+
+    // ==================== Agentic Task System ====================
+
+    /**
+     * Generate agent tasks by scanning local clinical data.
+     * Each agent type performs a specific data analysis — no LLM needed.
+     * Called after initializeLongitudinalDocument(), after refresh, after synthesis.
+     */
+    generateAgentTasks() {
+        // Clear any running simulation
+        this._stopAgentSimulation();
+
+        const agents = [];
+        const now = Date.now();
+
+        // 1. CHART REVIEW AGENT — always active
+        const chartAgent = {
+            id: 'agent_chart_' + now,
+            type: 'chart_review',
+            icon: '📋',
+            label: 'Chart Review',
+            status: 'working',
+            statusText: 'Scanning chart sections...',
+            progress: 0,
+            finding: null,
+            startedAt: now,
+            completedAt: null,
+            expanded: false,
+            _findingData: null // pre-computed, populated when agent "completes"
+        };
+        // Pre-compute finding: check which chart sections have been visited
+        if (this.sessionContext) {
+            const checklist = this.sessionContext.getChartReviewChecklist();
+            const unvisited = checklist.filter(item => !item.visited);
+            if (unvisited.length === 0) {
+                chartAgent.status = 'done';
+                chartAgent.progress = 1;
+                chartAgent.completedAt = now;
+                chartAgent.finding = { severity: 'info', text: 'All chart sections reviewed' };
+            } else {
+                chartAgent._findingData = {
+                    severity: unvisited.length >= 3 ? 'warning' : 'info',
+                    text: `${unvisited.length} section${unvisited.length > 1 ? 's' : ''} not yet reviewed: ${unvisited.map(u => u.section).slice(0, 3).join(', ')}${unvisited.length > 3 ? '...' : ''}`
+                };
+            }
+        } else {
+            chartAgent._findingData = { severity: 'info', text: 'Chart review tracking not yet active' };
+        }
+        agents.push(chartAgent);
+
+        // 2. LAB ANALYSIS AGENT — if patient has labs
+        if (this.longitudinalDoc && this.longitudinalDoc.longitudinalData.labs.size > 0) {
+            const labAgent = {
+                id: 'agent_labs_' + now,
+                type: 'lab_analysis',
+                icon: '🔬',
+                label: 'Lab Analysis',
+                status: 'working',
+                statusText: 'Reviewing lab trends...',
+                progress: 0,
+                finding: null,
+                startedAt: now,
+                completedAt: null,
+                expanded: false,
+                _findingData: null
+            };
+
+            // Scan for abnormal/critical labs
+            const criticalLabs = [];
+            const abnormalLabs = [];
+            for (const [name, trend] of this.longitudinalDoc.longitudinalData.labs) {
+                if (trend.latestValue) {
+                    if (trend.latestValue.flag === 'CRITICAL') {
+                        criticalLabs.push(`${name}: ${trend.latestValue.value} ${trend.latestValue.unit || ''}`);
+                    } else if (trend.latestValue.flag === 'HIGH' || trend.latestValue.flag === 'LOW' || trend.latestValue.flag === 'ABNORMAL') {
+                        abnormalLabs.push(`${name}: ${trend.latestValue.value}`);
+                    }
+                }
+            }
+
+            if (criticalLabs.length > 0) {
+                labAgent._findingData = {
+                    severity: 'critical',
+                    text: `Critical: ${criticalLabs.slice(0, 3).join('; ')}${criticalLabs.length > 3 ? ` (+${criticalLabs.length - 3} more)` : ''}`
+                };
+            } else if (abnormalLabs.length > 0) {
+                labAgent._findingData = {
+                    severity: 'warning',
+                    text: `${abnormalLabs.length} abnormal lab${abnormalLabs.length > 1 ? 's' : ''}: ${abnormalLabs.slice(0, 3).join('; ')}${abnormalLabs.length > 3 ? '...' : ''}`
+                };
+            } else {
+                labAgent.status = 'done';
+                labAgent.progress = 1;
+                labAgent.completedAt = now;
+                labAgent.finding = { severity: 'info', text: 'All labs within normal limits' };
+            }
+            agents.push(labAgent);
+        }
+
+        // 3. MEDICATION SAFETY AGENT — if patient has meds
+        const medsData = this.longitudinalDoc?.longitudinalData?.medications;
+        if (medsData && medsData.current && medsData.current.length > 0) {
+            const allergies = this.longitudinalDoc.patientSnapshot?.allergies || [];
+
+            const medAgent = {
+                id: 'agent_meds_' + now,
+                type: 'med_safety',
+                icon: '💊',
+                label: 'Med Safety',
+                status: 'working',
+                statusText: 'Checking interactions & allergies...',
+                progress: 0,
+                finding: null,
+                startedAt: now,
+                completedAt: null,
+                expanded: false,
+                _findingData: null
+            };
+
+            // Simple cross-check: any allergy substances matching medication names?
+            const allergySubstances = allergies.map(a => (a.substance || a.allergen || a.name || '').toLowerCase());
+            const medNames = medsData.current.map(m => (m.name || m.medication || '').toLowerCase());
+
+            const matches = [];
+            for (const med of medNames) {
+                for (const allergy of allergySubstances) {
+                    if (allergy && med && (med.includes(allergy) || allergy.includes(med))) {
+                        matches.push(`${med} ↔ ${allergy}`);
+                    }
+                }
+            }
+
+            // Check for high-alert meds
+            const highAlertKeywords = ['warfarin', 'heparin', 'insulin', 'morphine', 'fentanyl', 'methotrexate', 'digoxin', 'potassium chloride', 'vancomycin', 'amiodarone'];
+            const highAlertMeds = medNames.filter(m => highAlertKeywords.some(ha => m.includes(ha)));
+
+            if (matches.length > 0) {
+                medAgent._findingData = {
+                    severity: 'critical',
+                    text: `Allergy-medication conflict: ${matches.slice(0, 2).join('; ')}`
+                };
+            } else if (highAlertMeds.length > 0) {
+                medAgent._findingData = {
+                    severity: 'warning',
+                    text: `${highAlertMeds.length} high-alert med${highAlertMeds.length > 1 ? 's' : ''}: ${highAlertMeds.slice(0, 3).join(', ')}`
+                };
+            } else {
+                medAgent.status = 'done';
+                medAgent.progress = 1;
+                medAgent.completedAt = now;
+                medAgent.finding = { severity: 'info', text: 'No interactions or allergy conflicts detected' };
+            }
+            agents.push(medAgent);
+        }
+
+        // 4. CLINICAL SYNTHESIS AGENT — always active
+        const synthAgent = {
+            id: 'agent_synth_' + now,
+            type: 'clinical_synthesis',
+            icon: '🧠',
+            label: 'Clinical Synthesis',
+            status: 'working',
+            statusText: 'Building clinical picture...',
+            progress: 0,
+            finding: null,
+            startedAt: now,
+            completedAt: null,
+            expanded: false,
+            _findingData: null
+        };
+
+        if (this.longitudinalDoc && this.longitudinalDoc.aiMemory.patientSummary) {
+            synthAgent.status = 'done';
+            synthAgent.progress = 1;
+            synthAgent.completedAt = now;
+            // First sentence of AI summary as finding
+            const summary = this.longitudinalDoc.aiMemory.patientSummary;
+            const firstSentence = summary.split(/\.\s/)[0];
+            synthAgent.finding = {
+                severity: 'info',
+                text: firstSentence + (firstSentence.endsWith('.') ? '' : '.')
+            };
+        } else {
+            synthAgent._findingData = {
+                severity: 'info',
+                text: 'Run "Analyze Chart" to build clinical synthesis'
+            };
+        }
+        agents.push(synthAgent);
+
+        // 5. DISCHARGE READINESS AGENT — if patient appears to be admitted
+        if (this.longitudinalDoc) {
+            const dischargeAgent = {
+                id: 'agent_discharge_' + now,
+                type: 'discharge_readiness',
+                icon: '🚪',
+                label: 'Discharge Readiness',
+                status: 'working',
+                statusText: 'Assessing stability criteria...',
+                progress: 0,
+                finding: null,
+                startedAt: now,
+                completedAt: null,
+                expanded: false,
+                _findingData: null
+            };
+
+            // Simple heuristic: check vital stability and problem status
+            const vitals = this.longitudinalDoc.longitudinalData.vitals;
+            const problems = [];
+            for (const [id, timeline] of this.longitudinalDoc.problemMatrix) {
+                const prob = timeline.problem || timeline;
+                if (prob.status === 'active' || !prob.status) {
+                    problems.push(prob.name || id);
+                }
+            }
+
+            let readinessIssues = [];
+            if (vitals && vitals.length > 0) {
+                const latest = vitals[vitals.length - 1];
+                if (latest.heartRate && (latest.heartRate > 110 || latest.heartRate < 50)) readinessIssues.push('HR unstable');
+                if (latest.systolic && latest.systolic < 90) readinessIssues.push('Hypotensive');
+                if (latest.spO2 && latest.spO2 < 92) readinessIssues.push('Hypoxic');
+                if (latest.temperature && latest.temperature > 38.3) readinessIssues.push('Febrile');
+            }
+
+            // Check for critical labs
+            for (const [name, trend] of this.longitudinalDoc.longitudinalData.labs) {
+                if (trend.latestValue && trend.latestValue.flag === 'CRITICAL') {
+                    readinessIssues.push(`Critical ${name}`);
+                }
+            }
+
+            if (readinessIssues.length >= 2) {
+                dischargeAgent._findingData = {
+                    severity: 'warning',
+                    text: `Not ready: ${readinessIssues.slice(0, 3).join(', ')}`
+                };
+            } else if (readinessIssues.length === 1) {
+                dischargeAgent._findingData = {
+                    severity: 'info',
+                    text: `Barrier: ${readinessIssues[0]}. ${problems.length} active problem${problems.length > 1 ? 's' : ''}`
+                };
+            } else {
+                dischargeAgent._findingData = {
+                    severity: 'info',
+                    text: `Vitals stable. ${problems.length} active problem${problems.length > 1 ? 's' : ''} to address`
+                };
+            }
+            agents.push(dischargeAgent);
+        }
+
+        // Sort: alert > working > done
+        const statusOrder = { 'alert': 0, 'working': 1, 'done': 2, 'idle': 3 };
+        agents.sort((a, b) => (statusOrder[a.status] || 3) - (statusOrder[b.status] || 3));
+
+        this.state.agents = agents;
+
+        // Start simulation for working agents
+        this._startAgentSimulation();
+    },
+
+    /**
+     * Start simulated progress for working agents.
+     * Each tick increments progress until the agent "completes".
+     */
+    _startAgentSimulation() {
+        this._stopAgentSimulation();
+
+        const workingAgents = this.state.agents.filter(a => a.status === 'working');
+        if (workingAgents.length === 0) return;
+
+        // Stagger starting progress so agents don't all finish at once
+        workingAgents.forEach((agent, idx) => {
+            agent.progress = 0.05 + (idx * 0.08); // Stagger starts
+        });
+
+        this._agentSimInterval = setInterval(() => {
+            this._tickAgentProgress();
+        }, 800);
+    },
+
+    /**
+     * Stop the agent simulation interval.
+     */
+    _stopAgentSimulation() {
+        if (this._agentSimInterval) {
+            clearInterval(this._agentSimInterval);
+            this._agentSimInterval = null;
+        }
+    },
+
+    /**
+     * Tick agent progress — called by interval timer.
+     * Increments working agents and completes them when done.
+     */
+    _tickAgentProgress() {
+        let anyWorking = false;
+        let changed = false;
+
+        for (const agent of this.state.agents) {
+            if (agent.status !== 'working') continue;
+
+            anyWorking = true;
+            // Random increment between 0.08 and 0.20
+            agent.progress += 0.08 + Math.random() * 0.12;
+
+            if (agent.progress >= 1.0) {
+                this._completeAgent(agent);
+            }
+            changed = true;
+        }
+
+        if (changed) {
+            this._updateAgentsDOM();
+        }
+
+        if (!anyWorking) {
+            this._stopAgentSimulation();
+        }
+    },
+
+    /**
+     * Complete an agent — populate its finding and change status.
+     */
+    _completeAgent(agent) {
+        agent.progress = 1;
+        agent.completedAt = Date.now();
+
+        if (agent._findingData) {
+            agent.finding = agent._findingData;
+            agent.status = agent._findingData.severity === 'critical' ? 'alert' : 'done';
+            if (agent._findingData.severity === 'warning') agent.status = 'alert';
+        } else {
+            agent.status = 'done';
+            agent.finding = { severity: 'info', text: 'Analysis complete — no issues found' };
+        }
+
+        // Auto-expand alert findings
+        if (agent.status === 'alert') {
+            agent.expanded = true;
+        }
+    },
+
+    /**
+     * Efficiently update only the agents DOM instead of full re-render.
+     * This avoids flickering during progress animation.
+     */
+    _updateAgentsDOM() {
+        const agentsList = document.querySelector('.agents-list');
+        if (!agentsList) return;
+
+        for (const agent of this.state.agents) {
+            const agentEl = document.getElementById(agent.id);
+            if (!agentEl) continue;
+
+            // Update class
+            agentEl.className = `agent-item agent-${agent.status}`;
+
+            // Update progress bar
+            const progressBar = agentEl.querySelector('.agent-progress-bar');
+            if (progressBar) {
+                progressBar.style.width = `${Math.min(agent.progress * 100, 100)}%`;
+            }
+
+            // Update status badge
+            const badge = agentEl.querySelector('.agent-status-badge');
+            if (badge) {
+                if (agent.status === 'done') {
+                    badge.className = 'agent-status-badge done';
+                    badge.textContent = '✓ done';
+                } else if (agent.status === 'alert') {
+                    badge.className = 'agent-status-badge alert';
+                    badge.textContent = '⚠ finding';
+                } else if (agent.status === 'working') {
+                    badge.className = 'agent-status-badge working';
+                    badge.textContent = 'analyzing';
+                }
+            }
+
+            // Update status text → finding when done
+            const statusText = agentEl.querySelector('.agent-status-text');
+            const findingEl = agentEl.querySelector('.agent-finding');
+
+            if (agent.status === 'done' || agent.status === 'alert') {
+                if (statusText) statusText.style.display = 'none';
+                const progressEl = agentEl.querySelector('.agent-progress');
+                if (progressEl) progressEl.style.display = 'none';
+
+                if (agent.finding && !findingEl) {
+                    // Create finding element
+                    const div = document.createElement('div');
+                    div.className = `agent-finding ${agent.finding.severity}`;
+                    div.textContent = agent.finding.text;
+                    agentEl.appendChild(div);
+                }
+            }
+        }
+
+        // Update the header summary
+        const summaryEl = document.querySelector('.agents-summary');
+        if (summaryEl) {
+            const working = this.state.agents.filter(a => a.status === 'working').length;
+            const alerts = this.state.agents.filter(a => a.status === 'alert').length;
+            const done = this.state.agents.filter(a => a.status === 'done').length;
+            const parts = [];
+            if (working > 0) parts.push(`${working} working`);
+            if (alerts > 0) parts.push(`${alerts} alert${alerts > 1 ? 's' : ''}`);
+            if (done > 0) parts.push(`${done} done`);
+            summaryEl.textContent = parts.join(' · ');
+        }
+    },
+
+    /**
+     * Toggle an agent's expanded state
+     */
+    toggleAgent(agentId) {
+        const agent = this.state.agents.find(a => a.id === agentId);
+        if (agent) {
+            agent.expanded = !agent.expanded;
+            this.render();
+        }
+    },
+
+    /**
+     * Toggle agents section collapse
+     */
+    toggleAgentsSection() {
+        this.state.agentsCollapsed = !this.state.agentsCollapsed;
+        this.render();
     },
 
     /**
@@ -2793,10 +3322,18 @@ RULES:
                 this.writeBackMemoryUpdates(memUpdates, 'dictate', doctorThoughts);
             }
 
+            // Update one-liner
+            if (result.oneLiner) {
+                this.state.aiOneLiner = result.oneLiner;
+            }
+
             // Push synthesis summary to conversation thread
             if (result.summary) {
                 this._pushToThread('ai', 'think', result.summary);
             }
+
+            // Regenerate agent tasks with new data
+            this.generateAgentTasks();
 
             this.state.status = 'ready';
             this.saveState();
@@ -2913,6 +3450,14 @@ RULES:
                 this.writeBackMemoryUpdates(memUpdates, 'refresh', 'Full case refresh');
             }
 
+            // Update one-liner
+            if (result.oneLiner) {
+                this.state.aiOneLiner = result.oneLiner;
+            }
+
+            // Regenerate agent tasks with new data
+            this.generateAgentTasks();
+
             this.state.status = 'ready';
             this.state.lastUpdated = new Date().toISOString();
             this.saveState();
@@ -2987,6 +3532,16 @@ RULES:
             if (this.contextAssembler) {
                 const memUpdates = this.contextAssembler.parseMemoryUpdates(response);
                 this.writeBackMemoryUpdates(memUpdates, 'ask', item);
+                // Check for oneLiner in memory update block
+                const memBlockMatch = response.match(/<memory_update>\s*([\s\S]*?)\s*<\/memory_update>/);
+                if (memBlockMatch) {
+                    try {
+                        const memBlock = JSON.parse(memBlockMatch[1]);
+                        if (memBlock.oneLiner) {
+                            this.state.aiOneLiner = memBlock.oneLiner;
+                        }
+                    } catch (e) { /* ignore parse errors */ }
+                }
             }
 
             this.state.status = 'ready';
