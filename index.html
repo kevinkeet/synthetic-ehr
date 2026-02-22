@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acting Intern - Clinical Simulation</title>
-    <link rel="stylesheet" href="css/epic-theme.css?v=8">
+    <link rel="stylesheet" href="css/epic-theme.css?v=9">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -129,6 +129,8 @@
 
             <!-- AI Side Panel -->
             <aside class="ai-panel" id="ai-panel">
+                <!-- Resize handle -->
+                <div class="ai-panel-resize-handle" id="ai-panel-resize-handle"></div>
                 <!-- Top bar with settings + collapse -->
                 <div class="ai-panel-topbar">
                     <span class="ai-panel-topbar-title">&#10024; <span class="logo-ai">A</span>cting <span class="logo-ai">I</span>ntern</span>
@@ -160,12 +162,8 @@
                         <button class="settings-close" onclick="AIPanel.closeSettings()">&#10005;</button>
                     </div>
                     <div class="settings-content">
-                        <div class="settings-group">
-                            <label for="claude-api-key">Anthropic API Key</label>
-                            <input type="password" id="claude-api-key" placeholder="sk-ant-..." onchange="AIPanel.saveApiKey()">
-                            <small>Your API key is stored locally in your browser.</small>
-                        </div>
                         <div class="settings-actions">
+                            <button class="btn btn-sm" onclick="AIPanel.configureApiKey()">&#128273; Configure API Key</button>
                             <button class="btn btn-sm" onclick="AIPanel.testConnection()">Test API Connection</button>
                             <button class="btn btn-sm btn-secondary" onclick="AICoworker.clearMemory()">Clear AI Memory</button>
                         </div>
@@ -204,7 +202,7 @@
     <!-- AI Memory System -->
     <script src="js/services/session-context.js"></script>
     <script src="js/services/working-memory.js"></script>
-    <script src="js/services/context-assembler.js?v=8"></script>
+    <script src="js/services/context-assembler.js?v=9"></script>
     <script src="js/components/patient-header.js"></script>
     <script src="js/components/navigation.js"></script>
     <script src="js/components/global-search.js"></script>
@@ -229,15 +227,15 @@
     <script src="js/services/speech-service.js"></script>
     <script src="js/components/ai-panel.js"></script>
     <script src="js/components/floating-chat.js?v=7"></script>
-    <script src="js/components/patient-chat.js?v=7"></script>
-    <script src="js/components/nurse-chat.js?v=7"></script>
+    <script src="js/components/patient-chat.js?v=9"></script>
+    <script src="js/components/nurse-chat.js?v=9"></script>
     <script src="js/components/simulation-controls.js"></script>
     <script src="js/components/live-vitals-banner.js"></script>
     <script src="js/components/simulation-log.js"></script>
     <script src="js/services/simulation-score-tracker.js"></script>
     <script src="js/components/simulation-debrief.js"></script>
     <script src="js/components/clinical-images.js"></script>
-    <script src="js/components/ai-coworker.js?v=8"></script>
+    <script src="js/components/ai-coworker.js?v=9"></script>
     <script src="js/router.js"></script>
     <script src="js/app.js"></script>
 </body>

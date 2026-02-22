@@ -33,6 +33,9 @@ const AICoworker = {
     workingMemory: null,        // WorkingMemoryAssembler — focused context assembly
     contextAssembler: null,     // ContextAssembler — unified prompt building
 
+    // Section collapse state (persisted to localStorage)
+    sectionCollapsed: {},
+
     // Default state
     state: {
         status: 'ready', // ready, thinking, alert
@@ -88,6 +91,14 @@ const AICoworker = {
      * Initialize the AI Assistant panel
      */
     init() {
+        // Load section collapse state from localStorage
+        try {
+            const saved = localStorage.getItem('copilot-section-collapsed');
+            this.sectionCollapsed = saved ? JSON.parse(saved) : {};
+        } catch (e) {
+            this.sectionCollapsed = {};
+        }
+
         // Reset session state on startup - keeps longitudinal doc but clears transient session data
         this.resetSessionState();
 
@@ -803,6 +814,22 @@ const AICoworker = {
     },
 
     /**
+     * Toggle a section's collapsed state and re-render
+     */
+    toggleSection(sectionId) {
+        this.sectionCollapsed[sectionId] = !this.sectionCollapsed[sectionId];
+        localStorage.setItem('copilot-section-collapsed', JSON.stringify(this.sectionCollapsed));
+        this.render();
+    },
+
+    /**
+     * Check if a section is collapsed
+     */
+    isSectionCollapsed(sectionId) {
+        return !!this.sectionCollapsed[sectionId];
+    },
+
+    /**
      * Render the panel content into the AI panel assistant tab
      */
     render() {
@@ -1323,23 +1350,34 @@ const AICoworker = {
      */
     renderClinicalSummary() {
         try {
+            const collapsed = this.isSectionCollapsed('summary');
+            const chevron = collapsed ? '&#9654;' : '&#9660;';
+
             // Use LLM summary if available, else local
             const summary = this.state.clinicalSummary || this._buildLocalSummary();
 
             let html = '<div class="clinical-summary">';
+            html += `<div class="copilot-section-header collapsible-header" onclick="AICoworker.toggleSection('summary')">`;
+            html += `<span class="collapse-chevron">${chevron}</span>`;
+            html += '<span>&#128203;</span> Clinical Summary';
+            html += '</div>';
 
-            if (summary) {
-                if (summary.demographics) {
-                    html += `<div class="summary-sentence"><span class="sentence-label">HPI</span>${this.formatText(summary.demographics)}</div>`;
+            if (!collapsed) {
+                html += '<div class="copilot-section-body">';
+                if (summary) {
+                    if (summary.demographics) {
+                        html += `<div class="summary-sentence"><span class="sentence-label">ID</span>${this.formatText(summary.demographics)}</div>`;
+                    }
+                    if (summary.functional) {
+                        html += `<div class="summary-sentence"><span class="sentence-label">USOH</span>${this.formatText(summary.functional)}</div>`;
+                    }
+                    if (summary.presentation) {
+                        html += `<div class="summary-sentence"><span class="sentence-label">Now</span>${this.formatText(summary.presentation)}</div>`;
+                    }
+                } else {
+                    html += '<div class="summary-sentence summary-placeholder">Loading patient data...</div>';
                 }
-                if (summary.functional) {
-                    html += `<div class="summary-sentence"><span class="sentence-label">USOH</span>${this.formatText(summary.functional)}</div>`;
-                }
-                if (summary.presentation) {
-                    html += `<div class="summary-sentence"><span class="sentence-label">Presentation</span>${this.formatText(summary.presentation)}</div>`;
-                }
-            } else {
-                html += '<div class="summary-sentence summary-placeholder">Loading patient data...</div>';
+                html += '</div>';
             }
 
             html += '</div>';
@@ -1358,13 +1396,22 @@ const AICoworker = {
         const isThinking = this.state.status === 'thinking';
         const hasLLMData = this.state.problemList && this.state.problemList.length > 0 &&
             this.state.problemList.some(p => p.plan);
+        const collapsed = this.isSectionCollapsed('problems');
+        const chevron = collapsed ? '&#9654;' : '&#9660;';
 
         let html = '<div class="copilot-section problem-list-section">';
-        html += '<div class="copilot-section-header">';
+        html += `<div class="copilot-section-header collapsible-header" onclick="AICoworker.toggleSection('problems')">`;
+        html += `<span class="collapse-chevron">${chevron}</span>`;
         html += '<span>&#127973;</span> Problem List';
         html += '<div class="section-actions">';
-        html += '<button class="section-action-btn" onclick="AICoworker.refreshThinking()" title="Refresh analysis">&#128260;</button>';
+        html += '<button class="section-action-btn" onclick="event.stopPropagation(); AICoworker.refreshThinking()" title="Refresh analysis">&#128260;</button>';
         html += '</div></div>';
+
+        if (collapsed) {
+            html += '</div>';
+            return html;
+        }
+
         html += '<div class="copilot-section-body">';
 
         if (isThinking) {
@@ -1418,20 +1465,30 @@ const AICoworker = {
     renderConversationThread() {
         if (!this.state.conversationThread || this.state.conversationThread.length === 0) return '';
 
+        const collapsed = this.isSectionCollapsed('conversation');
+        const chevron = collapsed ? '&#9654;' : '&#9660;';
+        const msgCount = this.state.conversationThread.length;
+
         let html = '<div class="copilot-section conversation-section">';
-        html += '<div class="conversation-thread">';
-        html += '<div class="thread-divider"><span>Conversation</span></div>';
+        html += `<div class="copilot-section-header collapsible-header" onclick="AICoworker.toggleSection('conversation')">`;
+        html += `<span class="collapse-chevron">${chevron}</span>`;
+        html += `<span>&#128172;</span> Conversation (${msgCount})`;
+        html += '</div>';
 
-        this.state.conversationThread.slice(-10).forEach(msg => {
-            const cls = msg.role === 'user' ? 'thread-msg-user' : 'thread-msg-ai';
-            const label = msg.role === 'user' ? (msg.type === 'think' ? '&#127897; You' : '&#128100; You') : '&#10024; AI';
-            html += `<div class="thread-msg ${cls}">`;
-            html += `<div class="thread-msg-label">${label}</div>`;
-            html += `<div class="thread-msg-text">${msg.role === 'ai' ? this.formatText(msg.text) : this.escapeHtml(msg.text)}</div>`;
+        if (!collapsed) {
+            html += '<div class="conversation-thread">';
+            this.state.conversationThread.slice(-10).forEach(msg => {
+                const cls = msg.role === 'user' ? 'thread-msg-user' : 'thread-msg-ai';
+                const label = msg.role === 'user' ? (msg.type === 'think' ? '&#127897; You' : '&#128100; You') : '&#10024; AI';
+                html += `<div class="thread-msg ${cls}">`;
+                html += `<div class="thread-msg-label">${label}</div>`;
+                html += `<div class="thread-msg-text">${msg.role === 'ai' ? this.formatText(msg.text) : this.escapeHtml(msg.text)}</div>`;
+                html += '</div>';
+            });
             html += '</div>';
-        });
+        }
 
-        html += '</div></div>';
+        html += '</div>';
         return html;
     },
 
@@ -1440,20 +1497,28 @@ const AICoworker = {
      */
     renderSuggestedActions() {
         const actions = this.state.categorizedActions;
+        const collapsed = this.isSectionCollapsed('actions');
+        const chevron = collapsed ? '&#9654;' : '&#9660;';
 
         const categories = [
             { key: 'communication', icon: '&#128172;', label: 'Talk to patient/nurse', items: actions?.communication || [] },
             { key: 'labs', icon: '&#128300;', label: 'Order labs', items: actions?.labs || [] },
             { key: 'imaging', icon: '&#128247;', label: 'Order imaging', items: actions?.imaging || [] },
             { key: 'medications', icon: '&#128138;', label: 'Medication orders', items: actions?.medications || [] },
-            { key: 'other', icon: '&#128203;', label: 'Other orders', items: actions?.other || [] },
-            { key: 'notes', icon: '&#128221;', label: 'Write a note', items: [] } // Static note options
+            { key: 'other', icon: '&#128203;', label: 'Other orders', items: actions?.other || [] }
         ];
 
         let html = '<div class="copilot-section actions-section">';
-        html += '<div class="copilot-section-header">';
+        html += `<div class="copilot-section-header collapsible-header" onclick="AICoworker.toggleSection('actions')">`;
+        html += `<span class="collapse-chevron">${chevron}</span>`;
         html += '<span>&#9989;</span> Suggested Actions';
         html += '</div>';
+
+        if (collapsed) {
+            html += '</div>';
+            return html;
+        }
+
         html += '<div class="copilot-section-body">';
 
         categories.forEach(cat => {
@@ -1463,15 +1528,7 @@ const AICoworker = {
             html += `<span class="action-cat-label">${cat.label}</span>`;
             html += `</div>`;
 
-            if (cat.key === 'notes') {
-                // Static note-writing buttons
-                html += '<div class="action-items">';
-                html += '<button class="action-note-btn" onclick="AICoworker.openNoteModal()">Progress Note</button>';
-                html += '<button class="action-note-btn" onclick="AICoworker.openNoteModal()">H&amp;P</button>';
-                html += '<button class="action-note-btn" onclick="AICoworker.openNoteModal()">Discharge Summary</button>';
-                html += '<button class="action-note-btn" onclick="AICoworker.openNoteModal()">Consult Note</button>';
-                html += '</div>';
-            } else if (cat.items.length > 0) {
+            if (cat.items.length > 0) {
                 html += '<div class="action-items">';
                 cat.items.forEach(item => {
                     const text = typeof item === 'string' ? item : item.text || item;
@@ -2719,19 +2776,36 @@ Format your response as JSON:
     // ==================== LLM API Integration ====================
 
     /**
-     * Load API key from localStorage
+     * Load API key from localStorage (unified — checks all legacy keys)
      */
     loadApiKey() {
-        this.apiKey = localStorage.getItem('anthropicApiKey');
+        // Canonical key
+        let key = localStorage.getItem('anthropic-api-key');
+        // Migration: check legacy keys
+        if (!key) key = localStorage.getItem('anthropicApiKey');
+        if (!key) key = localStorage.getItem('claude-api-key');
+        if (key) {
+            this.apiKey = key;
+            // Migrate to canonical key and sync to ClaudeAPI
+            localStorage.setItem('anthropic-api-key', key);
+            localStorage.removeItem('anthropicApiKey');
+            localStorage.removeItem('claude-api-key');
+            if (typeof ClaudeAPI !== 'undefined') ClaudeAPI.setApiKey(key);
+        }
         return this.apiKey;
     },
 
     /**
-     * Save API key to localStorage
+     * Save API key to localStorage (single source of truth)
      */
     saveApiKey(key) {
         this.apiKey = key;
-        localStorage.setItem('anthropicApiKey', key);
+        localStorage.setItem('anthropic-api-key', key);
+        // Sync to ClaudeAPI so patient/nurse chat also work
+        if (typeof ClaudeAPI !== 'undefined') ClaudeAPI.setApiKey(key);
+        // Clean up any legacy keys
+        localStorage.removeItem('anthropicApiKey');
+        localStorage.removeItem('claude-api-key');
     },
 
     /**

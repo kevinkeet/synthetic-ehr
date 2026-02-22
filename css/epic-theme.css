@@ -1871,12 +1871,37 @@ html, body {
     flex-shrink: 0;
     overflow: hidden;
     transition: width 0.3s ease, opacity 0.3s ease;
+    position: relative;
+}
+
+.ai-panel.resizing {
+    transition: none;
+    user-select: none;
 }
 
 .ai-panel.collapsed {
     width: 0;
     border-left: none;
     opacity: 0;
+}
+
+/* Resize handle on left edge of AI panel */
+.ai-panel-resize-handle {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    cursor: col-resize;
+    z-index: 10;
+    background: transparent;
+    transition: background 0.15s;
+}
+
+.ai-panel-resize-handle:hover,
+.ai-panel-resize-handle.active {
+    background: var(--primary);
+    opacity: 0.4;
 }
 
 /* Top bar */
@@ -5221,6 +5246,29 @@ html, body {
     margin-bottom: 8px;
 }
 
+/* Collapsible section headers */
+.copilot-section-header.collapsible-header {
+    cursor: pointer;
+    padding: 6px 12px;
+    margin: 0;
+    border-bottom: 1px solid var(--border-light);
+    user-select: none;
+    transition: background 0.15s;
+}
+
+.copilot-section-header.collapsible-header:hover {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.collapse-chevron {
+    font-size: 8px;
+    width: 12px;
+    display: inline-block;
+    text-align: center;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
 .copilot-section-header .section-actions {
     margin-left: auto;
     display: flex;
@@ -5327,9 +5375,12 @@ html, body {
 
 /* ---- CLINICAL SUMMARY (3 sentences) ---- */
 .clinical-summary {
-    padding: 10px 12px;
     background: linear-gradient(135deg, #f0f9ff 0%, #f8fafc 100%);
     border-bottom: 1px solid var(--border-light);
+}
+
+.clinical-summary > .copilot-section-body {
+    padding: 8px 12px;
 }
 
 .clinical-summary-header {

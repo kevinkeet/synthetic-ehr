@@ -319,9 +319,13 @@ CURRENT SYMPTOMS:`;
         const text = input.value.trim();
         if (!text) return;
 
-        // Check if API is configured
+        // Check if API is configured — try to load from unified key first
+        if (!ClaudeAPI.isConfigured() && typeof AICoworker !== 'undefined') {
+            AICoworker.loadApiKey();
+        }
         if (!ClaudeAPI.isConfigured()) {
-            App.showToast('Please configure your API key in AI Settings (gear icon in copilot panel)', 'error');
+            if (typeof AICoworker !== 'undefined') AICoworker.openApiKeyModal();
+            else App.showToast('Please configure your API key in AI Settings', 'error');
             return;
         }
 

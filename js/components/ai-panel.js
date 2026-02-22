@@ -1,12 +1,14 @@
 /**
  * AI Panel Component
- * Manages the AI side panel — single panel with collapse/expand + settings.
- * No tabs, no chat — just the Clinical Copilot.
+ * Manages the AI side panel — single panel with collapse/expand + settings + resize.
  */
 
 const AIPanel = {
     isCollapsed: false,
     isSettingsOpen: false,
+    isResizing: false,
+    minWidth: 320,
+    maxWidth: 900,
 
     /**
      * Initialize the AI panel
@@ -14,6 +16,12 @@ const AIPanel = {
     init() {
         // Load collapsed state from localStorage
         this.isCollapsed = localStorage.getItem('ai-panel-collapsed') === 'true';
+
+        // Load saved panel width
+        const savedWidth = localStorage.getItem('ai-panel-width');
+        if (savedWidth) {
+            document.documentElement.style.setProperty('--ai-panel-width', savedWidth + 'px');
+        }
 
         // Apply initial state
         if (this.isCollapsed) {
@@ -28,7 +36,48 @@ const AIPanel = {
         // Load saved settings
         this.loadSettings();
 
+        // Initialize resize handle
+        this.initResize();
+
         console.log('AI Panel initialized');
+    },
+
+    /**
+     * Initialize drag-to-resize on the left edge of the panel
+     */
+    initResize() {
+        const handle = document.getElementById('ai-panel-resize-handle');
+        const panel = document.getElementById('ai-panel');
+        if (!handle || !panel) return;
+
+        handle.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            this.isResizing = true;
+            panel.classList.add('resizing');
+            handle.classList.add('active');
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!this.isResizing) return;
+            const newWidth = window.innerWidth - e.clientX;
+            const clamped = Math.max(this.minWidth, Math.min(this.maxWidth, newWidth));
+            document.documentElement.style.setProperty('--ai-panel-width', clamped + 'px');
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (!this.isResizing) return;
+            this.isResizing = false;
+            panel.classList.remove('resizing');
+            const handle = document.getElementById('ai-panel-resize-handle');
+            if (handle) handle.classList.remove('active');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+            // Save width
+            const width = parseInt(getComputedStyle(panel).width);
+            if (width > 0) localStorage.setItem('ai-panel-width', width);
+        });
     },
 
     /**
@@ -105,31 +154,21 @@ const AIPanel = {
     },
 
     /**
-     * Load saved settings from localStorage
+     * Load saved settings from localStorage — delegates to AICoworker for unified API key
      */
     loadSettings() {
-        const apiKey = localStorage.getItem('claude-api-key');
-
-        const apiKeyInput = document.getElementById('claude-api-key');
-        if (apiKeyInput && apiKey) apiKeyInput.value = apiKey;
-
-        if (apiKey && typeof ClaudeAPI !== 'undefined') {
-            ClaudeAPI.setApiKey(apiKey);
+        // AICoworker.loadApiKey() handles migration and syncing to ClaudeAPI
+        if (typeof AICoworker !== 'undefined') {
+            AICoworker.loadApiKey();
         }
     },
 
     /**
-     * Save API key
+     * Open API key configuration — delegates to AICoworker's unified modal
      */
-    saveApiKey() {
-        const input = document.getElementById('claude-api-key');
-        if (input) {
-            const key = input.value.trim();
-            localStorage.setItem('claude-api-key', key);
-            if (typeof ClaudeAPI !== 'undefined') {
-                ClaudeAPI.setApiKey(key);
-            }
-            App.showToast('API key saved', 'success');
+    configureApiKey() {
+        if (typeof AICoworker !== 'undefined') {
+            AICoworker.openApiKeyModal();
         }
     },
 
@@ -137,9 +176,8 @@ const AIPanel = {
      * Test API connection
      */
     async testConnection() {
-        const apiKey = localStorage.getItem('claude-api-key');
-        if (!apiKey) {
-            App.showToast('Please enter an API key first', 'error');
+        if (typeof AICoworker !== 'undefined' && !AICoworker.isApiConfigured()) {
+            App.showToast('Please configure an API key first', 'error');
             return;
         }
 
