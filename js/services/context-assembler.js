@@ -71,9 +71,9 @@ Respond in this exact JSON format:
 {
     "oneLiner": "A single clinical sentence (~15 words) capturing the current gestalt — what a senior resident would say in 3 seconds at handoff",
     "clinicalSummary": {
-        "demographics": "One sentence: age, sex, and key past medical history (list top 4-5 diagnoses)",
+        "demographics": "One sentence: age, sex, and key PMH using standard clinical abbreviations (e.g. HFrEF, T2DM, AFib, CKD3b, HTN, HLD, COPD, CAD)",
         "functional": "One sentence: baseline functional status, living situation, social support, occupation",
-        "presentation": "One sentence: chief complaint and key findings (pertinent exam, labs, imaging)"
+        "presentation": "One sentence: chief complaint, significant positive exam findings, pertinent negatives, and key abnormal labs/imaging"
     },
     "problemList": [
         {"name": "Most urgent problem first", "urgency": "urgent|active|monitoring", "ddx": "One sentence differential diagnosis if clinically relevant, or null", "plan": "1-2 sentence plan"}
@@ -100,9 +100,9 @@ Respond in this exact JSON format:
 }
 
 RULES:
-- clinicalSummary.demographics: List top 4-5 diagnoses by clinical significance, use abbreviations (HFrEF, T2DM, AFib, CKD3b, HTN)
+- clinicalSummary.demographics: Use format "72M w/ HFrEF, T2DM, AFib, CKD3b, HTN". Use standard clinical abbreviations. List top 4-5 diagnoses by significance
 - clinicalSummary.functional: Pull from social history — mention living situation, who patient lives with, mobility/activity level
-- clinicalSummary.presentation: Focus on chief complaint plus the 3-5 most pertinent findings across exam, labs, and imaging
+- clinicalSummary.presentation: Include chief complaint, significant POSITIVE exam findings (edema, irregular rhythm, JVD, crackles, etc.), pertinent NEGATIVES (no murmur, lungs clear, JVP not elevated, etc.), and key abnormal lab values with arrows
 - problemList: 3-5 problems MAX, most urgent first. Include DDx only when differential is clinically meaningful
 - categorizedActions: Be specific and actionable. Empty array is fine for categories with no actions needed
 - suggestedActions should ALIGN with the doctor's stated plan, not contradict it
@@ -141,9 +141,9 @@ Respond in this exact JSON format:
 {
     "oneLiner": "A single clinical sentence (~15 words) capturing the current gestalt — what a senior resident would say in 3 seconds at handoff",
     "clinicalSummary": {
-        "demographics": "One sentence: age, sex, and key past medical history (list top 4-5 diagnoses)",
+        "demographics": "One sentence: age, sex, and key PMH using standard clinical abbreviations (e.g. HFrEF, T2DM, AFib, CKD3b, HTN, HLD, COPD, CAD)",
         "functional": "One sentence: baseline functional status, living situation, social support, occupation",
-        "presentation": "One sentence: chief complaint and key findings (pertinent exam, labs, imaging)"
+        "presentation": "One sentence: chief complaint, significant positive exam findings, pertinent negatives, and key abnormal labs/imaging"
     },
     "problemList": [
         {"name": "Most urgent problem first", "urgency": "urgent|active|monitoring", "ddx": "One sentence differential diagnosis if clinically relevant, or null", "plan": "1-2 sentence plan"}
@@ -176,9 +176,9 @@ Prioritize:
 4. Things that haven't been addressed yet
 
 RULES:
-- clinicalSummary.demographics: List top 4-5 diagnoses by clinical significance, use abbreviations
+- clinicalSummary.demographics: Use format "72M w/ HFrEF, T2DM, AFib, CKD3b, HTN". Use standard clinical abbreviations. List top 4-5 diagnoses by significance
 - clinicalSummary.functional: Pull from social history — living situation, support system, mobility
-- clinicalSummary.presentation: Chief complaint + 3-5 most pertinent findings
+- clinicalSummary.presentation: Include chief complaint, significant POSITIVE exam findings, pertinent NEGATIVES, and key abnormal lab values with arrows
 - problemList: 3-5 problems MAX, most urgent first. DDx only when differential is meaningful
 - categorizedActions: Specific and actionable. Empty array fine for categories with nothing needed
 - keyConsiderations should include allergies, contraindications, drug interactions, and clinical concerns

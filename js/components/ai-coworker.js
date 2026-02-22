@@ -127,8 +127,6 @@ const AICoworker = {
         console.log('🧠 AI Copilot: patient loaded, initializing longitudinal doc for', patientId);
         this.gatherChartData();
         await this.initializeLongitudinalDocument(patientId);
-        // Generate agent tasks from loaded data
-        this.generateAgentTasks();
         // Re-render now that longitudinal data is fully loaded
         this.render();
     },
@@ -157,8 +155,6 @@ const AICoworker = {
             aiResponse: null,
             conversationThread: [], // Session-only inline messages
             aiOneLiner: '', // AI's one-sentence gestalt of the patient
-            agents: [], // Agentic task system UI state
-            agentsCollapsed: false, // Whether agents section is collapsed
             clinicalSummary: null, // LLM-refined 3-sentence summary {demographics, functional, presentation}
             problemList: [], // Prioritized problem list [{name, urgency, ddx, plan}]
             categorizedActions: null, // Actions by category {communication, labs, imaging, medications, other}
@@ -679,6 +675,9 @@ const AICoworker = {
      */
     saveState() {
         this.state.lastUpdated = new Date().toISOString();
+        // Strip any stale keys that no longer exist in the state schema
+        delete this.state.agents;
+        delete this.state.agentsCollapsed;
         // We still save to localStorage for within-session persistence
         // but resetSessionState() clears it on next page load
         localStorage.setItem('aiAssistantState', JSON.stringify(this.state));
@@ -688,6 +687,11 @@ const AICoworker = {
      * Update the AI Assistant state
      */
     update(newState) {
+        // Strip any stale agent keys that may arrive from old cached callers or localStorage
+        if (newState) {
+            delete newState.agents;
+            delete newState.agentsCollapsed;
+        }
         this.state = { ...this.state, ...newState };
         this.state.lastUpdated = new Date().toISOString();
         this.saveState();
@@ -701,6 +705,7 @@ const AICoworker = {
         const body = document.getElementById('assistant-tab-body');
         if (!body) return;
 
+        try {
         let html = '';
 
         // ===== SECTION 1: SAFETY BAR (sticky top, only when alerts exist) =====
@@ -712,19 +717,16 @@ const AICoworker = {
         // ===== SECTION 3: CLINICAL SUMMARY (3 sentences) =====
         html += this.renderClinicalSummary();
 
-        // ===== SECTION 4: AGENT TASKS =====
-        html += this.renderAgentTasks();
-
-        // ===== SECTION 5: PROBLEM LIST =====
+        // ===== SECTION 4: PROBLEM LIST =====
         html += this.renderProblemList();
 
-        // ===== SECTION 6: SUGGESTED ACTIONS =====
+        // ===== SECTION 5: SUGGESTED ACTIONS =====
         html += this.renderSuggestedActions();
 
-        // ===== SECTION 7: CONVERSATION THREAD =====
+        // ===== SECTION 6: CONVERSATION THREAD =====
         html += this.renderConversationThread();
 
-        // ===== SECTION 8: INLINE INPUT (sticky bottom) =====
+        // ===== SECTION 7: INLINE INPUT (sticky bottom) =====
         html += this.renderInlineInput();
 
         body.innerHTML = html;
@@ -733,6 +735,10 @@ const AICoworker = {
         const textarea = document.getElementById('copilot-inline-input');
         if (textarea) {
             textarea.addEventListener('input', () => this._autoResizeTextarea(textarea));
+        }
+        } catch (err) {
+            console.error('Error rendering AI copilot panel:', err);
+            body.innerHTML = '<div class="ai-empty"><div class="empty-icon">&#10024;</div><div class="empty-text">Clinical Copilot</div><div class="empty-hint">Loading patient data...</div></div>';
         }
     },
 
@@ -808,145 +814,334 @@ const AICoworker = {
     /**
      * Build a 3-sentence clinical summary from local patient data (no LLM needed).
      * Returns {demographics, functional, presentation} or null if insufficient data.
+     *
+     * Sentence 1 (HPI): Uses clinical abbreviations (HFrEF, T2DM, AFib, CKD3b, HTN, etc.)
+     * Sentence 2 (Social): Functional status, living situation, mobility
+     * Sentence 3 (Presentation): Chief complaint + significant positives + pertinent negatives
      */
     _buildLocalSummary() {
-        const doc = this.longitudinalDoc;
-        if (!doc) return null;
+        try {
+            const doc = this.longitudinalDoc;
+            if (!doc) return null;
 
-        // ---- Sentence 1: Age, sex, PMH ----
-        let demographics = '';
-        let patientAge = '';
-        let sex = '';
-        if (typeof PatientHeader !== 'undefined' && PatientHeader.currentPatient) {
-            const p = PatientHeader.currentPatient;
-            let age = p.age;
-            if (!age && p.dateOfBirth) {
-                const dob = new Date(p.dateOfBirth);
-                const today = new Date();
-                age = today.getFullYear() - dob.getFullYear();
-                const m = today.getMonth() - dob.getMonth();
-                if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
-            }
-            patientAge = age ? `${age}` : '';
-            sex = (p.sex || p.gender || '').toLowerCase();
-            if (sex === 'male' || sex === 'm') sex = 'male';
-            else if (sex === 'female' || sex === 'f') sex = 'female';
-            else sex = '';
-        }
+            // ---- Clinical abbreviation map ----
+            const ABBREVIATIONS = {
+                'type 2 diabetes mellitus': 'T2DM',
+                'type 2 diabetes': 'T2DM',
+                'type 1 diabetes mellitus': 'T1DM',
+                'type 1 diabetes': 'T1DM',
+                'diabetes mellitus': 'DM',
+                'heart failure with reduced ejection fraction': 'HFrEF',
+                'heart failure with preserved ejection fraction': 'HFpEF',
+                'heart failure': 'HF',
+                'congestive heart failure': 'CHF',
+                'atrial fibrillation, persistent': 'persistent AFib',
+                'atrial fibrillation': 'AFib',
+                'chronic kidney disease, stage 3b': 'CKD 3b',
+                'chronic kidney disease, stage 3a': 'CKD 3a',
+                'chronic kidney disease, stage 4': 'CKD 4',
+                'chronic kidney disease, stage 5': 'CKD 5',
+                'chronic kidney disease stage 3b': 'CKD 3b',
+                'chronic kidney disease stage 3a': 'CKD 3a',
+                'chronic kidney disease': 'CKD',
+                'essential hypertension': 'HTN',
+                'hypertension': 'HTN',
+                'hyperlipidemia': 'HLD',
+                'coronary artery disease': 'CAD',
+                'chronic obstructive pulmonary disease': 'COPD',
+                'gastroesophageal reflux disease': 'GERD',
+                'benign prostatic hyperplasia': 'BPH',
+                'diabetic peripheral neuropathy': 'diabetic neuropathy',
+                'peripheral arterial disease': 'PAD',
+                'deep vein thrombosis': 'DVT',
+                'pulmonary embolism': 'PE',
+                'obstructive sleep apnea': 'OSA',
+                'end stage renal disease': 'ESRD',
+                'acute kidney injury': 'AKI',
+                'vitamin d deficiency': 'Vit D deficiency',
+                'obesity': 'obesity'
+            };
 
-        // Get active problems sorted by priority
-        const problems = [];
-        for (const [id, timeline] of doc.problemMatrix) {
-            const prob = timeline.problem || timeline;
-            if (prob.status === 'active' || !prob.status) {
-                problems.push({
-                    name: prob.name || id,
-                    priority: prob.priority || 'Medium'
-                });
-            }
-        }
-        // Sort: High first, then Medium, then Low
-        const priorityOrder = { 'High': 0, 'Medium': 1, 'Low': 2 };
-        problems.sort((a, b) => (priorityOrder[a.priority] ?? 1) - (priorityOrder[b.priority] ?? 1));
-        const topProblems = problems.slice(0, 5).map(p => p.name);
-
-        if (patientAge && topProblems.length > 0) {
-            demographics = `${patientAge}-year-old ${sex} with ${topProblems.join(', ')}`;
-        } else if (patientAge) {
-            demographics = `${patientAge}-year-old ${sex}`;
-        }
-
-        // ---- Sentence 2: Functional status + living situation ----
-        let functional = '';
-        const social = doc.patientSnapshot?.socialHistory;
-        if (social) {
-            const parts = [];
-            // Occupation/retirement
-            if (social.occupation) {
-                const occ = typeof social.occupation === 'string' ? social.occupation :
-                    (social.occupation.status === 'Retired' ? `Retired ${social.occupation.previous || ''}`.trim() :
-                    social.occupation.current || social.occupation.status || '');
-                if (occ) parts.push(occ);
-            }
-            // Living situation
-            if (social.livingSituation) {
-                // Extract key info — first sentence or first 80 chars
-                const living = typeof social.livingSituation === 'string' ? social.livingSituation : '';
-                if (living) {
-                    const firstPart = living.split('.')[0].trim();
-                    parts.push(firstPart.charAt(0).toLowerCase() + firstPart.slice(1));
+            function abbreviate(name) {
+                const lower = name.toLowerCase().trim();
+                // Try exact match first, then partial matches (longest first)
+                if (ABBREVIATIONS[lower]) return ABBREVIATIONS[lower];
+                const keys = Object.keys(ABBREVIATIONS).sort((a, b) => b.length - a.length);
+                for (const key of keys) {
+                    if (lower.includes(key)) return ABBREVIATIONS[key];
                 }
+                return name; // No abbreviation found
             }
-            // Exercise/mobility
-            if (social.exercise) {
-                const exercise = typeof social.exercise === 'string' ? social.exercise : '';
-                if (exercise) {
-                    const firstPart = exercise.split('.')[0].trim();
-                    if (firstPart.length < 60) {
-                        parts.push(firstPart.charAt(0).toLowerCase() + firstPart.slice(1));
+
+            // ---- Sentence 1: Age, sex, PMH (with abbreviations) ----
+            let demographics = '';
+            let patientAge = '';
+            let sex = '';
+            if (typeof PatientHeader !== 'undefined' && PatientHeader.currentPatient) {
+                const p = PatientHeader.currentPatient;
+                let age = p.age;
+                if (!age && p.dateOfBirth) {
+                    const dob = new Date(p.dateOfBirth);
+                    const today = new Date();
+                    age = today.getFullYear() - dob.getFullYear();
+                    const m = today.getMonth() - dob.getMonth();
+                    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+                }
+                patientAge = age ? `${age}` : '';
+                sex = (p.sex || p.gender || '').toLowerCase();
+                if (sex === 'male' || sex === 'm') sex = 'M';
+                else if (sex === 'female' || sex === 'f') sex = 'F';
+                else sex = '';
+            }
+
+            // Get active problems sorted by priority
+            const problems = [];
+            if (doc.problemMatrix && doc.problemMatrix.size > 0) {
+                for (const [id, timeline] of doc.problemMatrix) {
+                    const prob = timeline.problem || timeline;
+                    if (prob.status === 'active' || !prob.status) {
+                        problems.push({
+                            name: prob.name || id,
+                            priority: prob.priority || 'Medium'
+                        });
                     }
                 }
             }
-            if (parts.length > 0) {
-                functional = parts.join('; ');
-                // Capitalize first letter
-                functional = functional.charAt(0).toUpperCase() + functional.slice(1);
+            // Sort: High first, then Medium, then Low
+            const priorityOrder = { 'High': 0, 'Medium': 1, 'Low': 2 };
+            problems.sort((a, b) => (priorityOrder[a.priority] ?? 1) - (priorityOrder[b.priority] ?? 1));
+            const topProblems = problems.slice(0, 5).map(p => abbreviate(p.name));
+
+            if (patientAge && topProblems.length > 0) {
+                demographics = `${patientAge}${sex} w/ ${topProblems.join(', ')}`;
+            } else if (patientAge) {
+                demographics = `${patientAge}-year-old ${sex === 'M' ? 'male' : sex === 'F' ? 'female' : ''}`.trim();
             }
-        }
-        if (!functional) {
-            functional = 'Functional status and living situation not yet documented';
-        }
 
-        // ---- Sentence 3: Chief complaint + key findings ----
-        let presentation = '';
-        const parts3 = [];
+            // ---- Sentence 2: Functional status + living situation ----
+            let functional = '';
+            const social = doc.patientSnapshot?.socialHistory;
+            if (social) {
+                const parts = [];
+                // Occupation/retirement
+                if (social.occupation) {
+                    const occ = typeof social.occupation === 'string' ? social.occupation :
+                        (social.occupation.status === 'Retired' ? `Retired ${social.occupation.previous || ''}`.trim() :
+                        social.occupation.current || social.occupation.status || '');
+                    if (occ) parts.push(occ);
+                }
+                // Living situation
+                if (social.livingSituation) {
+                    const living = typeof social.livingSituation === 'string' ? social.livingSituation : '';
+                    if (living) {
+                        const firstPart = living.split('.')[0].trim();
+                        parts.push(firstPart.charAt(0).toLowerCase() + firstPart.slice(1));
+                    }
+                }
+                // Exercise/mobility
+                if (social.exercise) {
+                    const exercise = typeof social.exercise === 'string' ? social.exercise : '';
+                    if (exercise) {
+                        const firstPart = exercise.split('.')[0].trim();
+                        if (firstPart.length < 60) {
+                            parts.push(firstPart.charAt(0).toLowerCase() + firstPart.slice(1));
+                        }
+                    }
+                }
+                if (parts.length > 0) {
+                    functional = parts.join('; ');
+                    functional = functional.charAt(0).toUpperCase() + functional.slice(1);
+                }
+            }
+            if (!functional) {
+                functional = 'Functional status and living situation not yet documented';
+            }
 
-        // Chief complaint from latest note or encounter
-        const notes = doc.longitudinalData.notes || [];
-        let chiefComplaint = '';
-        if (notes.length > 0) {
-            chiefComplaint = notes[0].chiefComplaint || '';
-        }
-        if (!chiefComplaint) {
-            // Try encounters
-            const encounters = doc.longitudinalData.encounters || [];
+            // ---- Sentence 3: Chief complaint + significant positives + pertinent negatives ----
+            let presentation = '';
+            const parts3 = [];
+
+            // Chief complaint from encounters (longitudinalData has encounters, not notes)
+            let chiefComplaint = '';
+            const encounters = doc.longitudinalData?.encounters || [];
             if (encounters.length > 0) {
                 chiefComplaint = encounters[0].chiefComplaint || '';
             }
+            if (chiefComplaint) {
+                parts3.push(`CC: ${chiefComplaint.charAt(0).toLowerCase() + chiefComplaint.slice(1)}`);
+            }
+
+            // Physical exam findings — significant positives and pertinent negatives
+            // Look in the problem matrix for notes with physical exam data
+            const examFindings = this._extractPhysicalExamFindings(doc);
+            if (examFindings.positives.length > 0 || examFindings.negatives.length > 0) {
+                const examParts = [];
+                if (examFindings.positives.length > 0) {
+                    examParts.push(examFindings.positives.slice(0, 3).join(', '));
+                }
+                if (examFindings.negatives.length > 0) {
+                    examParts.push(examFindings.negatives.slice(0, 2).join(', '));
+                }
+                if (examParts.length > 0) {
+                    parts3.push('exam: ' + examParts.join('; '));
+                }
+            }
+
+            // Flagged labs
+            const flaggedLabs = [];
+            if (doc.longitudinalData?.labs) {
+                for (const [name, trend] of doc.longitudinalData.labs) {
+                    if (trend.latestValue && (trend.latestValue.flag === 'CRITICAL' || trend.latestValue.flag === 'HIGH' || trend.latestValue.flag === 'LOW' || trend.latestValue.flag === 'HH' || trend.latestValue.flag === 'LL')) {
+                        const arrow = (trend.latestValue.flag === 'HIGH' || trend.latestValue.flag === 'HH') ? '\u2191' : '\u2193';
+                        flaggedLabs.push(`${name} ${trend.latestValue.value}${arrow}`);
+                    }
+                }
+            }
+            if (flaggedLabs.length > 0) {
+                parts3.push(flaggedLabs.slice(0, 4).join(', ') + (flaggedLabs.length > 4 ? ` (+${flaggedLabs.length - 4} more)` : ''));
+            }
+
+            // Recent vital concerns
+            const vitals = doc.longitudinalData?.vitals;
+            if (vitals && vitals.length > 0) {
+                const v = vitals[0];
+                const concerns = [];
+                if (v.heartRate && (v.heartRate > 100 || v.heartRate < 60)) concerns.push(`HR ${v.heartRate}`);
+                if (v.systolic && v.systolic < 90) concerns.push(`SBP ${v.systolic}`);
+                if (v.spO2 && v.spO2 < 94) concerns.push(`SpO2 ${v.spO2}%`);
+                if (v.temperature && v.temperature > 38.3) concerns.push(`Temp ${v.temperature}`);
+                if (concerns.length > 0) {
+                    parts3.push('vitals: ' + concerns.join(', '));
+                }
+            }
+
+            presentation = parts3.length > 0 ? parts3.join('; ') : 'No chief complaint documented yet';
+
+            return { demographics, functional, presentation };
+        } catch (err) {
+            console.warn('Error building local summary:', err);
+            return null;
         }
-        if (chiefComplaint) {
-            parts3.push(`Presents with ${chiefComplaint.charAt(0).toLowerCase() + chiefComplaint.slice(1)}`);
+    },
+
+    /**
+     * Extract physical exam findings from available clinical data.
+     * Returns { positives: string[], negatives: string[] }
+     * Positives = abnormal findings; Negatives = pertinent normals
+     */
+    _extractPhysicalExamFindings(doc) {
+        const positives = [];
+        const negatives = [];
+
+        try {
+            // Look through problem matrix for notes with physicalExam data
+            if (doc.problemMatrix) {
+                for (const [id, timeline] of doc.problemMatrix) {
+                    if (timeline.timeline) {
+                        for (const [period, data] of timeline.timeline) {
+                            if (data.notes) {
+                                for (const note of data.notes) {
+                                    if (note.physicalExam && typeof note.physicalExam === 'object') {
+                                        this._classifyExamFindings(note.physicalExam, positives, negatives);
+                                        return { positives, negatives }; // Use the first note with exam data
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn('Error extracting physical exam findings:', err);
         }
 
-        // Flagged labs
-        const flaggedLabs = [];
-        for (const [name, trend] of doc.longitudinalData.labs) {
-            if (trend.latestValue && (trend.latestValue.flag === 'CRITICAL' || trend.latestValue.flag === 'HIGH' || trend.latestValue.flag === 'LOW' || trend.latestValue.flag === 'HH' || trend.latestValue.flag === 'LL')) {
-                const arrow = (trend.latestValue.flag === 'HIGH' || trend.latestValue.flag === 'HH') ? '\u2191' : '\u2193';
-                flaggedLabs.push(`${name} ${trend.latestValue.value}${arrow}`);
+        return { positives, negatives };
+    },
+
+    /**
+     * Classify physical exam findings into positives (abnormal) and negatives (pertinent normals).
+     */
+    _classifyExamFindings(physicalExam, positives, negatives) {
+        // Keywords that indicate abnormal (positive) findings
+        const abnormalKeywords = ['edema', 'irregular', 'murmur', 'rales', 'crackles', 'rhonchi',
+            'wheeze', 'distended', 'tender', 'decreased', 'elevated', 'jugular',
+            'jvd', 'ascites', 'cyanosis', 'diaphoresis', 'tachycardic', 'gallop',
+            's3', 's4', 'bruit', 'guarding', 'rebound', 'hepatomegaly', 'splenomegaly'];
+        // Keywords that indicate pertinent negatives
+        const normalKeywords = ['no acute distress', 'clear to auscultation', 'no murmur',
+            'non-tender', 'non-distended', 'no edema', 'no wheezes', 'no rhonchi',
+            'no rales', 'regular rate', 'soft', 'normal', 'unremarkable',
+            'no jugular', 'jvp not elevated', 'no gallop', 'no rebound', 'no guarding'];
+
+        for (const [system, finding] of Object.entries(physicalExam)) {
+            if (!finding || typeof finding !== 'string') continue;
+            const lower = finding.toLowerCase();
+
+            // Check for abnormal findings
+            const hasAbnormal = abnormalKeywords.some(kw => lower.includes(kw));
+            const hasNormal = normalKeywords.some(kw => lower.includes(kw));
+
+            if (hasAbnormal) {
+                // Extract the specific abnormal finding
+                // e.g., "Irregularly irregular, no murmurs, JVP not elevated" → "irregularly irregular rhythm"
+                const shortFinding = this._extractKeyFinding(system, finding, true);
+                if (shortFinding && positives.length < 4) positives.push(shortFinding);
+            } else if (hasNormal && negatives.length < 3) {
+                // Only include pertinent negatives for key systems (Cardiovascular, Respiratory, Extremities)
+                const keyNegSystems = ['cardiovascular', 'respiratory', 'extremities', 'abdomen', 'lungs'];
+                if (keyNegSystems.some(s => system.toLowerCase().includes(s))) {
+                    const shortFinding = this._extractKeyFinding(system, finding, false);
+                    if (shortFinding) negatives.push(shortFinding);
+                }
             }
         }
-        if (flaggedLabs.length > 0) {
-            parts3.push(flaggedLabs.slice(0, 4).join(', ') + (flaggedLabs.length > 4 ? ` (+${flaggedLabs.length - 4} more)` : ''));
-        }
+    },
 
-        // Recent vital concerns
-        const vitals = doc.longitudinalData.vitals;
-        if (vitals && vitals.length > 0) {
-            const v = vitals[0];
-            const concerns = [];
-            if (v.heartRate && (v.heartRate > 100 || v.heartRate < 60)) concerns.push(`HR ${v.heartRate}`);
-            if (v.systolic && v.systolic < 90) concerns.push(`SBP ${v.systolic}`);
-            if (v.spO2 && v.spO2 < 94) concerns.push(`SpO2 ${v.spO2}%`);
-            if (v.temperature && v.temperature > 38.3) concerns.push(`Temp ${v.temperature}`);
-            if (concerns.length > 0) {
-                parts3.push('vitals: ' + concerns.join(', '));
+    /**
+     * Extract a concise key finding from a physical exam line.
+     */
+    _extractKeyFinding(system, finding, isPositive) {
+        const lower = finding.toLowerCase();
+
+        if (isPositive) {
+            // Extract the abnormal portion
+            if (lower.includes('edema')) {
+                const match = finding.match(/(trace|mild|moderate|severe|bilateral|pitting)?\s*(bilateral\s+)?(ankle\s+|lower\s+extremity\s+|pedal\s+)?edema/i);
+                return match ? match[0].trim() : 'edema';
             }
+            if (lower.includes('irregularly irregular') || lower.includes('irregular')) {
+                return 'irregularly irregular rhythm';
+            }
+            if (lower.includes('crackles') || lower.includes('rales')) {
+                return 'crackles on auscultation';
+            }
+            if (lower.includes('decreased sensation')) {
+                return 'decreased sensation bilat feet';
+            }
+            if (lower.includes('murmur')) {
+                const match = finding.match(/\d\/\d\s*(systolic|diastolic)?\s*murmur/i);
+                return match ? match[0] : 'murmur present';
+            }
+            if (lower.includes('jvd') || lower.includes('jugular venous distension')) {
+                return 'JVD present';
+            }
+            // Generic: return first clause
+            return finding.split(',')[0].trim().substring(0, 40);
+        } else {
+            // Pertinent negatives — brief format
+            if (system.toLowerCase().includes('cardiovasc')) {
+                if (lower.includes('no murmur')) return 'no murmurs';
+                if (lower.includes('jvp not elevated')) return 'JVP not elevated';
+            }
+            if (system.toLowerCase().includes('resp')) {
+                if (lower.includes('no wheeze') && lower.includes('no rhonchi')) return 'lungs clear';
+                if (lower.includes('clear to auscultation')) return 'lungs CTA bilaterally';
+            }
+            if (system.toLowerCase().includes('abd')) {
+                if (lower.includes('non-tender') && lower.includes('non-distended')) return 'abd soft, NT/ND';
+            }
+            return null; // Don't include non-key negatives
         }
-
-        presentation = parts3.length > 0 ? parts3.join('; ') : 'No chief complaint documented yet';
-
-        return { demographics, functional, presentation };
     },
 
     /**
@@ -954,165 +1149,108 @@ const AICoworker = {
      * Returns [{name, urgency, ddx: null, plan: null}] sorted by priority.
      */
     _buildLocalProblemList() {
-        const doc = this.longitudinalDoc;
-        if (!doc || doc.problemMatrix.size === 0) return [];
+        try {
+            const doc = this.longitudinalDoc;
+            if (!doc || !doc.problemMatrix || doc.problemMatrix.size === 0) return [];
 
-        const problems = [];
-        for (const [id, timeline] of doc.problemMatrix) {
-            const prob = timeline.problem || timeline;
-            if (prob.status === 'active' || !prob.status) {
-                // Map priority to urgency
-                let urgency = 'active';
-                if (prob.priority === 'High') urgency = 'urgent';
-                else if (prob.priority === 'Low') urgency = 'monitoring';
+            const problems = [];
+            for (const [id, timeline] of doc.problemMatrix) {
+                const prob = timeline.problem || timeline;
+                if (prob.status === 'active' || !prob.status) {
+                    // Map priority to urgency
+                    let urgency = 'active';
+                    if (prob.priority === 'High') urgency = 'urgent';
+                    else if (prob.priority === 'Low') urgency = 'monitoring';
 
-                problems.push({
-                    name: prob.name || id,
-                    urgency,
-                    ddx: null,
-                    plan: null,
-                    _priority: prob.priority || 'Medium'
-                });
-            }
-        }
-
-        // Sort by urgency
-        const order = { 'urgent': 0, 'active': 1, 'monitoring': 2 };
-        problems.sort((a, b) => (order[a.urgency] ?? 1) - (order[b.urgency] ?? 1));
-
-        // Limit to 5
-        return problems.slice(0, 5);
-    },
-
-    /**
-     * Render the agentic task system — shows AI "agents" working on clinical tasks
-     */
-    renderAgentTasks() {
-        if (!this.state.agents || this.state.agents.length === 0) return '';
-
-        const working = this.state.agents.filter(a => a.status === 'working').length;
-        const alerts = this.state.agents.filter(a => a.status === 'alert').length;
-        const done = this.state.agents.filter(a => a.status === 'done').length;
-
-        const summaryParts = [];
-        if (working > 0) summaryParts.push(`${working} working`);
-        if (alerts > 0) summaryParts.push(`${alerts} alert${alerts > 1 ? 's' : ''}`);
-        if (done > 0) summaryParts.push(`${done} done`);
-
-        let html = '<div class="copilot-section agents-section">';
-        html += `<div class="agents-header" onclick="AICoworker.toggleAgentsSection()">`;
-        html += `<span class="agents-header-left"><span class="agents-header-icon">⚡</span> Agents</span>`;
-        html += `<span class="agents-summary">${summaryParts.join(' · ')}</span>`;
-        html += `<span class="agents-toggle">${this.state.agentsCollapsed ? '▸' : '▾'}</span>`;
-        html += '</div>';
-
-        if (!this.state.agentsCollapsed) {
-            html += '<div class="agents-list">';
-
-            for (const agent of this.state.agents) {
-                html += `<div class="agent-item agent-${agent.status}" id="${agent.id}">`;
-                html += '<div class="agent-row">';
-                html += `<span class="agent-icon">${agent.icon}</span>`;
-                html += `<span class="agent-label">${this.escapeHtml(agent.label)}</span>`;
-
-                if (agent.status === 'working') {
-                    html += '<span class="agent-status-badge working">analyzing</span>';
-                } else if (agent.status === 'done') {
-                    html += '<span class="agent-status-badge done">✓ done</span>';
-                } else if (agent.status === 'alert') {
-                    html += '<span class="agent-status-badge alert">⚠ finding</span>';
-                } else {
-                    html += '<span class="agent-status-badge idle">idle</span>';
+                    problems.push({
+                        name: prob.name || id,
+                        urgency,
+                        ddx: null,
+                        plan: null,
+                        _priority: prob.priority || 'Medium'
+                    });
                 }
-
-                html += '</div>'; // agent-row
-
-                // Progress bar for working agents
-                if (agent.status === 'working') {
-                    html += '<div class="agent-progress">';
-                    html += `<div class="agent-progress-bar" style="width: ${Math.min(agent.progress * 100, 100)}%"></div>`;
-                    html += '</div>';
-                    html += `<div class="agent-status-text">${this.escapeHtml(agent.statusText)}</div>`;
-                }
-
-                // Finding for completed/alert agents
-                if (agent.finding && (agent.status === 'done' || agent.status === 'alert')) {
-                    html += `<div class="agent-finding ${agent.finding.severity}">${this.escapeHtml(agent.finding.text)}</div>`;
-                }
-
-                html += '</div>'; // agent-item
             }
 
-            html += '</div>'; // agents-list
-        }
+            // Sort by urgency
+            const order = { 'urgent': 0, 'active': 1, 'monitoring': 2 };
+            problems.sort((a, b) => (order[a.urgency] ?? 1) - (order[b.urgency] ?? 1));
 
-        html += '</div>'; // agents-section
-        return html;
+            // Limit to 5
+            return problems.slice(0, 5);
+        } catch (err) {
+            console.warn('Error building local problem list:', err);
+            return [];
+        }
     },
+
+    // Agent system removed — clinical data analysis now surfaces directly through
+    // the Problem List (DDx, plans) and Suggested Actions sections.
 
     /**
      * Render a structured 3-sentence clinical summary.
      * Uses LLM-refined data if available, falls back to locally-built sentences.
      */
     renderClinicalSummary() {
-        // Get patient name for header
-        let patientName = 'Patient';
-        let patientAge = '';
-        if (typeof PatientHeader !== 'undefined' && PatientHeader.currentPatient) {
-            const p = PatientHeader.currentPatient;
-            patientName = `${p.firstName || ''} ${p.lastName || ''}`.trim() || 'Patient';
-            let age = p.age;
-            if (!age && p.dateOfBirth) {
-                const dob = new Date(p.dateOfBirth);
-                const today = new Date();
-                age = today.getFullYear() - dob.getFullYear();
-                const m = today.getMonth() - dob.getMonth();
-                if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+        try {
+            // Get patient name for header
+            let patientName = 'Patient';
+            let patientAge = '';
+            if (typeof PatientHeader !== 'undefined' && PatientHeader.currentPatient) {
+                const p = PatientHeader.currentPatient;
+                patientName = `${p.firstName || ''} ${p.lastName || ''}`.trim() || 'Patient';
+                let age = p.age;
+                if (!age && p.dateOfBirth) {
+                    const dob = new Date(p.dateOfBirth);
+                    const today = new Date();
+                    age = today.getFullYear() - dob.getFullYear();
+                    const m = today.getMonth() - dob.getMonth();
+                    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+                }
+                const sex = (p.sex || p.gender || '').charAt(0).toUpperCase();
+                patientAge = age ? `${age}${sex}` : '';
             }
-            const sex = (p.sex || p.gender || '').charAt(0).toUpperCase();
-            patientAge = age ? `${age}${sex}` : '';
-        }
 
-        // Use LLM summary if available, else local
-        const summary = this.state.clinicalSummary || this._buildLocalSummary();
+            // Use LLM summary if available, else local
+            const summary = this.state.clinicalSummary || this._buildLocalSummary();
 
-        let html = '<div class="clinical-summary">';
-        html += '<div class="clinical-summary-header">';
-        html += `<span class="summary-patient-name">${this.escapeHtml(patientName)}${patientAge ? ', ' + patientAge : ''}</span>`;
-        html += '</div>';
+            let html = '<div class="clinical-summary">';
+            html += '<div class="clinical-summary-header">';
+            html += `<span class="summary-patient-name">${this.escapeHtml(patientName)}${patientAge ? ', ' + patientAge : ''}</span>`;
+            html += '</div>';
 
-        if (summary) {
-            if (summary.demographics) {
-                html += `<div class="summary-sentence"><span class="sentence-label">HPI</span>${this.formatText(summary.demographics)}</div>`;
+            if (summary) {
+                if (summary.demographics) {
+                    html += `<div class="summary-sentence"><span class="sentence-label">HPI</span>${this.formatText(summary.demographics)}</div>`;
+                }
+                if (summary.functional) {
+                    html += `<div class="summary-sentence"><span class="sentence-label">Social</span>${this.formatText(summary.functional)}</div>`;
+                }
+                if (summary.presentation) {
+                    html += `<div class="summary-sentence"><span class="sentence-label">Presentation</span>${this.formatText(summary.presentation)}</div>`;
+                }
+            } else {
+                html += '<div class="summary-sentence summary-placeholder">Loading patient data...</div>';
             }
-            if (summary.functional) {
-                html += `<div class="summary-sentence"><span class="sentence-label">Social</span>${this.formatText(summary.functional)}</div>`;
-            }
-            if (summary.presentation) {
-                html += `<div class="summary-sentence"><span class="sentence-label">Presentation</span>${this.formatText(summary.presentation)}</div>`;
-            }
-        } else {
-            html += '<div class="summary-sentence summary-placeholder">Loading patient data...</div>';
-        }
 
-        // Allergies line (always show if allergies exist)
-        let allergies = this.longitudinalDoc?.patientSnapshot?.allergies || [];
-        if (allergies.length === 0 && typeof PatientHeader !== 'undefined' && PatientHeader.currentPatient?.allergies) {
-            allergies = PatientHeader.currentPatient.allergies;
-        }
-        if (allergies.length > 0) {
-            const names = allergies.slice(0, 4).map(a => typeof a === 'string' ? a : (a.substance || a.allergen || a.name || '?'));
-            html += `<div class="summary-allergies">&#9888; Allergies: ${names.join(', ')}${allergies.length > 4 ? ` +${allergies.length - 4}` : ''}</div>`;
-        }
+            // Allergies line (always show if allergies exist)
+            let allergies = this.longitudinalDoc?.patientSnapshot?.allergies || [];
+            if (allergies.length === 0 && typeof PatientHeader !== 'undefined' && PatientHeader.currentPatient?.allergies) {
+                allergies = PatientHeader.currentPatient.allergies;
+            }
+            if (allergies.length > 0) {
+                const names = allergies.slice(0, 4).map(a => typeof a === 'string' ? a : (a.substance || a.allergen || a.name || '?'));
+                html += `<div class="summary-allergies">&#9888; Allergies: ${names.join(', ')}${allergies.length > 4 ? ` +${allergies.length - 4}` : ''}</div>`;
+            }
 
-        html += '</div>';
-        return html;
+            html += '</div>';
+            return html;
+        } catch (err) {
+            console.warn('Error rendering clinical summary:', err);
+            return '<div class="clinical-summary"><div class="summary-sentence summary-placeholder">Loading patient data...</div></div>';
+        }
     },
 
-    /**
-     * Render the AI Insight section — the core cognitive aid.
-     * Shows the AI's accumulated understanding, or a prompt to analyze the chart.
-     */
     /**
      * Render the problem list section.
      * Shows 3-5 prioritized problems with DDx and plan (from LLM) or just names (local).
@@ -1284,437 +1422,6 @@ const AICoworker = {
 
         html += '</div>';
         return html;
-    },
-
-    // ==================== Agentic Task System ====================
-
-    /**
-     * Generate agent tasks by scanning local clinical data.
-     * Each agent type performs a specific data analysis — no LLM needed.
-     * Called after initializeLongitudinalDocument(), after refresh, after synthesis.
-     */
-    generateAgentTasks() {
-        // Clear any running simulation
-        this._stopAgentSimulation();
-
-        const agents = [];
-        const now = Date.now();
-
-        // 1. CHART REVIEW AGENT — always active
-        const chartAgent = {
-            id: 'agent_chart_' + now,
-            type: 'chart_review',
-            icon: '📋',
-            label: 'Chart Review',
-            status: 'working',
-            statusText: 'Scanning chart sections...',
-            progress: 0,
-            finding: null,
-            startedAt: now,
-            completedAt: null,
-            expanded: false,
-            _findingData: null // pre-computed, populated when agent "completes"
-        };
-        // Pre-compute finding: check which chart sections have been visited
-        if (this.sessionContext) {
-            const checklist = this.sessionContext.getChartReviewChecklist();
-            const unvisited = checklist.filter(item => !item.visited);
-            if (unvisited.length === 0) {
-                chartAgent.status = 'done';
-                chartAgent.progress = 1;
-                chartAgent.completedAt = now;
-                chartAgent.finding = { severity: 'info', text: 'All chart sections reviewed' };
-            } else {
-                chartAgent._findingData = {
-                    severity: unvisited.length >= 3 ? 'warning' : 'info',
-                    text: `${unvisited.length} section${unvisited.length > 1 ? 's' : ''} not yet reviewed: ${unvisited.map(u => u.section).slice(0, 3).join(', ')}${unvisited.length > 3 ? '...' : ''}`
-                };
-            }
-        } else {
-            chartAgent._findingData = { severity: 'info', text: 'Chart review tracking not yet active' };
-        }
-        agents.push(chartAgent);
-
-        // 2. LAB ANALYSIS AGENT — if patient has labs
-        if (this.longitudinalDoc && this.longitudinalDoc.longitudinalData.labs.size > 0) {
-            const labAgent = {
-                id: 'agent_labs_' + now,
-                type: 'lab_analysis',
-                icon: '🔬',
-                label: 'Lab Analysis',
-                status: 'working',
-                statusText: 'Reviewing lab trends...',
-                progress: 0,
-                finding: null,
-                startedAt: now,
-                completedAt: null,
-                expanded: false,
-                _findingData: null
-            };
-
-            // Scan for abnormal/critical labs
-            const criticalLabs = [];
-            const abnormalLabs = [];
-            for (const [name, trend] of this.longitudinalDoc.longitudinalData.labs) {
-                if (trend.latestValue) {
-                    if (trend.latestValue.flag === 'CRITICAL') {
-                        criticalLabs.push(`${name}: ${trend.latestValue.value} ${trend.latestValue.unit || ''}`);
-                    } else if (trend.latestValue.flag === 'HIGH' || trend.latestValue.flag === 'LOW' || trend.latestValue.flag === 'ABNORMAL') {
-                        abnormalLabs.push(`${name}: ${trend.latestValue.value}`);
-                    }
-                }
-            }
-
-            if (criticalLabs.length > 0) {
-                labAgent._findingData = {
-                    severity: 'critical',
-                    text: `Critical: ${criticalLabs.slice(0, 3).join('; ')}${criticalLabs.length > 3 ? ` (+${criticalLabs.length - 3} more)` : ''}`
-                };
-            } else if (abnormalLabs.length > 0) {
-                labAgent._findingData = {
-                    severity: 'warning',
-                    text: `${abnormalLabs.length} abnormal lab${abnormalLabs.length > 1 ? 's' : ''}: ${abnormalLabs.slice(0, 3).join('; ')}${abnormalLabs.length > 3 ? '...' : ''}`
-                };
-            } else {
-                labAgent.status = 'done';
-                labAgent.progress = 1;
-                labAgent.completedAt = now;
-                labAgent.finding = { severity: 'info', text: 'All labs within normal limits' };
-            }
-            agents.push(labAgent);
-        }
-
-        // 3. MEDICATION SAFETY AGENT — if patient has meds
-        const medsData = this.longitudinalDoc?.longitudinalData?.medications;
-        if (medsData && medsData.current && medsData.current.length > 0) {
-            const allergies = this.longitudinalDoc.patientSnapshot?.allergies || [];
-
-            const medAgent = {
-                id: 'agent_meds_' + now,
-                type: 'med_safety',
-                icon: '💊',
-                label: 'Med Safety',
-                status: 'working',
-                statusText: 'Checking interactions & allergies...',
-                progress: 0,
-                finding: null,
-                startedAt: now,
-                completedAt: null,
-                expanded: false,
-                _findingData: null
-            };
-
-            // Simple cross-check: any allergy substances matching medication names?
-            const allergySubstances = allergies.map(a => (a.substance || a.allergen || a.name || '').toLowerCase());
-            const medNames = medsData.current.map(m => (m.name || m.medication || '').toLowerCase());
-
-            const matches = [];
-            for (const med of medNames) {
-                for (const allergy of allergySubstances) {
-                    if (allergy && med && (med.includes(allergy) || allergy.includes(med))) {
-                        matches.push(`${med} ↔ ${allergy}`);
-                    }
-                }
-            }
-
-            // Check for high-alert meds
-            const highAlertKeywords = ['warfarin', 'heparin', 'insulin', 'morphine', 'fentanyl', 'methotrexate', 'digoxin', 'potassium chloride', 'vancomycin', 'amiodarone'];
-            const highAlertMeds = medNames.filter(m => highAlertKeywords.some(ha => m.includes(ha)));
-
-            if (matches.length > 0) {
-                medAgent._findingData = {
-                    severity: 'critical',
-                    text: `Allergy-medication conflict: ${matches.slice(0, 2).join('; ')}`
-                };
-            } else if (highAlertMeds.length > 0) {
-                medAgent._findingData = {
-                    severity: 'warning',
-                    text: `${highAlertMeds.length} high-alert med${highAlertMeds.length > 1 ? 's' : ''}: ${highAlertMeds.slice(0, 3).join(', ')}`
-                };
-            } else {
-                medAgent.status = 'done';
-                medAgent.progress = 1;
-                medAgent.completedAt = now;
-                medAgent.finding = { severity: 'info', text: 'No interactions or allergy conflicts detected' };
-            }
-            agents.push(medAgent);
-        }
-
-        // 4. CLINICAL SYNTHESIS AGENT — always active
-        const synthAgent = {
-            id: 'agent_synth_' + now,
-            type: 'clinical_synthesis',
-            icon: '🧠',
-            label: 'Clinical Synthesis',
-            status: 'working',
-            statusText: 'Building clinical picture...',
-            progress: 0,
-            finding: null,
-            startedAt: now,
-            completedAt: null,
-            expanded: false,
-            _findingData: null
-        };
-
-        if (this.longitudinalDoc && this.longitudinalDoc.aiMemory.patientSummary) {
-            synthAgent.status = 'done';
-            synthAgent.progress = 1;
-            synthAgent.completedAt = now;
-            // First sentence of AI summary as finding
-            const summary = this.longitudinalDoc.aiMemory.patientSummary;
-            const firstSentence = summary.split(/\.\s/)[0];
-            synthAgent.finding = {
-                severity: 'info',
-                text: firstSentence + (firstSentence.endsWith('.') ? '' : '.')
-            };
-        } else {
-            synthAgent._findingData = {
-                severity: 'info',
-                text: 'Run "Analyze Chart" to build clinical synthesis'
-            };
-        }
-        agents.push(synthAgent);
-
-        // 5. DISCHARGE READINESS AGENT — if patient appears to be admitted
-        if (this.longitudinalDoc) {
-            const dischargeAgent = {
-                id: 'agent_discharge_' + now,
-                type: 'discharge_readiness',
-                icon: '🚪',
-                label: 'Discharge Readiness',
-                status: 'working',
-                statusText: 'Assessing stability criteria...',
-                progress: 0,
-                finding: null,
-                startedAt: now,
-                completedAt: null,
-                expanded: false,
-                _findingData: null
-            };
-
-            // Simple heuristic: check vital stability and problem status
-            const vitals = this.longitudinalDoc.longitudinalData.vitals;
-            const problems = [];
-            for (const [id, timeline] of this.longitudinalDoc.problemMatrix) {
-                const prob = timeline.problem || timeline;
-                if (prob.status === 'active' || !prob.status) {
-                    problems.push(prob.name || id);
-                }
-            }
-
-            let readinessIssues = [];
-            if (vitals && vitals.length > 0) {
-                const latest = vitals[vitals.length - 1];
-                if (latest.heartRate && (latest.heartRate > 110 || latest.heartRate < 50)) readinessIssues.push('HR unstable');
-                if (latest.systolic && latest.systolic < 90) readinessIssues.push('Hypotensive');
-                if (latest.spO2 && latest.spO2 < 92) readinessIssues.push('Hypoxic');
-                if (latest.temperature && latest.temperature > 38.3) readinessIssues.push('Febrile');
-            }
-
-            // Check for critical labs
-            for (const [name, trend] of this.longitudinalDoc.longitudinalData.labs) {
-                if (trend.latestValue && trend.latestValue.flag === 'CRITICAL') {
-                    readinessIssues.push(`Critical ${name}`);
-                }
-            }
-
-            if (readinessIssues.length >= 2) {
-                dischargeAgent._findingData = {
-                    severity: 'warning',
-                    text: `Not ready: ${readinessIssues.slice(0, 3).join(', ')}`
-                };
-            } else if (readinessIssues.length === 1) {
-                dischargeAgent._findingData = {
-                    severity: 'info',
-                    text: `Barrier: ${readinessIssues[0]}. ${problems.length} active problem${problems.length > 1 ? 's' : ''}`
-                };
-            } else {
-                dischargeAgent._findingData = {
-                    severity: 'info',
-                    text: `Vitals stable. ${problems.length} active problem${problems.length > 1 ? 's' : ''} to address`
-                };
-            }
-            agents.push(dischargeAgent);
-        }
-
-        // Sort: alert > working > done
-        const statusOrder = { 'alert': 0, 'working': 1, 'done': 2, 'idle': 3 };
-        agents.sort((a, b) => (statusOrder[a.status] || 3) - (statusOrder[b.status] || 3));
-
-        this.state.agents = agents;
-
-        // Start simulation for working agents
-        this._startAgentSimulation();
-    },
-
-    /**
-     * Start simulated progress for working agents.
-     * Each tick increments progress until the agent "completes".
-     */
-    _startAgentSimulation() {
-        this._stopAgentSimulation();
-
-        const workingAgents = this.state.agents.filter(a => a.status === 'working');
-        if (workingAgents.length === 0) return;
-
-        // Stagger starting progress so agents don't all finish at once
-        workingAgents.forEach((agent, idx) => {
-            agent.progress = 0.05 + (idx * 0.08); // Stagger starts
-        });
-
-        this._agentSimInterval = setInterval(() => {
-            this._tickAgentProgress();
-        }, 800);
-    },
-
-    /**
-     * Stop the agent simulation interval.
-     */
-    _stopAgentSimulation() {
-        if (this._agentSimInterval) {
-            clearInterval(this._agentSimInterval);
-            this._agentSimInterval = null;
-        }
-    },
-
-    /**
-     * Tick agent progress — called by interval timer.
-     * Increments working agents and completes them when done.
-     */
-    _tickAgentProgress() {
-        let anyWorking = false;
-        let changed = false;
-
-        for (const agent of this.state.agents) {
-            if (agent.status !== 'working') continue;
-
-            anyWorking = true;
-            // Random increment between 0.08 and 0.20
-            agent.progress += 0.08 + Math.random() * 0.12;
-
-            if (agent.progress >= 1.0) {
-                this._completeAgent(agent);
-            }
-            changed = true;
-        }
-
-        if (changed) {
-            this._updateAgentsDOM();
-        }
-
-        if (!anyWorking) {
-            this._stopAgentSimulation();
-        }
-    },
-
-    /**
-     * Complete an agent — populate its finding and change status.
-     */
-    _completeAgent(agent) {
-        agent.progress = 1;
-        agent.completedAt = Date.now();
-
-        if (agent._findingData) {
-            agent.finding = agent._findingData;
-            agent.status = agent._findingData.severity === 'critical' ? 'alert' : 'done';
-            if (agent._findingData.severity === 'warning') agent.status = 'alert';
-        } else {
-            agent.status = 'done';
-            agent.finding = { severity: 'info', text: 'Analysis complete — no issues found' };
-        }
-
-        // Auto-expand alert findings
-        if (agent.status === 'alert') {
-            agent.expanded = true;
-        }
-    },
-
-    /**
-     * Efficiently update only the agents DOM instead of full re-render.
-     * This avoids flickering during progress animation.
-     */
-    _updateAgentsDOM() {
-        const agentsList = document.querySelector('.agents-list');
-        if (!agentsList) return;
-
-        for (const agent of this.state.agents) {
-            const agentEl = document.getElementById(agent.id);
-            if (!agentEl) continue;
-
-            // Update class
-            agentEl.className = `agent-item agent-${agent.status}`;
-
-            // Update progress bar
-            const progressBar = agentEl.querySelector('.agent-progress-bar');
-            if (progressBar) {
-                progressBar.style.width = `${Math.min(agent.progress * 100, 100)}%`;
-            }
-
-            // Update status badge
-            const badge = agentEl.querySelector('.agent-status-badge');
-            if (badge) {
-                if (agent.status === 'done') {
-                    badge.className = 'agent-status-badge done';
-                    badge.textContent = '✓ done';
-                } else if (agent.status === 'alert') {
-                    badge.className = 'agent-status-badge alert';
-                    badge.textContent = '⚠ finding';
-                } else if (agent.status === 'working') {
-                    badge.className = 'agent-status-badge working';
-                    badge.textContent = 'analyzing';
-                }
-            }
-
-            // Update status text → finding when done
-            const statusText = agentEl.querySelector('.agent-status-text');
-            const findingEl = agentEl.querySelector('.agent-finding');
-
-            if (agent.status === 'done' || agent.status === 'alert') {
-                if (statusText) statusText.style.display = 'none';
-                const progressEl = agentEl.querySelector('.agent-progress');
-                if (progressEl) progressEl.style.display = 'none';
-
-                if (agent.finding && !findingEl) {
-                    // Create finding element
-                    const div = document.createElement('div');
-                    div.className = `agent-finding ${agent.finding.severity}`;
-                    div.textContent = agent.finding.text;
-                    agentEl.appendChild(div);
-                }
-            }
-        }
-
-        // Update the header summary
-        const summaryEl = document.querySelector('.agents-summary');
-        if (summaryEl) {
-            const working = this.state.agents.filter(a => a.status === 'working').length;
-            const alerts = this.state.agents.filter(a => a.status === 'alert').length;
-            const done = this.state.agents.filter(a => a.status === 'done').length;
-            const parts = [];
-            if (working > 0) parts.push(`${working} working`);
-            if (alerts > 0) parts.push(`${alerts} alert${alerts > 1 ? 's' : ''}`);
-            if (done > 0) parts.push(`${done} done`);
-            summaryEl.textContent = parts.join(' · ');
-        }
-    },
-
-    /**
-     * Toggle an agent's expanded state
-     */
-    toggleAgent(agentId) {
-        const agent = this.state.agents.find(a => a.id === agentId);
-        if (agent) {
-            agent.expanded = !agent.expanded;
-            this.render();
-        }
-    },
-
-    /**
-     * Toggle agents section collapse
-     */
-    toggleAgentsSection() {
-        this.state.agentsCollapsed = !this.state.agentsCollapsed;
-        this.render();
     },
 
     /**
@@ -2123,6 +1830,18 @@ Based on the doctor's thoughts, provide UPDATED versions of all four:
 
 Format your response as JSON:
 {
+  "oneLiner": "Single-sentence clinical gestalt (~15 words)",
+  "clinicalSummary": {
+    "demographics": "Age, sex, key PMH with abbreviations (e.g. 72M w/ HFrEF, T2DM, AFib, CKD3b, HTN)",
+    "functional": "Functional status, living situation",
+    "presentation": "CC, significant exam positives, pertinent negatives, key abnormal labs"
+  },
+  "problemList": [
+    {"name": "Problem", "urgency": "urgent|active|monitoring", "ddx": "Differential or null", "plan": "Brief plan"}
+  ],
+  "categorizedActions": {
+    "communication": [], "labs": [], "imaging": [], "medications": [], "other": []
+  },
   "summary": "...",
   "keyConsiderations": [
     {"text": "GI bleed history (2023) — anticoagulation contraindicated", "severity": "critical"},
@@ -2168,11 +1887,8 @@ Respond with ONLY the JSON, no preamble.`;
 
             // If it's a string, try to parse as JSON
             if (typeof response === 'string') {
-                // Try to extract JSON from the response
-                const jsonMatch = response.match(/\{[\s\S]*\}/);
-                if (jsonMatch) {
-                    data = JSON.parse(jsonMatch[0]);
-                } else {
+                data = this._parseJSONResponse(response);
+                if (!data) {
                     // If no JSON found, treat the whole thing as thinking text
                     this.state.thinking = response;
                     this.state.status = 'ready';
@@ -2202,6 +1918,11 @@ Respond with ONLY the JSON, no preamble.`;
                     text: typeof action === 'string' ? action : action.text
                 }));
             }
+            // Parse new clinical fields
+            if (data.oneLiner) this.state.aiOneLiner = data.oneLiner;
+            if (data.clinicalSummary) this.state.clinicalSummary = data.clinicalSummary;
+            if (data.problemList && Array.isArray(data.problemList)) this.state.problemList = data.problemList;
+            if (data.categorizedActions) this.state.categorizedActions = data.categorizedActions;
 
             this.state.status = 'ready';
             this.saveState();
@@ -2753,6 +2474,18 @@ Please provide:
 
 Format your response as JSON:
 {
+  "oneLiner": "Single-sentence clinical gestalt (~15 words)",
+  "clinicalSummary": {
+    "demographics": "Age, sex, key PMH with abbreviations (e.g. 72M w/ HFrEF, T2DM, AFib, CKD3b, HTN)",
+    "functional": "Functional status, living situation",
+    "presentation": "CC, significant exam positives, pertinent negatives, key abnormal labs"
+  },
+  "problemList": [
+    {"name": "Problem", "urgency": "urgent|active|monitoring", "ddx": "Differential or null", "plan": "Brief plan"}
+  ],
+  "categorizedActions": {
+    "communication": [], "labs": [], "imaging": [], "medications": [], "other": []
+  },
   "thinking": "...",
   "summary": "...",
   "suggestedActions": ["action 1", "action 2", "action 3"]
@@ -2784,11 +2517,7 @@ Format your response as JSON:
         try {
             let data = response;
             if (typeof response === 'string') {
-                // Try to parse JSON from response
-                const jsonMatch = response.match(/\{[\s\S]*\}/);
-                if (jsonMatch) {
-                    data = JSON.parse(jsonMatch[0]);
-                }
+                data = this._parseJSONResponse(response) || {};
             }
 
             if (data.thinking) {
@@ -2803,6 +2532,11 @@ Format your response as JSON:
                     text: typeof action === 'string' ? action : action.text
                 }));
             }
+            // Parse new clinical fields
+            if (data.oneLiner) this.state.aiOneLiner = data.oneLiner;
+            if (data.clinicalSummary) this.state.clinicalSummary = data.clinicalSummary;
+            if (data.problemList && Array.isArray(data.problemList)) this.state.problemList = data.problemList;
+            if (data.categorizedActions) this.state.categorizedActions = data.categorizedActions;
 
             this.state.status = 'ready';
             this.saveState();
@@ -3324,15 +3058,13 @@ RULES:
         this.lastApiCall.clinicalContext = clinicalContext;
 
         try {
-            const response = await this.callLLM(systemPrompt, userMessage);
+            const response = await this.callLLM(systemPrompt, userMessage, 4096);
 
-            // Parse the JSON response
-            const jsonMatch = response.match(/\{[\s\S]*\}/);
-            if (!jsonMatch) {
-                throw new Error('Invalid response format');
+            // Parse the JSON response with robust extraction
+            const result = this._parseJSONResponse(response);
+            if (!result) {
+                throw new Error('Could not parse AI response');
             }
-
-            const result = JSON.parse(jsonMatch[0]);
 
             // Update AI panel state
             if (result.summary) {
@@ -3366,8 +3098,12 @@ RULES:
 
             // === MEMORY WRITE-BACK: Update AI memory with persistent understanding ===
             if (this.contextAssembler) {
-                const memUpdates = this.contextAssembler.parseMemoryUpdates(JSON.stringify(result));
-                this.writeBackMemoryUpdates(memUpdates, 'dictate', doctorThoughts);
+                try {
+                    const memUpdates = this.contextAssembler.parseMemoryUpdates(JSON.stringify(result));
+                    this.writeBackMemoryUpdates(memUpdates, 'dictate', doctorThoughts);
+                } catch (memErr) {
+                    console.warn('Memory write-back failed (non-fatal):', memErr);
+                }
             }
 
             // Update one-liner
@@ -3391,9 +3127,6 @@ RULES:
                 this._pushToThread('ai', 'think', result.summary);
             }
 
-            // Regenerate agent tasks with new data
-            this.generateAgentTasks();
-
             this.state.status = 'ready';
             this.saveState();
             this.render();
@@ -3405,8 +3138,10 @@ RULES:
             this.render();
             if (error.message === 'API key not configured') {
                 App.showToast('Configure API key in settings to enable AI synthesis', 'warning');
+            } else if (error.message === 'Could not parse AI response') {
+                App.showToast('AI response could not be parsed. Try again.', 'warning');
             } else {
-                App.showToast('Error: ' + error.message, 'error');
+                App.showToast('AI synthesis error. Try again.', 'warning');
             }
         }
     },
@@ -3440,14 +3175,30 @@ You maintain a LONGITUDINAL CLINICAL DOCUMENT that persists across sessions. You
 
 Respond in this exact JSON format:
 {
+    "oneLiner": "A single clinical sentence (~15 words) capturing the current gestalt",
+    "clinicalSummary": {
+        "demographics": "Age, sex, key PMH with clinical abbreviations (e.g. 72M w/ HFrEF, T2DM, AFib, CKD3b, HTN)",
+        "functional": "Baseline functional status, living situation, social support, occupation",
+        "presentation": "Chief complaint, significant positive exam findings, pertinent negatives, key abnormal labs"
+    },
+    "problemList": [
+        {"name": "Most urgent problem", "urgency": "urgent|active|monitoring", "ddx": "Differential if relevant, or null", "plan": "1-2 sentence plan"}
+    ],
+    "categorizedActions": {
+        "communication": ["Talk to patient/nurse actions"],
+        "labs": ["Lab orders"],
+        "imaging": ["Imaging orders, or empty array"],
+        "medications": ["Medication orders"],
+        "other": ["Other orders"]
+    },
     "summary": "1-2 sentence case summary with **bold** for key diagnoses",
     "keyConsiderations": [
         {"text": "Safety concern or important clinical factor", "severity": "critical|important|info"}
     ],
-    "thinking": "2-4 sentences about patient trajectory. Where is the patient heading? Include supporting data points.",
-    "suggestedActions": ["action 1", "action 2", "action 3", "action 4", "action 5"],
-    "observations": ["key observations from the data"],
-    "trajectoryAssessment": "A paragraph synthesizing disease trajectories. For each active problem, describe current status, recent trend, and concerning patterns. This is DURABLE - it persists and gets refined over time.",
+    "thinking": "2-4 sentences about patient trajectory.",
+    "suggestedActions": ["action 1", "action 2"],
+    "observations": ["key observations"],
+    "trajectoryAssessment": "Disease trajectory synthesis paragraph.",
     "keyFindings": ["finding 1", "finding 2"],
     "openQuestions": ["question 1", "question 2"]
 }
@@ -3459,6 +3210,10 @@ Prioritize:
 4. Things that haven't been addressed yet
 
 RULES:
+- clinicalSummary.demographics: Use format "72M w/ HFrEF, T2DM, AFib, CKD3b, HTN". Standard clinical abbreviations
+- clinicalSummary.presentation: Include significant POSITIVE exam findings, pertinent NEGATIVES, and key abnormal labs
+- problemList: 3-5 problems MAX, most urgent first. DDx only when clinically meaningful
+- categorizedActions: Specific and actionable. Empty array fine for categories with nothing needed
 - keyConsiderations should include allergies, contraindications, drug interactions, and clinical concerns
 - Use severity "critical" for life-threatening concerns, "important" for significant issues, "info" for context
 - trajectoryAssessment should be comprehensive - describe how each problem is trending
@@ -3473,14 +3228,12 @@ RULES:
         this.lastApiCall.clinicalContext = clinicalContext;
 
         try {
-            const response = await this.callLLM(systemPrompt, userMessage);
+            const response = await this.callLLM(systemPrompt, userMessage, 4096);
 
-            const jsonMatch = response.match(/\{[\s\S]*\}/);
-            if (!jsonMatch) {
-                throw new Error('Invalid response format');
+            const result = this._parseJSONResponse(response);
+            if (!result) {
+                throw new Error('Could not parse AI response');
             }
-
-            const result = JSON.parse(jsonMatch[0]);
 
             if (result.summary) this.state.summary = result.summary;
             if (result.thinking) this.state.thinking = result.thinking;
@@ -3505,8 +3258,12 @@ RULES:
 
             // === MEMORY WRITE-BACK: Update AI memory with persistent understanding ===
             if (this.contextAssembler) {
-                const memUpdates = this.contextAssembler.parseMemoryUpdates(JSON.stringify(result));
-                this.writeBackMemoryUpdates(memUpdates, 'refresh', 'Full case refresh');
+                try {
+                    const memUpdates = this.contextAssembler.parseMemoryUpdates(JSON.stringify(result));
+                    this.writeBackMemoryUpdates(memUpdates, 'refresh', 'Full case refresh');
+                } catch (memErr) {
+                    console.warn('Memory write-back failed (non-fatal):', memErr);
+                }
             }
 
             // Update one-liner
@@ -3525,9 +3282,6 @@ RULES:
                 this.state.categorizedActions = result.categorizedActions;
             }
 
-            // Regenerate agent tasks with new data
-            this.generateAgentTasks();
-
             this.state.status = 'ready';
             this.state.lastUpdated = new Date().toISOString();
             this.saveState();
@@ -3540,8 +3294,10 @@ RULES:
             this.render();
             if (error.message === 'API key not configured') {
                 App.showToast('Configure API key in settings to enable AI analysis', 'warning');
+            } else if (error.message === 'Could not parse AI response') {
+                App.showToast('AI response could not be parsed. Try again.', 'warning');
             } else {
-                App.showToast('Error: ' + error.message, 'error');
+                App.showToast('AI analysis error. Try again.', 'warning');
             }
         } finally {
             if (btn) {
@@ -3622,8 +3378,8 @@ RULES:
             if (error.message === 'API key not configured') {
                 this._pushToThread('ai', 'ask', 'Configure your API key in settings to enable AI responses.');
             } else {
-                this._pushToThread('ai', 'ask', 'Error: ' + error.message);
-                App.showToast('Error: ' + error.message, 'error');
+                this._pushToThread('ai', 'ask', 'Sorry, something went wrong. Please try again.');
+                App.showToast('AI error. Try again.', 'warning');
             }
             this.render();
         }
@@ -3836,6 +3592,130 @@ RULES:
         return this.escapeHtml(text)
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\n/g, '<br>');
+    },
+
+    /**
+     * Robustly parse a JSON response from the LLM.
+     * Handles common issues: markdown code fences, extra text before/after, nested braces.
+     * Returns parsed object or null on failure.
+     */
+    _parseJSONResponse(response) {
+        if (!response || typeof response !== 'string') return null;
+
+        // 1. Strip markdown code fences if present
+        let cleaned = response.replace(/```json\s*/gi, '').replace(/```\s*/g, '');
+
+        // 2. Try direct parse first (ideal case: response IS the JSON)
+        try {
+            const trimmed = cleaned.trim();
+            if (trimmed.startsWith('{')) {
+                return JSON.parse(trimmed);
+            }
+        } catch (e) { /* fall through */ }
+
+        // 3. Extract JSON using balanced brace matching (handles nested objects)
+        let jsonStr = null;
+        const startIdx = cleaned.indexOf('{');
+        if (startIdx === -1) return null;
+
+        let depth = 0;
+        let endIdx = -1;
+        let inString = false;
+        let escape = false;
+
+        for (let i = startIdx; i < cleaned.length; i++) {
+            const ch = cleaned[i];
+            if (escape) { escape = false; continue; }
+            if (ch === '\\') { escape = true; continue; }
+            if (ch === '"') { inString = !inString; continue; }
+            if (inString) continue;
+            if (ch === '{') depth++;
+            if (ch === '}') { depth--; if (depth === 0) { endIdx = i; break; } }
+        }
+
+        if (endIdx > startIdx) {
+            jsonStr = cleaned.substring(startIdx, endIdx + 1);
+            try {
+                return JSON.parse(jsonStr);
+            } catch (e) {
+                console.warn('JSON balanced-brace parse failed:', e.message);
+                // Try to repair common LLM JSON issues
+                try {
+                    let repaired = jsonStr.replace(/,\s*([\}\]])/g, '$1');
+                    repaired = repaired.replace(/(?<=":[ ]*"[^"]*)\n/g, '\\n');
+                    return JSON.parse(repaired);
+                } catch (e2) {
+                    console.warn('JSON repair attempt also failed:', e2.message);
+                }
+            }
+        }
+
+        // 4. Handle TRUNCATED JSON (response cut off mid-way — no closing brace found)
+        // This happens when max_tokens is reached. Try to salvage partial JSON.
+        if (endIdx === -1 && startIdx >= 0) {
+            console.warn('JSON appears truncated (no closing brace). Attempting truncation repair...');
+            let partial = cleaned.substring(startIdx);
+
+            // Strategy: remove the last incomplete value, then close all open braces/brackets
+            // First, strip any trailing incomplete string (no closing quote)
+            partial = partial.replace(/,\s*"[^"]*":\s*"[^"]*$/, '');   // incomplete "key": "val...
+            partial = partial.replace(/,\s*"[^"]*":\s*\[[^\]]*$/, ''); // incomplete "key": [val...
+            partial = partial.replace(/,\s*"[^"]*":\s*$/, '');         // "key": <nothing>
+            partial = partial.replace(/,\s*"[^"]*$/, '');              // trailing "key with no colon
+            partial = partial.replace(/,\s*$/, '');                     // trailing comma
+
+            // Count open braces/brackets and close them
+            let openBraces = 0, openBrackets = 0;
+            let inStr = false, esc = false;
+            for (let i = 0; i < partial.length; i++) {
+                const c = partial[i];
+                if (esc) { esc = false; continue; }
+                if (c === '\\') { esc = true; continue; }
+                if (c === '"') { inStr = !inStr; continue; }
+                if (inStr) continue;
+                if (c === '{') openBraces++;
+                if (c === '}') openBraces--;
+                if (c === '[') openBrackets++;
+                if (c === ']') openBrackets--;
+            }
+
+            // If we're inside a string, close it
+            if (inStr) partial += '"';
+
+            // Close remaining brackets then braces
+            for (let i = 0; i < openBrackets; i++) partial += ']';
+            for (let i = 0; i < openBraces; i++) partial += '}';
+
+            try {
+                // Fix trailing commas before closing
+                let repaired = partial.replace(/,\s*([\}\]])/g, '$1');
+                const result = JSON.parse(repaired);
+                console.log('✅ Successfully repaired truncated JSON response');
+                return result;
+            } catch (e) {
+                console.warn('Truncated JSON repair failed:', e.message);
+            }
+        }
+
+        // 5. Fallback: greedy regex (last resort)
+        try {
+            const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+        } catch (e) {
+            console.warn('JSON regex parse failed:', e.message);
+            try {
+                const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    let repaired = jsonMatch[0].replace(/,\s*([\}\]])/g, '$1');
+                    return JSON.parse(repaired);
+                }
+            } catch (e2) { /* give up */ }
+        }
+
+        console.error('All JSON parse attempts failed. Response preview:', response.substring(0, 300));
+        return null;
     },
 
     escapeHtml(text) {
