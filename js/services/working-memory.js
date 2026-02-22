@@ -331,14 +331,37 @@ class WorkingMemoryAssembler {
      */
     getPreviousInsightsBlock() {
         const narrative = this.pkb.clinicalNarrative;
-        if (!narrative) return '';
-
+        const ctx = this.pkb.sessionContext;
         let text = '';
 
-        if (narrative.trajectoryAssessment) {
+        // Highest priority: pending decisions (action items needing physician response)
+        const pendingDecisions = (ctx?.activeClinicalState?.pendingDecisions || [])
+            .filter(d => !d.resolvedAt);
+        if (pendingDecisions.length > 0) {
+            text += '## PENDING DECISIONS (Awaiting Physician Action)\n';
+            for (const d of pendingDecisions) {
+                text += `! [${(d.raisedBy || 'unknown').toUpperCase()}] ${d.text}\n`;
+            }
+            text += '\n';
+        }
+
+        // Active conflicts
+        const conflicts = (ctx?.conflicts || []).filter(c => !c.resolvedAt);
+        if (conflicts.length > 0) {
+            text += '## UNRESOLVED CONFLICTS\n';
+            for (const c of conflicts) {
+                text += `!! ${c.itemA.text} vs ${c.itemB.text}\n`;
+            }
+            text += '\n';
+        }
+
+        // Trajectory assessment
+        if (narrative && narrative.trajectoryAssessment) {
             text += `## AI'S TRAJECTORY ASSESSMENT\n${narrative.trajectoryAssessment}\n\n`;
         }
-        if (narrative.openQuestions && narrative.openQuestions.length > 0) {
+
+        // Open questions
+        if (narrative && narrative.openQuestions && narrative.openQuestions.length > 0) {
             text += '## UNRESOLVED QUESTIONS\n';
             narrative.openQuestions.forEach(q => { text += `? ${q}\n`; });
         }

@@ -96,7 +96,16 @@ Respond in this exact JSON format:
     "keyFindings": ["Critical clinical findings that should be remembered across sessions"],
     "openQuestions": ["Unresolved clinical questions that need follow-up"],
     "patientSummaryUpdate": "Your updated 2-3 paragraph mental model of this patient. This becomes YOUR memory — include key diagnoses, current status, recent trajectory, and critical safety concerns. Be comprehensive but concise.",
-    "problemInsightUpdates": [{"problemId": "problem_id", "insight": "Your current understanding of this problem's trajectory and significance"}]
+    "problemInsightUpdates": [{"problemId": "problem_id", "insight": "Your current understanding of this problem's trajectory and significance"}],
+    "memoryClassification": {
+        "pendingDecisions": ["Decision or question awaiting physician action — include who raised it"],
+        "activeConditions": [{"text": "What's actively evolving right now", "trend": "improving|worsening|stable|new"}],
+        "backgroundFacts": ["Stable facts that don't change (e.g. EF 35%, prior GI bleed, baseline Cr)"],
+        "supersededObservations": ["Text of any prior AI observations that are now outdated or proven wrong by new data"]
+    },
+    "conflictsDetected": [
+        {"description": "Brief description of any contradiction between existing info and new data", "severity": "critical|warning"}
+    ]
 }
 
 RULES:
@@ -111,7 +120,13 @@ RULES:
 - trajectoryAssessment should BUILD ON any existing trajectory (don't lose prior context, refine it)
 - keyFindings should be durable insights, not transient observations
 - openQuestions are things that still need to be resolved
-- patientSummaryUpdate is YOUR core memory — make it count`;
+- patientSummaryUpdate is YOUR core memory — make it count
+- memoryClassification: Classify your observations into three tiers:
+  1. pendingDecisions: Actions/questions needing physician response (nurse asks about heparin = pending decision)
+  2. activeConditions: Evolving clinical state with trend direction (patient trending toward AKI, volume overload improving)
+  3. backgroundFacts: Stable historical information that doesn't change (EF 35%, prior GI bleed history, baseline Cr 1.8)
+  List any prior observations now outdated in supersededObservations
+- conflictsDetected: Flag any contradictions you notice between existing information and new data (e.g. nurse asking about anticoagulation when it's contraindicated)`;
 
         const userMessage = `## Clinical Context (with AI Memory)
 ${context}
@@ -166,7 +181,16 @@ Respond in this exact JSON format:
     "keyFindings": ["finding 1", "finding 2"],
     "openQuestions": ["question 1", "question 2"],
     "patientSummaryUpdate": "Your comprehensive 2-3 paragraph mental model of this patient. This is your CORE MEMORY. Include: key demographics, primary diagnoses with severity, current clinical status, trajectory for each major problem, relevant history, safety concerns, and any clinical nuances you've detected.",
-    "problemInsightUpdates": [{"problemId": "problem_id", "insight": "Comprehensive understanding of this problem"}]
+    "problemInsightUpdates": [{"problemId": "problem_id", "insight": "Comprehensive understanding of this problem"}],
+    "memoryClassification": {
+        "pendingDecisions": ["Decision or question awaiting physician action"],
+        "activeConditions": [{"text": "What's actively evolving", "trend": "improving|worsening|stable|new"}],
+        "backgroundFacts": ["Stable facts that don't change (e.g. EF 35%, prior GI bleed)"],
+        "supersededObservations": ["Text of any prior AI observations now outdated"]
+    },
+    "conflictsDetected": [
+        {"description": "Brief description of any contradiction", "severity": "critical|warning"}
+    ]
 }
 
 Prioritize:
@@ -186,7 +210,13 @@ RULES:
 - trajectoryAssessment should be comprehensive — describe how each problem is trending
 - keyFindings should be durable insights worth remembering across sessions
 - openQuestions are things that still need to be resolved
-- patientSummaryUpdate is your MOST IMPORTANT output — this becomes your memory for all future interactions`;
+- patientSummaryUpdate is your MOST IMPORTANT output — this becomes your memory for all future interactions
+- memoryClassification: Classify observations into three tiers:
+  1. pendingDecisions: Actions/questions needing physician response
+  2. activeConditions: Evolving clinical state with trend direction
+  3. backgroundFacts: Stable historical information that doesn't change
+  List prior observations now outdated in supersededObservations
+- conflictsDetected: Flag contradictions between existing and new information`;
 
         const userMessage = `## Full Clinical Context (with AI Memory)
 ${context}
@@ -290,7 +320,9 @@ ${noteData}`;
         const updates = {
             patientSummaryUpdate: null,
             problemInsightUpdates: [],
-            interactionDigest: null
+            interactionDigest: null,
+            memoryClassification: null,
+            conflictsDetected: []
         };
 
         // Try parsing from <memory_update> block (ask-style responses)
@@ -316,6 +348,14 @@ ${noteData}`;
                 }
                 if (result.problemInsightUpdates && Array.isArray(result.problemInsightUpdates)) {
                     updates.problemInsightUpdates = result.problemInsightUpdates;
+                }
+                // Extract memory classification (active/passive/background)
+                if (result.memoryClassification) {
+                    updates.memoryClassification = result.memoryClassification;
+                }
+                // Extract detected conflicts
+                if (result.conflictsDetected && Array.isArray(result.conflictsDetected)) {
+                    updates.conflictsDetected = result.conflictsDetected;
                 }
             }
         } catch (e) {

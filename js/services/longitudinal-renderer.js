@@ -562,7 +562,47 @@ Code Status: ${doc.patientSnapshot.codeStatus || 'Full Code'}`;
         let text = `## CURRENT SESSION CONTEXT\n\n`;
         let hasContent = false;
 
-        // Doctor's dictation (most important)
+        // ===== TIER 1: PENDING DECISIONS (highest priority — action items) =====
+        const pendingDecisions = (ctx.activeClinicalState?.pendingDecisions || [])
+            .filter(d => !d.resolvedAt);
+        if (pendingDecisions.length > 0) {
+            text += `### !!! PENDING DECISIONS (Awaiting Action)\n`;
+            for (const d of pendingDecisions) {
+                text += `- [${(d.raisedBy || 'unknown').toUpperCase()}] ${d.text}`;
+                if (d.context) text += ` — ${d.context}`;
+                text += '\n';
+            }
+            text += '\n';
+            hasContent = true;
+        }
+
+        // ===== TIER 1b: ACTIVE CONFLICTS =====
+        const activeConflicts = (ctx.conflicts || []).filter(c => !c.resolvedAt);
+        if (activeConflicts.length > 0) {
+            text += `### !!! CONFLICTS DETECTED\n`;
+            for (const c of activeConflicts) {
+                const icon = c.severity === 'critical' ? '!!!' : '!!';
+                text += `${icon} "${c.itemA.text}" CONTRADICTS "${c.itemB.text}"\n`;
+            }
+            text += '\n';
+            hasContent = true;
+        }
+
+        // ===== TIER 2: ACTIVE CLINICAL STATE (what's happening NOW) =====
+        const activeConditions = ctx.activeClinicalState?.activeConditions || [];
+        if (activeConditions.length > 0) {
+            text += `### Active Clinical State (What's Happening NOW)\n`;
+            for (const c of activeConditions) {
+                const trendIcon = c.trend === 'worsening' ? '\u2191' :
+                                  c.trend === 'improving' ? '\u2193' :
+                                  c.trend === 'new' ? '\u2605' : '\u2192';
+                text += `${trendIcon} ${c.text}\n`;
+            }
+            text += '\n';
+            hasContent = true;
+        }
+
+        // Doctor's dictation (physician reasoning)
         if (ctx.doctorDictation && ctx.doctorDictation.length > 0) {
             text += `### Physician's Assessment/Reasoning\n`;
             for (const d of ctx.doctorDictation) {
@@ -573,7 +613,7 @@ Code Status: ${doc.patientSnapshot.codeStatus || 'Full Code'}`;
             hasContent = true;
         }
 
-        // Patient conversation (what the patient told us)
+        // Patient conversation
         if (ctx.patientConversation && ctx.patientConversation.length > 0) {
             text += `### Patient Interview (Recent)\n`;
             text += `The following is the recent conversation between the physician and the patient:\n`;
@@ -585,7 +625,7 @@ Code Status: ${doc.patientSnapshot.codeStatus || 'Full Code'}`;
             hasContent = true;
         }
 
-        // Nurse conversation (what the nurse reported)
+        // Nurse conversation
         if (ctx.nurseConversation && ctx.nurseConversation.length > 0) {
             text += `### Nurse Communication (Recent)\n`;
             text += `The following is the recent conversation between the physician and the nurse:\n`;
@@ -597,11 +637,26 @@ Code Status: ${doc.patientSnapshot.codeStatus || 'Full Code'}`;
             hasContent = true;
         }
 
-        // AI observations
-        if (ctx.aiObservations && ctx.aiObservations.length > 0) {
+        // AI observations — ONLY active ones (handles both old string format and new objects)
+        const activeObs = (ctx.aiObservations || []).filter(o =>
+            typeof o === 'string' ? true : (o.status === 'active')
+        );
+        if (activeObs.length > 0) {
             text += `### AI Observations\n`;
-            for (const obs of ctx.aiObservations) {
-                text += `- ${obs}\n`;
+            for (const obs of activeObs) {
+                const obsText = typeof obs === 'string' ? obs : obs.text;
+                text += `- ${obsText}\n`;
+            }
+            text += '\n';
+            hasContent = true;
+        }
+
+        // ===== TIER 3: BACKGROUND / HISTORICAL =====
+        const backgroundFacts = ctx.activeClinicalState?.backgroundFacts || [];
+        if (backgroundFacts.length > 0) {
+            text += `### Background Facts (Stable/Historical)\n`;
+            for (const f of backgroundFacts) {
+                text += `- ${f.text}\n`;
             }
             text += '\n';
             hasContent = true;
@@ -617,8 +672,8 @@ Code Status: ${doc.patientSnapshot.codeStatus || 'Full Code'}`;
             hasContent = true;
         }
 
-        // Pending items
-        if (ctx.pendingItems && ctx.pendingItems.length > 0) {
+        // Legacy pending items (backward compat — new code uses activeClinicalState.pendingDecisions)
+        if (ctx.pendingItems && ctx.pendingItems.length > 0 && pendingDecisions.length === 0) {
             text += `### Pending/Open Items\n`;
             for (const item of ctx.pendingItems) {
                 text += `[ ] ${item}\n`;

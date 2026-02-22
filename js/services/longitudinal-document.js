@@ -354,7 +354,7 @@ class LongitudinalClinicalDocument {
             lastLoadedTimestamp: null,  // For incremental updates
             patientId: null,
             currentEncounter: null,
-            documentVersion: '1.0'
+            documentVersion: '2.0'
         };
 
         // Patient snapshot - always present at top
@@ -400,10 +400,21 @@ class LongitudinalClinicalDocument {
         // Context from current session
         this.sessionContext = {
             doctorDictation: [],
-            aiObservations: [],
+            aiObservations: [],         // Structured: [{id, text, timestamp, status, supersededBy, category, version}]
             safetyFlags: [],
             reviewedItems: [],
-            pendingItems: [],
+            pendingItems: [],           // Kept for backward compat; new code uses activeClinicalState
+
+            // Active clinical state layer — separates action items from background
+            activeClinicalState: {
+                pendingDecisions: [],   // {id, text, context, raisedBy, raisedAt, resolvedAt, resolution, relatedProblemIds}
+                activeConditions: [],   // {text, since, trend, relatedProblemIds, lastUpdated}
+                backgroundFacts: []     // {text, source, addedAt, category}
+            },
+
+            // Conflict log — contradictions between clinical data
+            conflicts: [],              // {id, itemA, itemB, detectedAt, resolvedAt, resolution, severity}
+
             patientConversation: [],
             nurseConversation: []
         };
@@ -624,6 +635,48 @@ class LongitudinalClinicalDocument {
         doc.patientSnapshot = data.patientSnapshot;
         doc.clinicalNarrative = data.clinicalNarrative;
         doc.sessionContext = data.sessionContext;
+
+        // ===== v1 → v2 Migration =====
+        // Ensure activeClinicalState exists (v1 documents won't have it)
+        if (!doc.sessionContext.activeClinicalState) {
+            doc.sessionContext.activeClinicalState = {
+                pendingDecisions: [],
+                activeConditions: [],
+                backgroundFacts: []
+            };
+            // Migrate old pendingItems to pendingDecisions
+            if (doc.sessionContext.pendingItems && doc.sessionContext.pendingItems.length > 0) {
+                doc.sessionContext.activeClinicalState.pendingDecisions =
+                    doc.sessionContext.pendingItems.map((text, i) => ({
+                        id: `migrated_${i}`,
+                        text,
+                        context: '',
+                        raisedBy: 'unknown',
+                        raisedAt: data.metadata.lastUpdated || new Date().toISOString(),
+                        resolvedAt: null,
+                        resolution: null,
+                        relatedProblemIds: []
+                    }));
+            }
+        }
+        // Ensure conflicts array exists
+        if (!doc.sessionContext.conflicts) {
+            doc.sessionContext.conflicts = [];
+        }
+        // Migrate old string-format aiObservations to structured format
+        if (doc.sessionContext.aiObservations &&
+            doc.sessionContext.aiObservations.length > 0 &&
+            typeof doc.sessionContext.aiObservations[0] === 'string') {
+            doc.sessionContext.aiObservations = doc.sessionContext.aiObservations.map((text, i) => ({
+                id: `migrated_obs_${i}`,
+                text,
+                timestamp: data.metadata.lastUpdated || new Date().toISOString(),
+                status: 'active',
+                supersededBy: null,
+                category: 'clinical',
+                version: 1
+            }));
+        }
 
         // Deserialize AI memory
         if (data.aiMemory) {

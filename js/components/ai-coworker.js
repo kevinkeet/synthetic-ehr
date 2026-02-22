@@ -320,6 +320,28 @@ const AICoworker = {
 
         // Sync from current state
         this.longitudinalDocUpdater.syncFromAIState(this.state);
+
+        // Detect nurse questions that should become pending decisions
+        if (this.longitudinalDoc?.sessionContext?.nurseConversation) {
+            const nurseMsgs = this.longitudinalDoc.sessionContext.nurseConversation
+                .filter(m => m.role === 'nurse');
+            for (const msg of nurseMsgs) {
+                if (this._looksLikeQuestion(msg.content)) {
+                    this.longitudinalDocUpdater.addPendingDecision(
+                        msg.content.substring(0, 200),
+                        'From nurse communication',
+                        'nurse'
+                    );
+                }
+            }
+        }
+    },
+
+    /**
+     * Check if text looks like a question or request for a decision
+     */
+    _looksLikeQuestion(text) {
+        return /\?|should we|shall I|do you want|can we|what about|requesting|asking about|waiting for|would you like/i.test(text);
     },
 
     /**
@@ -386,8 +408,10 @@ const AICoworker = {
                     existingSet.add(finding.toLowerCase().trim());
                 }
             }
-            // Cap at 20 to prevent unbounded growth
-            if (narrative.keyFindings.length > 20) {
+            // Smart pruning instead of FIFO eviction
+            if (narrative.keyFindings.length > 20 && this.longitudinalDocUpdater) {
+                this.longitudinalDocUpdater.pruneKeyFindings(20);
+            } else if (narrative.keyFindings.length > 20) {
                 narrative.keyFindings = narrative.keyFindings.slice(-20);
             }
         }
@@ -460,6 +484,78 @@ const AICoworker = {
         // 5. Mark session context interaction
         if (this.sessionContext) {
             this.sessionContext.markAIInteraction();
+        }
+
+        // 6. Process memory classification (active/passive/background tiers)
+        if (memUpdates.memoryClassification && this.longitudinalDocUpdater) {
+            const mc = memUpdates.memoryClassification;
+
+            // Add pending decisions
+            if (mc.pendingDecisions && Array.isArray(mc.pendingDecisions)) {
+                for (const pd of mc.pendingDecisions) {
+                    this.longitudinalDocUpdater.addPendingDecision(
+                        typeof pd === 'string' ? pd : (pd.text || pd),
+                        typeof pd === 'object' ? (pd.context || '') : '',
+                        typeof pd === 'object' ? (pd.raisedBy || 'ai') : 'ai'
+                    );
+                }
+            }
+
+            // Add active conditions
+            if (mc.activeConditions && Array.isArray(mc.activeConditions)) {
+                for (const ac of mc.activeConditions) {
+                    this.longitudinalDocUpdater.addActiveCondition(
+                        typeof ac === 'string' ? ac : ac.text,
+                        typeof ac === 'object' ? (ac.trend || 'stable') : 'stable'
+                    );
+                }
+            }
+
+            // Add background facts
+            if (mc.backgroundFacts && Array.isArray(mc.backgroundFacts)) {
+                for (const bf of mc.backgroundFacts) {
+                    this.longitudinalDocUpdater.addBackgroundFact(
+                        typeof bf === 'string' ? bf : (bf.text || bf),
+                        'ai'
+                    );
+                }
+            }
+
+            // Supersede observations marked as outdated by LLM
+            if (mc.supersededObservations && Array.isArray(mc.supersededObservations)) {
+                const obsArray = this.longitudinalDoc.sessionContext.aiObservations;
+                for (const supersededText of mc.supersededObservations) {
+                    const trimmed = supersededText.toLowerCase().trim();
+                    const match = obsArray.find(o =>
+                        typeof o === 'object' &&
+                        o.status === 'active' &&
+                        o.text.toLowerCase().trim() === trimmed
+                    );
+                    if (match) {
+                        match.status = 'superseded';
+                        console.log('🧹 Superseded observation:', match.text.substring(0, 80));
+                    }
+                }
+            }
+
+            console.log('🧠 Memory classification processed:', {
+                pending: mc.pendingDecisions?.length || 0,
+                active: mc.activeConditions?.length || 0,
+                background: mc.backgroundFacts?.length || 0,
+                superseded: mc.supersededObservations?.length || 0
+            });
+        }
+
+        // 7. Process detected conflicts
+        if (memUpdates.conflictsDetected && memUpdates.conflictsDetected.length > 0 && this.longitudinalDocUpdater) {
+            for (const conflict of memUpdates.conflictsDetected) {
+                this.longitudinalDocUpdater.addConflict({
+                    itemA: { text: conflict.description || '', source: 'llm_detected', timestamp: new Date().toISOString() },
+                    itemB: { text: '', source: 'llm_detected', timestamp: '' },
+                    severity: conflict.severity || 'warning'
+                });
+            }
+            console.log('⚠️ LLM detected', memUpdates.conflictsDetected.length, 'conflict(s)');
         }
 
         // Persist
