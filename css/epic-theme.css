@@ -93,8 +93,9 @@ html, body {
 .header-left {
     display: flex;
     align-items: center;
-    gap: 20px;
-    flex-shrink: 0;
+    gap: 14px;
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 .logo {
@@ -119,7 +120,7 @@ html, body {
 }
 
 .patient-search input {
-    width: 220px;
+    width: 160px;
     padding: 6px 12px;
     border: 1px solid rgba(255,255,255,0.3);
     border-radius: 4px;
@@ -174,25 +175,30 @@ html, body {
 .header-center {
     flex: 1;
     text-align: center;
+    min-width: 0;
+    overflow: hidden;
 }
 
 .patient-info-banner {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 24px;
+    gap: 16px;
+    white-space: nowrap;
 }
 
 .patient-name {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
+    white-space: nowrap;
 }
 
 .patient-details {
     display: flex;
-    gap: 16px;
-    font-size: 12px;
+    gap: 12px;
+    font-size: 11px;
     opacity: 0.9;
+    white-space: nowrap;
 }
 
 .patient-detail-item {
@@ -207,9 +213,10 @@ html, body {
 .header-right {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     font-size: 12px;
     flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .current-user {
