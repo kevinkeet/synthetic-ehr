@@ -95,7 +95,8 @@ const App = {
             .on('/family-history', () => FamilyHistory.render())
             .on('/immunizations', () => Immunizations.render())
             .on('/procedures', () => Procedures.render())
-            .on('/orders', () => Orders.render());
+            .on('/orders', () => Orders.render())
+            .on('/about', () => About.render());
     },
 
     /**

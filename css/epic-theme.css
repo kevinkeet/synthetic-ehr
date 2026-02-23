@@ -1532,6 +1532,96 @@ html, body {
 }
 
 /* ============================================
+   About Page
+   ============================================ */
+
+.header-about-link {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+}
+
+.header-about-link:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.about-page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 20px 0;
+}
+
+.about-hero {
+    text-align: center;
+    padding: 40px 0 32px;
+    border-bottom: 1px solid var(--border-light);
+    margin-bottom: 32px;
+}
+
+.about-hero-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.about-hero-title .logo-ai {
+    color: var(--primary);
+    font-weight: 800;
+}
+
+.about-hero-tagline {
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 540px;
+    margin: 0 auto;
+}
+
+.about-section {
+    margin-bottom: 32px;
+}
+
+.about-section h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--primary);
+    display: inline-block;
+}
+
+.about-section p {
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.about-section p:last-child {
+    margin-bottom: 0;
+}
+
+.about-footer {
+    text-align: center;
+    padding: 24px 0;
+    border-top: 1px solid var(--border-light);
+    margin-top: 40px;
+}
+
+.about-footer p {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* ============================================
    Print Styles
    ============================================ */
 @media print {
