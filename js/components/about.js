@@ -2,6 +2,7 @@
  * About Page Component
  * Loads content from a published Google Doc so it can be updated without code changes.
  * Falls back to hardcoded content if the fetch fails.
+ * Shows as a popup on first visit (tracked via localStorage).
  */
 
 const About = {
@@ -13,6 +14,103 @@ const About = {
     cacheTimestamp: 0,
     cacheDuration: 5 * 60 * 1000, // 5 minutes
 
+    // Bold/italic class maps extracted from Google Doc stylesheet
+    boldClasses: new Set(),
+    italicClasses: new Set(),
+
+    /**
+     * Check if this is the user's first visit and show the popup if so.
+     * Called once from app init.
+     */
+    checkFirstVisit() {
+        const seen = localStorage.getItem('about-seen');
+        if (!seen) {
+            this.showModal();
+        }
+    },
+
+    /**
+     * Show the About content as a modal overlay
+     */
+    async showModal() {
+        // Mark as seen
+        localStorage.setItem('about-seen', 'true');
+
+        // Create modal container
+        const overlay = document.createElement('div');
+        overlay.className = 'about-modal-overlay';
+        overlay.id = 'about-modal-overlay';
+        overlay.innerHTML = `
+            <div class="about-modal">
+                <button class="about-modal-close" onclick="About.closeModal()">&times;</button>
+                <div class="about-modal-body">
+                    <div class="about-page">
+                        <div class="about-hero">
+                            <div class="about-hero-title">
+                                <span class="logo-ai">A</span>cting <span class="logo-ai">I</span>ntern
+                            </div>
+                            <p class="about-hero-tagline">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        // Close on backdrop click
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) About.closeModal();
+        });
+
+        // Close on Escape
+        const escHandler = (e) => {
+            if (e.key === 'Escape') {
+                About.closeModal();
+                document.removeEventListener('keydown', escHandler);
+            }
+        };
+        document.addEventListener('keydown', escHandler);
+
+        // Load content
+        let sectionHtml = null;
+        try {
+            sectionHtml = await this.fetchAndParse();
+        } catch (err) {
+            console.warn('About modal: Google Doc fetch failed, using fallback.', err);
+        }
+
+        const bodyContent = sectionHtml || this.getFallbackHtml();
+        const modalBody = overlay.querySelector('.about-modal-body');
+        if (modalBody) {
+            modalBody.innerHTML = `
+                <div class="about-page">
+                    <div class="about-hero">
+                        <div class="about-hero-title">
+                            <span class="logo-ai">A</span>cting <span class="logo-ai">I</span>ntern
+                        </div>
+                        <p class="about-hero-tagline">A PHI-free playground for exploring how AI can support clinical reasoning and medical decision-making.</p>
+                    </div>
+                    ${bodyContent}
+                    <div class="about-footer">
+                        <p>Built with care in the spirit of better clinical reasoning.</p>
+                    </div>
+                </div>
+            `;
+        }
+    },
+
+    /**
+     * Close the modal overlay
+     */
+    closeModal() {
+        const overlay = document.getElementById('about-modal-overlay');
+        if (overlay) overlay.remove();
+    },
+
+    /**
+     * Render the About page in the main content area (for #/about route)
+     */
     async render() {
         const content = document.getElementById('main-content');
 
@@ -57,7 +155,8 @@ const About = {
 
     /**
      * Fetch the published Google Doc and parse its HTML into styled sections.
-     * Google Docs published pages put content in #contents with headings and paragraphs.
+     * Google Docs published pages use class-based styling in a <style> block,
+     * so we extract the bold/italic classes from that stylesheet first.
      */
     async fetchAndParse() {
         // Check cache
@@ -72,7 +171,10 @@ const About = {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
 
-        // Remove scripts and styles
+        // Extract bold/italic classes from the Google Docs <style> block BEFORE removing styles
+        this.extractFormattingClasses(doc);
+
+        // Remove scripts and styles (after extracting class info)
         doc.querySelectorAll('script, style').forEach(el => el.remove());
 
         // Find the content area
@@ -80,7 +182,6 @@ const About = {
         if (!contentArea) throw new Error('No content area found');
 
         // Walk through children and build sections
-        // Google Docs uses various heading tags (h1-h6) and p tags with class-based spans
         let sectionsHtml = '';
         let currentSection = null;
 
@@ -93,23 +194,19 @@ const About = {
             // Skip empty elements
             if (!text) continue;
 
-            // Headings start new sections
-            if (tag.match(/^h[1-6]$/)) {
-                // Close previous section
-                if (currentSection) {
-                    sectionsHtml += '</div>';
-                }
-                // Start new section
+            // Detect headings: actual h tags OR paragraphs whose spans are all bold/large
+            const isHeading = tag.match(/^h[1-6]$/) || this.isHeadingParagraph(el);
+
+            if (isHeading) {
+                if (currentSection) sectionsHtml += '</div>';
                 sectionsHtml += '<div class="about-section">';
                 sectionsHtml += `<h2>${this.sanitize(text)}</h2>`;
                 currentSection = text;
             } else if (tag === 'p') {
-                // If no section started yet, start one
                 if (!currentSection) {
                     sectionsHtml += '<div class="about-section">';
                     currentSection = 'intro';
                 }
-                // Preserve bold and italic from Google Docs
                 const innerHTML = this.cleanInlineHtml(el);
                 sectionsHtml += `<p>${innerHTML}</p>`;
             } else if (tag === 'ul' || tag === 'ol') {
@@ -118,25 +215,120 @@ const About = {
                     currentSection = 'intro';
                 }
                 const listItems = Array.from(el.querySelectorAll('li'))
-                    .map(li => `<li>${this.sanitize(li.textContent.trim())}</li>`)
+                    .map(li => `<li>${this.cleanInlineHtml(li)}</li>`)
                     .join('');
                 sectionsHtml += `<${tag}>${listItems}</${tag}>`;
             }
         }
 
-        // Close last section
-        if (currentSection) {
-            sectionsHtml += '</div>';
-        }
-
-        // If we got nothing meaningful, throw so we fall back
+        if (currentSection) sectionsHtml += '</div>';
         if (!sectionsHtml.trim()) throw new Error('No content parsed from document');
 
-        // Cache it
         this.cachedHtml = sectionsHtml;
         this.cacheTimestamp = Date.now();
-
         return sectionsHtml;
+    },
+
+    /**
+     * Parse the Google Docs <style> block to find which CSS classes
+     * correspond to bold (font-weight:700) or italic (font-style:italic).
+     */
+    extractFormattingClasses(doc) {
+        this.boldClasses = new Set();
+        this.italicClasses = new Set();
+
+        const styleEls = doc.querySelectorAll('style');
+        for (const styleEl of styleEls) {
+            const css = styleEl.textContent || '';
+
+            // Match class rules like .c3{...font-weight:700...}
+            const rulePattern = /\.(c\d+)\s*\{([^}]+)\}/g;
+            let match;
+            while ((match = rulePattern.exec(css)) !== null) {
+                const className = match[1];
+                const body = match[2];
+
+                if (/font-weight\s*:\s*(700|bold)/i.test(body)) {
+                    this.boldClasses.add(className);
+                }
+                if (/font-style\s*:\s*italic/i.test(body)) {
+                    this.italicClasses.add(className);
+                }
+            }
+        }
+    },
+
+    /**
+     * Detect if a <p> element is acting as a heading in Google Docs.
+     * Google Docs often uses <p class="c2"><span class="c3">Title</span></p>
+     * where c3 has larger font and bold weight.
+     */
+    isHeadingParagraph(el) {
+        if (el.tagName !== 'P') return false;
+        const spans = el.querySelectorAll('span');
+        if (spans.length === 0) return false;
+
+        // Check if ALL non-empty spans are bold (heading class)
+        let allBold = true;
+        let hasContent = false;
+        for (const span of spans) {
+            if (!span.textContent.trim()) continue;
+            hasContent = true;
+            if (!this.isElementBold(span)) {
+                allBold = false;
+                break;
+            }
+        }
+
+        // Also check font-size if present — headings in Google Docs are typically > 12pt
+        if (hasContent && allBold) {
+            // Verify by checking if there's a larger font size class
+            for (const span of spans) {
+                if (!span.textContent.trim()) continue;
+                const classes = Array.from(span.classList);
+                // If we detected it as bold via class, trust it as a heading
+                for (const cls of classes) {
+                    if (this.boldClasses.has(cls)) return true;
+                }
+            }
+        }
+
+        return false;
+    },
+
+    /**
+     * Check if an element is bold — via class, inline style, or tag
+     */
+    isElementBold(el) {
+        // Check tag
+        if (el.tagName === 'B' || el.tagName === 'STRONG') return true;
+
+        // Check classes against extracted bold classes
+        for (const cls of el.classList) {
+            if (this.boldClasses.has(cls)) return true;
+        }
+
+        // Check inline style
+        const style = el.getAttribute('style') || '';
+        if (/font-weight\s*:\s*(700|bold)/i.test(style)) return true;
+
+        return false;
+    },
+
+    /**
+     * Check if an element is italic — via class, inline style, or tag
+     */
+    isElementItalic(el) {
+        if (el.tagName === 'I' || el.tagName === 'EM') return true;
+
+        for (const cls of el.classList) {
+            if (this.italicClasses.has(cls)) return true;
+        }
+
+        const style = el.getAttribute('style') || '';
+        if (/font-style\s*:\s*italic/i.test(style)) return true;
+
+        return false;
     },
 
     /**
@@ -149,36 +341,50 @@ const About = {
     },
 
     /**
-     * Extract inline formatting (bold, italic) from a Google Docs paragraph element,
-     * while stripping everything else for safety.
+     * Extract inline formatting (bold, italic) from a Google Docs element,
+     * using the class-based formatting map extracted from the stylesheet.
      */
     cleanInlineHtml(el) {
         let result = '';
-        for (const node of el.childNodes) {
+
+        const processNode = (node) => {
             if (node.nodeType === Node.TEXT_NODE) {
-                result += this.sanitize(node.textContent);
-            } else if (node.nodeType === Node.ELEMENT_NODE) {
-                const text = this.sanitize(node.textContent);
-                if (!text.trim()) continue;
-
-                // Check computed/inline style for bold/italic
-                const style = node.getAttribute('style') || '';
-                const isBold = style.includes('font-weight:700') || style.includes('font-weight:bold') ||
-                               node.tagName === 'B' || node.tagName === 'STRONG';
-                const isItalic = style.includes('font-style:italic') ||
-                                 node.tagName === 'I' || node.tagName === 'EM';
-
-                if (isBold && isItalic) {
-                    result += `<strong><em>${text}</em></strong>`;
-                } else if (isBold) {
-                    result += `<strong>${text}</strong>`;
-                } else if (isItalic) {
-                    result += `<em>${text}</em>`;
-                } else {
-                    result += text;
-                }
+                return this.sanitize(node.textContent);
             }
+
+            if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+            const text = this.sanitize(node.textContent);
+            if (!text.trim()) return '';
+
+            const isBold = this.isElementBold(node);
+            const isItalic = this.isElementItalic(node);
+
+            // For elements with children spans (nested), recurse
+            if (node.children.length > 0 && node.tagName === 'SPAN') {
+                // Check if this span itself has formatting
+                let inner = '';
+                for (const child of node.childNodes) {
+                    inner += processNode(child);
+                }
+
+                if (isBold && isItalic) return `<strong><em>${inner}</em></strong>`;
+                if (isBold) return `<strong>${inner}</strong>`;
+                if (isItalic) return `<em>${inner}</em>`;
+                return inner;
+            }
+
+            // Leaf element
+            if (isBold && isItalic) return `<strong><em>${text}</em></strong>`;
+            if (isBold) return `<strong>${text}</strong>`;
+            if (isItalic) return `<em>${text}</em>`;
+            return text;
+        };
+
+        for (const node of el.childNodes) {
+            result += processNode(node);
         }
+
         return result;
     },
 

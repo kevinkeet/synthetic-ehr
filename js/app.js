@@ -56,6 +56,9 @@ const App = {
         // Initialize router
         router.init();
 
+        // Show About popup on first visit
+        About.checkFirstVisit();
+
         console.log('Acting Intern initialized successfully');
     },
 
