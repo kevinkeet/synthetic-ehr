@@ -1608,6 +1608,28 @@ html, body {
     margin-bottom: 0;
 }
 
+.about-section ul,
+.about-section ol {
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    padding-left: 24px;
+}
+
+.about-section li {
+    margin-bottom: 4px;
+}
+
+.about-section strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.about-section em {
+    font-style: italic;
+}
+
 .about-footer {
     text-align: center;
     padding: 24px 0;
