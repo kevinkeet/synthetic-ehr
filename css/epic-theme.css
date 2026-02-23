@@ -7648,14 +7648,15 @@ html, body {
    Floating Chat Windows (Patient & Nurse)
    ============================================ */
 
-/* Trigger buttons - fixed on left side */
+/* Trigger buttons - fixed at bottom center */
 .chat-trigger-buttons {
     position: fixed;
-    bottom: 20px;
-    left: 20px;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    flex-direction: row;
+    gap: 10px;
     z-index: 1000;
 }
 
@@ -7729,7 +7730,7 @@ html, body {
 /* Individual chat windows */
 .floating-chat-window {
     position: fixed;
-    bottom: 80px;
+    bottom: 70px;
     width: 400px;
     height: 520px;
     border-radius: 12px;
@@ -7752,13 +7753,13 @@ html, body {
 }
 
 /* Position the patient chat on the left */
+/* Position chat windows centered — patient left of center, nurse right */
 .patient-chat-window {
-    left: 20px;
+    right: calc(50% + 10px);
 }
 
-/* Position the nurse chat next to it */
 .nurse-chat-window {
-    left: 440px;
+    left: calc(50% + 10px);
 }
 
 /* Chat header */
@@ -8034,13 +8035,15 @@ html, body {
 
 /* Responsive - stack chat windows on small screens */
 @media (max-width: 900px) {
-    .nurse-chat-window {
-        left: 20px;
-        bottom: 80px;
+    .patient-chat-window {
+        right: auto;
+        left: 50%;
+        transform: translateX(-50%);
     }
 
-    .chat-trigger-buttons {
-        flex-direction: row;
+    .nurse-chat-window {
+        left: 50%;
+        transform: translateX(-50%);
     }
 }
 
@@ -8049,5 +8052,7 @@ html, body {
         width: calc(100vw - 40px);
         height: 60vh;
         left: 20px !important;
+        right: auto !important;
+        transform: none !important;
     }
 }

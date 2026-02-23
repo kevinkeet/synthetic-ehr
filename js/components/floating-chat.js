@@ -8,10 +8,10 @@ const FloatingChat = {
     // Track which chats are open
     openChats: {}, // { 'patient': true, 'nurse': false }
 
-    // Chat window positions (for dragging in the future)
+    // Chat window positions
     positions: {
-        patient: { bottom: 80, left: 20 },
-        nurse: { bottom: 80, left: 440 }
+        patient: { bottom: 80 },
+        nurse: { bottom: 80 }
     },
 
     /**
