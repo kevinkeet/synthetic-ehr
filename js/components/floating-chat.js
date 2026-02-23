@@ -46,11 +46,11 @@ const FloatingChat = {
         btnContainer.innerHTML = `
             <button class="chat-trigger-btn patient-trigger" onclick="FloatingChat.toggleChat('patient')" title="Chat with Patient">
                 <span class="trigger-icon">&#128100;</span>
-                <span class="trigger-label">Patient</span>
+                <span class="trigger-label">Chat with Patient</span>
             </button>
             <button class="chat-trigger-btn nurse-trigger" onclick="FloatingChat.toggleChat('nurse')" title="Chat with Nurse">
                 <span class="trigger-icon">&#128105;&#8205;&#9877;</span>
-                <span class="trigger-label">Nurse</span>
+                <span class="trigger-label">Chat with Nurse</span>
             </button>
         `;
     },

@@ -81,6 +81,10 @@ const About = {
         }
 
         const bodyContent = sectionHtml || this.getFallbackHtml();
+
+        // Check if API key is already configured
+        const hasApiKey = !!(typeof AICoworker !== 'undefined' && AICoworker.loadApiKey());
+
         const modalBody = overlay.querySelector('.about-modal-body');
         if (modalBody) {
             modalBody.innerHTML = `
@@ -92,11 +96,51 @@ const About = {
                         <p class="about-hero-tagline">A PHI-free playground for exploring how AI can support clinical reasoning and medical decision-making.</p>
                     </div>
                     ${bodyContent}
+                    <div class="about-setup-section" id="about-setup-section">
+                        <h2>&#9889; Get Started</h2>
+                        <p>To enable the AI assistant, enter your Anthropic API key. It's stored locally in your browser — never sent anywhere except directly to Anthropic.</p>
+                        <div class="about-api-key-row">
+                            <input type="password" id="about-api-key-input" class="about-api-key-input" placeholder="sk-ant-..." value="${hasApiKey ? '••••••••••••••••' : ''}">
+                            <button class="btn btn-primary about-api-key-btn" onclick="About.saveApiKey()">
+                                ${hasApiKey ? '&#10003; Saved' : 'Save Key'}
+                            </button>
+                        </div>
+                        <p class="about-api-key-hint">
+                            <a href="https://console.anthropic.com/settings/keys" target="_blank">Get an API key from Anthropic Console &#8594;</a>
+                        </p>
+                    </div>
                     <div class="about-footer">
                         <p>Built with care in the spirit of better clinical reasoning.</p>
                     </div>
                 </div>
             `;
+
+            // If key is already saved, show success state
+            if (hasApiKey) {
+                const btn = modalBody.querySelector('.about-api-key-btn');
+                if (btn) btn.classList.add('saved');
+            }
+        }
+    },
+
+    /**
+     * Save API key from the About modal setup section
+     */
+    saveApiKey() {
+        const input = document.getElementById('about-api-key-input');
+        if (!input) return;
+        const key = input.value.trim();
+        if (!key || key.includes('•')) return; // Ignore placeholder dots
+
+        if (typeof AICoworker !== 'undefined') {
+            AICoworker.saveApiKey(key);
+            input.value = '••••••••••••••••';
+            const btn = document.querySelector('.about-api-key-btn');
+            if (btn) {
+                btn.innerHTML = '&#10003; Saved';
+                btn.classList.add('saved');
+            }
+            if (typeof App !== 'undefined') App.showToast('API key saved', 'success');
         }
     },
 
