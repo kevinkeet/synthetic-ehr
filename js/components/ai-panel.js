@@ -14,8 +14,9 @@ const AIPanel = {
      * Initialize the AI panel
      */
     init() {
-        // Load collapsed state from localStorage
-        this.isCollapsed = localStorage.getItem('ai-panel-collapsed') === 'true';
+        // Default to collapsed unless the user has explicitly expanded before
+        const savedState = localStorage.getItem('ai-panel-collapsed');
+        this.isCollapsed = savedState === null ? true : savedState === 'true';
 
         // Load saved panel width
         const savedWidth = localStorage.getItem('ai-panel-width');
@@ -129,6 +130,35 @@ const AIPanel = {
         }
         this.isCollapsed = false;
         localStorage.setItem('ai-panel-collapsed', 'false');
+
+        // Auto-run initial AI analysis if it hasn't been done yet
+        this._autoAnalyzeIfNeeded();
+    },
+
+    /**
+     * Trigger AI analysis automatically if no LLM data is present yet.
+     * Called when the panel is expanded for the first time.
+     */
+    _autoAnalyzeIfNeeded() {
+        if (typeof AICoworker === 'undefined') return;
+
+        // Check if we already have LLM-enriched problem data
+        const hasLLMData = AICoworker.state &&
+            AICoworker.state.problemList &&
+            AICoworker.state.problemList.length > 0 &&
+            AICoworker.state.problemList.some(p => p.plan);
+
+        // Don't re-run if already thinking or already has data
+        if (hasLLMData) return;
+        if (AICoworker.state && AICoworker.state.status === 'thinking') return;
+
+        // Check that API is configured before attempting
+        if (!AICoworker.isApiConfigured()) return;
+
+        // Short delay to let the panel expand animation finish
+        setTimeout(() => {
+            AICoworker.refreshThinking();
+        }, 300);
     },
 
     /**

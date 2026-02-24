@@ -1446,10 +1446,10 @@ const AICoworker = {
                     html += `</div>`;
                 });
 
-                // Show "Analyze" prompt if no LLM data yet
+                // Show refresh button if no LLM data yet
                 if (!hasLLMData) {
                     html += '<div class="problem-analyze-hint">';
-                    html += '<button class="analyze-btn-sm" onclick="AICoworker.refreshThinking()">&#10024; Analyze for DDx &amp; Plans</button>';
+                    html += '<button class="analyze-btn-sm" onclick="AICoworker.refreshThinking()">&#128260; Refresh Analysis</button>';
                     html += '</div>';
                 }
             }
