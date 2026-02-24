@@ -113,6 +113,9 @@ const About = {
                             <button class="btn btn-primary about-enter-btn" onclick="About.closeModal()">
                                 Enter Acting Intern
                             </button>
+                            <button class="about-tour-btn" onclick="About.closeAndStartTour()">
+                                Take a Quick Tour
+                            </button>
                             <p>Built with care in the spirit of better clinical reasoning.</p>
                         </div>
                     </div>
@@ -200,6 +203,17 @@ const About = {
     closeModal() {
         const overlay = document.getElementById('about-modal-overlay');
         if (overlay) overlay.remove();
+    },
+
+    /**
+     * Close modal and immediately start the tutorial walkthrough
+     */
+    closeAndStartTour() {
+        this.closeModal();
+        if (typeof Tutorial !== 'undefined') {
+            // Brief delay so modal animation clears
+            setTimeout(() => Tutorial.start(), 200);
+        }
     },
 
     /**

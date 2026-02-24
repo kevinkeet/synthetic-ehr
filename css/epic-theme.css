@@ -1902,6 +1902,197 @@ html, body {
     font-style: italic;
 }
 
+/* ---- About: Tour Button ---- */
+
+.about-tour-btn {
+    display: inline-block;
+    padding: 10px 24px;
+    font-size: 13px;
+    font-weight: 500;
+    background: transparent;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+    border-radius: 8px;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: background 0.15s, color 0.15s;
+}
+
+.about-tour-btn:hover {
+    background: var(--primary);
+    color: white;
+}
+
+/* ============================================
+   Tutorial / Walkthrough
+   ============================================ */
+
+.tutorial-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10002;
+    pointer-events: none;
+}
+
+.tutorial-spotlight {
+    position: fixed;
+    border-radius: 8px;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55);
+    z-index: 10002;
+    pointer-events: none;
+    transition: top 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                left 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tutorial-tooltip {
+    position: fixed;
+    z-index: 10004;
+    background: white;
+    border-radius: 14px;
+    padding: 24px 28px 20px;
+    max-width: 360px;
+    width: 360px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+    pointer-events: auto;
+    opacity: 0;
+    animation: tutorialFadeIn 0.3s ease forwards;
+    animation-delay: 0.15s;
+}
+
+.tutorial-tooltip.centered {
+    max-width: 420px;
+    width: 420px;
+    text-align: center;
+}
+
+@keyframes tutorialFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.tutorial-tooltip-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.tutorial-tooltip-icon {
+    font-size: 22px;
+    line-height: 1;
+}
+
+.tutorial-tooltip-step {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.centered .tutorial-tooltip-header {
+    justify-content: center;
+}
+
+.tutorial-tooltip-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 8px;
+}
+
+.tutorial-tooltip-desc {
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--text-secondary);
+    margin: 0 0 16px;
+}
+
+/* Step indicator dots */
+
+.tutorial-tooltip-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.tutorial-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border-medium);
+    transition: background 0.2s, transform 0.2s;
+}
+
+.tutorial-dot.active {
+    background: var(--primary);
+    transform: scale(1.3);
+}
+
+.tutorial-dot.completed {
+    background: var(--primary);
+    opacity: 0.5;
+}
+
+/* Action buttons */
+
+.tutorial-tooltip-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.centered .tutorial-tooltip-actions {
+    justify-content: center;
+}
+
+.tutorial-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 7px;
+    cursor: pointer;
+    border: none;
+    transition: background 0.15s, color 0.15s;
+}
+
+.tutorial-btn-next {
+    background: var(--primary);
+    color: white;
+    padding: 8px 20px;
+}
+
+.tutorial-btn-next:hover {
+    background: #2563eb;
+}
+
+.tutorial-btn-back {
+    background: var(--bg-hover);
+    color: var(--text-secondary);
+}
+
+.tutorial-btn-back:hover {
+    background: var(--border-light);
+    color: var(--text-primary);
+}
+
+.tutorial-btn-skip {
+    background: transparent;
+    color: var(--text-muted);
+    margin-right: auto;
+    padding: 8px 10px;
+    font-size: 12px;
+}
+
+.tutorial-btn-skip:hover {
+    color: var(--text-secondary);
+    background: var(--bg-hover);
+}
+
 /* ============================================
    Print Styles
    ============================================ */
