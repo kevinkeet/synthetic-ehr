@@ -202,7 +202,43 @@ const OrderEntry = {
         const modal = document.getElementById('order-entry-modal');
         modal.classList.add('active');
 
+        // Reset title
+        const titleEl = modal.querySelector('.order-entry-title');
+        if (titleEl) {
+            titleEl.textContent = 'New Order';
+        }
+
         this.renderTypeSelection();
+    },
+
+    /**
+     * Open the modal with prefilled data — skips type selection, goes straight to form.
+     * Used by AI-suggested actions to prepopulate order fields.
+     * @param {string} orderType - One of: medication, lab, imaging, procedure, consult, nursing, admission
+     * @param {Object} prefillData - Field values matching the orderType's field names
+     */
+    openWithPrefill(orderType, prefillData) {
+        if (!this.orderTypes[orderType]) {
+            console.warn('Unknown order type:', orderType);
+            this.open(); // Fall back to normal open
+            return;
+        }
+
+        this.isOpen = true;
+        this.selectedType = orderType;
+        this.currentStep = 2; // Skip type selection, go straight to form
+        this.formData = { ...prefillData };
+
+        const modal = document.getElementById('order-entry-modal');
+        modal.classList.add('active');
+
+        // Update title to show it's AI-prefilled
+        const titleEl = modal.querySelector('.order-entry-title');
+        if (titleEl) {
+            titleEl.innerHTML = 'New Order <span style="font-size: 12px; color: #2980b9; font-weight: normal;">&#10024; AI Suggested</span>';
+        }
+
+        this.renderForm();
     },
 
     /**

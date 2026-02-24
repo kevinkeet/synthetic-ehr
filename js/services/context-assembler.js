@@ -80,11 +80,11 @@ Respond in this exact JSON format:
         {"name": "Subsequent problems: specific diagnoses or active issues", "urgency": "urgent|active|monitoring", "ddx": "DDx if differential is clinically meaningful, or null", "plan": "1-2 sentence plan"}
     ],
     "categorizedActions": {
-        "communication": ["DISCRETE actions starting with a verb — e.g. 'Ask patient about dietary potassium intake', 'Ask nurse for today\\'s I&Os', 'Ask patient if taking furosemide at home'"],
-        "labs": ["Specific lab orders — e.g. 'Repeat BMP in 6 hours', 'Add Mg and Phos to AM labs', 'Send troponin x3 q8h'"],
-        "imaging": ["Specific imaging orders — e.g. 'Portable CXR now', 'Stat CT-PE protocol', or empty array if none"],
-        "medications": ["Specific med orders with dose/route — e.g. 'Give furosemide 40mg IV x1 now', 'Hold spironolactone', 'Start heparin gtt per ACS protocol'"],
-        "other": ["Specific orders — e.g. 'Consult cardiology', 'Place on telemetry', 'Strict I&Os', 'Daily weights'"]
+        "communication": [{"text": "Ask patient about dietary potassium intake"}, {"text": "Ask nurse for today\\'s I&Os"}],
+        "labs": [{"text": "Repeat BMP in 6 hours", "orderType": "lab", "orderData": {"name": "Basic Metabolic Panel", "specimen": "Blood", "priority": "Routine", "indication": "Monitor renal function and electrolytes post-diuresis"}}],
+        "imaging": [{"text": "Portable CXR now", "orderType": "imaging", "orderData": {"modality": "X-Ray", "bodyPart": "Chest", "contrast": "Without contrast", "priority": "STAT", "indication": "Evaluate pulmonary edema"}}],
+        "medications": [{"text": "Give furosemide 40mg IV x1 now", "orderType": "medication", "orderData": {"name": "Furosemide", "dose": "40 mg", "route": "IV Push", "frequency": "Once", "indication": "Acute decompensated heart failure"}}],
+        "other": [{"text": "Consult cardiology", "orderType": "consult", "orderData": {"specialty": "Cardiology", "priority": "Routine", "reason": "Evaluation of acute decompensated HFrEF"}}]
     },
     "summary": "1-2 sentence case summary with **bold** for key diagnoses and decisions",
     "keyConsiderations": [
@@ -136,12 +136,16 @@ RULES:
   * Problem #1 MUST ALWAYS have a DDx with 2-4 plausible differential diagnoses, each with brief supporting/refuting evidence from the patient's data
   * Problems #2+ can be specific active diagnoses (e.g. "Hyperkalemia", "AKI on CKD") with plans
   * The DDx for #1 should demonstrate clinical reasoning — what could this be and why?
-- categorizedActions: Every action must be DISCRETE and CONCRETE — like a verbal order you could give a nurse RIGHT NOW.
+- categorizedActions: Every action must be a JSON object with "text" (human-readable) and optionally "orderType" + "orderData" for executable orders.
   * WRONG: "Consider increasing diuretics" or "Discuss fluid status" or "Monitor renal function"
-  * RIGHT: "Increase furosemide to 80mg IV BID", "Ask patient how many pillows they sleep with", "Repeat BMP in 6 hours"
-  * Start each action with an action verb: Give, Order, Ask, Hold, Start, Stop, Increase, Decrease, Check, Send, Consult, Place
-  * Include dose, route, and frequency for medications
-  * Include specific questions for communication (not "discuss" — what exactly to ask)
+  * RIGHT: {"text": "Increase furosemide to 80mg IV BID", "orderType": "medication", "orderData": {"name": "Furosemide", "dose": "80 mg", "route": "IV Push", "frequency": "BID", "indication": "Acute decompensated heart failure"}}
+  * Start each action text with an action verb: Give, Order, Ask, Hold, Start, Stop, Increase, Decrease, Check, Send, Consult, Place
+  * For medications: orderType="medication", orderData needs: name, dose, route (PO|IV|IV Push|IV Piggyback|IM|SC|SL|PR|Topical|Inhaled|Intranasal), frequency (Once|Daily|BID|TID|QID|Q2H|Q4H|Q6H|Q8H|Q12H|Q24H|Q4H PRN|Q6H PRN|Q8H PRN|PRN|At bedtime|Continuous), indication
+  * For labs: orderType="lab", orderData needs: name (use exact: "Complete Blood Count"|"Basic Metabolic Panel"|"Comprehensive Metabolic Panel"|"Lipid Panel"|"Liver Function Tests"|"Coagulation Panel (PT/INR/PTT)"|"Troponin"|"BNP"|"Pro-BNP"|"Magnesium"|"Phosphorus"|"Lactate"|"Hemoglobin A1c"|"Arterial Blood Gas"|"Urinalysis"|"Blood Culture"), specimen (Blood|Urine|Arterial Blood), priority (Routine|Urgent|STAT), indication
+  * For imaging: orderType="imaging", orderData needs: modality (X-Ray|CT|MRI|Ultrasound|Echo|Nuclear Medicine|Fluoroscopy), bodyPart, contrast (Without contrast|With contrast|With and without contrast|N/A), priority (Routine|Urgent|STAT), indication
+  * For consults: orderType="consult", orderData needs: specialty (Cardiology|Nephrology|Endocrinology|Pulmonology|Gastroenterology|Neurology|Infectious Disease|Oncology|Rheumatology|Psychiatry|Surgery|Other), priority, reason
+  * For nursing orders: orderType="nursing", orderData needs: orderType (Vital Signs|Activity|Diet|I&O Monitoring|Fall Precautions|Isolation|Wound Care|Other), details, priority
+  * For communication actions (talk to patient/nurse): NO orderType or orderData needed, just {"text": "Ask patient about..."}
   * Empty array is fine for categories with no actions needed
 - suggestedActions should ALIGN with the doctor's stated plan, not contradict it
 - If doctor says "no anticoagulation", don't suggest anticoagulation
@@ -194,11 +198,11 @@ Respond in this exact JSON format:
         {"name": "Subsequent problems: specific diagnoses or active issues", "urgency": "urgent|active|monitoring", "ddx": "DDx if meaningful, or null", "plan": "1-2 sentence plan"}
     ],
     "categorizedActions": {
-        "communication": ["DISCRETE verb-first actions — e.g. 'Ask patient about dietary potassium', 'Ask nurse for today\\'s I&Os'"],
-        "labs": ["Specific orders — e.g. 'Repeat BMP in 6 hours', 'Add Mg and Phos to AM labs'"],
-        "imaging": ["Specific orders — e.g. 'Portable CXR now', or empty array"],
-        "medications": ["Specific orders with dose/route — e.g. 'Give furosemide 40mg IV x1 now', 'Hold spironolactone'"],
-        "other": ["Specific orders — e.g. 'Consult cardiology', 'Place on telemetry', 'Daily weights'"]
+        "communication": [{"text": "Ask patient about dietary potassium intake"}, {"text": "Ask nurse for today\\'s I&Os"}],
+        "labs": [{"text": "Repeat BMP in 6 hours", "orderType": "lab", "orderData": {"name": "Basic Metabolic Panel", "specimen": "Blood", "priority": "Routine", "indication": "Monitor renal function and electrolytes"}}],
+        "imaging": [{"text": "Portable CXR now", "orderType": "imaging", "orderData": {"modality": "X-Ray", "bodyPart": "Chest", "contrast": "Without contrast", "priority": "STAT", "indication": "Evaluate pulmonary edema"}}],
+        "medications": [{"text": "Give furosemide 40mg IV x1 now", "orderType": "medication", "orderData": {"name": "Furosemide", "dose": "40 mg", "route": "IV Push", "frequency": "Once", "indication": "Acute decompensated heart failure"}}],
+        "other": [{"text": "Consult cardiology", "orderType": "consult", "orderData": {"specialty": "Cardiology", "priority": "Routine", "reason": "Evaluation of acute decompensated HFrEF"}}]
     },
     "summary": "1-2 sentence case summary with **bold** for key diagnoses",
     "keyConsiderations": [
@@ -256,12 +260,16 @@ RULES:
   * Problem #1 MUST ALWAYS have a DDx with 2-4 plausible differential diagnoses, each with brief supporting/refuting evidence
   * Problems #2+ can be specific active diagnoses with plans
   * The DDx for #1 should demonstrate clinical reasoning — what could this be and why?
-- categorizedActions: Every action must be DISCRETE and CONCRETE — like a verbal order you could give a nurse RIGHT NOW.
+- categorizedActions: Every action must be a JSON object with "text" (human-readable) and optionally "orderType" + "orderData" for executable orders.
   * WRONG: "Consider increasing diuretics" or "Discuss fluid status" or "Monitor renal function"
-  * RIGHT: "Increase furosemide to 80mg IV BID", "Ask patient how many pillows they sleep with", "Repeat BMP in 6 hours"
-  * Start each action with an action verb: Give, Order, Ask, Hold, Start, Stop, Increase, Decrease, Check, Send, Consult, Place
-  * Include dose, route, and frequency for medications
-  * Include specific questions for communication (not "discuss" — what exactly to ask)
+  * RIGHT: {"text": "Increase furosemide to 80mg IV BID", "orderType": "medication", "orderData": {"name": "Furosemide", "dose": "80 mg", "route": "IV Push", "frequency": "BID", "indication": "Acute decompensated heart failure"}}
+  * Start each action text with an action verb: Give, Order, Ask, Hold, Start, Stop, Increase, Decrease, Check, Send, Consult, Place
+  * For medications: orderType="medication", orderData={name, dose, route (PO|IV|IV Push|IV Piggyback|IM|SC|SL|PR|Topical|Inhaled|Intranasal), frequency (Once|Daily|BID|TID|QID|Q2H|Q4H|Q6H|Q8H|Q12H|Q24H|PRN|Continuous), indication}
+  * For labs: orderType="lab", orderData={name (exact match: "Complete Blood Count"|"Basic Metabolic Panel"|"Comprehensive Metabolic Panel"|"Lipid Panel"|"Liver Function Tests"|"Coagulation Panel (PT/INR/PTT)"|"Troponin"|"BNP"|"Pro-BNP"|"Magnesium"|"Phosphorus"|"Lactate"|"Hemoglobin A1c"|"Arterial Blood Gas"|"Urinalysis"|"Blood Culture"), specimen (Blood|Urine|Arterial Blood), priority (Routine|Urgent|STAT), indication}
+  * For imaging: orderType="imaging", orderData={modality (X-Ray|CT|MRI|Ultrasound|Echo|Nuclear Medicine|Fluoroscopy), bodyPart, contrast (Without contrast|With contrast|With and without contrast|N/A), priority (Routine|Urgent|STAT), indication}
+  * For consults: orderType="consult", orderData={specialty (Cardiology|Nephrology|Endocrinology|Pulmonology|Gastroenterology|Neurology|Infectious Disease|Oncology|Rheumatology|Psychiatry|Surgery|Other), priority, reason}
+  * For nursing orders: orderType="nursing", orderData={orderType (Vital Signs|Activity|Diet|I&O Monitoring|Fall Precautions), details, priority}
+  * For communication (talk to patient/nurse): just {"text": "Ask patient about..."} — NO orderType or orderData
   * Empty array fine for categories with nothing needed
 - keyConsiderations should include allergies, contraindications, drug interactions, and clinical concerns
 - Use severity "critical" for life-threatening concerns, "important" for significant issues, "info" for context

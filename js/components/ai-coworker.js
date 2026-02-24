@@ -1500,6 +1500,9 @@ const AICoworker = {
         const collapsed = this.isSectionCollapsed('actions');
         const chevron = collapsed ? '&#9654;' : '&#9660;';
 
+        // Clear pending actions map on each render to prevent stale references
+        this._pendingActions = {};
+
         const categories = [
             { key: 'communication', icon: '&#128172;', label: 'Talk to patient/nurse', items: actions?.communication || [] },
             { key: 'labs', icon: '&#128300;', label: 'Order labs', items: actions?.labs || [] },
@@ -1530,9 +1533,27 @@ const AICoworker = {
 
             if (cat.items.length > 0) {
                 html += '<div class="action-items">';
-                cat.items.forEach(item => {
-                    const text = typeof item === 'string' ? item : item.text || item;
-                    html += `<div class="action-item" onclick="AICoworker.askClaudeAbout('Help me: ${this.escapeHtml(text)}')">${this.escapeHtml(text)}</div>`;
+                cat.items.forEach((item, idx) => {
+                    const text = typeof item === 'string' ? item : item.text || String(item);
+                    const isExecutable = typeof item === 'object' && item.orderType && item.orderData;
+                    const actionId = `action_${cat.key}_${idx}`;
+
+                    // Store structured action data for retrieval on click
+                    if (isExecutable) {
+                        this._pendingActions = this._pendingActions || {};
+                        this._pendingActions[actionId] = item;
+                    }
+
+                    if (isExecutable) {
+                        html += `<div class="action-item action-executable" onclick="AICoworker.executeAction('${actionId}')">`;
+                        html += `<span class="action-text">${this.escapeHtml(text)}</span>`;
+                        html += `<span class="action-execute-icon" title="Open order form">&#9654;</span>`;
+                        html += `</div>`;
+                    } else {
+                        html += `<div class="action-item" onclick="AICoworker.executeAction('${actionId}')">${this.escapeHtml(text)}</div>`;
+                        this._pendingActions = this._pendingActions || {};
+                        this._pendingActions[actionId] = item;
+                    }
                 });
                 html += '</div>';
             }
@@ -3858,6 +3879,39 @@ RULES:
                 btn.classList.remove('spinning');
             }
         }
+    },
+
+    // ==================== Agentic Action Execution ====================
+
+    /**
+     * Execute a suggested action. Routes to OrderEntry for orderable actions,
+     * or to askClaudeAbout for communication/chat actions.
+     * @param {string} actionId - Key into this._pendingActions map
+     */
+    executeAction(actionId) {
+        const action = (this._pendingActions || {})[actionId];
+        if (!action) {
+            console.warn('Action not found:', actionId);
+            return;
+        }
+
+        // Plain string or communication action (no orderType) → ask Claude
+        if (typeof action === 'string' || !action.orderType) {
+            const text = typeof action === 'string' ? action : action.text || String(action);
+            this.askClaudeAbout('Help me: ' + text);
+            return;
+        }
+
+        // Has orderType + orderData → open OrderEntry prefilled
+        if (action.orderType && action.orderData && typeof OrderEntry !== 'undefined') {
+            console.log('Executing agentic action:', action.text, '→', action.orderType, action.orderData);
+            OrderEntry.openWithPrefill(action.orderType, action.orderData);
+            App.showToast(`Opening ${action.orderType} order: ${action.text}`, 'info');
+            return;
+        }
+
+        // Fallback → ask Claude
+        this.askClaudeAbout('Help me: ' + (action.text || String(action)));
     },
 
     // ==================== Claude Extension Integration ====================

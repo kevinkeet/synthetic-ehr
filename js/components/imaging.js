@@ -16,7 +16,45 @@ const Imaging = {
 
         try {
             const data = await dataLoader.loadImaging();
-            this.studies = DateUtils.sortByDate(data.studies || [], 'date');
+            let allStudies = data.studies || [];
+
+            // Merge in dynamic simulation imaging results
+            if (typeof DynamicImaging !== 'undefined') {
+                const dynamicCompleted = DynamicImaging.getCompletedStudies ? DynamicImaging.getCompletedStudies() : (DynamicImaging.completedStudies || []);
+                const dynamicPending = DynamicImaging.getPendingStudies ? DynamicImaging.getPendingStudies() : (DynamicImaging.pendingStudies || []);
+
+                const convertedCompleted = dynamicCompleted.map(s => ({
+                    id: s.id || s.orderId || `dyn_${Date.now()}_${Math.random().toString(36).substr(2,5)}`,
+                    modality: s.modality,
+                    description: s.name || `${s.modality} ${s.bodyPart}`,
+                    date: s.reportDate || s.studyDate || new Date().toISOString(),
+                    status: 'Final',
+                    facility: 'Simulation',
+                    findings: s.report?.findings,
+                    impression: s.report?.impression,
+                    indication: s.indication,
+                    technique: s.report?.technique,
+                    comparison: s.report?.comparison,
+                    recommendations: s.report?.recommendations,
+                    radiologist: s.report?.radiologist || 'Simulated Read',
+                    isSimulated: true
+                }));
+
+                const convertedPending = dynamicPending.map(s => ({
+                    id: s.id || s.orderId || `pend_${Date.now()}_${Math.random().toString(36).substr(2,5)}`,
+                    modality: s.modality,
+                    description: s.name || `${s.modality} ${s.bodyPart}`,
+                    date: s.orderTime ? (typeof s.orderTime === 'object' ? s.orderTime.toISOString() : s.orderTime) : new Date().toISOString(),
+                    status: s.status || 'Pending',
+                    facility: 'Simulation',
+                    indication: s.indication,
+                    isSimulated: true
+                }));
+
+                allStudies = [...convertedCompleted, ...convertedPending, ...allStudies];
+            }
+
+            this.studies = DateUtils.sortByDate(allStudies, 'date');
 
             content.innerHTML = `
                 <div class="section-header">
@@ -103,6 +141,7 @@ const Imaging = {
                         <span class="problem-status ${study.status === 'Final' ? 'resolved' : 'active'}">
                             ${study.status}
                         </span>
+                        ${study.isSimulated ? '<span class="sim-badge" title="Simulation result">SIM</span>' : ''}
                     </div>
                 ` : ''}
             </div>

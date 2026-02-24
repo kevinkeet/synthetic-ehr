@@ -5866,6 +5866,42 @@ html, body {
     color: var(--text-muted);
 }
 
+/* Executable action items — AI-suggested orders that open OrderEntry */
+.action-item.action-executable {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-left: 2px solid transparent;
+    transition: background 0.1s, border-color 0.15s;
+}
+
+.action-item.action-executable:hover {
+    border-left-color: var(--primary);
+    background: rgba(37, 99, 235, 0.08);
+}
+
+.action-item.action-executable::before {
+    content: '▸ ';
+    color: var(--primary);
+}
+
+.action-execute-icon {
+    font-size: 9px;
+    opacity: 0;
+    margin-left: 6px;
+    color: var(--primary);
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+}
+
+.action-item.action-executable:hover .action-execute-icon {
+    opacity: 0.7;
+}
+
+.action-text {
+    flex: 1;
+}
+
 .action-note-btn {
     font-size: 10px;
     padding: 3px 10px;

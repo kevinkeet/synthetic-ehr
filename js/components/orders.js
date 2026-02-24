@@ -13,7 +13,12 @@ const Orders = {
 
         try {
             const data = await dataLoader.loadOrders();
-            const active = (data.active || []).sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
+
+            // Merge in user-submitted orders from sessionStorage
+            const pendingOrders = JSON.parse(sessionStorage.getItem('pendingOrders') || '[]');
+            const allActiveOrders = [...pendingOrders, ...(data.active || [])];
+
+            const active = allActiveOrders.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
             const completed = (data.completed || []).sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
 
             content.innerHTML = `
@@ -45,26 +50,47 @@ const Orders = {
             `;
         } catch (error) {
             console.error('Error loading orders:', error);
-            // Show empty state for orders (it's a feature we can generate data for later)
-            content.innerHTML = `
-                <div class="section-header">
-                    <h1 class="section-title">Orders</h1>
-                    <div class="section-actions">
-                        <button class="btn btn-primary" onclick="OrderEntry.open()">
-                            <span style="margin-right: 6px;">&#43;</span> New Order
-                        </button>
+            // Even if JSON load fails, still show any user-submitted orders
+            const pendingOrders = JSON.parse(sessionStorage.getItem('pendingOrders') || '[]');
+            if (pendingOrders.length > 0) {
+                const active = pendingOrders.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
+                content.innerHTML = `
+                    <div class="section-header">
+                        <h1 class="section-title">Orders</h1>
+                        <div class="section-actions">
+                            <button class="btn btn-primary" onclick="OrderEntry.open()">
+                                <span style="margin-right: 6px;">&#43;</span> New Order
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div class="card">
-                    <div class="card-body" style="text-align: center; padding: 40px;">
-                        <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">&#128203;</div>
-                        <div style="font-size: 16px; color: #666;">No orders on record</div>
-                        <button class="btn btn-primary" style="margin-top: 16px;" onclick="OrderEntry.open()">
-                            <span style="margin-right: 6px;">&#43;</span> Create First Order
-                        </button>
+                    <div class="tabs">
+                        <div class="tab active" data-tab="active">Active Orders (${active.length})</div>
                     </div>
-                </div>
-            `;
+                    <div id="orders-active-content" class="tab-content active">
+                        ${this.renderOrdersList(active, 'active')}
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <div class="section-header">
+                        <h1 class="section-title">Orders</h1>
+                        <div class="section-actions">
+                            <button class="btn btn-primary" onclick="OrderEntry.open()">
+                                <span style="margin-right: 6px;">&#43;</span> New Order
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body" style="text-align: center; padding: 40px;">
+                            <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">&#128203;</div>
+                            <div style="font-size: 16px; color: #666;">No orders on record</div>
+                            <button class="btn btn-primary" style="margin-top: 16px;" onclick="OrderEntry.open()">
+                                <span style="margin-right: 6px;">&#43;</span> Create First Order
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
         }
     },
 
@@ -119,6 +145,7 @@ const Orders = {
                                         <span class="problem-status ${order.status === 'Completed' ? 'resolved' : 'active'}">
                                             ${order.status}
                                         </span>
+                                        ${order.id && order.id.startsWith('ORD_') ? '<span class="sim-badge" title="Submitted this session">NEW</span>' : ''}
                                     </td>
                                     ${type === 'completed' ? `<td>${DateUtils.formatDateTime(order.completedDate)}</td>` : ''}
                                 </tr>
