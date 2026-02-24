@@ -30,11 +30,47 @@ const About = {
     },
 
     /**
+     * Get the feature cards HTML explaining what the site offers
+     */
+    getFeatureCardsHtml() {
+        return `
+            <div class="about-features">
+                <h2>What's Inside</h2>
+                <div class="about-feature-grid">
+                    <div class="about-feature-card">
+                        <div class="about-feature-icon">&#128172;</div>
+                        <h3>Chat Interfaces</h3>
+                        <p>Talk to a simulated patient to gather history and build rapport, or communicate with the charge nurse who responds to your orders and flags clinical changes in real time.</p>
+                    </div>
+                    <div class="about-feature-card">
+                        <div class="about-feature-icon">&#129302;</div>
+                        <h3>AI Assistant Panel</h3>
+                        <p>An AI coworker lives in the right-side panel, offering clinical decision support. It can help draft notes, suggest orders, review labs, and reason through differential diagnoses — always deferring to your judgment.</p>
+                    </div>
+                    <div class="about-feature-card">
+                        <div class="about-feature-icon">&#127919;</div>
+                        <h3>Clinical Simulation</h3>
+                        <p>Run through realistic patient scenarios with dynamic vitals, timed lab results, and clinical triggers. Manage the case from admission through stabilization while the simulation responds to your decisions.</p>
+                    </div>
+                    <div class="about-feature-card">
+                        <div class="about-feature-icon">&#128209;</div>
+                        <h3>Full EHR Chart</h3>
+                        <p>Navigate a complete electronic health record with labs, medications, vitals, imaging, notes, and problem lists — all built from synthetic patient data with no PHI.</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    },
+
+    /**
      * Show the About content as a modal overlay
      */
     async showModal() {
         // Mark as seen
         localStorage.setItem('about-seen', 'true');
+
+        // Check if API key is already configured
+        const hasApiKey = !!(typeof AICoworker !== 'undefined' && AICoworker.loadApiKey());
 
         // Create modal container
         const overlay = document.createElement('div');
@@ -49,7 +85,35 @@ const About = {
                             <div class="about-hero-title">
                                 <span class="logo-ai">A</span>cting <span class="logo-ai">I</span>ntern
                             </div>
-                            <p class="about-hero-tagline">Loading...</p>
+                            <p class="about-hero-tagline">A PHI-free playground for exploring how AI can support clinical reasoning and medical decision-making.</p>
+                        </div>
+                        <div class="about-setup-section" id="about-setup-section">
+                            <h2>&#9889; Get Started</h2>
+                            <p>To enable the AI features, enter your Anthropic API key below. It's stored locally in your browser and sent only to Anthropic's API.</p>
+                            <div class="about-api-key-row">
+                                <input type="password" id="about-api-key-input" class="about-api-key-input" placeholder="sk-ant-..." value="${hasApiKey ? '••••••••••••••••' : ''}">
+                                <button class="btn btn-primary about-api-key-btn ${hasApiKey ? 'saved' : ''}" onclick="About.saveApiKey()">
+                                    ${hasApiKey ? '&#10003; Saved' : 'Save Key'}
+                                </button>
+                            </div>
+                            <p class="about-api-key-hint">
+                                <a href="https://console.anthropic.com/settings/keys" target="_blank">Get an API key from Anthropic Console &#8594;</a>
+                            </p>
+                        </div>
+                        ${this.getFeatureCardsHtml()}
+                        <div class="about-more-toggle">
+                            <button class="about-read-more-btn" onclick="About.toggleMoreContent()">
+                                Read more about this project <span id="about-more-arrow">&#9660;</span>
+                            </button>
+                        </div>
+                        <div class="about-more-content" id="about-more-content">
+                            <div class="about-loading-more">Loading...</div>
+                        </div>
+                        <div class="about-footer">
+                            <button class="btn btn-primary about-enter-btn" onclick="About.closeModal()">
+                                Enter Acting Intern
+                            </button>
+                            <p>Built with care in the spirit of better clinical reasoning.</p>
                         </div>
                     </div>
                 </div>
@@ -72,7 +136,14 @@ const About = {
         };
         document.addEventListener('keydown', escHandler);
 
-        // Load content
+        // Load Google Doc content in background for the expandable section
+        this.loadMoreContent();
+    },
+
+    /**
+     * Load the Google Doc / fallback content into the expandable section
+     */
+    async loadMoreContent() {
         let sectionHtml = null;
         try {
             sectionHtml = await this.fetchAndParse();
@@ -81,45 +152,24 @@ const About = {
         }
 
         const bodyContent = sectionHtml || this.getFallbackHtml();
+        const container = document.getElementById('about-more-content');
+        if (container) {
+            container.innerHTML = bodyContent;
+        }
+    },
 
-        // Check if API key is already configured
-        const hasApiKey = !!(typeof AICoworker !== 'undefined' && AICoworker.loadApiKey());
+    /**
+     * Toggle the "Read more" expandable section
+     */
+    toggleMoreContent() {
+        const content = document.getElementById('about-more-content');
+        const arrow = document.getElementById('about-more-arrow');
+        if (!content) return;
 
-        const modalBody = overlay.querySelector('.about-modal-body');
-        if (modalBody) {
-            modalBody.innerHTML = `
-                <div class="about-page">
-                    <div class="about-hero">
-                        <div class="about-hero-title">
-                            <span class="logo-ai">A</span>cting <span class="logo-ai">I</span>ntern
-                        </div>
-                        <p class="about-hero-tagline">A PHI-free playground for exploring how AI can support clinical reasoning and medical decision-making.</p>
-                    </div>
-                    ${bodyContent}
-                    <div class="about-setup-section" id="about-setup-section">
-                        <h2>&#9889; Get Started</h2>
-                        <p>To enable the AI assistant, enter your Anthropic API key. It's stored locally in your browser — never sent anywhere except directly to Anthropic.</p>
-                        <div class="about-api-key-row">
-                            <input type="password" id="about-api-key-input" class="about-api-key-input" placeholder="sk-ant-..." value="${hasApiKey ? '••••••••••••••••' : ''}">
-                            <button class="btn btn-primary about-api-key-btn" onclick="About.saveApiKey()">
-                                ${hasApiKey ? '&#10003; Saved' : 'Save Key'}
-                            </button>
-                        </div>
-                        <p class="about-api-key-hint">
-                            <a href="https://console.anthropic.com/settings/keys" target="_blank">Get an API key from Anthropic Console &#8594;</a>
-                        </p>
-                    </div>
-                    <div class="about-footer">
-                        <p>Built with care in the spirit of better clinical reasoning.</p>
-                    </div>
-                </div>
-            `;
-
-            // If key is already saved, show success state
-            if (hasApiKey) {
-                const btn = modalBody.querySelector('.about-api-key-btn');
-                if (btn) btn.classList.add('saved');
-            }
+        const isExpanded = content.classList.contains('expanded');
+        content.classList.toggle('expanded');
+        if (arrow) {
+            arrow.innerHTML = isExpanded ? '&#9660;' : '&#9650;';
         }
     },
 
@@ -158,6 +208,9 @@ const About = {
     async render() {
         const content = document.getElementById('main-content');
 
+        // Check if API key is already configured
+        const hasApiKey = !!(typeof AICoworker !== 'undefined' && AICoworker.loadApiKey());
+
         // Show loading state
         content.innerHTML = `
             <div class="about-page">
@@ -165,8 +218,23 @@ const About = {
                     <div class="about-hero-title">
                         <span class="logo-ai">A</span>cting <span class="logo-ai">I</span>ntern
                     </div>
-                    <p class="about-hero-tagline">Loading...</p>
+                    <p class="about-hero-tagline">A PHI-free playground for exploring how AI can support clinical reasoning and medical decision-making.</p>
                 </div>
+                <div class="about-setup-section" id="about-setup-section">
+                    <h2>&#9889; Get Started</h2>
+                    <p>To enable the AI features, enter your Anthropic API key below. It's stored locally in your browser and sent only to Anthropic's API.</p>
+                    <div class="about-api-key-row">
+                        <input type="password" id="about-api-key-input" class="about-api-key-input" placeholder="sk-ant-..." value="${hasApiKey ? '••••••••••••••••' : ''}">
+                        <button class="btn btn-primary about-api-key-btn ${hasApiKey ? 'saved' : ''}" onclick="About.saveApiKey()">
+                            ${hasApiKey ? '&#10003; Saved' : 'Save Key'}
+                        </button>
+                    </div>
+                    <p class="about-api-key-hint">
+                        <a href="https://console.anthropic.com/settings/keys" target="_blank">Get an API key from Anthropic Console &#8594;</a>
+                    </p>
+                </div>
+                ${this.getFeatureCardsHtml()}
+                <div class="about-loading-more">Loading...</div>
             </div>
         `;
 
@@ -178,23 +246,16 @@ const About = {
             console.warn('About: Google Doc fetch failed, using fallback content.', err);
         }
 
-        // Render with fetched or fallback content
+        // Append the fetched/fallback content
         const bodyContent = sectionHtml || this.getFallbackHtml();
-
-        content.innerHTML = `
-            <div class="about-page">
-                <div class="about-hero">
-                    <div class="about-hero-title">
-                        <span class="logo-ai">A</span>cting <span class="logo-ai">I</span>ntern
-                    </div>
-                    <p class="about-hero-tagline">A PHI-free playground for exploring how AI can support clinical reasoning and medical decision-making.</p>
-                </div>
-                ${bodyContent}
+        const loadingEl = content.querySelector('.about-loading-more');
+        if (loadingEl) {
+            loadingEl.outerHTML = bodyContent + `
                 <div class="about-footer">
                     <p>Built with care in the spirit of better clinical reasoning.</p>
                 </div>
-            </div>
-        `;
+            `;
+        }
     },
 
     /**
