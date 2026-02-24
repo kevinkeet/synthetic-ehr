@@ -267,17 +267,73 @@ const SimulationEngine = {
     },
 
     /**
-     * Reset simulation to initial state
+     * Reset simulation to initial state — clears ALL session artifacts
+     * so the user gets a completely fresh start.
      */
     reset() {
         this.stop();
+
+        // ---- Clear all persisted simulation state ----
+
+        // 1. Clear user-submitted orders
+        sessionStorage.removeItem('pendingOrders');
+
+        // 2. Clear AI-generated clinical notes
+        localStorage.removeItem('ehr-generated-notes');
+
+        // 3. Clear AI assistant state and memory
+        if (typeof AICoworker !== 'undefined') {
+            // Clear completed actions tracker
+            AICoworker._completedActions = new Set();
+            AICoworker._pendingActions = {};
+            AICoworker._pendingActionCategories = {};
+
+            // Clear the longitudinal document (AI memory)
+            if (AICoworker.longitudinalDoc) {
+                const patientId = AICoworker.longitudinalDoc.metadata?.patientId;
+                if (patientId) {
+                    localStorage.removeItem(`longitudinalDoc_${patientId}`);
+                }
+                AICoworker.longitudinalDoc = null;
+                AICoworker.longitudinalDocUpdater = null;
+                AICoworker.longitudinalDocRenderer = null;
+                AICoworker.longitudinalDocBuilder = null;
+            }
+
+            // Reset in-memory session state (clears aiAssistantState from localStorage too)
+            AICoworker.resetSessionState();
+
+            // Re-initialize with current patient so it rebuilds fresh
+            const patient = typeof PatientHeader !== 'undefined' ? PatientHeader.getPatient() : null;
+            if (patient) {
+                AICoworker.onPatientLoaded(patient.id || patient.patientId || 'default');
+            }
+        }
+
+        // 4. Clear chat histories (chats will also be cleared by loadScenario → generateOpeningMessage)
+        localStorage.removeItem('patient-chat-history');
+        localStorage.removeItem('nurse-chat-history');
+        if (typeof PatientChat !== 'undefined') {
+            PatientChat.messages = [];
+        }
+        if (typeof NurseChat !== 'undefined') {
+            NurseChat.messages = [];
+        }
+
+        // ---- Reload scenario ----
 
         if (this.currentScenario) {
             this.loadScenario(this.currentScenario);
         }
 
         this.emit('simulationReset', {});
-        console.log('Simulation reset');
+
+        // Re-render AI panel to show fresh state
+        if (typeof AICoworker !== 'undefined') {
+            AICoworker.render();
+        }
+
+        console.log('Simulation fully reset — all session state cleared');
     },
 
     /**
