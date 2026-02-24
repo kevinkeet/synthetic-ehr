@@ -2421,7 +2421,7 @@ html, body {
    AI Side Panel
    ============================================ */
 :root {
-    --ai-panel-width: 600px;
+    --ai-panel-width: 320px;
 }
 
 .ai-panel {
