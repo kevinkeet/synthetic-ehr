@@ -1536,6 +1536,12 @@ const AICoworker = {
                 html += '<div class="action-items">';
                 cat.items.forEach((item, idx) => {
                     const text = typeof item === 'string' ? item : item.text || String(item);
+
+                    // Skip actions that have already been executed
+                    if (this._completedActions && this._completedActions.has(text)) {
+                        return;
+                    }
+
                     const hasOrder = typeof item === 'object' && item.orderType && item.orderData;
                     const isMedChange = this._isMedChangeAction(text);
                     const isComm = cat.key === 'communication';
@@ -2626,6 +2632,9 @@ IMPORTANT:
      * Refresh AI thinking - re-analyze the entire case
      */
     refreshThinking() {
+        // Clear completed actions — a fresh analysis means fresh recommendations
+        this._completedActions = new Set();
+
         // Show thinking status
         this.state.status = 'thinking';
         this.render();
@@ -3914,6 +3923,11 @@ RULES:
         const text = typeof action === 'string' ? action : action.text || String(action);
         const category = (this._pendingActionCategories || {})[actionId] || '';
 
+        // Track completed action so it doesn't reappear
+        this._completedActions = this._completedActions || new Set();
+        this._completedActions.add(text);
+        this._removeActionFromUI(actionId);
+
         // 1. Communication actions → route to patient or nurse chat
         if (category === 'communication' || (!action.orderType && this._isCommunicationAction(text))) {
             this._routeToChatWindow(text);
@@ -3937,6 +3951,26 @@ RULES:
 
         // 4. Fallback → AI copilot chat
         this.askClaudeAbout('Help me: ' + text);
+    },
+
+    /**
+     * Remove an action item from the UI immediately with a fade-out animation.
+     * Also tracked in _completedActions so it won't reappear on next render.
+     */
+    _removeActionFromUI(actionId) {
+        const allItems = document.querySelectorAll('.action-item');
+        allItems.forEach(el => {
+            const onclick = el.getAttribute('onclick') || '';
+            if (onclick.includes(actionId)) {
+                el.style.transition = 'opacity 0.3s, max-height 0.3s, padding 0.3s';
+                el.style.opacity = '0';
+                el.style.maxHeight = '0';
+                el.style.paddingTop = '0';
+                el.style.paddingBottom = '0';
+                el.style.overflow = 'hidden';
+                setTimeout(() => el.remove(), 350);
+            }
+        });
     },
 
     /**
@@ -3978,9 +4012,13 @@ RULES:
     },
 
     /**
-     * Open the patient chat window and send a message.
+     * Open the patient chat window and pre-fill a patient-friendly message.
+     * Converts clinical shorthand to natural conversational language.
      */
     _sendToPatientChat(text) {
+        // Convert clinical action text to patient-friendly language
+        const friendlyText = this._toPatientFriendlyText(text);
+
         // Open the chat window
         if (typeof FloatingChat !== 'undefined') {
             FloatingChat.openChat('patient');
@@ -3990,11 +4028,88 @@ RULES:
         setTimeout(() => {
             const input = document.getElementById('patient-input');
             if (input) {
-                input.value = text;
+                input.value = friendlyText;
                 input.focus();
                 App.showToast('Message ready in Patient Chat — press Send', 'info');
             }
         }, 300);
+    },
+
+    /**
+     * Convert a clinical action like "Ask patient about dietary potassium intake"
+     * into a warm, conversational patient-facing question.
+     */
+    _toPatientFriendlyText(text) {
+        // Strip the "Ask patient" / "Ask pt" / "Tell patient" prefix
+        let core = text
+            .replace(/^ask\s+(the\s+)?patient\s+(about\s+|if\s+|whether\s+|how\s+|what\s+|when\s+|regarding\s+)?/i, '')
+            .replace(/^ask\s+(the\s+)?pt\s+(about\s+|if\s+|whether\s+|how\s+|what\s+|when\s+|regarding\s+)?/i, '')
+            .replace(/^tell\s+(the\s+)?patient\s+(about\s+|that\s+|to\s+)?/i, '')
+            .replace(/^inform\s+(the\s+)?patient\s+(about\s+|that\s+|of\s+)?/i, '')
+            .replace(/^confirm\s+with\s+(the\s+)?patient\s+(whether\s+|if\s+|that\s+)?/i, '')
+            .replace(/^clarify\s+with\s+(the\s+)?patient\s+(whether\s+|if\s+|about\s+)?/i, '')
+            .trim();
+
+        if (!core) return text; // safety: return original if stripping empties it
+
+        // If core already starts like a question word, capitalize, fix pronouns, ensure ?
+        if (/^(how|what|when|where|who|which|do you|are you|have you|can you|did you|is there)/i.test(core)) {
+            core = core.charAt(0).toUpperCase() + core.slice(1);
+            // Fix third-person → second-person pronouns
+            core = core.replace(/\bthey sleep\b/gi, 'do you sleep');
+            core = core.replace(/\bthey take\b/gi, 'do you take');
+            core = core.replace(/\bthey eat\b/gi, 'do you eat');
+            core = core.replace(/\bthey feel\b/gi, 'do you feel');
+            core = core.replace(/\bthey have\b/gi, 'do you have');
+            core = core.replace(/\bthey use\b/gi, 'do you use');
+            core = core.replace(/\bthey experience\b/gi, 'do you experience');
+            core = core.replace(/\bthey\b/gi, 'you').replace(/\btheir\b/gi, 'your').replace(/\bthem\b/gi, 'you');
+            if (!core.endsWith('?')) core += '?';
+            return core;
+        }
+
+        // Otherwise, rephrase as a friendly question
+        // "dietary potassium intake" → "Can you tell me about your dietary potassium intake?"
+        // "medication compliance" → "Can you tell me about your medication compliance?"
+        // "they are taking furosemide at home" → "Are you taking your furosemide at home?"
+        if (/^(they|he|she|the patient)\s+(is|are|was|were|has|have|had)\b/i.test(core)) {
+            // Third person → convert to "you" form
+            core = core
+                .replace(/^(they|he|she|the patient)\s+are\b/i, 'Are you')
+                .replace(/^(they|he|she|the patient)\s+is\b/i, 'Are you')
+                .replace(/^(they|he|she|the patient)\s+were\b/i, 'Were you')
+                .replace(/^(they|he|she|the patient)\s+was\b/i, 'Were you')
+                .replace(/^(they|he|she|the patient)\s+have\b/i, 'Have you')
+                .replace(/^(they|he|she|the patient)\s+has\b/i, 'Have you')
+                .replace(/^(they|he|she|the patient)\s+had\b/i, 'Did you have');
+            if (!core.endsWith('?')) core += '?';
+            return core;
+        }
+
+        // "taking medications as prescribed" → "Have you been taking your medications as prescribed?"
+        if (/^(taking|using|eating|drinking|sleeping|feeling|having|experiencing)\b/i.test(core)) {
+            core = 'Have you been ' + core.charAt(0).toLowerCase() + core.slice(1);
+            // Replace "their" → "your"
+            core = core.replace(/\btheir\b/gi, 'your').replace(/\bthem\b/gi, 'you');
+            if (!core.endsWith('?')) core += '?';
+            return core;
+        }
+
+        // Check if original was "Tell patient" — these are things TO say, not questions
+        if (/^(tell|inform)\b/i.test(text)) {
+            core = core.charAt(0).toUpperCase() + core.slice(1);
+            core = core.replace(/\btheir\b/gi, 'your').replace(/\bthem\b/gi, 'you').replace(/\bthey\b/gi, 'you');
+            core = core.replace(/\.\s*$/, '');
+            return core;
+        }
+
+        // Default: "Can you tell me about [core]?"
+        core = core.charAt(0).toLowerCase() + core.slice(1);
+        // Replace clinical pronouns
+        core = core.replace(/\btheir\b/gi, 'your').replace(/\bthem\b/gi, 'you').replace(/\bthey\b/gi, 'you');
+        // Remove trailing period if present
+        core = core.replace(/\.\s*$/, '');
+        return `Can you tell me about ${core}?`;
     },
 
     /**
