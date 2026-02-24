@@ -14,6 +14,9 @@ const App = {
     async init() {
         console.log('Initializing Acting Intern...');
 
+        // One-time cleanup: clear stale simulation data from previous sessions
+        this._clearStaleSessionData();
+
         // Start clock
         this.startClock();
 
@@ -646,6 +649,37 @@ const App = {
         a.download = filename;
         a.click();
         URL.revokeObjectURL(url);
+    },
+
+    /**
+     * Clear stale simulation data from previous sessions.
+     * Runs once on page load to ensure a fresh start.
+     */
+    _clearStaleSessionData() {
+        // Clear user-submitted orders from previous sessions
+        sessionStorage.removeItem('pendingOrders');
+
+        // Clear AI-generated notes
+        localStorage.removeItem('ehr-generated-notes');
+
+        // Clear AI assistant state
+        localStorage.removeItem('aiAssistantState');
+
+        // Clear longitudinal doc (AI memory) — find and remove any patient keys
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('longitudinalDoc_')) {
+                keysToRemove.push(key);
+            }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+
+        // Clear chat histories
+        localStorage.removeItem('patient-chat-history');
+        localStorage.removeItem('nurse-chat-history');
+
+        console.log('Cleared stale session data from previous runs');
     }
 };
 
