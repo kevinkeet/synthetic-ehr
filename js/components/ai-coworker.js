@@ -1502,6 +1502,7 @@ const AICoworker = {
 
         // Clear pending actions map on each render to prevent stale references
         this._pendingActions = {};
+        this._pendingActionCategories = {};
 
         const categories = [
             { key: 'communication', icon: '&#128172;', label: 'Talk to patient/nurse', items: actions?.communication || [] },
@@ -1535,24 +1536,36 @@ const AICoworker = {
                 html += '<div class="action-items">';
                 cat.items.forEach((item, idx) => {
                     const text = typeof item === 'string' ? item : item.text || String(item);
-                    const isExecutable = typeof item === 'object' && item.orderType && item.orderData;
+                    const hasOrder = typeof item === 'object' && item.orderType && item.orderData;
+                    const isMedChange = this._isMedChangeAction(text);
+                    const isComm = cat.key === 'communication';
                     const actionId = `action_${cat.key}_${idx}`;
 
-                    // Store structured action data for retrieval on click
-                    if (isExecutable) {
-                        this._pendingActions = this._pendingActions || {};
-                        this._pendingActions[actionId] = item;
-                    }
+                    // Store action data + category for retrieval on click
+                    this._pendingActions[actionId] = item;
+                    this._pendingActionCategories[actionId] = cat.key;
 
-                    if (isExecutable) {
+                    if (hasOrder && !isMedChange) {
+                        // New order → opens OrderEntry
                         html += `<div class="action-item action-executable" onclick="AICoworker.executeAction('${actionId}')">`;
                         html += `<span class="action-text">${this.escapeHtml(text)}</span>`;
                         html += `<span class="action-execute-icon" title="Open order form">&#9654;</span>`;
                         html += `</div>`;
+                    } else if (isComm) {
+                        // Communication → opens patient/nurse chat
+                        html += `<div class="action-item action-chat" onclick="AICoworker.executeAction('${actionId}')">`;
+                        html += `<span class="action-text">${this.escapeHtml(text)}</span>`;
+                        html += `<span class="action-chat-icon" title="Open chat">&#128172;</span>`;
+                        html += `</div>`;
+                    } else if (isMedChange) {
+                        // Med change (hold/stop/increase) → nurse chat
+                        html += `<div class="action-item action-chat" onclick="AICoworker.executeAction('${actionId}')">`;
+                        html += `<span class="action-text">${this.escapeHtml(text)}</span>`;
+                        html += `<span class="action-chat-icon" title="Tell nurse">&#128105;&#8205;&#9877;</span>`;
+                        html += `</div>`;
                     } else {
+                        // Fallback
                         html += `<div class="action-item" onclick="AICoworker.executeAction('${actionId}')">${this.escapeHtml(text)}</div>`;
-                        this._pendingActions = this._pendingActions || {};
-                        this._pendingActions[actionId] = item;
                     }
                 });
                 html += '</div>';
@@ -3884,8 +3897,11 @@ RULES:
     // ==================== Agentic Action Execution ====================
 
     /**
-     * Execute a suggested action. Routes to OrderEntry for orderable actions,
-     * or to askClaudeAbout for communication/chat actions.
+     * Execute a suggested action. Routes based on action type:
+     * - Communication → opens patient/nurse chat and sends the message
+     * - New orders (labs/meds/imaging/consults) → opens prefilled OrderEntry
+     * - Med changes (hold/stop/increase/decrease) → chat with nurse
+     * - Fallback → AI copilot chat
      * @param {string} actionId - Key into this._pendingActions map
      */
     executeAction(actionId) {
@@ -3895,23 +3911,108 @@ RULES:
             return;
         }
 
-        // Plain string or communication action (no orderType) → ask Claude
-        if (typeof action === 'string' || !action.orderType) {
-            const text = typeof action === 'string' ? action : action.text || String(action);
-            this.askClaudeAbout('Help me: ' + text);
+        const text = typeof action === 'string' ? action : action.text || String(action);
+        const category = (this._pendingActionCategories || {})[actionId] || '';
+
+        // 1. Communication actions → route to patient or nurse chat
+        if (category === 'communication' || (!action.orderType && this._isCommunicationAction(text))) {
+            this._routeToChatWindow(text);
             return;
         }
 
-        // Has orderType + orderData → open OrderEntry prefilled
+        // 2. Med changes (hold, stop, discontinue, increase, decrease) → nurse chat
+        //    These are NOT new orders — they modify existing ones
+        if (this._isMedChangeAction(text)) {
+            this._sendToNurseChat(text);
+            return;
+        }
+
+        // 3. New orders with orderType + orderData → open OrderEntry prefilled
         if (action.orderType && action.orderData && typeof OrderEntry !== 'undefined') {
-            console.log('Executing agentic action:', action.text, '→', action.orderType, action.orderData);
+            console.log('Executing agentic action:', text, '→', action.orderType, action.orderData);
             OrderEntry.openWithPrefill(action.orderType, action.orderData);
-            App.showToast(`Opening ${action.orderType} order: ${action.text}`, 'info');
+            App.showToast(`Opening ${action.orderType} order: ${text}`, 'info');
             return;
         }
 
-        // Fallback → ask Claude
-        this.askClaudeAbout('Help me: ' + (action.text || String(action)));
+        // 4. Fallback → AI copilot chat
+        this.askClaudeAbout('Help me: ' + text);
+    },
+
+    /**
+     * Detect if an action text is a medication change (not a new order).
+     * Hold, stop, discontinue, increase dose, decrease dose, titrate, wean.
+     */
+    _isMedChangeAction(text) {
+        return /^(hold|stop|discontinue|d\/c|wean|titrate)\b/i.test(text) ||
+               /^(increase|decrease|reduce|uptitrate|downtitrate)\b.*\b(dose|to|from)\b/i.test(text);
+    },
+
+    /**
+     * Detect if an action text is a communication action.
+     */
+    _isCommunicationAction(text) {
+        return /^(ask|tell|inform|notify|discuss|clarify|confirm|call|page|update)\b/i.test(text);
+    },
+
+    /**
+     * Route a communication action to the appropriate chat window.
+     * "Ask patient..." → patient chat, "Ask nurse..." → nurse chat.
+     */
+    _routeToChatWindow(text) {
+        const isPatientAction = /\b(patient|pt)\b/i.test(text);
+        const isNurseAction = /\b(nurse|rn|nursing)\b/i.test(text);
+
+        if (isPatientAction && typeof PatientChat !== 'undefined') {
+            this._sendToPatientChat(text);
+        } else if (isNurseAction && typeof NurseChat !== 'undefined') {
+            this._sendToNurseChat(text);
+        } else {
+            // Default to patient chat for ambiguous communication
+            if (typeof PatientChat !== 'undefined') {
+                this._sendToPatientChat(text);
+            } else {
+                this.askClaudeAbout('Help me: ' + text);
+            }
+        }
+    },
+
+    /**
+     * Open the patient chat window and send a message.
+     */
+    _sendToPatientChat(text) {
+        // Open the chat window
+        if (typeof FloatingChat !== 'undefined') {
+            FloatingChat.openChat('patient');
+        }
+
+        // Wait for the chat to initialize, then set the input
+        setTimeout(() => {
+            const input = document.getElementById('patient-input');
+            if (input) {
+                input.value = text;
+                input.focus();
+                App.showToast('Message ready in Patient Chat — press Send', 'info');
+            }
+        }, 300);
+    },
+
+    /**
+     * Open the nurse chat window and send a message.
+     */
+    _sendToNurseChat(text) {
+        if (typeof FloatingChat !== 'undefined') {
+            FloatingChat.openChat('nurse');
+        }
+
+        setTimeout(() => {
+            const input = document.getElementById('nurse-input');
+            if (input) {
+                input.value = text;
+                input.focus();
+                App.showToast('Message ready in Nurse Chat — press Send', 'info');
+            }
+        }, 300);
     },
 
     // ==================== Claude Extension Integration ====================

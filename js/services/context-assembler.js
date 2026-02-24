@@ -136,16 +136,22 @@ RULES:
   * Problem #1 MUST ALWAYS have a DDx with 2-4 plausible differential diagnoses, each with brief supporting/refuting evidence from the patient's data
   * Problems #2+ can be specific active diagnoses (e.g. "Hyperkalemia", "AKI on CKD") with plans
   * The DDx for #1 should demonstrate clinical reasoning — what could this be and why?
-- categorizedActions: Every action must be a JSON object with "text" (human-readable) and optionally "orderType" + "orderData" for executable orders.
-  * WRONG: "Consider increasing diuretics" or "Discuss fluid status" or "Monitor renal function"
-  * RIGHT: {"text": "Increase furosemide to 80mg IV BID", "orderType": "medication", "orderData": {"name": "Furosemide", "dose": "80 mg", "route": "IV Push", "frequency": "BID", "indication": "Acute decompensated heart failure"}}
+- categorizedActions: Each action is ONE discrete step — a single verbal order, a single question, a single task. NOT a plan or a category.
+  * CRITICAL: Each action = one thing you could say to one person in one sentence. If it has "and" connecting two different tasks, split it into two actions.
+  * WRONG: "Consider increasing diuretics" (vague), "Monitor renal function" (not actionable), "Discuss fluid status and potassium" (two things), "Check labs and adjust medications" (two things)
+  * RIGHT: "Give furosemide 40mg IV Push x1 now", "Ask patient how many pillows they sleep with", "Repeat BMP in 6 hours"
   * Start each action text with an action verb: Give, Order, Ask, Hold, Start, Stop, Increase, Decrease, Check, Send, Consult, Place
-  * For medications: orderType="medication", orderData needs: name, dose, route (PO|IV|IV Push|IV Piggyback|IM|SC|SL|PR|Topical|Inhaled|Intranasal), frequency (Once|Daily|BID|TID|QID|Q2H|Q4H|Q6H|Q8H|Q12H|Q24H|Q4H PRN|Q6H PRN|Q8H PRN|PRN|At bedtime|Continuous), indication
+  * TWO types of medication actions:
+    - NEW medication orders: use orderType="medication" with orderData (name, dose, route, frequency, indication). Example: {"text": "Give furosemide 40mg IV x1 now", "orderType": "medication", "orderData": {...}}
+    - CHANGES to existing meds (hold, stop, discontinue, increase dose, decrease dose, wean, titrate): NO orderType — just {"text": "Hold spironolactone"} or {"text": "Discontinue lisinopril"}. These get routed to the nurse, not the order form.
+  * For NEW medication orders: orderType="medication", orderData needs: name, dose, route (PO|IV|IV Push|IV Piggyback|IM|SC|SL|PR|Topical|Inhaled|Intranasal), frequency (Once|Daily|BID|TID|QID|Q2H|Q4H|Q6H|Q8H|Q12H|Q24H|Q4H PRN|Q6H PRN|Q8H PRN|PRN|At bedtime|Continuous), indication
   * For labs: orderType="lab", orderData needs: name (use exact: "Complete Blood Count"|"Basic Metabolic Panel"|"Comprehensive Metabolic Panel"|"Lipid Panel"|"Liver Function Tests"|"Coagulation Panel (PT/INR/PTT)"|"Troponin"|"BNP"|"Pro-BNP"|"Magnesium"|"Phosphorus"|"Lactate"|"Hemoglobin A1c"|"Arterial Blood Gas"|"Urinalysis"|"Blood Culture"), specimen (Blood|Urine|Arterial Blood), priority (Routine|Urgent|STAT), indication
   * For imaging: orderType="imaging", orderData needs: modality (X-Ray|CT|MRI|Ultrasound|Echo|Nuclear Medicine|Fluoroscopy), bodyPart, contrast (Without contrast|With contrast|With and without contrast|N/A), priority (Routine|Urgent|STAT), indication
   * For consults: orderType="consult", orderData needs: specialty (Cardiology|Nephrology|Endocrinology|Pulmonology|Gastroenterology|Neurology|Infectious Disease|Oncology|Rheumatology|Psychiatry|Surgery|Other), priority, reason
   * For nursing orders: orderType="nursing", orderData needs: orderType (Vital Signs|Activity|Diet|I&O Monitoring|Fall Precautions|Isolation|Wound Care|Other), details, priority
-  * For communication actions (talk to patient/nurse): NO orderType or orderData needed, just {"text": "Ask patient about..."}
+  * For communication (asking patient or nurse a question): NO orderType or orderData, just {"text": "Ask patient how many pillows they sleep with"} or {"text": "Ask nurse for most recent urine output"}
+  * For med changes (hold/stop/discontinue/increase/decrease): NO orderType, just {"text": "Hold spironolactone until K+ < 5.0"} — these go to nurse chat, not order entry
+  * Keep each category to 1-3 items MAX. Quality over quantity. Only the most important next steps.
   * Empty array is fine for categories with no actions needed
 - suggestedActions should ALIGN with the doctor's stated plan, not contradict it
 - If doctor says "no anticoagulation", don't suggest anticoagulation
@@ -260,16 +266,22 @@ RULES:
   * Problem #1 MUST ALWAYS have a DDx with 2-4 plausible differential diagnoses, each with brief supporting/refuting evidence
   * Problems #2+ can be specific active diagnoses with plans
   * The DDx for #1 should demonstrate clinical reasoning — what could this be and why?
-- categorizedActions: Every action must be a JSON object with "text" (human-readable) and optionally "orderType" + "orderData" for executable orders.
-  * WRONG: "Consider increasing diuretics" or "Discuss fluid status" or "Monitor renal function"
-  * RIGHT: {"text": "Increase furosemide to 80mg IV BID", "orderType": "medication", "orderData": {"name": "Furosemide", "dose": "80 mg", "route": "IV Push", "frequency": "BID", "indication": "Acute decompensated heart failure"}}
+- categorizedActions: Each action is ONE discrete step — a single verbal order, a single question, a single task. NOT a plan or a category.
+  * CRITICAL: Each action = one thing you could say to one person in one sentence. If it has "and" connecting two different tasks, split it into two actions.
+  * WRONG: "Consider increasing diuretics" (vague), "Monitor renal function" (not actionable), "Discuss fluid status and potassium" (two things)
+  * RIGHT: "Give furosemide 40mg IV Push x1 now", "Ask patient how many pillows they sleep with", "Repeat BMP in 6 hours"
   * Start each action text with an action verb: Give, Order, Ask, Hold, Start, Stop, Increase, Decrease, Check, Send, Consult, Place
-  * For medications: orderType="medication", orderData={name, dose, route (PO|IV|IV Push|IV Piggyback|IM|SC|SL|PR|Topical|Inhaled|Intranasal), frequency (Once|Daily|BID|TID|QID|Q2H|Q4H|Q6H|Q8H|Q12H|Q24H|PRN|Continuous), indication}
+  * TWO types of medication actions:
+    - NEW medication orders: use orderType="medication" with orderData. Example: {"text": "Give furosemide 40mg IV x1 now", "orderType": "medication", "orderData": {...}}
+    - CHANGES to existing meds (hold, stop, discontinue, increase dose, decrease dose, wean, titrate): NO orderType — just {"text": "Hold spironolactone"} or {"text": "Discontinue lisinopril"}. These go to nurse chat.
+  * For NEW medication orders: orderType="medication", orderData={name, dose, route (PO|IV|IV Push|IV Piggyback|IM|SC|SL|PR|Topical|Inhaled|Intranasal), frequency (Once|Daily|BID|TID|QID|Q2H|Q4H|Q6H|Q8H|Q12H|Q24H|PRN|Continuous), indication}
   * For labs: orderType="lab", orderData={name (exact match: "Complete Blood Count"|"Basic Metabolic Panel"|"Comprehensive Metabolic Panel"|"Lipid Panel"|"Liver Function Tests"|"Coagulation Panel (PT/INR/PTT)"|"Troponin"|"BNP"|"Pro-BNP"|"Magnesium"|"Phosphorus"|"Lactate"|"Hemoglobin A1c"|"Arterial Blood Gas"|"Urinalysis"|"Blood Culture"), specimen (Blood|Urine|Arterial Blood), priority (Routine|Urgent|STAT), indication}
   * For imaging: orderType="imaging", orderData={modality (X-Ray|CT|MRI|Ultrasound|Echo|Nuclear Medicine|Fluoroscopy), bodyPart, contrast (Without contrast|With contrast|With and without contrast|N/A), priority (Routine|Urgent|STAT), indication}
   * For consults: orderType="consult", orderData={specialty (Cardiology|Nephrology|Endocrinology|Pulmonology|Gastroenterology|Neurology|Infectious Disease|Oncology|Rheumatology|Psychiatry|Surgery|Other), priority, reason}
   * For nursing orders: orderType="nursing", orderData={orderType (Vital Signs|Activity|Diet|I&O Monitoring|Fall Precautions), details, priority}
-  * For communication (talk to patient/nurse): just {"text": "Ask patient about..."} — NO orderType or orderData
+  * For communication (asking patient/nurse a question): just {"text": "Ask patient how many pillows they sleep with"} — NO orderType
+  * For med changes (hold/stop/discontinue/increase/decrease): just {"text": "Hold spironolactone until K+ < 5.0"} — NO orderType
+  * Keep each category to 1-3 items MAX. Quality over quantity.
   * Empty array fine for categories with nothing needed
 - keyConsiderations should include allergies, contraindications, drug interactions, and clinical concerns
 - Use severity "critical" for life-threatening concerns, "important" for significant issues, "info" for context
