@@ -7,6 +7,7 @@ const SimulationLog = {
     events: [],
     maxEvents: 100,
     isVisible: false,
+    unreadAlertCount: 0,
 
     /**
      * Initialize the simulation log
@@ -97,6 +98,21 @@ const SimulationLog = {
 
         SimulationEngine.on('nurseAlert', (data) => {
             this.addEvent('alert', data.message, { priority: data.priority });
+
+            // Auto-expand log for urgent alerts so they're not missed
+            if (data.priority === 'urgent') {
+                this.show();
+                const panel = document.getElementById('simulation-log-panel');
+                if (panel && panel.classList.contains('collapsed')) {
+                    this.toggle(); // Expand it
+                }
+                // Flash the activity tab to draw attention
+                const activityTab = document.querySelector('.log-tab[data-tab="activity"]');
+                if (activityTab) {
+                    activityTab.classList.add('tab-flash');
+                    setTimeout(() => activityTab.classList.remove('tab-flash'), 3000);
+                }
+            }
         });
 
         SimulationEngine.on('labResult', (data) => {
@@ -149,6 +165,33 @@ const SimulationLog = {
             if (icon) {
                 icon.innerHTML = panel.classList.contains('collapsed') ? '&#9650;' : '&#9660;';
             }
+            // Clear unread badge when expanding
+            if (!panel.classList.contains('collapsed')) {
+                this.unreadAlertCount = 0;
+                this.updateBadge();
+            }
+        }
+    },
+
+    /**
+     * Update alert badge on the toggle button
+     */
+    updateBadge() {
+        let badge = document.getElementById('log-alert-badge');
+        const toggle = document.querySelector('.sim-log-toggle');
+        if (!toggle) return;
+
+        if (this.unreadAlertCount > 0) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.id = 'log-alert-badge';
+                badge.className = 'log-alert-badge';
+                toggle.appendChild(badge);
+            }
+            badge.textContent = this.unreadAlertCount;
+            badge.style.display = '';
+        } else if (badge) {
+            badge.style.display = 'none';
         }
     },
 
@@ -179,6 +222,12 @@ const SimulationLog = {
         };
 
         this.events.unshift(event);
+
+        // Track unread alerts for badge
+        if (type === 'alert') {
+            this.unreadAlertCount++;
+            this.updateBadge();
+        }
 
         // Trim to max events
         if (this.events.length > this.maxEvents) {

@@ -44,15 +44,31 @@ const FloatingChat = {
         }
 
         btnContainer.innerHTML = `
+            <button class="chat-trigger-collapse" onclick="FloatingChat.toggleTriggerCollapse()" title="Toggle chat buttons">
+                <span id="chat-collapse-icon">&#9664;</span>
+            </button>
             <button class="chat-trigger-btn patient-trigger" onclick="FloatingChat.toggleChat('patient')" title="Chat with Patient">
                 <span class="trigger-icon">&#128100;</span>
-                <span class="trigger-label">Chat with Patient</span>
+                <span class="trigger-label">Patient</span>
             </button>
             <button class="chat-trigger-btn nurse-trigger" onclick="FloatingChat.toggleChat('nurse')" title="Chat with Nurse">
                 <span class="trigger-icon">&#128105;&#8205;&#9877;</span>
-                <span class="trigger-label">Chat with Nurse</span>
+                <span class="trigger-label">Nurse</span>
             </button>
         `;
+    },
+
+    /**
+     * Toggle collapse state of trigger buttons (icon-only vs full labels)
+     */
+    toggleTriggerCollapse() {
+        const container = document.getElementById('chat-trigger-buttons');
+        if (!container) return;
+        container.classList.toggle('collapsed');
+        const icon = document.getElementById('chat-collapse-icon');
+        if (icon) {
+            icon.innerHTML = container.classList.contains('collapsed') ? '&#9654;' : '&#9664;';
+        }
     },
 
     /**

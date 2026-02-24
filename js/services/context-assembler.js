@@ -313,6 +313,14 @@ Provide a comprehensive case synthesis. Build a trajectory assessment covering a
     buildNotePrompt(noteType, noteTypeName, includeSources, instructions, chartData, dictation) {
         const context = this.workingMemory.assemble('writeNote');
 
+        // Get real date/time for note
+        const simTime = typeof SimulationEngine !== 'undefined' && SimulationEngine.getSimulatedTime
+            ? SimulationEngine.getSimulatedTime() : null;
+        const noteDate = simTime ? new Date(simTime) : new Date();
+        const noteDateStr = noteDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        const noteTimeStr = noteDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        const patientName = (typeof window !== 'undefined' && window.PatientHeader?.currentPatient?.name) || 'Robert Morrison';
+
         const systemPrompt = `You are a physician writing a clinical note in an EHR system. Write a professional, thorough clinical note based on the patient data provided. Use standard medical documentation conventions.
 
 Write the note in plain text with clear section headers. Do NOT use markdown formatting like ** or #. Use UPPERCASE for section headers followed by a colon.
@@ -322,7 +330,11 @@ IMPORTANT:
 - Use the patient's actual data from the clinical context
 - Include the patient and nurse conversation data if relevant to the clinical picture
 - Structure the note according to the requested format
-- Write as if you are the attending physician documenting the encounter`;
+- Write as if you are the attending physician documenting the encounter
+- The current date is ${noteDateStr} and the time is ${noteTimeStr}
+- The attending physician is Dr. Sarah Chen
+- The patient's name is ${patientName}
+- Do NOT use placeholder brackets like [Current Date], [Physician Name], [Patient Name], or [Date and Time] — always use the actual values provided above`;
 
         // Build the note-specific data section
         let noteData = `Please write a clinical ${noteTypeName} for this patient.\n\n`;

@@ -139,7 +139,7 @@ const SimulationEngine = {
 
         // Use setTimeout to ensure this runs after the chat clear is complete
         setTimeout(() => {
-            if (typeof NurseChat !== 'undefined' && typeof AIPanel !== 'undefined') {
+            if (typeof NurseChat !== 'undefined' && typeof FloatingChat !== 'undefined') {
                 // Add nurse opening message
                 NurseChat.messages.push({ role: 'assistant', content: nurseOpening });
                 NurseChat.saveHistory();
@@ -148,7 +148,7 @@ const SimulationEngine = {
                 if (container) {
                     const welcome = container.querySelector('.chat-welcome');
                     if (welcome) welcome.remove();
-                    AIPanel.addMessage('nurse', 'assistant', nurseOpening);
+                    FloatingChat.addMessage('nurse', 'assistant', nurseOpening);
                 }
             }
 
@@ -164,7 +164,7 @@ const SimulationEngine = {
         // Patient speaks after a short delay (feels like arriving at bedside)
         if (patientOpening) {
             setTimeout(() => {
-                if (typeof PatientChat !== 'undefined' && typeof AIPanel !== 'undefined') {
+                if (typeof PatientChat !== 'undefined' && typeof FloatingChat !== 'undefined') {
                     PatientChat.messages.push({ role: 'assistant', content: patientOpening });
                     PatientChat.saveHistory();
 
@@ -172,11 +172,11 @@ const SimulationEngine = {
                     if (container) {
                         const welcome = container.querySelector('.chat-welcome');
                         if (welcome) welcome.remove();
-                        AIPanel.addMessage('patient', 'assistant', patientOpening);
+                        FloatingChat.addMessage('patient', 'assistant', patientOpening);
                     }
 
-                    // Ensure AI panel is visible
-                    AIPanel.expand();
+                    // Ensure patient chat is visible
+                    FloatingChat.openChat('patient');
 
                     if (typeof SpeechService !== 'undefined' && PatientChat.voiceOutputEnabled) {
                         SpeechService.speak(patientOpening);
@@ -185,6 +185,9 @@ const SimulationEngine = {
             }, 3000);
         }
     },
+
+    // Store challenge text for debrief reference
+    _challengeText: 'New admission. Gather history from the patient, ask the nurse key questions, review the chart for critical information, and place all necessary orders.',
 
     /**
      * Show the clinical challenge banner at the top of the main content area
@@ -201,9 +204,9 @@ const SimulationEngine = {
             <div class="challenge-banner-content">
                 <div class="challenge-banner-icon">&#127919;</div>
                 <div class="challenge-banner-text">
-                    <strong>CLINICAL CHALLENGE</strong>: New admission. Gather history from the patient, ask the nurse key questions, review the chart for critical information, and place all necessary orders.
+                    <strong>CLINICAL CHALLENGE</strong>: ${this._challengeText}
                 </div>
-                <button class="challenge-banner-dismiss" onclick="this.parentElement.parentElement.remove()" title="Dismiss">&times;</button>
+                <button class="challenge-banner-dismiss" onclick="SimulationEngine.minimizeChallengeBanner()" title="Minimize">&#8722;</button>
             </div>
         `;
 
@@ -211,6 +214,30 @@ const SimulationEngine = {
         if (mainContent) {
             mainContent.parentElement.insertBefore(banner, mainContent);
         }
+    },
+
+    /**
+     * Minimize the challenge banner to a compact strip
+     */
+    minimizeChallengeBanner() {
+        const banner = document.getElementById('simulation-challenge-banner');
+        if (banner) {
+            banner.classList.add('minimized');
+            banner.innerHTML = `
+                <div class="challenge-banner-minimized" onclick="SimulationEngine.restoreChallengeBanner()">
+                    <span class="challenge-minimized-icon">&#127919;</span>
+                    <span class="challenge-minimized-text">Clinical Challenge</span>
+                    <span class="challenge-expand-icon">&#9650;</span>
+                </div>
+            `;
+        }
+    },
+
+    /**
+     * Restore the challenge banner from minimized state
+     */
+    restoreChallengeBanner() {
+        this.showChallengeBanner();
     },
 
     /**
@@ -465,10 +492,10 @@ const SimulationEngine = {
             if (typeof NurseChat !== 'undefined') {
                 NurseChat.messages.push({ role: 'assistant', content: trigger.message });
                 NurseChat.saveHistory();
-                if (typeof AIPanel !== 'undefined') {
+                if (typeof FloatingChat !== 'undefined') {
                     // Ensure AI panel is visible
-                    AIPanel.expand();
-                    AIPanel.addMessage('nurse', 'assistant', trigger.message);
+                    FloatingChat.openChat('nurse');
+                    FloatingChat.addMessage('nurse', 'assistant', trigger.message);
                 }
             }
 
@@ -505,10 +532,10 @@ const SimulationEngine = {
             if (typeof PatientChat !== 'undefined') {
                 PatientChat.messages.push({ role: 'assistant', content: trigger.message });
                 PatientChat.saveHistory();
-                if (typeof AIPanel !== 'undefined') {
-                    // Ensure AI panel is visible
-                    AIPanel.expand();
-                    AIPanel.addMessage('patient', 'assistant', trigger.message);
+                if (typeof FloatingChat !== 'undefined') {
+                    // Ensure patient chat is visible
+                    FloatingChat.openChat('patient');
+                    FloatingChat.addMessage('patient', 'assistant', trigger.message);
                 }
             }
 

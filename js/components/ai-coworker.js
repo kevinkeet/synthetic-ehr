@@ -2389,6 +2389,13 @@ Respond with ONLY the JSON, no preamble.`;
         } else {
             const clinicalContext = this.buildFullClinicalContext();
             const notePrompt = this.buildNotePrompt(noteType, includeSources, instructions);
+            const simTimeLegacy = typeof SimulationEngine !== 'undefined' && SimulationEngine.getSimulatedTime
+                ? SimulationEngine.getSimulatedTime() : null;
+            const legacyDate = simTimeLegacy ? new Date(simTimeLegacy) : new Date();
+            const legacyDateStr = legacyDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+            const legacyTimeStr = legacyDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            const legacyPatientName = window.PatientHeader?.currentPatient?.name || 'Robert Morrison';
+
             systemPrompt = `You are a physician writing a clinical note in an EHR system. Write a professional, thorough clinical note based on the patient data provided. Use standard medical documentation conventions.
 
 Write the note in plain text with clear section headers. Do NOT use markdown formatting like ** or #. Use UPPERCASE for section headers followed by a colon.
@@ -2398,13 +2405,18 @@ IMPORTANT:
 - Use the patient's actual data from the clinical context
 - Include the patient and nurse conversation data if relevant to the clinical picture
 - Structure the note according to the requested format
-- Write as if you are the attending physician documenting the encounter`;
+- Write as if you are the attending physician documenting the encounter
+- The current date is ${legacyDateStr} and the time is ${legacyTimeStr}
+- The attending physician is Dr. Sarah Chen
+- The patient's name is ${legacyPatientName}
+- Do NOT use placeholder brackets like [Current Date], [Physician Name], etc. — use the actual values above`;
             userMessage = `## Full Clinical Context\n${clinicalContext}\n\n## Note Request\n${notePrompt}`;
         }
 
         try {
             const response = await this.callLLM(systemPrompt, userMessage, 4096);
-            this.openNoteEditor(noteTypeName, response);
+            const processedNote = this._postProcessNote(response);
+            this.openNoteEditor(noteTypeName, processedNote);
             App.showToast(noteTypeName + ' draft generated', 'success');
         } catch (error) {
             console.error('Note generation error:', error);
@@ -2415,6 +2427,39 @@ IMPORTANT:
                 App.showToast('Error generating note: ' + error.message, 'error');
             }
         }
+    },
+
+    /**
+     * Post-process a generated note to replace any remaining bracket placeholders
+     * with actual values. This is a safety net — the LLM prompt also instructs
+     * it to use real values, but sometimes it still produces placeholders.
+     */
+    _postProcessNote(noteText) {
+        if (!noteText) return noteText;
+
+        // Use simulated time if available, else real time
+        const simTime = typeof SimulationEngine !== 'undefined' && SimulationEngine.getSimulatedTime
+            ? SimulationEngine.getSimulatedTime() : null;
+        const noteDate = simTime ? new Date(simTime) : new Date();
+        const dateStr = noteDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        const timeStr = noteDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        const patientName = window.PatientHeader?.currentPatient?.name || 'Robert Morrison';
+
+        return noteText
+            .replace(/\[Current Date\]/gi, dateStr)
+            .replace(/\[Date\]/gi, dateStr)
+            .replace(/\[Time\]/gi, timeStr)
+            .replace(/\[Current Time\]/gi, timeStr)
+            .replace(/\[Date and Time\]/gi, `${dateStr} at ${timeStr}`)
+            .replace(/\[Date\/Time\]/gi, `${dateStr} at ${timeStr}`)
+            .replace(/\[Physician Name\]/gi, 'Dr. Sarah Chen')
+            .replace(/\[Doctor Name\]/gi, 'Dr. Sarah Chen')
+            .replace(/\[Attending\]/gi, 'Dr. Sarah Chen')
+            .replace(/\[Attending Physician\]/gi, 'Dr. Sarah Chen')
+            .replace(/\[Provider Name\]/gi, 'Dr. Sarah Chen')
+            .replace(/\[Provider\]/gi, 'Dr. Sarah Chen')
+            .replace(/\[Patient Name\]/gi, patientName)
+            .replace(/\[Pt Name\]/gi, patientName);
     },
 
     getNoteTypeName(type) {

@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" width="1200" height="400">
+  <defs>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#fcc" stroke-width="0.5"/>
+    </pattern>
+    <pattern id="grid-major" width="100" height="100" patternUnits="userSpaceOnUse">
+      <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#f99" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <!-- EKG paper background -->
+  <rect width="1200" height="400" fill="#fff5f5"/>
+  <rect width="1200" height="400" fill="url(#grid)"/>
+  <rect width="1200" height="400" fill="url(#grid-major)"/>
+
+  <!-- Title -->
+  <text x="20" y="30" font-family="Arial, sans-serif" font-size="14" fill="#333" font-weight="bold">Lead II — Atrial Fibrillation with Rapid Ventricular Response</text>
+  <text x="20" y="48" font-family="Arial, sans-serif" font-size="12" fill="#666">Rate: ~140 bpm | Rhythm: Irregularly irregular | No discernible P waves</text>
+
+  <!-- Speed/calibration markers -->
+  <text x="1020" y="30" font-family="Arial, sans-serif" font-size="11" fill="#999">25 mm/s | 10 mm/mV</text>
+
+  <!-- Calibration pulse -->
+  <polyline points="40,380 40,380 50,380 50,280 70,280 70,380 80,380"
+            fill="none" stroke="#222" stroke-width="2"/>
+  <text x="45" y="395" font-family="Arial, sans-serif" font-size="10" fill="#999">1 mV</text>
+
+  <!-- Fibrillatory baseline (wavy irregular baseline simulating f-waves) -->
+  <!-- This is the key feature: irregular baseline with no organized P waves -->
+
+  <!-- EKG Trace - Atrial fibrillation with RVR -->
+  <!-- Irregularly spaced QRS complexes on a fibrillatory baseline -->
+  <path d="
+    M 100,220
+    Q 105,218 110,221 Q 115,224 120,219 Q 125,216 130,222 Q 135,225 140,218
+    Q 145,215 150,223 Q 153,226 156,220 Q 158,217 160,222
+    L 162,220 L 163,218 L 165,225
+    L 166,215 L 167,140 L 169,260 L 171,195 L 173,220
+    L 175,222 L 177,218 Q 180,215 183,221
+    Q 186,224 190,218 Q 194,215 198,222 Q 202,225 206,219
+    Q 208,216 210,220 Q 213,223 216,218
+    L 218,220 L 220,222 L 222,216
+    L 223,210 L 224,140 L 226,275 L 228,185 L 230,218
+    L 232,222 Q 236,226 240,219 Q 244,215 248,223 Q 252,226 256,220
+    Q 258,217 260,222 Q 264,225 268,218 Q 272,215 276,221 Q 280,224 284,218
+    Q 286,216 288,222 Q 290,225 292,220 Q 294,216 296,222
+    L 298,220 L 300,218
+    L 301,212 L 302,145 L 304,268 L 306,188 L 308,220
+    L 310,223 Q 313,226 317,219 Q 321,215 325,222
+    Q 327,225 330,218 Q 333,215 336,222 Q 339,226 342,219
+    Q 345,216 348,220
+    L 349,218 L 351,224
+    L 352,210 L 353,142 L 355,270 L 357,190 L 359,218
+    L 361,222 Q 364,225 368,219 Q 372,215 376,222 Q 380,226 384,218
+    Q 388,215 392,221 Q 396,224 400,218 Q 402,216 404,222
+    Q 406,225 408,219 Q 412,215 416,222
+    L 418,220 L 419,216 L 420,224
+    L 421,212 L 422,138 L 424,272 L 426,186 L 428,218
+    L 430,222 Q 434,226 438,219 Q 442,215 446,223 Q 450,226 454,220
+    Q 456,217 458,222 Q 462,225 466,218 Q 470,215 474,222
+    Q 478,225 482,219 Q 484,216 486,222 Q 488,225 490,219
+    Q 492,216 494,220 Q 496,224 498,218
+    L 500,216 L 501,210
+    L 502,142 L 504,274 L 506,184 L 508,218
+    L 510,222 Q 514,226 518,219 Q 522,215 526,222 Q 530,226 534,218
+    Q 536,215 538,222 Q 542,225 546,219 Q 548,217 550,221
+    L 551,218 L 553,224
+    L 554,214 L 555,140 L 557,266 L 559,190 L 561,220
+    L 563,222 Q 566,225 570,219 Q 574,215 578,223 Q 582,226 586,220
+    Q 588,217 590,222 Q 594,225 598,218 Q 602,215 606,222
+    Q 608,225 610,220 Q 614,216 618,222
+    L 620,220 L 621,216
+    L 622,208 L 623,136 L 625,278 L 627,182 L 629,220
+    L 631,222 Q 634,225 638,218 Q 642,215 646,223 Q 650,226 654,219
+    Q 656,216 658,222 Q 662,225 666,218 Q 670,215 674,222
+    Q 678,225 682,220 Q 684,217 686,222
+    L 687,218 L 689,224
+    L 690,212 L 691,144 L 693,270 L 695,188 L 697,218
+    L 699,222 Q 702,225 706,219 Q 710,215 714,222 Q 718,226 722,218
+    Q 726,215 730,221 Q 734,224 738,218
+    L 740,220 L 741,216 L 742,224
+    L 743,210 L 744,140 L 746,272 L 748,186 L 750,218
+    L 752,222 Q 756,226 760,219 Q 764,215 768,223 Q 772,226 776,220
+    Q 778,217 780,222 Q 784,225 788,218 Q 792,215 796,222
+    Q 800,225 804,219 Q 806,216 808,222
+    L 810,220 L 812,218
+    L 813,214 L 814,142 L 816,268 L 818,190 L 820,220
+    L 822,222 Q 825,225 829,218 Q 833,215 837,222 Q 841,226 845,219
+    Q 847,216 849,222 Q 853,225 857,218
+    L 858,216 L 860,224
+    L 861,208 L 862,138 L 864,276 L 866,184 L 868,218
+    L 870,222 Q 874,226 878,219 Q 882,215 886,223 Q 890,226 894,220
+    Q 896,217 898,222 Q 902,225 906,218 Q 910,215 914,222
+    Q 918,225 922,220 Q 924,216 926,222
+    L 928,220 L 929,218
+    L 930,212 L 931,142 L 933,272 L 935,186 L 937,218
+    L 939,222 Q 942,225 946,219 Q 950,215 954,222 Q 958,226 962,218
+    Q 966,215 970,221 Q 974,224 978,218
+    Q 980,216 982,222 Q 984,225 986,219
+    L 988,220 L 989,216
+    L 990,210 L 991,140 L 993,270 L 995,188 L 997,220
+    L 999,222 Q 1002,225 1006,218 Q 1010,215 1014,222 Q 1018,226 1022,219
+    Q 1024,216 1026,222 Q 1030,225 1034,218 Q 1038,215 1042,222
+    Q 1046,225 1050,220 Q 1052,217 1054,222
+    L 1055,218 L 1057,224
+    L 1058,212 L 1059,144 L 1061,268 L 1063,190 L 1065,218
+    L 1067,222 Q 1070,225 1074,219 Q 1078,215 1082,222 Q 1086,226 1090,218
+    Q 1094,215 1098,221 Q 1102,224 1106,218
+    L 1108,220 L 1110,216 L 1112,224
+    L 1113,210 L 1114,138 L 1116,274 L 1118,184 L 1120,220
+    L 1122,222 Q 1126,225 1130,218 Q 1134,215 1138,222 Q 1142,226 1146,219
+    Q 1150,215 1154,222 Q 1158,225 1162,220 L 1170,220
+  " fill="none" stroke="#111" stroke-width="1.8" stroke-linejoin="round"/>
+
+  <!-- RR interval markers showing irregularity -->
+  <line x1="167" y1="90" x2="167" y2="110" stroke="#c00" stroke-width="1"/>
+  <line x1="224" y1="90" x2="224" y2="110" stroke="#c00" stroke-width="1"/>
+  <line x1="302" y1="90" x2="302" y2="110" stroke="#c00" stroke-width="1"/>
+  <line x1="353" y1="90" x2="353" y2="110" stroke="#c00" stroke-width="1"/>
+  <line x1="422" y1="90" x2="422" y2="110" stroke="#c00" stroke-width="1"/>
+
+  <text x="190" y="85" font-family="Arial, sans-serif" font-size="9" fill="#c00">0.41s</text>
+  <text x="258" y="85" font-family="Arial, sans-serif" font-size="9" fill="#c00">0.56s</text>
+  <text x="322" y="85" font-family="Arial, sans-serif" font-size="9" fill="#c00">0.36s</text>
+  <text x="382" y="85" font-family="Arial, sans-serif" font-size="9" fill="#c00">0.49s</text>
+
+  <!-- Annotation -->
+  <rect x="20" y="350" width="200" height="40" rx="4" fill="rgba(255,255,255,0.85)" stroke="#ddd"/>
+  <text x="30" y="368" font-family="Arial, sans-serif" font-size="11" fill="#c00" font-weight="bold">Key Features:</text>
+  <text x="30" y="383" font-family="Arial, sans-serif" font-size="10" fill="#555">Irregular R-R | No P waves | f-waves</text>
+</svg>

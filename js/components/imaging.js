@@ -144,6 +144,7 @@ const Imaging = {
                         ${study.isSimulated ? '<span class="sim-badge" title="Simulation result">SIM</span>' : ''}
                     </div>
                 ` : ''}
+                <div class="note-item-action">View Report &#8250;</div>
             </div>
         `).join('');
     },

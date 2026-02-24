@@ -7715,42 +7715,8 @@ html, body {
    Floating Chat Windows (Patient & Nurse)
    ============================================ */
 
-/* Trigger buttons - fixed at bottom center */
-.chat-trigger-buttons {
-    position: fixed;
-    bottom: 16px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-    z-index: 1000;
-}
-
-.chat-trigger-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    border: none;
-    border-radius: 24px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
-    font-family: var(--font-family);
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
-    transition: all 0.2s ease;
-}
-
-.chat-trigger-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-}
-
-.chat-trigger-btn.active {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-}
+/* Trigger buttons - positioned at sidebar edge (overridden at bottom of file) */
+/* Legacy styles kept for reference — active styles are in UX Improvements section */
 
 .patient-trigger {
     background: #dbeafe;
@@ -8122,4 +8088,288 @@ html, body {
         right: auto !important;
         transform: none !important;
     }
+}
+
+
+/* ============================================
+   UX Improvements — Feb 2026
+   ============================================ */
+
+/* --- Imaging: "View Report" affordance --- */
+.note-item-action {
+    font-size: 11px;
+    color: var(--primary, #2980b9);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    margin-top: 4px;
+    font-weight: 500;
+}
+.note-list-item:hover .note-item-action {
+    opacity: 1;
+}
+.note-list-item:hover {
+    background: #e8f4fd;
+}
+
+/* --- Scenario Briefing Modal --- */
+.scenario-briefing-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+}
+.scenario-briefing-modal.visible {
+    display: flex;
+}
+.briefing-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+.briefing-content {
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+    max-width: 520px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: briefingSlideIn 0.3s ease;
+}
+@keyframes briefingSlideIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.briefing-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 24px 24px 0;
+}
+.briefing-icon {
+    font-size: 32px;
+}
+.briefing-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #1a5276;
+}
+.briefing-body {
+    padding: 16px 24px;
+}
+.briefing-scenario-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+.briefing-description {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.5;
+    margin-bottom: 8px;
+}
+.briefing-one-liner {
+    font-size: 13px;
+    color: #666;
+    font-style: italic;
+    margin-bottom: 12px;
+}
+.briefing-details {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+.briefing-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: capitalize;
+    background: #eaf2f8;
+    color: #2980b9;
+}
+.briefing-objectives {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+}
+.briefing-objectives h4 {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: #1a5276;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.briefing-objectives ol {
+    margin: 0;
+    padding-left: 20px;
+}
+.briefing-objectives li {
+    font-size: 13px;
+    color: #444;
+    line-height: 1.6;
+    margin-bottom: 4px;
+}
+.briefing-instructions {
+    font-size: 13px;
+    color: #666;
+    background: #fffbea;
+    border-radius: 8px;
+    padding: 10px 14px;
+    border-left: 3px solid #f0c040;
+}
+.briefing-instructions p {
+    margin: 0;
+}
+.briefing-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 16px 24px;
+    border-top: 1px solid #eee;
+}
+.briefing-start-btn {
+    font-size: 14px !important;
+    padding: 10px 24px !important;
+}
+
+/* --- Challenge Banner: minimized state --- */
+.simulation-challenge-banner.minimized {
+    padding: 0;
+    background: #f0f7ff;
+    border-bottom: 1px solid #d4e6f1;
+}
+.challenge-banner-minimized {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #2c3e50;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+.challenge-banner-minimized:hover {
+    opacity: 1;
+}
+.challenge-minimized-icon {
+    font-size: 14px;
+}
+.challenge-minimized-text {
+    font-weight: 500;
+}
+.challenge-expand-icon {
+    font-size: 10px;
+    margin-left: auto;
+}
+
+/* --- Activity Log: alert flash & badge --- */
+.log-tab.tab-flash {
+    animation: tabFlash 0.5s ease 4;
+}
+@keyframes tabFlash {
+    0%, 100% { background: transparent; }
+    50% { background: #fff3cd; color: #856404; }
+}
+.log-alert-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #e74c3c;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    line-height: 1;
+}
+.sim-log-toggle {
+    position: relative;
+}
+
+/* --- Chat Buttons: repositioned to sidebar edge --- */
+.chat-trigger-buttons {
+    position: fixed;
+    bottom: 60px;
+    left: var(--sidebar-width, 200px);
+    transform: none;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 999;
+    padding: 0;
+    display: flex;
+}
+.chat-trigger-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    border: none;
+    border-radius: 0 8px 8px 0;
+    cursor: pointer;
+    color: #fff;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+}
+.chat-trigger-btn:hover {
+    transform: translateX(2px);
+    box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.2);
+}
+.chat-trigger-btn.active {
+    transform: translateX(2px);
+    box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.25);
+}
+.chat-trigger-collapse {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid #ccc;
+    border-radius: 0 6px 6px 0;
+    background: #f8f9fa;
+    cursor: pointer;
+    font-size: 10px;
+    color: #666;
+    transition: all 0.2s;
+}
+.chat-trigger-collapse:hover {
+    background: #e9ecef;
+    color: #333;
+}
+
+/* Collapsed state: icon only */
+.chat-trigger-buttons.collapsed .trigger-label {
+    display: none;
+}
+.chat-trigger-buttons.collapsed .chat-trigger-btn {
+    padding: 8px;
+    border-radius: 0 6px 6px 0;
+}
+
+/* --- Image unavailable fallback --- */
+.image-unavailable {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
 }

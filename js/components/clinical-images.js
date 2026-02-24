@@ -1,15 +1,18 @@
 /**
  * Clinical Images Component
  * Displays EKG and radiology images for interpretation
+ * Uses local SVG files with external URL fallbacks
  */
 
 const ClinicalImages = {
-    // Image sources - using Wikimedia Commons public domain images
+    // Image sources - local SVGs primary, Wikimedia Commons fallback
     images: {
         'ekg-afib': {
             title: 'EKG - Current',
             description: 'Rhythm strip showing current cardiac rhythm',
-            // Atrial fibrillation from Wikimedia Commons (Public Domain)
+            // Local SVG (reliable, no network dependency)
+            localUrl: 'images/ekg-afib.svg',
+            // Wikimedia fallbacks (may be blocked by CORS/firewalls)
             url: 'https://upload.wikimedia.org/wikipedia/commons/3/35/Atrial_fibrillation.png',
             fallbackUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Atrial_fibrillation.png/800px-Atrial_fibrillation.png',
             findings: [
@@ -20,12 +23,14 @@ const ClinicalImages = {
                 'Narrow QRS complexes'
             ],
             interpretation: 'Atrial fibrillation with rapid ventricular response',
-            credit: 'Wikimedia Commons - Public Domain'
+            credit: 'Simulation illustration (clinical teaching purposes)'
         },
         'cxr-chf': {
             title: 'Chest X-Ray - PA View',
             description: 'Portable chest radiograph',
-            // CHF chest x-ray from Wikimedia Commons (CC0)
+            // Local SVG (reliable, no network dependency)
+            localUrl: 'images/cxr-chf.svg',
+            // Wikimedia fallbacks
             url: 'https://upload.wikimedia.org/wikipedia/commons/5/5e/Chest_radiograph_of_a_lung_with_Kerley_B_lines.jpg',
             fallbackUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Chest_radiograph_of_a_lung_with_Kerley_B_lines.jpg/600px-Chest_radiograph_of_a_lung_with_Kerley_B_lines.jpg',
             findings: [
@@ -36,7 +41,7 @@ const ClinicalImages = {
                 'Small bilateral pleural effusions'
             ],
             interpretation: 'Findings consistent with congestive heart failure with pulmonary edema',
-            credit: 'Wikimedia Commons - CC0 Public Domain (Mikael Häggström)'
+            credit: 'Simulation illustration (clinical teaching purposes)'
         }
     },
 
@@ -127,9 +132,17 @@ const ClinicalImages = {
         // Reset toggle button
         document.getElementById('findings-toggle-text').textContent = 'Show Findings';
 
-        // Load image with fallback
+        // Load image with cascading fallbacks: local → url → fallbackUrl → text-only
         img.style.display = 'none';
         modal.querySelector('.clinical-image-loading').style.display = 'block';
+        modal.querySelector('.clinical-image-loading').textContent = 'Loading image...';
+
+        let fallbackAttempt = 0;
+        const fallbackChain = [
+            image.localUrl,
+            image.url,
+            image.fallbackUrl
+        ].filter(Boolean);
 
         img.onload = function() {
             img.style.display = 'block';
@@ -137,15 +150,26 @@ const ClinicalImages = {
         };
 
         img.onerror = function() {
-            // Try fallback URL
-            if (image.fallbackUrl && img.src !== image.fallbackUrl) {
-                img.src = image.fallbackUrl;
+            fallbackAttempt++;
+            if (fallbackAttempt < fallbackChain.length) {
+                img.src = fallbackChain[fallbackAttempt];
             } else {
-                modal.querySelector('.clinical-image-loading').textContent = 'Failed to load image';
+                // All image sources failed — show findings as text-only fallback
+                img.style.display = 'none';
+                modal.querySelector('.clinical-image-loading').innerHTML =
+                    '<div class="image-unavailable">' +
+                    '<div style="font-size: 48px; margin-bottom: 12px; opacity: 0.4;">&#128444;</div>' +
+                    '<div style="font-weight: 500; margin-bottom: 8px;">Image unavailable</div>' +
+                    '<div style="font-size: 12px; color: #888;">See findings and interpretation below</div>' +
+                    '</div>';
+                // Auto-show findings when image can't load
+                findings.style.display = 'block';
+                interpretation.style.display = 'block';
+                document.getElementById('findings-toggle-text').textContent = 'Hide Findings';
             }
         };
 
-        img.src = image.url;
+        img.src = fallbackChain[0];
 
         // Show modal
         modal.classList.add('visible');

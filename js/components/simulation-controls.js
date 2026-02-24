@@ -62,7 +62,7 @@ const SimulationControls = {
                             </div>
                         </div>
                         <div class="sim-buttons">
-                            <button class="sim-btn sim-start" id="sim-start-btn" onclick="SimulationControls.start()">
+                            <button class="sim-btn sim-start" id="sim-start-btn" onclick="SimulationControls.showBriefing()">
                                 <span>&#9658;</span> Start
                             </button>
                             <button class="sim-btn sim-pause" id="sim-pause-btn" onclick="SimulationControls.pause()" style="display:none;">
@@ -239,6 +239,11 @@ const SimulationControls = {
         document.getElementById('sim-resume-btn').style.display = 'none';
         this.updateStatusIndicator('running');
         this.updateStatusText('Simulation running...');
+
+        // Auto-expand sim panel so user sees controls
+        if (!this.isExpanded) {
+            this.toggleExpanded();
+        }
     },
 
     /**
@@ -320,9 +325,9 @@ const SimulationControls = {
             });
             NurseChat.saveHistory();
 
-            // Update UI - both chat panels are always visible
-            if (typeof AIPanel !== 'undefined') {
-                AIPanel.addMessage('nurse', 'assistant', data.message);
+            // Update UI - use FloatingChat to add messages
+            if (typeof FloatingChat !== 'undefined') {
+                FloatingChat.addMessage('nurse', 'assistant', data.message);
             }
         }
     },
@@ -434,6 +439,93 @@ const SimulationControls = {
         if (typeof SimulationDebrief !== 'undefined') {
             SimulationDebrief.trigger();
         }
+    },
+
+    /**
+     * Show scenario briefing modal before starting simulation
+     */
+    showBriefing() {
+        const scenario = SimulationEngine.currentScenario;
+        if (!scenario) {
+            this.start();
+            return;
+        }
+
+        // If simulation is already running (e.g. after reset), just start directly
+        if (SimulationEngine.isRunning) {
+            this.start();
+            return;
+        }
+
+        let modal = document.getElementById('scenario-briefing-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'scenario-briefing-modal';
+            modal.className = 'scenario-briefing-modal';
+            document.body.appendChild(modal);
+        }
+
+        const objectives = (scenario.learningObjectives || [])
+            .map(function(obj) { return '<li>' + obj + '</li>'; }).join('');
+
+        const patient = scenario.patient || {};
+        const context = scenario.clinicalContext || {};
+        const patientInfo = patient.name
+            ? patient.age + '-year-old ' + (patient.sex || '').toLowerCase() + ' (' + patient.name + ')'
+            : scenario.description || '';
+
+        modal.innerHTML = `
+            <div class="briefing-backdrop" onclick="SimulationControls.closeBriefing()"></div>
+            <div class="briefing-content">
+                <div class="briefing-header">
+                    <span class="briefing-icon">&#127919;</span>
+                    <h2>Scenario Briefing</h2>
+                </div>
+                <div class="briefing-body">
+                    <div class="briefing-scenario-name">${scenario.name}</div>
+                    <p class="briefing-description">${patientInfo}</p>
+                    ${context.oneLiner ? '<p class="briefing-one-liner">' + context.hpiDetails?.chiefComplaint + '</p>' : ''}
+                    <div class="briefing-details">
+                        <span class="briefing-badge">${scenario.difficulty || 'Standard'}</span>
+                        <span class="briefing-badge">${scenario.estimatedDuration || '~30 min'}</span>
+                    </div>
+                    ${objectives ? `
+                        <div class="briefing-objectives">
+                            <h4>Learning Objectives</h4>
+                            <ol>${objectives}</ol>
+                        </div>
+                    ` : ''}
+                    <div class="briefing-instructions">
+                        <p>You are the admitting physician. Gather history from the patient, communicate with the nurse, review the chart, and place all necessary orders.</p>
+                    </div>
+                </div>
+                <div class="briefing-footer">
+                    <button class="btn" onclick="SimulationControls.closeBriefing()">Cancel</button>
+                    <button class="btn btn-primary briefing-start-btn" onclick="SimulationControls.closeBriefingAndStart()">
+                        Begin Simulation &#9658;
+                    </button>
+                </div>
+            </div>
+        `;
+        modal.classList.add('visible');
+    },
+
+    /**
+     * Close briefing modal without starting
+     */
+    closeBriefing() {
+        const modal = document.getElementById('scenario-briefing-modal');
+        if (modal) {
+            modal.classList.remove('visible');
+        }
+    },
+
+    /**
+     * Close briefing and start the simulation
+     */
+    closeBriefingAndStart() {
+        this.closeBriefing();
+        this.start();
     }
 };
 
