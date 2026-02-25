@@ -124,10 +124,10 @@ const App = {
     },
 
     /**
-     * Animate the header logo: periodically collapse to just "AI" and back.
+     * Animate the AI panel title: periodically collapse to just "AI" and back.
      */
     startLogoAnimation() {
-        const logo = document.querySelector('.logo-animated');
+        const logo = document.querySelector('.ai-panel-topbar-title .logo-animated');
         if (!logo) return;
 
         // Initial delay before first animation
