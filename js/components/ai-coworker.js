@@ -3884,56 +3884,47 @@ RULES:
             clinicalContext = userMessage;
             console.log(`📊 Refresh context: ${userMessage.length} chars (full)`);
         } else {
-            systemPrompt = `You are an AI clinical assistant embedded in an EHR system. Analyze this patient case and provide a comprehensive synthesis.
+            systemPrompt = `You are an AI clinical assistant embedded in an EHR. Analyze this patient and provide a synthesis.
 
-You maintain a LONGITUDINAL CLINICAL DOCUMENT that persists across sessions. Your insights are written back into this document so they accumulate over time. Think of yourself as building a living understanding of this patient.
+Be CONCISE. Write like an efficient attending at handoff. Clinical shorthand and abbreviations encouraged. Every word should earn its place.
 
 Respond in this exact JSON format:
 {
-    "oneLiner": "A single clinical sentence (~15 words) capturing the current gestalt",
+    "oneLiner": "~10 word gestalt for signout",
     "clinicalSummary": {
-        "demographics": "Age, sex, key PMH with clinical abbreviations (e.g. 72M w/ HFrEF, T2DM, AFib, CKD3b, HTN)",
-        "functional": "Baseline functional status, living situation, social support, occupation",
-        "presentation": "Chief complaint, significant positive exam findings, pertinent negatives, key abnormal labs"
+        "demographics": "HPI opener: age, sex, key PMH w/ qualifiers (e.g. 72M w/ HFrEF (EF 35%), T2DM, AFib, CKD3b)",
+        "functional": "One short sentence: functional status + living situation",
+        "presentation": "CC + timeline, key exam findings, pertinent negatives, abnormal labs w/ values"
     },
     "problemList": [
-        {"name": "Most urgent problem", "urgency": "urgent|active|monitoring", "ddx": "Differential if relevant, or null", "plan": "1-2 sentence plan"}
+        {"name": "Most urgent problem", "urgency": "urgent|active|monitoring", "ddx": "Differential if relevant, or null", "plan": "One sentence plan"}
     ],
     "categorizedActions": {
-        "communication": ["Talk to patient/nurse actions"],
+        "communication": ["Ask patient/nurse actions"],
         "labs": ["Lab orders"],
         "imaging": ["Imaging orders, or empty array"],
         "medications": ["Medication orders"],
         "other": ["Other orders"]
     },
-    "summary": "1-2 sentence case summary with **bold** for key diagnoses",
+    "summary": "One sentence with **bold** for key diagnoses",
     "keyConsiderations": [
-        {"text": "Safety concern or important clinical factor", "severity": "critical|important|info"}
+        {"text": "Safety concern", "severity": "critical|important|info"}
     ],
-    "thinking": "2-4 sentences about patient trajectory.",
-    "suggestedActions": ["action 1", "action 2"],
+    "thinking": "1-2 sentences on trajectory.",
+    "suggestedActions": ["top 3 next steps only"],
     "observations": ["key observations"],
-    "trajectoryAssessment": "Disease trajectory synthesis paragraph.",
-    "keyFindings": ["finding 1", "finding 2"],
-    "openQuestions": ["question 1", "question 2"]
+    "trajectoryAssessment": "2-3 sentences MAX on disease trajectories.",
+    "keyFindings": ["durable findings"],
+    "openQuestions": ["unresolved questions"]
 }
 
-Prioritize:
-1. Safety concerns and critical values (put these in keyConsiderations with severity "critical")
-2. Alignment with doctor's stated assessment (if any)
-3. Actionable next steps
-4. Things that haven't been addressed yet
+Prioritize: 1) Safety/critical values 2) Doctor's assessment 3) Actionable next steps 4) Unaddressed items
 
 RULES:
-- clinicalSummary.demographics: Use format "72M w/ HFrEF, T2DM, AFib, CKD3b, HTN". Standard clinical abbreviations
-- clinicalSummary.presentation: Include significant POSITIVE exam findings, pertinent NEGATIVES, and key abnormal labs
-- problemList: 3-5 problems MAX, most urgent first. DDx only when clinically meaningful
-- categorizedActions: Specific and actionable. Empty array fine for categories with nothing needed
-- keyConsiderations should include allergies, contraindications, drug interactions, and clinical concerns
-- Use severity "critical" for life-threatening concerns, "important" for significant issues, "info" for context
-- trajectoryAssessment should be comprehensive - describe how each problem is trending
-- keyFindings should be durable insights worth remembering across sessions
-- openQuestions are things that still need to be resolved`;
+- problemList: 3-5 problems MAX, most urgent first. Plans = one sentence each
+- categorizedActions: Specific, actionable, 1-3 per category. Empty arrays fine
+- keyConsiderations: allergies, contraindications, drug interactions. "critical" = life-threatening only
+- Keep ALL text fields brief and clinical`;
 
             clinicalContext = this.buildFullClinicalContext();
             userMessage = `## Clinical Context\n${clinicalContext}\n\n${this.state.dictation ? `## Doctor's Current Assessment\n"${this.state.dictation}"` : '## No doctor assessment recorded yet'}\n\nProvide a comprehensive case synthesis. Build a trajectory assessment covering all active problems.`;
