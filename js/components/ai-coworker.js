@@ -20,6 +20,14 @@ const AICoworker = {
     apiKey: null,
     apiEndpoint: 'https://api.anthropic.com/v1/messages',
     model: 'claude-sonnet-4-20250514',
+    analysisModel: 'claude-haiku-3-5-20241022', // Faster model for structured analysis
+
+    // Available models for the settings picker
+    availableModels: [
+        { id: 'claude-haiku-3-5-20241022', label: 'Haiku 3.5', description: 'Fastest, good for structured tasks' },
+        { id: 'claude-sonnet-4-20250514', label: 'Sonnet 4', description: 'Balanced quality and speed' },
+        { id: 'claude-opus-4-20250514', label: 'Opus 4', description: 'Highest quality, slowest' }
+    ],
 
     // Longitudinal Clinical Document
     longitudinalDoc: null,
@@ -106,6 +114,7 @@ const AICoworker = {
         this.createPanel();
 
         this.loadApiKey(); // Load saved API key
+        this.loadModelPreferences(); // Load saved model choices
         this.setupEventListeners();
 
         // Listen for external updates via postMessage
@@ -2904,6 +2913,40 @@ Format your response as JSON:
     },
 
     /**
+     * Load model preferences from localStorage
+     */
+    loadModelPreferences() {
+        const savedChat = localStorage.getItem('ai-model-chat');
+        const savedAnalysis = localStorage.getItem('ai-model-analysis');
+        if (savedChat) this.model = savedChat;
+        if (savedAnalysis) this.analysisModel = savedAnalysis;
+    },
+
+    /**
+     * Save model preferences to localStorage
+     */
+    saveModelPreferences() {
+        localStorage.setItem('ai-model-chat', this.model);
+        localStorage.setItem('ai-model-analysis', this.analysisModel);
+    },
+
+    /**
+     * Set the chat/notes model
+     */
+    setChatModel(modelId) {
+        this.model = modelId;
+        this.saveModelPreferences();
+    },
+
+    /**
+     * Set the analysis model
+     */
+    setAnalysisModel(modelId) {
+        this.analysisModel = modelId;
+        this.saveModelPreferences();
+    },
+
+    /**
      * Open API key configuration modal
      */
     openApiKeyModal() {
@@ -3555,8 +3598,14 @@ ${ctx.dictationHistory.length > 0
 
     /**
      * Call the Anthropic API with the given prompt
+     * @param {string} systemPrompt
+     * @param {string} userMessage
+     * @param {number} maxTokens
+     * @param {object} options - Optional: { model: 'override-model-id' }
      */
-    async callLLM(systemPrompt, userMessage, maxTokens) {
+    async callLLM(systemPrompt, userMessage, maxTokens, options) {
+        const useModel = (options && options.model) || this.model;
+
         // Store debug info BEFORE the call
         this.lastApiCall = {
             timestamp: Date.now(),
@@ -3564,11 +3613,13 @@ ${ctx.dictationHistory.length > 0
             userMessage: userMessage,
             clinicalContext: '', // Will be set by caller if needed
             response: '',
-            error: null
+            error: null,
+            model: useModel
         };
 
         console.log('🤖 LLM API CALL:', {
             timestamp: new Date().toISOString(),
+            model: useModel,
             systemPromptLength: systemPrompt.length,
             userMessageLength: userMessage.length
         });
@@ -3591,7 +3642,7 @@ ${ctx.dictationHistory.length > 0
                     'anthropic-dangerous-direct-browser-access': 'true'
                 },
                 body: JSON.stringify({
-                    model: this.model,
+                    model: useModel,
                     max_tokens: maxTokens || 1024,
                     system: systemPrompt,
                     messages: [
@@ -3694,7 +3745,8 @@ RULES:
         this.lastApiCall.clinicalContext = clinicalContext;
 
         try {
-            const response = await this.callLLM(systemPrompt, userMessage, 4096);
+            // Use the faster analysis model for structured synthesis
+            const response = await this.callLLM(systemPrompt, userMessage, 4096, { model: this.analysisModel });
 
             // Parse the JSON response with robust extraction
             const result = this._parseJSONResponse(response);
@@ -3870,7 +3922,8 @@ RULES:
         this.lastApiCall.clinicalContext = clinicalContext;
 
         try {
-            const response = await this.callLLM(systemPrompt, userMessage, 4096);
+            // Use the faster analysis model for structured chart synthesis
+            const response = await this.callLLM(systemPrompt, userMessage, 4096, { model: this.analysisModel });
 
             const result = this._parseJSONResponse(response);
             if (!result) {

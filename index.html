@@ -162,6 +162,23 @@
                         <button class="settings-close" onclick="AIPanel.closeSettings()">&#10005;</button>
                     </div>
                     <div class="settings-content">
+                        <div class="settings-group">
+                            <label class="settings-label">Chat &amp; Notes Model</label>
+                            <select id="settings-chat-model" class="settings-select" onchange="AICoworker.setChatModel(this.value)">
+                                <option value="claude-haiku-3-5-20241022">Haiku 3.5 — Fast</option>
+                                <option value="claude-sonnet-4-20250514" selected>Sonnet 4 — Balanced</option>
+                                <option value="claude-opus-4-20250514">Opus 4 — Highest quality</option>
+                            </select>
+                        </div>
+                        <div class="settings-group">
+                            <label class="settings-label">Analysis Model</label>
+                            <select id="settings-analysis-model" class="settings-select" onchange="AICoworker.setAnalysisModel(this.value)">
+                                <option value="claude-haiku-3-5-20241022" selected>Haiku 3.5 — Fast</option>
+                                <option value="claude-sonnet-4-20250514">Sonnet 4 — Balanced</option>
+                                <option value="claude-opus-4-20250514">Opus 4 — Highest quality</option>
+                            </select>
+                            <p class="settings-hint">Used for chart analysis and clinical synthesis</p>
+                        </div>
                         <div class="settings-actions">
                             <button class="btn btn-sm" onclick="AIPanel.configureApiKey()">&#128273; Configure API Key</button>
                             <button class="btn btn-sm" onclick="AIPanel.testConnection()">Test API Connection</button>

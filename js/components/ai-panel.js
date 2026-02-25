@@ -169,6 +169,14 @@ const AIPanel = {
         if (settingsPanel) {
             settingsPanel.classList.add('open');
             this.isSettingsOpen = true;
+
+            // Sync model dropdowns with current values
+            if (typeof AICoworker !== 'undefined') {
+                const chatSelect = document.getElementById('settings-chat-model');
+                const analysisSelect = document.getElementById('settings-analysis-model');
+                if (chatSelect) chatSelect.value = AICoworker.model;
+                if (analysisSelect) analysisSelect.value = AICoworker.analysisModel;
+            }
         }
     },
 
