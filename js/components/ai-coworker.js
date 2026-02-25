@@ -19,15 +19,15 @@ const AICoworker = {
     // API Configuration
     apiKey: null,
     apiEndpoint: 'https://api.anthropic.com/v1/messages',
-    model: 'claude-sonnet-4-6-20250627',
-    analysisModel: 'claude-sonnet-4-6-20250627', // Default all tasks to Sonnet 4.6
+    model: 'claude-sonnet-4-6',
+    analysisModel: 'claude-sonnet-4-6', // Default all tasks to Sonnet 4.6
 
     // Available models for the settings picker
     availableModels: [
         { id: 'claude-haiku-4-5-20251001', label: 'Haiku 4.5', description: 'Fastest, good for structured tasks' },
-        { id: 'claude-sonnet-4-5-20250514', label: 'Sonnet 4.5', description: 'Balanced quality and speed' },
-        { id: 'claude-sonnet-4-6-20250627', label: 'Sonnet 4.6', description: 'Latest balanced model' },
-        { id: 'claude-opus-4-6-20250627', label: 'Opus 4.6', description: 'Highest quality, slowest' }
+        { id: 'claude-sonnet-4-5-20250929', label: 'Sonnet 4.5', description: 'Balanced quality and speed' },
+        { id: 'claude-sonnet-4-6', label: 'Sonnet 4.6', description: 'Latest balanced model' },
+        { id: 'claude-opus-4-6', label: 'Opus 4.6', description: 'Highest quality, slowest' }
     ],
 
     // Longitudinal Clinical Document
@@ -2919,11 +2919,12 @@ Format your response as JSON:
     loadModelPreferences() {
         // Map deprecated model IDs to current equivalents
         const modelMigrations = {
-            'claude-sonnet-4-20250514': 'claude-sonnet-4-6-20250627',
-            'claude-sonnet-4-5-20250514': 'claude-sonnet-4-6-20250627',
-            'claude-haiku-3-5-20241022': 'claude-sonnet-4-6-20250627',
-            'claude-haiku-4-5-20251001': 'claude-sonnet-4-6-20250627',
-            'claude-opus-4-20250514': 'claude-opus-4-6-20250627'
+            'claude-sonnet-4-20250514': 'claude-sonnet-4-6',
+            'claude-sonnet-4-5-20250514': 'claude-sonnet-4-6',
+            'claude-sonnet-4-6-20250627': 'claude-sonnet-4-6',
+            'claude-haiku-3-5-20241022': 'claude-sonnet-4-6',
+            'claude-opus-4-20250514': 'claude-opus-4-6',
+            'claude-opus-4-6-20250627': 'claude-opus-4-6'
         };
 
         let savedChat = localStorage.getItem('ai-model-chat');
