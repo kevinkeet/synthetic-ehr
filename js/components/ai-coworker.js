@@ -1456,12 +1456,7 @@ const AICoworker = {
                     html += `</div>`;
                 });
 
-                // Show refresh button if no LLM data yet
-                if (!hasLLMData) {
-                    html += '<div class="problem-analyze-hint">';
-                    html += '<button class="analyze-btn-sm" onclick="AICoworker.refreshThinking()">&#128260; Refresh Analysis</button>';
-                    html += '</div>';
-                }
+                // Refresh is available via the toolbar icon and More menu
             }
         }
 
