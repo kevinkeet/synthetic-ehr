@@ -19,14 +19,15 @@ const AICoworker = {
     // API Configuration
     apiKey: null,
     apiEndpoint: 'https://api.anthropic.com/v1/messages',
-    model: 'claude-sonnet-4-20250514',
-    analysisModel: 'claude-haiku-3-5-20241022', // Faster model for structured analysis
+    model: 'claude-sonnet-4-5-20250514',
+    analysisModel: 'claude-haiku-4-5-20251001', // Faster model for structured analysis
 
     // Available models for the settings picker
     availableModels: [
-        { id: 'claude-haiku-3-5-20241022', label: 'Haiku 3.5', description: 'Fastest, good for structured tasks' },
-        { id: 'claude-sonnet-4-20250514', label: 'Sonnet 4', description: 'Balanced quality and speed' },
-        { id: 'claude-opus-4-20250514', label: 'Opus 4', description: 'Highest quality, slowest' }
+        { id: 'claude-haiku-4-5-20251001', label: 'Haiku 4.5', description: 'Fastest, good for structured tasks' },
+        { id: 'claude-sonnet-4-5-20250514', label: 'Sonnet 4.5', description: 'Balanced quality and speed' },
+        { id: 'claude-sonnet-4-6-20250627', label: 'Sonnet 4.6', description: 'Latest balanced model' },
+        { id: 'claude-opus-4-6-20250627', label: 'Opus 4.6', description: 'Highest quality, slowest' }
     ],
 
     // Longitudinal Clinical Document
@@ -2916,10 +2917,27 @@ Format your response as JSON:
      * Load model preferences from localStorage
      */
     loadModelPreferences() {
-        const savedChat = localStorage.getItem('ai-model-chat');
-        const savedAnalysis = localStorage.getItem('ai-model-analysis');
-        if (savedChat) this.model = savedChat;
-        if (savedAnalysis) this.analysisModel = savedAnalysis;
+        // Map deprecated model IDs to current equivalents
+        const modelMigrations = {
+            'claude-sonnet-4-20250514': 'claude-sonnet-4-5-20250514',
+            'claude-haiku-3-5-20241022': 'claude-haiku-4-5-20251001',
+            'claude-opus-4-20250514': 'claude-opus-4-6-20250627'
+        };
+
+        let savedChat = localStorage.getItem('ai-model-chat');
+        let savedAnalysis = localStorage.getItem('ai-model-analysis');
+
+        // Migrate old model IDs
+        if (savedChat && modelMigrations[savedChat]) savedChat = modelMigrations[savedChat];
+        if (savedAnalysis && modelMigrations[savedAnalysis]) savedAnalysis = modelMigrations[savedAnalysis];
+
+        // Only apply if the model ID is in our available list
+        const validIds = this.availableModels.map(m => m.id);
+        if (savedChat && validIds.includes(savedChat)) this.model = savedChat;
+        if (savedAnalysis && validIds.includes(savedAnalysis)) this.analysisModel = savedAnalysis;
+
+        // Persist migrated values
+        this.saveModelPreferences();
     },
 
     /**
