@@ -62,6 +62,9 @@ const App = {
         // Show About popup on first visit
         About.checkFirstVisit();
 
+        // Start the logo AI reveal animation
+        this.startLogoAnimation();
+
         console.log('Acting Intern initialized successfully');
     },
 
@@ -118,6 +121,30 @@ const App = {
 
         updateClock();
         setInterval(updateClock, 1000);
+    },
+
+    /**
+     * Animate the header logo: periodically collapse to just "AI" and back.
+     */
+    startLogoAnimation() {
+        const logo = document.querySelector('.logo-animated');
+        if (!logo) return;
+
+        // Initial delay before first animation
+        setTimeout(() => {
+            this._runLogoReveal(logo);
+            // Then repeat every 10 seconds
+            setInterval(() => this._runLogoReveal(logo), 10000);
+        }, 3000);
+    },
+
+    _runLogoReveal(logo) {
+        // Collapse to "AI"
+        logo.classList.add('ai-reveal');
+        // Hold for 1.5s, then expand back
+        setTimeout(() => {
+            logo.classList.remove('ai-reveal');
+        }, 1500);
     },
 
     /**
