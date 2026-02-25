@@ -19,8 +19,8 @@ const AICoworker = {
     // API Configuration
     apiKey: null,
     apiEndpoint: 'https://api.anthropic.com/v1/messages',
-    model: 'claude-sonnet-4-5-20250514',
-    analysisModel: 'claude-haiku-4-5-20251001', // Faster model for structured analysis
+    model: 'claude-sonnet-4-6-20250627',
+    analysisModel: 'claude-sonnet-4-6-20250627', // Default all tasks to Sonnet 4.6
 
     // Available models for the settings picker
     availableModels: [
@@ -2919,8 +2919,10 @@ Format your response as JSON:
     loadModelPreferences() {
         // Map deprecated model IDs to current equivalents
         const modelMigrations = {
-            'claude-sonnet-4-20250514': 'claude-sonnet-4-5-20250514',
-            'claude-haiku-3-5-20241022': 'claude-haiku-4-5-20251001',
+            'claude-sonnet-4-20250514': 'claude-sonnet-4-6-20250627',
+            'claude-sonnet-4-5-20250514': 'claude-sonnet-4-6-20250627',
+            'claude-haiku-3-5-20241022': 'claude-sonnet-4-6-20250627',
+            'claude-haiku-4-5-20251001': 'claude-sonnet-4-6-20250627',
             'claude-opus-4-20250514': 'claude-opus-4-6-20250627'
         };
 
@@ -3847,7 +3849,7 @@ RULES:
             } else if (error.message === 'Could not parse AI response') {
                 App.showToast('AI response could not be parsed. Try again.', 'warning');
             } else {
-                App.showToast('AI synthesis error. Try again.', 'warning');
+                App.showToast(`API error: ${error.message}`, 'error');
             }
         }
     },
@@ -4010,7 +4012,7 @@ RULES:
             } else if (error.message === 'Could not parse AI response') {
                 App.showToast('AI response could not be parsed. Try again.', 'warning');
             } else {
-                App.showToast('AI analysis error. Try again.', 'warning');
+                App.showToast(`API error: ${error.message}`, 'error');
             }
         } finally {
             if (btn) {
