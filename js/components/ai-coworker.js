@@ -1668,7 +1668,10 @@ const AICoworker = {
         var mode = this.mode_config;
         let html = '<div class="copilot-inline-input">';
 
-        // Mode-driven suggestion chips
+        // Inline prompt editor (shown/hidden by toggle)
+        html += this.renderInlinePromptEditor();
+
+        // Mode-driven suggestion chips + edit prompt button
         html += '<div class="inline-chips">';
         var chips = mode ? mode.chips : [
             { label: 'Summarize', prompt: 'Summarize case' },
@@ -1679,6 +1682,9 @@ const AICoworker = {
             var safePrompt = chip.prompt.replace(/'/g, "\\'");
             html += '<button class="suggestion-chip" onclick="AICoworker.handleChip(\'' + safePrompt + '\')">' + chip.label + '</button>';
         });
+        // Edit prompt button — visible pencil icon
+        var editorOpen = this._inlinePromptEditorOpen || false;
+        html += '<button class="suggestion-chip inline-edit-prompt-btn' + (editorOpen ? ' active' : '') + '" onclick="AICoworker.toggleInlinePromptEditor()" title="Edit mode prompts">&#9999;</button>';
         html += '</div>';
 
         // Input row with mode-specific placeholder
@@ -1699,7 +1705,7 @@ const AICoworker = {
         html += '<button class="inline-action-btn inline-more-btn" onclick="AICoworker.toggleMoreMenu()" title="More actions"><span>&#8943;</span> More</button>';
         html += '<div class="inline-more-menu" id="inline-more-menu">';
         html += '<button onclick="AICoworker.refreshThinking()">&#128260; Refresh Analysis</button>';
-        html += '<button onclick="AICoworker.openPromptEditor()">&#9999; Edit Prompts</button>';
+        html += '<button onclick="AICoworker.openPromptEditor()">&#9999; Edit All Prompts</button>';
         html += '<button onclick="AICoworker.openDebugPanel()">&#128269; Debug Prompts</button>';
         html += '<button onclick="AICoworker.clearMemory()">&#128465; Clear Memory</button>';
         html += '</div>';
@@ -1707,6 +1713,130 @@ const AICoworker = {
 
         html += '</div>';
         return html;
+    },
+
+    /**
+     * Render the inline prompt editor panel — 3 editable textareas for the current mode's
+     * summary, problem list, and actions prompt sections.
+     */
+    renderInlinePromptEditor() {
+        if (!this._inlinePromptEditorOpen) return '';
+
+        var modeId = typeof AIModeConfig !== 'undefined' ? AIModeConfig.currentMode : 'medium';
+        var modeLabel = typeof AIModeConfig !== 'undefined' ? AIModeConfig.MODES[modeId].label : 'Medium';
+
+        var sections = [
+            { key: 'summary', label: 'Summary Instructions' },
+            { key: 'problemList', label: 'Problem List Instructions' },
+            { key: 'actions', label: 'Actions Instructions' }
+        ];
+
+        var html = '<div class="inline-prompt-editor" id="inline-prompt-editor">';
+        html += '<div class="prompt-editor-header">';
+        html += '<span class="prompt-editor-mode-label">&#9999; ' + modeLabel + ' Mode Prompts</span>';
+        html += '<div class="prompt-editor-header-actions">';
+        html += '<button class="prompt-editor-reset-btn" onclick="AICoworker.resetModePrompts()" title="Reset all to defaults">Reset</button>';
+        html += '<button class="prompt-editor-close-btn" onclick="AICoworker.toggleInlinePromptEditor()" title="Close">&#10005;</button>';
+        html += '</div>';
+        html += '</div>';
+
+        sections.forEach(function(section) {
+            var text = typeof AIModeConfig !== 'undefined'
+                ? AIModeConfig.getModePromptSection(modeId, section.key)
+                : '';
+            var isCustom = typeof AIModeConfig !== 'undefined'
+                ? AIModeConfig.hasCustomModePrompt(modeId, section.key)
+                : false;
+
+            html += '<div class="prompt-section">';
+            html += '<label class="prompt-section-label">' + section.label;
+            if (isCustom) {
+                html += ' <span class="prompt-custom-badge">customized</span>';
+            }
+            html += '</label>';
+            html += '<textarea class="prompt-section-textarea' + (isCustom ? ' customized' : '') + '" ';
+            html += 'data-section="' + section.key + '" ';
+            html += 'rows="3" ';
+            html += 'onblur="AICoworker.savePromptSection(this)" ';
+            html += 'oninput="AICoworker.autoResizePromptTextarea(this)">';
+            html += text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            html += '</textarea>';
+            html += '</div>';
+        });
+
+        html += '</div>';
+        return html;
+    },
+
+    /**
+     * Toggle the inline prompt editor panel visibility
+     */
+    toggleInlinePromptEditor() {
+        this._inlinePromptEditorOpen = !this._inlinePromptEditorOpen;
+        this.render();
+        // After render, auto-resize textareas to fit content
+        if (this._inlinePromptEditorOpen) {
+            var textareas = document.querySelectorAll('.prompt-section-textarea');
+            textareas.forEach(function(ta) {
+                ta.style.height = 'auto';
+                ta.style.height = ta.scrollHeight + 'px';
+            });
+        }
+    },
+
+    /**
+     * Save a prompt section textarea on blur
+     */
+    savePromptSection(textarea) {
+        if (typeof AIModeConfig === 'undefined') return;
+        var section = textarea.dataset.section;
+        var modeId = AIModeConfig.currentMode;
+        var text = textarea.value;
+
+        // Check if it matches the default — if so, remove the custom override
+        var defaultText = AIModeConfig.MODES[modeId].promptSections[section] || '';
+        if (text === defaultText) {
+            AIModeConfig.resetModePromptSection(modeId, section);
+        } else {
+            AIModeConfig.saveModePromptSection(modeId, section, text);
+        }
+
+        // Re-render to update custom badges
+        this.render();
+        // Re-open and re-size textareas
+        if (this._inlinePromptEditorOpen) {
+            var textareas = document.querySelectorAll('.prompt-section-textarea');
+            textareas.forEach(function(ta) {
+                ta.style.height = 'auto';
+                ta.style.height = ta.scrollHeight + 'px';
+            });
+        }
+    },
+
+    /**
+     * Auto-resize a prompt editor textarea to fit content
+     */
+    autoResizePromptTextarea(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+    },
+
+    /**
+     * Reset all prompt sections for the current mode to defaults
+     */
+    resetModePrompts() {
+        if (typeof AIModeConfig === 'undefined') return;
+        var modeId = AIModeConfig.currentMode;
+        AIModeConfig.resetAllModePromptSections(modeId);
+        if (typeof App !== 'undefined') App.showToast('Prompts reset to defaults', 'success');
+        this.render();
+        if (this._inlinePromptEditorOpen) {
+            var textareas = document.querySelectorAll('.prompt-section-textarea');
+            textareas.forEach(function(ta) {
+                ta.style.height = 'auto';
+                ta.style.height = ta.scrollHeight + 'px';
+            });
+        }
     },
 
     /**
@@ -1721,15 +1851,6 @@ const AICoworker = {
 
         textarea.value = '';
         this._autoResizeTextarea(textarea);
-
-        var modeId = typeof AIModeConfig !== 'undefined' ? AIModeConfig.currentMode : 'medium';
-
-        // Light mode: route ALL input through ask (simple Q&A, no state updates)
-        if (modeId === 'light') {
-            this._pushToThread('user', 'ask', text);
-            this.askClaudeAbout(text);
-            return;
-        }
 
         // Smart routing: detect question vs. clinical thinking
         const isQuestion = /\?$/.test(text) ||

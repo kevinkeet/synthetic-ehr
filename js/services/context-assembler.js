@@ -180,6 +180,18 @@ RULES:
             systemPrompt = mode.responseStyle.personalityPrefix + '\n\n' + systemPrompt;
         }
 
+        // Inject per-mode section-specific instructions
+        if (mode && typeof AIModeConfig !== 'undefined') {
+            var sectionInstructions = '\nSECTION-SPECIFIC INSTRUCTIONS (follow these for how to format each section):\n' +
+                '- Clinical Summary: ' + AIModeConfig.getModePromptSection(mode.id, 'summary') + '\n' +
+                '- Problem List: ' + AIModeConfig.getModePromptSection(mode.id, 'problemList') + '\n' +
+                '- Suggested Actions / categorizedActions: ' + AIModeConfig.getModePromptSection(mode.id, 'actions') + '\n';
+            systemPrompt = systemPrompt.replace(
+                'Respond in this exact JSON format:',
+                sectionInstructions + '\nRespond in this exact JSON format:'
+            );
+        }
+
         // For Heavy mode, inject extra response fields into the JSON format
         if (mode && mode.responseStyle.includeTeachingPoints) {
             systemPrompt = systemPrompt.replace(
@@ -283,6 +295,18 @@ RULES:
         // Inject mode personality prefix
         if (mode && mode.responseStyle.personalityPrefix) {
             systemPrompt = mode.responseStyle.personalityPrefix + '\n\n' + systemPrompt;
+        }
+
+        // Inject per-mode section-specific instructions
+        if (mode && typeof AIModeConfig !== 'undefined') {
+            var sectionInstructions = '\nSECTION-SPECIFIC INSTRUCTIONS (follow these for how to format each section):\n' +
+                '- Clinical Summary: ' + AIModeConfig.getModePromptSection(mode.id, 'summary') + '\n' +
+                '- Problem List: ' + AIModeConfig.getModePromptSection(mode.id, 'problemList') + '\n' +
+                '- Suggested Actions / categorizedActions: ' + AIModeConfig.getModePromptSection(mode.id, 'actions') + '\n';
+            systemPrompt = systemPrompt.replace(
+                'Respond in this exact JSON format:',
+                sectionInstructions + '\nRespond in this exact JSON format:'
+            );
         }
 
         // For Heavy mode, inject extra response fields into the JSON format
