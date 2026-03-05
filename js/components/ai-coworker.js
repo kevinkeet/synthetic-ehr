@@ -1682,9 +1682,6 @@ const AICoworker = {
             var safePrompt = chip.prompt.replace(/'/g, "\\'");
             html += '<button class="suggestion-chip" onclick="AICoworker.handleChip(\'' + safePrompt + '\')">' + chip.label + '</button>';
         });
-        // Edit prompt button — visible pencil icon
-        var editorOpen = this._inlinePromptEditorOpen || false;
-        html += '<button class="suggestion-chip inline-edit-prompt-btn' + (editorOpen ? ' active' : '') + '" onclick="AICoworker.toggleInlinePromptEditor()" title="Edit mode prompts">&#9999;</button>';
         html += '</div>';
 
         // Input row with mode-specific placeholder
@@ -1774,6 +1771,11 @@ const AICoworker = {
     toggleInlinePromptEditor() {
         this._inlinePromptEditorOpen = !this._inlinePromptEditorOpen;
         this.render();
+        // Sync the topbar edit button active state
+        var editBtn = document.getElementById('mode-edit-btn');
+        if (editBtn) {
+            editBtn.classList.toggle('active', this._inlinePromptEditorOpen);
+        }
         // After render, auto-resize textareas to fit content
         if (this._inlinePromptEditorOpen) {
             var textareas = document.querySelectorAll('.prompt-section-textarea');

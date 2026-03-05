@@ -147,19 +147,22 @@
                             </button>
                         </div>
                     </div>
-                    <div class="ai-mode-toggle" id="ai-mode-toggle">
-                        <button class="mode-btn" data-mode="light" onclick="AIPanel.setMode('light')">
-                            <span class="mode-icon">&#9675;</span>
-                            <span class="mode-label">Light</span>
-                        </button>
-                        <button class="mode-btn active" data-mode="medium" onclick="AIPanel.setMode('medium')">
-                            <span class="mode-icon">&#9680;</span>
-                            <span class="mode-label">Medium</span>
-                        </button>
-                        <button class="mode-btn" data-mode="heavy" onclick="AIPanel.setMode('heavy')">
-                            <span class="mode-icon">&#9679;</span>
-                            <span class="mode-label">Heavy</span>
-                        </button>
+                    <div class="ai-mode-toggle-row">
+                        <div class="ai-mode-toggle" id="ai-mode-toggle">
+                            <button class="mode-btn" data-mode="light" onclick="AIPanel.setMode('light')">
+                                <span class="mode-icon">&#9675;</span>
+                                <span class="mode-label">Light</span>
+                            </button>
+                            <button class="mode-btn active" data-mode="medium" onclick="AIPanel.setMode('medium')">
+                                <span class="mode-icon">&#9680;</span>
+                                <span class="mode-label">Medium</span>
+                            </button>
+                            <button class="mode-btn" data-mode="heavy" onclick="AIPanel.setMode('heavy')">
+                                <span class="mode-icon">&#9679;</span>
+                                <span class="mode-label">Heavy</span>
+                            </button>
+                        </div>
+                        <button class="mode-edit-btn" id="mode-edit-btn" onclick="AICoworker.toggleInlinePromptEditor()" title="Edit mode prompts">&#9999;</button>
                     </div>
                 </div>
 

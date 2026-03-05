@@ -2522,13 +2522,47 @@ html, body {
     font-size: 13px;
 }
 
+/* Mode Toggle Row — toggle + edit button */
+.ai-mode-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    width: 100%;
+}
+
 /* Mode Toggle — 3-segment control */
 .ai-mode-toggle {
     display: flex;
-    width: 100%;
+    flex: 1;
     background: rgba(0, 0, 0, 0.15);
     padding: 3px;
     gap: 2px;
+}
+
+/* Edit prompt button next to mode toggle */
+.mode-edit-btn {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.mode-edit-btn:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.mode-edit-btn.active {
+    color: white;
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .mode-btn {
@@ -6740,18 +6774,6 @@ html, body {
     border-left: 3px solid var(--primary);
 }
 
-/* Edit prompt button in chips row */
-.inline-edit-prompt-btn {
-    font-size: 11px !important;
-    padding: 3px 8px !important;
-    min-width: unset;
-}
-
-.inline-edit-prompt-btn.active {
-    background: var(--primary) !important;
-    color: white !important;
-    border-color: var(--primary) !important;
-}
 
 .inline-chips {
     display: flex;
