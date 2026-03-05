@@ -2522,47 +2522,13 @@ html, body {
     font-size: 13px;
 }
 
-/* Mode Toggle Row — toggle + edit button */
-.ai-mode-toggle-row {
-    display: flex;
-    align-items: center;
-    gap: 0;
-    width: 100%;
-}
-
 /* Mode Toggle — 3-segment control */
 .ai-mode-toggle {
     display: flex;
-    flex: 1;
+    width: 100%;
     background: rgba(0, 0, 0, 0.15);
     padding: 3px;
     gap: 2px;
-}
-
-/* Edit prompt button next to mode toggle */
-.mode-edit-btn {
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    background: transparent;
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-}
-
-.mode-edit-btn:hover {
-    color: white;
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.mode-edit-btn.active {
-    color: white;
-    background: rgba(255, 255, 255, 0.2);
 }
 
 .mode-btn {
@@ -2595,8 +2561,24 @@ html, body {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.mode-btn .mode-icon {
-    font-size: 12px;
+/* Pencil edit icon inside mode buttons */
+.mode-edit-icon {
+    font-size: 10px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    margin-left: 2px;
+}
+
+.mode-btn:hover .mode-edit-icon {
+    opacity: 0.5;
+}
+
+.mode-btn.active .mode-edit-icon {
+    opacity: 0.6;
+}
+
+.mode-btn.active:hover .mode-edit-icon {
+    opacity: 1;
 }
 
 /* Mode-specific topbar accent colors */

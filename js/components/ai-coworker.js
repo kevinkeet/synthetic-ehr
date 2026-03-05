@@ -1771,11 +1771,6 @@ const AICoworker = {
     toggleInlinePromptEditor() {
         this._inlinePromptEditorOpen = !this._inlinePromptEditorOpen;
         this.render();
-        // Sync the topbar edit button active state
-        var editBtn = document.getElementById('mode-edit-btn');
-        if (editBtn) {
-            editBtn.classList.toggle('active', this._inlinePromptEditorOpen);
-        }
         // After render, auto-resize textareas to fit content
         if (this._inlinePromptEditorOpen) {
             var textareas = document.querySelectorAll('.prompt-section-textarea');

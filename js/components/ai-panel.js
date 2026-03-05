@@ -179,6 +179,24 @@ const AIPanel = {
     },
 
     /**
+     * Handle mode button click.
+     * - Clicking a non-active mode: switches to that mode.
+     * - Clicking the already-active mode: toggles the prompt editor.
+     */
+    handleModeClick(modeId) {
+        if (typeof AIModeConfig === 'undefined') return;
+        if (AIModeConfig.currentMode === modeId) {
+            // Already active — toggle prompt editor
+            if (typeof AICoworker !== 'undefined') {
+                AICoworker.toggleInlinePromptEditor();
+            }
+        } else {
+            // Switch to this mode
+            this.setMode(modeId);
+        }
+    },
+
+    /**
      * Set AI assistant mode (Light / Medium / Heavy)
      */
     setMode(modeId) {
