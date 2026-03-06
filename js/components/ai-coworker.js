@@ -1153,6 +1153,7 @@ const AICoworker = {
                             <label><input type="checkbox" id="include-imaging" checked> Imaging</label>
                             <label><input type="checkbox" id="include-nursing" checked> Nursing Notes</label>
                             <label><input type="checkbox" id="include-dictation" checked> My Dictated Thoughts</label>
+                            <label><input type="checkbox" id="include-ambient" checked> Ambient Conversation</label>
                             <label><input type="checkbox" id="include-previous" checked> Previous Notes</label>
                         </div>
                     </div>
@@ -2106,6 +2107,9 @@ const AICoworker = {
         var mode = this.mode_config;
         let html = '<div class="copilot-inline-input">';
 
+        // Ambient scribe panel (shown when scribe is active or has data)
+        html += this.renderAmbientScribePanel();
+
         // Inline prompt editor (shown/hidden by toggle)
         html += this.renderInlinePromptEditor();
 
@@ -2143,6 +2147,8 @@ const AICoworker = {
         // Action buttons
         html += '<div class="inline-action-bar">';
         html += '<button class="inline-action-btn" onclick="AICoworker.openDictationModal()" title="Voice dictation"><span>&#127897;</span> Dictate</button>';
+        var isScribing = typeof AmbientScribe !== 'undefined' && AmbientScribe.isListening;
+        html += '<button class="inline-action-btn ambient-scribe-btn' + (isScribing ? ' active' : '') + '" onclick="AICoworker.toggleAmbientScribe()" title="' + (isScribing ? 'Stop ambient scribe' : 'Ambient AI scribe — overhear conversation') + '"><span>&#127911;</span> Scribe</button>';
         html += '<button class="inline-action-btn" onclick="AICoworker.openNoteModal()" title="Write clinical note"><span>&#128221;</span> Write Note</button>';
         html += '<button class="inline-action-btn inline-more-btn" onclick="AICoworker.toggleMoreMenu()" title="More actions"><span>&#8943;</span> More</button>';
         html += '<div class="inline-more-menu" id="inline-more-menu">';
@@ -2977,6 +2983,11 @@ Respond with ONLY the JSON, no preamble.`;
             return;
         }
 
+        // Mutual exclusion: stop ambient scribe if active
+        if (typeof AmbientScribe !== 'undefined' && AmbientScribe.isListening) {
+            AmbientScribe.stopListening();
+        }
+
         this._handsFreeActive = true;
         this._handsFreeTimeout = 3000; // 3 seconds of silence to auto-submit
         this._hfSilenceTimer = null;
@@ -3145,6 +3156,286 @@ Respond with ONLY the JSON, no preamble.`;
         this._hfInterimTranscript = '';
         this.render();
         if (typeof App !== 'undefined') App.showToast('Hands-free mode stopped', 'info');
+    },
+
+    // ==================== Ambient AI Scribe ====================
+
+    /**
+     * Toggle the ambient AI scribe on/off.
+     * Mutual exclusion: stops hands-free if active.
+     */
+    toggleAmbientScribe() {
+        if (typeof AmbientScribe === 'undefined') {
+            if (typeof App !== 'undefined') App.showToast('Ambient scribe not available', 'error');
+            return;
+        }
+
+        if (AmbientScribe.isListening) {
+            this.stopAmbientScribe();
+        } else {
+            this.startAmbientScribe();
+        }
+    },
+
+    /**
+     * Start the ambient AI scribe.
+     * Sets up callbacks for live UI updates and extraction notifications.
+     */
+    startAmbientScribe() {
+        if (typeof AmbientScribe === 'undefined') return;
+
+        // Mutual exclusion: stop hands-free if active
+        if (this._handsFreeActive) {
+            this.stopHandsFree();
+        }
+
+        var self = this;
+
+        // Set up UI update callback
+        AmbientScribe.onTranscriptUpdate = function() {
+            self._updateAmbientScribePanel();
+        };
+
+        // Set up extraction complete callback
+        AmbientScribe.onExtractionComplete = function() {
+            self._updateAmbientScribePanel();
+            // Trigger AI panel refresh if significant new findings
+            if (AmbientScribe.extractedFindings.length > 0 && AmbientScribe.extractionCount % 2 === 0) {
+                // Every other extraction, refresh the AI synthesis
+                self._persistAmbientToSession();
+            }
+        };
+
+        var started = AmbientScribe.startListening();
+        if (started) {
+            this.render();
+        }
+    },
+
+    /**
+     * Stop the ambient AI scribe.
+     * Offers to use findings for note writing.
+     */
+    async stopAmbientScribe() {
+        if (typeof AmbientScribe === 'undefined') return;
+
+        await AmbientScribe.stopListening();
+
+        // Persist findings to session
+        this._persistAmbientToSession();
+
+        this.render();
+
+        // Notify about available findings
+        var counts = AmbientScribe.getFindingsCounts();
+        var totalFindings = Object.values(counts).reduce(function(a, b) { return a + b; }, 0);
+        if (totalFindings > 0) {
+            if (typeof App !== 'undefined') {
+                App.showToast('Scribe captured ' + totalFindings + ' findings. Use Write Note to include them.', 'success');
+            }
+        }
+    },
+
+    /**
+     * Persist ambient scribe findings into session context for AI panel integration.
+     */
+    _persistAmbientToSession() {
+        if (typeof AmbientScribe === 'undefined' || !AmbientScribe.hasData()) return;
+
+        // Store in longitudinal doc sessionContext
+        if (this.longitudinalDoc) {
+            this.longitudinalDoc.sessionContext.ambientTranscript = AmbientScribe.getTranscript().map(function(e) {
+                return { speaker: e.speaker, text: e.text, timestamp: e.timestamp };
+            });
+            this.longitudinalDoc.sessionContext.ambientFindings = AmbientScribe.getExtractedFindings().map(function(f) {
+                return { type: f.type, text: f.text, speaker: f.speaker, confidence: f.confidence, timestamp: f.timestamp };
+            });
+            if (AmbientScribe.hpiComponents) {
+                this.longitudinalDoc.sessionContext.ambientHpiComponents = AmbientScribe.hpiComponents;
+            }
+            this.saveLongitudinalDoc();
+        }
+    },
+
+    /**
+     * Render the ambient scribe panel — collapsible panel showing live transcript.
+     * Returns HTML string.
+     */
+    renderAmbientScribePanel() {
+        if (typeof AmbientScribe === 'undefined') return '';
+
+        var isActive = AmbientScribe.isListening;
+        var hasData = AmbientScribe.hasData();
+
+        if (!isActive && !hasData) return '';
+
+        var html = '<div class="ambient-scribe-panel' + (isActive ? ' recording' : '') + '">';
+
+        // Header
+        html += '<div class="ambient-scribe-header" onclick="AICoworker._toggleAmbientPanelCollapse()">';
+        html += '<div class="ambient-scribe-header-left">';
+        if (isActive) {
+            html += '<span class="scribe-recording-dot"></span>';
+            html += '<span class="ambient-scribe-title">Ambient Scribe \u2014 Recording (' + AmbientScribe.getFormattedDuration() + ')</span>';
+        } else {
+            html += '<span class="ambient-scribe-title">Ambient Scribe \u2014 ' + AmbientScribe.conversationLog.length + ' utterances</span>';
+        }
+        html += '</div>';
+        html += '<div class="ambient-scribe-header-right">';
+        if (isActive) {
+            html += '<button class="scribe-stop-btn" onclick="event.stopPropagation(); AICoworker.stopAmbientScribe();" title="Stop scribe">\u25A0 Stop</button>';
+        }
+        html += '<button class="scribe-extract-btn" onclick="event.stopPropagation(); AICoworker._manualExtract();" title="Extract findings now"' +
+                (AmbientScribe.extractionInProgress ? ' disabled' : '') + '>' +
+                (AmbientScribe.extractionInProgress ? '\u23F3' : '\u2699') + ' Extract</button>';
+        html += '<span class="ambient-collapse-icon">' + (this._ambientPanelCollapsed ? '\u25B6' : '\u25BC') + '</span>';
+        html += '</div>';
+        html += '</div>';
+
+        // Body (collapsible)
+        if (!this._ambientPanelCollapsed) {
+            html += '<div class="ambient-scribe-body">';
+
+            // Transcript area
+            html += '<div class="ambient-scribe-transcript" id="ambient-scribe-transcript">';
+            var log = AmbientScribe.getTranscript();
+            if (log.length === 0 && isActive) {
+                html += '<div class="scribe-placeholder">Listening... speak and the conversation will appear here.</div>';
+            } else {
+                // Show last 20 utterances
+                var displayed = log.slice(-20);
+                displayed.forEach(function(entry) {
+                    var speakerClass = entry.speaker === 'doctor' ? 'doctor' :
+                                      entry.speaker === 'patient' ? 'patient' :
+                                      entry.speaker === 'nurse' ? 'nurse' : 'unknown';
+                    var speakerIcon = entry.speaker === 'doctor' ? '\uD83D\uDC68\u200D\u2695\uFE0F' :
+                                     entry.speaker === 'patient' ? '\uD83E\uDDD1' :
+                                     entry.speaker === 'nurse' ? '\uD83D\uDC69\u200D\u2695\uFE0F' : '\uD83D\uDDE3\uFE0F';
+                    html += '<div class="scribe-utterance ' + speakerClass + '">';
+                    html += '<span class="scribe-speaker-icon">' + speakerIcon + '</span>';
+                    html += '<span class="scribe-speaker-label">' + (entry.speaker || 'Unknown') + ':</span> ';
+                    html += '<span class="scribe-text">' + entry.text + '</span>';
+                    html += '</div>';
+                });
+
+                // Show interim text if actively listening
+                if (isActive && AmbientScribe._interimTranscript) {
+                    html += '<div class="scribe-utterance interim">';
+                    html += '<span class="scribe-speaker-icon">\uD83D\uDDE3\uFE0F</span>';
+                    html += '<span class="scribe-text interim-text">' + AmbientScribe._interimTranscript + '</span>';
+                    html += '</div>';
+                }
+            }
+            html += '</div>';
+
+            html += '</div>';
+        }
+
+        // Extraction summary footer
+        var counts = AmbientScribe.getFindingsCounts();
+        var totalFindings = Object.values(counts).reduce(function(a, b) { return a + b; }, 0);
+        if (totalFindings > 0) {
+            html += '<div class="scribe-extraction-summary">';
+            html += '<span class="scribe-extraction-label">Extracted: </span>';
+            var parts = [];
+            if (counts.symptom > 0) parts.push(counts.symptom + ' symptom' + (counts.symptom > 1 ? 's' : ''));
+            if (counts.finding > 0) parts.push(counts.finding + ' finding' + (counts.finding > 1 ? 's' : ''));
+            if (counts.assessment > 0) parts.push(counts.assessment + ' assessment' + (counts.assessment > 1 ? 's' : ''));
+            if (counts.concern > 0) parts.push(counts.concern + ' concern' + (counts.concern > 1 ? 's' : ''));
+            if (counts.quote > 0) parts.push(counts.quote + ' quote' + (counts.quote > 1 ? 's' : ''));
+            html += '<span class="scribe-extraction-counts">' + parts.join(', ') + '</span>';
+            html += '</div>';
+        }
+
+        html += '</div>';
+        return html;
+    },
+
+    /**
+     * Update just the ambient scribe panel DOM without re-rendering the entire AI panel.
+     * Called frequently during recording for live transcript updates.
+     */
+    _updateAmbientScribePanel() {
+        // Update the transcript area
+        var transcriptEl = document.getElementById('ambient-scribe-transcript');
+        if (transcriptEl) {
+            var log = AmbientScribe.getTranscript();
+            var html = '';
+            var displayed = log.slice(-20);
+            displayed.forEach(function(entry) {
+                var speakerClass = entry.speaker === 'doctor' ? 'doctor' :
+                                  entry.speaker === 'patient' ? 'patient' :
+                                  entry.speaker === 'nurse' ? 'nurse' : 'unknown';
+                var speakerIcon = entry.speaker === 'doctor' ? '\uD83D\uDC68\u200D\u2695\uFE0F' :
+                                 entry.speaker === 'patient' ? '\uD83E\uDDD1' :
+                                 entry.speaker === 'nurse' ? '\uD83D\uDC69\u200D\u2695\uFE0F' : '\uD83D\uDDE3\uFE0F';
+                html += '<div class="scribe-utterance ' + speakerClass + '">';
+                html += '<span class="scribe-speaker-icon">' + speakerIcon + '</span>';
+                html += '<span class="scribe-speaker-label">' + (entry.speaker || 'Unknown') + ':</span> ';
+                html += '<span class="scribe-text">' + entry.text + '</span>';
+                html += '</div>';
+            });
+
+            // Interim text
+            if (AmbientScribe.isListening && AmbientScribe._interimTranscript) {
+                html += '<div class="scribe-utterance interim">';
+                html += '<span class="scribe-speaker-icon">\uD83D\uDDE3\uFE0F</span>';
+                html += '<span class="scribe-text interim-text">' + AmbientScribe._interimTranscript + '</span>';
+                html += '</div>';
+            }
+
+            transcriptEl.innerHTML = html;
+            // Auto-scroll to bottom
+            transcriptEl.scrollTop = transcriptEl.scrollHeight;
+        }
+
+        // Update the header timer
+        var headerEl = document.querySelector('.ambient-scribe-header .ambient-scribe-title');
+        if (headerEl && AmbientScribe.isListening) {
+            headerEl.textContent = 'Ambient Scribe \u2014 Recording (' + AmbientScribe.getFormattedDuration() + ')';
+        }
+
+        // Update extraction summary
+        var summaryEl = document.querySelector('.scribe-extraction-summary .scribe-extraction-counts');
+        if (summaryEl) {
+            var counts = AmbientScribe.getFindingsCounts();
+            var parts = [];
+            if (counts.symptom > 0) parts.push(counts.symptom + ' symptom' + (counts.symptom > 1 ? 's' : ''));
+            if (counts.finding > 0) parts.push(counts.finding + ' finding' + (counts.finding > 1 ? 's' : ''));
+            if (counts.assessment > 0) parts.push(counts.assessment + ' assessment' + (counts.assessment > 1 ? 's' : ''));
+            if (counts.concern > 0) parts.push(counts.concern + ' concern' + (counts.concern > 1 ? 's' : ''));
+            if (counts.quote > 0) parts.push(counts.quote + ' quote' + (counts.quote > 1 ? 's' : ''));
+            summaryEl.textContent = parts.join(', ');
+        }
+    },
+
+    /**
+     * Toggle collapse state of the ambient scribe panel.
+     */
+    _toggleAmbientPanelCollapse() {
+        this._ambientPanelCollapsed = !this._ambientPanelCollapsed;
+        this.render();
+    },
+
+    /**
+     * Manually trigger extraction (user clicks Extract button).
+     */
+    async _manualExtract() {
+        if (typeof AmbientScribe === 'undefined') return;
+        if (AmbientScribe.extractionInProgress) return;
+
+        // Flush current buffer
+        if (AmbientScribe._chunkBuffer.trim()) {
+            AmbientScribe.rawChunks.push({
+                text: AmbientScribe._chunkBuffer.trim(),
+                timestamp: new Date().toISOString(),
+                isFinal: true
+            });
+            AmbientScribe._chunkBuffer = '';
+        }
+
+        await AmbientScribe.extractClinicalContent();
+        this.render();
     },
 
     // ==================== Voice Commands ====================
@@ -3401,6 +3692,7 @@ Respond with ONLY the JSON, no preamble.`;
         const noteTypeName = this.getNoteTypeName(noteType);
 
         // Build data sources based on checkboxes
+        const includeAmbientEl = document.getElementById('include-ambient');
         const includeSources = {
             vitals: document.getElementById('include-vitals').checked,
             labs: document.getElementById('include-labs').checked,
@@ -3408,6 +3700,7 @@ Respond with ONLY the JSON, no preamble.`;
             imaging: document.getElementById('include-imaging').checked,
             nursing: document.getElementById('include-nursing').checked,
             dictation: document.getElementById('include-dictation').checked,
+            ambientConversation: includeAmbientEl ? includeAmbientEl.checked : false,
             previous: document.getElementById('include-previous').checked
         };
 

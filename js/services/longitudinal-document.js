@@ -416,7 +416,13 @@ class LongitudinalClinicalDocument {
             conflicts: [],              // {id, itemA, itemB, detectedAt, resolvedAt, resolution, severity}
 
             patientConversation: [],
-            nurseConversation: []
+            nurseConversation: [],
+
+            // Ambient AI Scribe data
+            ambientTranscript: [],       // [{speaker, text, timestamp}]
+            ambientFindings: [],         // [{type, text, speaker, confidence, timestamp}]
+            ambientHpiComponents: null,  // {chiefComplaint, onset, duration, severity, ...}
+            ambientEncounterSummary: ''  // LLM-generated encounter summary from conversation
         };
 
         // AI's accumulated understanding — persists across sessions
@@ -675,6 +681,19 @@ class LongitudinalClinicalDocument {
         // Ensure conflicts array exists
         if (!doc.sessionContext.conflicts) {
             doc.sessionContext.conflicts = [];
+        }
+        // Ensure ambient scribe fields exist (v2.1 migration)
+        if (!doc.sessionContext.ambientTranscript) {
+            doc.sessionContext.ambientTranscript = [];
+        }
+        if (!doc.sessionContext.ambientFindings) {
+            doc.sessionContext.ambientFindings = [];
+        }
+        if (doc.sessionContext.ambientHpiComponents === undefined) {
+            doc.sessionContext.ambientHpiComponents = null;
+        }
+        if (!doc.sessionContext.ambientEncounterSummary) {
+            doc.sessionContext.ambientEncounterSummary = '';
         }
         // Migrate old string-format aiObservations to structured format
         if (doc.sessionContext.aiObservations &&

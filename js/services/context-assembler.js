@@ -212,9 +212,12 @@ RULES:
         // Build scored findings context block
         const scoredFindingsBlock = this._getScoredFindingsBlock();
 
+        // Build ambient scribe context block
+        const ambientBlock = this._getAmbientFindingsBlock();
+
         const userMessage = `## Clinical Context (with AI Memory)
 ${context}
-${executedActionsBlock}${mergeBlock}${outcomeBlock}${scoredFindingsBlock}
+${executedActionsBlock}${mergeBlock}${outcomeBlock}${scoredFindingsBlock}${ambientBlock}
 ## Doctor's Current Assessment/Thoughts
 "${doctorThoughts}"
 
@@ -334,10 +337,11 @@ RULES:
         const mergeBlock = this._getMemoryMergeBlock();
         const outcomeBlock = this._getOutcomeTrackingBlock();
         const scoredFindingsBlock = this._getScoredFindingsBlock();
+        const ambientBlock = this._getAmbientFindingsBlock();
 
         const userMessage = `## Full Clinical Context (with AI Memory)
 ${context}
-${executedActionsBlock}${mergeBlock}${outcomeBlock}${scoredFindingsBlock}
+${executedActionsBlock}${mergeBlock}${outcomeBlock}${scoredFindingsBlock}${ambientBlock}
 ${dictation ? `## Doctor's Current Assessment\n"${dictation}"` : '## No doctor assessment recorded yet'}
 
 Provide a concise case synthesis. Be brief and clinical — no filler. Do NOT re-suggest actions that have already been completed (see "Already Completed Actions" above if present).${mergeBlock ? ' IMPORTANT: Your patientSummaryUpdate MUST be comprehensive — merge all important details from both the previous and current understanding.' : ''}`;
@@ -418,6 +422,14 @@ IMPORTANT:
         if (includeSources.dictation && dictation) {
             noteData += '## Doctor\'s Assessment & Thoughts\n';
             noteData += dictation + '\n\n';
+        }
+
+        if (includeSources.ambientConversation && typeof AmbientScribe !== 'undefined') {
+            var ambientData = AmbientScribe.getConversationForNote();
+            if (ambientData) {
+                noteData += '## Ambient Scribe \u2014 Doctor-Patient Conversation\n';
+                noteData += ambientData + '\n\n';
+            }
         }
 
         if (instructions) {
@@ -586,6 +598,22 @@ Your patientSummaryUpdate should incorporate ALL important details from both ver
         });
 
         return '\n## Key Clinical Findings (confidence-scored, doctor-gated)\n' + lines.join('\n') + '\n';
+    }
+
+    /**
+     * Build an ambient scribe findings context block.
+     * Includes a compact summary of what the AI overheard from the doctor-patient conversation.
+     * @returns {string} A formatted block or empty string if no ambient data.
+     */
+    _getAmbientFindingsBlock() {
+        if (typeof AmbientScribe === 'undefined') return '';
+
+        const contextBlock = AmbientScribe.getAmbientContextBlock();
+        if (!contextBlock) return '';
+
+        return '\n## Ambient Scribe \u2014 Overheard Conversation Summary\n' +
+            '(Extracted from doctor-patient conversation — use to inform your analysis)\n' +
+            contextBlock + '\n';
     }
 }
 

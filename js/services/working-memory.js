@@ -66,6 +66,9 @@ class WorkingMemoryAssembler {
         // 6. Previous AI insights (for continuity)
         sections.push(this.getPreviousInsightsBlock());
 
+        // 7. Ambient scribe findings (if available and relevant)
+        sections.push(this.getAmbientFindingsBlock());
+
         return sections.filter(s => s && s.trim()).join('\n\n');
     }
 
@@ -103,6 +106,9 @@ class WorkingMemoryAssembler {
 
         // 7. Previous AI analysis (for continuity)
         sections.push(this.getPreviousInsightsBlock());
+
+        // 8. Ambient scribe findings (if available)
+        sections.push(this.getAmbientFindingsBlock());
 
         return sections.filter(s => s && s.trim()).join('\n\n');
     }
@@ -572,6 +578,63 @@ class WorkingMemoryAssembler {
         }
 
         return text;
+    }
+
+    // =====================================================
+    // AMBIENT SCRIBE CONTEXT BLOCK
+    // =====================================================
+
+    /**
+     * Build a compact context block from ambient scribe findings.
+     * Includes key clinical data overheard from the doctor-patient conversation.
+     * Returns empty string if no ambient data available.
+     */
+    getAmbientFindingsBlock() {
+        if (typeof AmbientScribe === 'undefined' || !AmbientScribe.hasData()) {
+            // Fallback: check longitudinal doc for persisted ambient data
+            if (this.pkb && this.pkb.sessionContext && this.pkb.sessionContext.ambientFindings &&
+                this.pkb.sessionContext.ambientFindings.length > 0) {
+                return this._buildAmbientBlockFromPersisted();
+            }
+            return '';
+        }
+
+        var block = AmbientScribe.getAmbientContextBlock();
+        if (!block) return '';
+
+        return '## FROM AMBIENT CONVERSATION (doctor-patient dialogue)\n' + block;
+    }
+
+    /**
+     * Build ambient block from persisted data (when AmbientScribe service isn't active
+     * but data was previously captured and saved to the longitudinal doc).
+     */
+    _buildAmbientBlockFromPersisted() {
+        var findings = this.pkb.sessionContext.ambientFindings;
+        if (!findings || findings.length === 0) return '';
+
+        var lines = [];
+        var symptoms = findings.filter(function(f) { return f.type === 'symptom'; });
+        var examFindings = findings.filter(function(f) { return f.type === 'finding'; });
+        var assessments = findings.filter(function(f) { return f.type === 'assessment'; });
+        var concerns = findings.filter(function(f) { return f.type === 'concern'; });
+
+        if (symptoms.length > 0) {
+            lines.push('Patient reports: ' + symptoms.map(function(s) { return s.text; }).join('; '));
+        }
+        if (examFindings.length > 0) {
+            lines.push('Exam: ' + examFindings.map(function(f) { return f.text; }).join('; '));
+        }
+        if (assessments.length > 0) {
+            lines.push('Assessment: ' + assessments.map(function(a) { return a.text; }).join('; '));
+        }
+        if (concerns.length > 0) {
+            lines.push('Patient concerns: ' + concerns.map(function(c) { return c.text; }).join('; '));
+        }
+
+        if (lines.length === 0) return '';
+
+        return '## FROM AMBIENT CONVERSATION (doctor-patient dialogue)\n' + lines.join('\n');
     }
 }
 
