@@ -45,6 +45,7 @@ const App = {
         SimulationDebrief.init();
         ClinicalImages.init();
         FloatingChat.init();
+        FeedbackWidget.init();
         AICoworker.init();
 
         // Load default patient

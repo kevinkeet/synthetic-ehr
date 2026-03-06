@@ -28,8 +28,7 @@ const SimulationControls = {
             <div class="sim-controls" id="sim-controls">
                 <div class="sim-status" id="sim-status" onclick="SimulationControls.toggleExpanded()">
                     <span class="sim-indicator stopped"></span>
-                    <span class="sim-time" id="sim-time">--:--</span>
-                    <span class="sim-label">Simulation</span>
+                    <span class="sim-label">Sim</span>
                 </div>
                 <div class="sim-panel" id="sim-panel">
                     <div class="sim-panel-header">
@@ -115,13 +114,8 @@ const SimulationControls = {
             </div>
         `;
 
-        // Insert before current time
-        const currentTime = headerRight.querySelector('.current-time');
-        if (currentTime) {
-            currentTime.insertAdjacentHTML('beforebegin', controlsHTML);
-        } else {
-            headerRight.insertAdjacentHTML('afterbegin', controlsHTML);
-        }
+        // Insert at the beginning of header-right
+        headerRight.insertAdjacentHTML('afterbegin', controlsHTML);
     },
 
     /**
