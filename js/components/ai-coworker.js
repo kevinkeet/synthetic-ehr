@@ -16,6 +16,10 @@ const AICoworker = {
     isMinimized: false,
     updateInterval: null,
 
+    // Per-mode analysis cache — stores LLM results keyed by mode ID
+    // so switching modes can restore previous analysis without re-calling the API
+    _modeAnalysisCache: {},
+
     // API Configuration
     apiKey: null,
     apiEndpoint: 'https://api.anthropic.com/v1/messages',
@@ -1233,17 +1237,32 @@ const AICoworker = {
     },
 
     /**
-     * Handle AI mode change (Light / Medium / Heavy)
+     * Handle AI mode change (Reactive / Responsive / Anticipatory)
      */
     onModeChanged(modeId) {
-        // Re-render with new mode's section visibility and chips
-        this.render();
         // Show toast indicating mode change
         if (typeof AIModeConfig !== 'undefined') {
             var mode = AIModeConfig.getMode();
             if (typeof App !== 'undefined') {
                 App.showToast('AI Mode: ' + mode.label, 'info');
             }
+        }
+
+        // Try to restore cached analysis for this mode
+        if (this._modeAnalysisCache[modeId]) {
+            this._restoreModeCache(modeId);
+            this.render();
+            return;
+        }
+
+        // Re-render first (shows current state while we load)
+        this.render();
+
+        // Auto-analyze for the new mode if panel is open and API is ready
+        if (typeof AIPanel !== 'undefined' && !AIPanel.isCollapsed && this.isApiConfigured()) {
+            setTimeout(() => {
+                this.refreshThinking();
+            }, 200);
         }
     },
 
@@ -2748,6 +2767,9 @@ const AICoworker = {
      */
     onDictationUpdated(text) {
         console.log('🩺 onDictationUpdated called with:', text.substring(0, 100) + '...');
+
+        // Invalidate per-mode analysis cache — clinical context has changed
+        this._clearModeCache();
 
         // Check mode — Reactive mode does NOT auto-synthesize
         var mode = this.mode_config;
@@ -5449,6 +5471,10 @@ RULES:
             this.state.status = 'ready';
             this.state.lastUpdated = new Date().toISOString();
             this.saveState();
+
+            // Cache results for this mode so switching back doesn't re-call API
+            this._saveModeCache();
+
             this.render();
             App.showToast('AI analysis refreshed', 'success');
 
@@ -5468,6 +5494,60 @@ RULES:
                 btn.classList.remove('spinning');
             }
         }
+    },
+
+    // ==================== Per-Mode Analysis Cache ====================
+
+    /**
+     * Save current analysis state to the per-mode cache.
+     * Called after a successful refreshWithLLM so mode switches can restore results.
+     */
+    _saveModeCache() {
+        var modeId = typeof AIModeConfig !== 'undefined' ? AIModeConfig.currentMode : 'responsive';
+        this._modeAnalysisCache[modeId] = {
+            summary: this.state.summary,
+            thinking: this.state.thinking,
+            aiOneLiner: this.state.aiOneLiner,
+            clinicalSummary: this.state.clinicalSummary ? Object.assign({}, this.state.clinicalSummary) : null,
+            problemList: this.state.problemList ? this.state.problemList.slice() : [],
+            categorizedActions: this.state.categorizedActions ? Object.assign({}, this.state.categorizedActions) : null,
+            suggestedActions: this.state.suggestedActions ? this.state.suggestedActions.slice() : [],
+            keyConsiderations: this.state.keyConsiderations ? this.state.keyConsiderations.slice() : [],
+            observations: this.state.observations ? this.state.observations.slice() : [],
+            teachingPoints: this.state.teachingPoints ? this.state.teachingPoints.slice() : [],
+            ddxChallenge: this.state.ddxChallenge || null,
+            lastUpdated: this.state.lastUpdated,
+            timestamp: Date.now()
+        };
+    },
+
+    /**
+     * Restore cached analysis for a given mode into the live state.
+     */
+    _restoreModeCache(modeId) {
+        var cache = this._modeAnalysisCache[modeId];
+        if (!cache) return;
+        this.state.summary = cache.summary;
+        this.state.thinking = cache.thinking;
+        this.state.aiOneLiner = cache.aiOneLiner;
+        this.state.clinicalSummary = cache.clinicalSummary;
+        this.state.problemList = cache.problemList;
+        this.state.categorizedActions = cache.categorizedActions;
+        this.state.suggestedActions = cache.suggestedActions;
+        this.state.keyConsiderations = cache.keyConsiderations;
+        this.state.observations = cache.observations;
+        this.state.teachingPoints = cache.teachingPoints;
+        this.state.ddxChallenge = cache.ddxChallenge;
+        this.state.lastUpdated = cache.lastUpdated;
+        this.state.status = 'ready';
+        this.saveState();
+    },
+
+    /**
+     * Invalidate all cached mode analyses (e.g., when chart data changes significantly).
+     */
+    _clearModeCache() {
+        this._modeAnalysisCache = {};
     },
 
     // ==================== Agentic Action Execution ====================

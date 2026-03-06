@@ -147,16 +147,21 @@ const AIPanel = {
 
     /**
      * Trigger AI analysis automatically if no LLM data is present yet.
-     * Called when the panel is expanded for the first time.
-     * Respects mode setting — Light mode skips auto-refresh.
+     * Called when the panel is expanded. Runs for ALL modes (including Reactive)
+     * so the user never has to manually click refresh on first open.
      */
     _autoAnalyzeIfNeeded() {
         if (typeof AICoworker === 'undefined') return;
 
-        // Check mode — Light mode doesn't auto-refresh
+        // Check if we already have a cached analysis for the current mode
         if (typeof AIModeConfig !== 'undefined') {
-            var mode = AIModeConfig.getMode();
-            if (!mode.proactive.autoRefreshOnExpand) return;
+            var currentModeId = AIModeConfig.currentMode;
+            if (AICoworker._modeAnalysisCache && AICoworker._modeAnalysisCache[currentModeId]) {
+                // Restore from cache — instant, no API call needed
+                AICoworker._restoreModeCache(currentModeId);
+                AICoworker.render();
+                return;
+            }
         }
 
         // Check if we already have LLM-enriched problem data
