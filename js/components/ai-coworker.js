@@ -1309,19 +1309,28 @@ const AICoworker = {
 
         try {
         let html = '';
+        var isThinking = this.state.status === 'thinking';
         var sections = this.mode_config ? this.mode_config.sections : { alertBar: true, clinicalSummary: true, problemList: true, suggestedActions: true, conversationThread: true, teachingPoints: false, ddxChallenge: false };
+
+        // ===== THINKING BANNER (shown when AI is processing) =====
+        if (isThinking) {
+            html += '<div class="copilot-thinking-banner">';
+            html += '<span class="thinking-sparkle">&#10024;</span>';
+            html += '<span>Analyzing clinical context...</span>';
+            html += '</div>';
+        }
 
         // ===== SECTION 1: SAFETY BAR (sticky top, only when alerts exist) =====
         if (sections.alertBar) html += this.renderAlertBar();
 
         // ===== SECTION 2: CLINICAL SUMMARY (3 sentences) =====
-        if (sections.clinicalSummary) html += this.renderClinicalSummary();
+        if (sections.clinicalSummary) html += this.renderClinicalSummary(isThinking);
 
         // ===== SECTION 3: PROBLEM LIST =====
         if (sections.problemList) html += this.renderProblemList();
 
         // ===== SECTION 4: SUGGESTED ACTIONS =====
-        if (sections.suggestedActions) html += this.renderSuggestedActions();
+        if (sections.suggestedActions) html += this.renderSuggestedActions(isThinking);
 
         // ===== SECTION 5: TEACHING POINTS (Heavy mode only) =====
         if (sections.teachingPoints) html += this.renderTeachingPoints();
@@ -1826,7 +1835,7 @@ const AICoworker = {
      * Render a structured 3-sentence clinical summary.
      * Uses LLM-refined data if available, falls back to locally-built sentences.
      */
-    renderClinicalSummary() {
+    renderClinicalSummary(isThinking) {
         try {
             const collapsed = this.isSectionCollapsed('summary');
             const chevron = collapsed ? '&#9654;' : '&#9660;';
@@ -1834,7 +1843,7 @@ const AICoworker = {
             // Use LLM summary if available, else local
             const summary = this.state.clinicalSummary || this._buildLocalSummary();
 
-            let html = '<div class="clinical-summary">';
+            let html = '<div class="clinical-summary' + (isThinking && !collapsed ? ' copilot-section shimmer-loading' : '') + '">';
             html += `<div class="copilot-section-header collapsible-header" onclick="AICoworker.toggleSection('summary')">`;
             html += `<span class="collapse-chevron">${chevron}</span>`;
             html += '<span>&#128203;</span> Clinical Summary';
@@ -2010,7 +2019,7 @@ const AICoworker = {
     /**
      * Render suggested actions — 6 always-visible categories with specific LLM items.
      */
-    renderSuggestedActions() {
+    renderSuggestedActions(isThinking) {
         const actions = this.state.categorizedActions;
         const collapsed = this.isSectionCollapsed('actions');
         const chevron = collapsed ? '&#9654;' : '&#9660;';
@@ -2027,7 +2036,7 @@ const AICoworker = {
             { key: 'other', icon: '&#128203;', label: 'Other orders', items: actions?.other || [] }
         ];
 
-        let html = '<div class="copilot-section actions-section">';
+        let html = '<div class="copilot-section actions-section' + (isThinking && !collapsed ? ' shimmer-loading' : '') + '">';
         html += `<div class="copilot-section-header collapsible-header" onclick="AICoworker.toggleSection('actions')">`;
         html += `<span class="collapse-chevron">${chevron}</span>`;
         html += '<span>&#9989;</span> Suggested Actions';
@@ -2144,17 +2153,17 @@ const AICoworker = {
             html += '<div class="hands-free-status" id="hands-free-status"><span class="hf-pulse"></span> Hands-free mode &mdash; auto-submits after ' + secs + 's silence</div>';
         }
 
-        // Action buttons
+        // Action buttons — icon-only with CSS tooltips
         html += '<div class="inline-action-bar">';
-        html += '<button class="inline-action-btn" onclick="AICoworker.openDictationModal()" title="Voice dictation"><span>&#127897;</span> Dictate</button>';
+        html += '<button class="inline-action-btn" onclick="AICoworker.openDictationModal()" data-tooltip="Dictate"><span>&#127897;</span></button>';
         var isScribing = typeof AmbientScribe !== 'undefined' && AmbientScribe.isListening;
-        html += '<button class="inline-action-btn ambient-scribe-btn' + (isScribing ? ' active' : '') + '" onclick="AICoworker.toggleAmbientScribe()" title="' + (isScribing ? 'Stop ambient scribe' : 'Ambient AI scribe — overhear conversation') + '"><span>&#127911;</span> Scribe</button>';
-        html += '<button class="inline-action-btn" onclick="AICoworker.openNoteModal()" title="Write clinical note"><span>&#128221;</span> Write Note</button>';
-        html += '<button class="inline-action-btn inline-more-btn" onclick="AICoworker.toggleMoreMenu()" title="More actions"><span>&#8943;</span> More</button>';
+        html += '<button class="inline-action-btn ambient-scribe-btn' + (isScribing ? ' active' : '') + '" onclick="AICoworker.toggleAmbientScribe()" data-tooltip="' + (isScribing ? 'Stop Scribe' : 'Scribe') + '"><span>&#127911;</span></button>';
+        html += '<button class="inline-action-btn" onclick="AICoworker.openNoteModal()" data-tooltip="Write Note"><span>&#128221;</span></button>';
+        html += '<button class="inline-action-btn" onclick="AICoworker.refreshThinking()" data-tooltip="Refresh"><span>&#128260;</span></button>';
+        html += '<button class="inline-action-btn inline-more-btn" onclick="AICoworker.toggleMoreMenu()" data-tooltip="More"><span>&#8943;</span></button>';
         html += '<div class="inline-more-menu" id="inline-more-menu">';
-        html += '<button onclick="AICoworker.refreshThinking()">&#128260; Refresh Analysis</button>';
-        html += '<button onclick="AICoworker.openPromptEditor()">&#9999; Edit All Prompts</button>';
-        html += '<button onclick="AICoworker.openDebugPanel()">&#128269; Debug Prompts</button>';
+        html += '<button onclick="AICoworker.openPromptEditor()">&#9999; Edit Prompts</button>';
+        html += '<button onclick="AICoworker.openDebugPanel()">&#128269; Debug</button>';
         html += '<button onclick="AICoworker.clearMemory()">&#128465; Clear Memory</button>';
         html += '</div>';
         html += '</div>';
@@ -4201,12 +4210,27 @@ Format your response as JSON:
             this.state.status = 'ready';
             this.saveState();
             this.render();
+            // Add fade-in animation to content sections
+            this._animateContentArrival();
             App.showToast('AI analysis updated', 'success');
         } catch (e) {
             console.error('Error parsing refresh response:', e);
             this.state.status = 'ready';
             this.render();
         }
+    },
+
+    /**
+     * Apply a brief fade-in animation to copilot sections when new content arrives
+     */
+    _animateContentArrival() {
+        const sections = document.querySelectorAll('.copilot-section, .clinical-summary');
+        sections.forEach(function(section) {
+            section.classList.add('content-arrived');
+            setTimeout(function() {
+                section.classList.remove('content-arrived');
+            }, 350);
+        });
     },
 
     // localRefreshAnalysis removed — LLM-only refresh

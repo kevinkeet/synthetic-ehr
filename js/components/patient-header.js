@@ -33,25 +33,17 @@ const PatientHeader = {
 
         banner.innerHTML = `
             <div class="patient-info-banner">
-                <span class="patient-name">${patient.lastName}, ${patient.firstName} ${patient.middleName || ''}</span>
-                <div class="patient-details">
-                    <span class="patient-detail-item">
-                        <span class="patient-detail-label">MRN:</span>
-                        <span>${patient.mrn}</span>
-                    </span>
-                    <span class="patient-detail-item">
-                        <span class="patient-detail-label">DOB:</span>
-                        <span>${dob} (${age}y)</span>
-                    </span>
-                    <span class="patient-detail-item">
-                        <span class="patient-detail-label">Sex:</span>
-                        <span>${patient.sex}</span>
-                    </span>
+                <div class="patient-primary-row">
+                    <span class="patient-name">${patient.lastName}, ${patient.firstName} ${patient.middleName || ''}</span>
+                    <span class="patient-mrn">MRN: ${patient.mrn}</span>
+                </div>
+                <div class="patient-secondary-row">
+                    <span>${dob} (${age}y)</span>
+                    <span class="dot-sep">·</span>
+                    <span>${patient.sex}</span>
                     ${patient.preferredLanguage ? `
-                    <span class="patient-detail-item">
-                        <span class="patient-detail-label">Lang:</span>
-                        <span>${patient.preferredLanguage}</span>
-                    </span>
+                    <span class="dot-sep">·</span>
+                    <span>${patient.preferredLanguage}</span>
                     ` : ''}
                 </div>
             </div>
