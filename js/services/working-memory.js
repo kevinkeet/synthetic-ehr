@@ -51,15 +51,19 @@ class WorkingMemoryAssembler {
         // 2. Always: Safety info (allergies, critical flags)
         sections.push(this.getSafetyBlock());
 
-        // 3. Topic-relevant context
+        // 3. Topic-relevant context (with 2-hop associative reasoning)
         sections.push(this.getRelevantContextForQuestion(question));
 
-        // 4. Session awareness
+        // 4. Associative context: follow clinical reasoning chains 2 hops deep
+        // e.g., K+ question → diuretics → HF → renal function
+        sections.push(this.getAssociativeContext(question));
+
+        // 5. Session awareness
         if (this.session) {
             sections.push(this.session.toContextString());
         }
 
-        // 5. Previous AI insights (for continuity)
+        // 6. Previous AI insights (for continuity)
         sections.push(this.getPreviousInsightsBlock());
 
         return sections.filter(s => s && s.trim()).join('\n\n');
@@ -437,6 +441,137 @@ class WorkingMemoryAssembler {
         }
 
         return mentioned;
+    }
+
+    // =====================================================
+    // ASSOCIATIVE CONTEXT: 2-hop clinical reasoning chains
+    // =====================================================
+
+    /**
+     * Follow clinical reasoning chains to include context that's related to the
+     * question but not directly mentioned. E.g., a question about "potassium"
+     * should also pull in diuretics (which affect K+) and renal function.
+     *
+     * The chain: keyword → problem category → related categories → related data
+     *
+     * Category linkage map (clinical reasoning associations):
+     * - renal ↔ cardiovascular (cardiorenal syndrome)
+     * - renal ↔ endocrine (diabetic nephropathy)
+     * - cardiovascular ↔ hematologic (anticoagulation, bleeding risk)
+     * - pulmonary ↔ cardiovascular (CHF → pulmonary edema)
+     * - endocrine ↔ cardiovascular (diabetes → CAD risk)
+     * - gi ↔ hematologic (GI bleed → anemia, anticoagulation risk)
+     */
+    getAssociativeContext(question) {
+        if (!question) return '';
+
+        // Define clinical reasoning associations between problem categories
+        const CLINICAL_ASSOCIATIONS = {
+            renal: ['cardiovascular', 'endocrine'],
+            cardiovascular: ['renal', 'pulmonary', 'hematologic'],
+            endocrine: ['renal', 'cardiovascular'],
+            pulmonary: ['cardiovascular', 'infectious'],
+            hematologic: ['gi', 'cardiovascular'],
+            gi: ['hematologic'],
+            infectious: ['pulmonary', 'hematologic']
+        };
+
+        // Lab → category associations (which categories care about which labs)
+        const LAB_CATEGORY_MAP = {
+            'potassium': ['renal', 'cardiovascular'],
+            'creatinine': ['renal'],
+            'egfr': ['renal'],
+            'bun': ['renal'],
+            'bnp': ['cardiovascular'],
+            'troponin': ['cardiovascular'],
+            'inr': ['hematologic', 'gi'],
+            'hemoglobin': ['hematologic'],
+            'glucose': ['endocrine'],
+            'a1c': ['endocrine'],
+            'lactate': ['infectious'],
+            'wbc': ['infectious', 'hematologic'],
+            'sodium': ['renal', 'cardiovascular']
+        };
+
+        const q = question.toLowerCase();
+        const directCategories = new Set();
+
+        // Step 1: Find directly mentioned categories
+        const directProblems = this.identifyMentionedProblems(question);
+        for (const pid of directProblems) {
+            const timeline = this.pkb.problemMatrix.get(pid);
+            if (timeline && timeline.problem.category) {
+                directCategories.add(timeline.problem.category);
+            }
+        }
+
+        // Step 2: Check lab keyword → category mappings
+        for (const [labKeyword, categories] of Object.entries(LAB_CATEGORY_MAP)) {
+            if (q.includes(labKeyword)) {
+                for (const cat of categories) {
+                    directCategories.add(cat);
+                }
+            }
+        }
+
+        // Step 3: Follow 1 hop of clinical associations
+        const associatedCategories = new Set();
+        for (const cat of directCategories) {
+            const associations = CLINICAL_ASSOCIATIONS[cat] || [];
+            for (const assoc of associations) {
+                if (!directCategories.has(assoc)) {
+                    associatedCategories.add(assoc);
+                }
+            }
+        }
+
+        if (associatedCategories.size === 0) return '';
+
+        // Step 4: Find problems in associated categories that have relevant data
+        const associatedProblems = [];
+        for (const [id, timeline] of this.pkb.problemMatrix) {
+            if (timeline.problem.status === 'active' &&
+                associatedCategories.has(timeline.problem.category) &&
+                !directProblems.includes(id)) {
+                associatedProblems.push(id);
+            }
+        }
+
+        if (associatedProblems.length === 0) return '';
+
+        // Step 5: Build compact context for associated problems
+        let text = '## CLINICALLY ASSOCIATED CONTEXT\n';
+        text += '(Related problems that may affect the question — follow the clinical reasoning chain)\n\n';
+
+        for (const id of associatedProblems.slice(0, 3)) { // Max 3 associated problems
+            const timeline = this.pkb.problemMatrix.get(id);
+            if (!timeline) continue;
+            const p = timeline.problem;
+            text += `**${p.name}** [${p.category}]: `;
+
+            // Include AI insight if available
+            const insight = this.pkb.aiMemory?.problemInsights?.get(id);
+            if (insight) {
+                text += insight;
+            }
+
+            // Include related labs (compact)
+            const relatedLabNames = (typeof PROBLEM_CATEGORIES !== 'undefined' && PROBLEM_CATEGORIES[p.category])
+                ? PROBLEM_CATEGORIES[p.category].relatedLabs || [] : [];
+            const labSnippets = [];
+            for (const labName of relatedLabNames.slice(0, 3)) {
+                const trend = this.pkb.longitudinalData.labs.get(labName);
+                if (trend && trend.latestValue) {
+                    labSnippets.push(`${trend.name}: ${trend.latestValue.value}${trend.latestValue.unit || ''}${trend.latestValue.flag ? ' [' + trend.latestValue.flag + ']' : ''}`);
+                }
+            }
+            if (labSnippets.length > 0) {
+                text += ` | Labs: ${labSnippets.join(', ')}`;
+            }
+            text += '\n';
+        }
+
+        return text;
     }
 }
 

@@ -422,12 +422,20 @@ class LongitudinalClinicalDocument {
         // AI's accumulated understanding — persists across sessions
         this.aiMemory = {
             patientSummary: '',            // AI's 2-3 paragraph mental model of the patient
+            previousSummary: '',           // Previous summary for degradation protection
             problemInsights: new Map(),     // Map<problemId, string> per-problem AI understanding
             interactionLog: [],            // Last 20 interaction summaries
             clinicalDecisions: [],         // Clinical decisions the doctor has made
+            executedActions: [],           // Actions/orders that have been executed (persists across reloads)
+            suggestionOutcomes: [],        // Outcome tracking: suggestion → order → result connections
             lastFullIngestion: null,       // When PKB was last fully analyzed by LLM
+            consolidationCount: 0,         // Number of interactions since last memory consolidation
             version: 0                     // Increments on meaningful updates
         };
+
+        // Confidence-scored key findings (replaces plain string array in clinicalNarrative)
+        // Each finding: { text, confidence, firstSeen, lastReinforced, reinforcementCount, source, decayRate }
+        this.scoredFindings = [];
     }
 
     // Get a problem timeline by ID
@@ -541,12 +549,17 @@ class LongitudinalClinicalDocument {
             sessionContext: this.sessionContext,
             aiMemory: {
                 patientSummary: this.aiMemory.patientSummary,
+                previousSummary: this.aiMemory.previousSummary || '',
                 problemInsights: Array.from(this.aiMemory.problemInsights.entries()),
                 interactionLog: this.aiMemory.interactionLog.slice(-20),
                 clinicalDecisions: this.aiMemory.clinicalDecisions.slice(-30),
+                executedActions: (this.aiMemory.executedActions || []).slice(-30),
+                suggestionOutcomes: (this.aiMemory.suggestionOutcomes || []).slice(-20),
                 lastFullIngestion: this.aiMemory.lastFullIngestion,
+                consolidationCount: this.aiMemory.consolidationCount || 0,
                 version: this.aiMemory.version
             },
+            scoredFindings: (this.scoredFindings || []).slice(-30),
             options: {
                 timePeriods: this.options.timePeriods,
                 maxVitalsPerPeriod: this.options.maxVitalsPerPeriod,
@@ -681,9 +694,13 @@ class LongitudinalClinicalDocument {
         // Deserialize AI memory
         if (data.aiMemory) {
             doc.aiMemory.patientSummary = data.aiMemory.patientSummary || '';
+            doc.aiMemory.previousSummary = data.aiMemory.previousSummary || '';
             doc.aiMemory.interactionLog = data.aiMemory.interactionLog || [];
             doc.aiMemory.clinicalDecisions = data.aiMemory.clinicalDecisions || [];
+            doc.aiMemory.executedActions = data.aiMemory.executedActions || [];
+            doc.aiMemory.suggestionOutcomes = data.aiMemory.suggestionOutcomes || [];
             doc.aiMemory.lastFullIngestion = data.aiMemory.lastFullIngestion || null;
+            doc.aiMemory.consolidationCount = data.aiMemory.consolidationCount || 0;
             doc.aiMemory.version = data.aiMemory.version || 0;
             // Restore problemInsights Map from array of entries
             doc.aiMemory.problemInsights = new Map();
@@ -693,6 +710,9 @@ class LongitudinalClinicalDocument {
                 }
             }
         }
+
+        // Deserialize scored findings
+        doc.scoredFindings = data.scoredFindings || [];
 
         // Deserialize problem matrix
         if (data.problemMatrix) {

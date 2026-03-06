@@ -186,6 +186,8 @@ const AICoworker = {
             categorizedActions: null, // Actions by category {communication, labs, imaging, medications, other}
             teachingPoints: [], // Heavy mode: clinical pearls from attending
             ddxChallenge: '', // Heavy mode: differential challenge from attending
+            executedActions: [], // Persisted: actions/orders executed this session (survives reload via longitudinal doc)
+            suggestionOutcomes: [], // Outcome tracking: connects suggestions → orders → results
             chartData: {
                 patientInfo: null,
                 vitals: [],
@@ -414,6 +416,22 @@ const AICoworker = {
             this.state.aiOneLiner = firstSentence + (firstSentence.endsWith('.') ? '' : '.');
         }
 
+        // Hydrate executed actions from longitudinal doc (survives reloads)
+        if (mem.executedActions && mem.executedActions.length > 0) {
+            this.state.executedActions = mem.executedActions;
+            // Also rebuild the _completedActions set for UI dedup
+            this._completedActions = this._completedActions || new Set();
+            for (const a of mem.executedActions) {
+                this._completedActions.add(a.text);
+            }
+            console.log(`🧠 Restored ${mem.executedActions.length} executed actions from memory`);
+        }
+
+        // Hydrate suggestion outcomes
+        if (mem.suggestionOutcomes && mem.suggestionOutcomes.length > 0) {
+            this.state.suggestionOutcomes = mem.suggestionOutcomes;
+        }
+
         if (mem.patientSummary || narrative.trajectoryAssessment) {
             console.log('🧠 Panel state hydrated from AI memory');
             this.render();
@@ -483,11 +501,30 @@ const AICoworker = {
 
         const mem = this.longitudinalDoc.aiMemory;
 
-        // 1. Update patient summary (THE core memory)
+        // 1. Update patient summary with DEGRADATION PROTECTION
         if (memUpdates.patientSummaryUpdate) {
-            mem.patientSummary = memUpdates.patientSummaryUpdate;
+            const oldSummary = mem.patientSummary || '';
+            const newSummary = memUpdates.patientSummaryUpdate;
+            const oldLen = oldSummary.length;
+            const newLen = newSummary.length;
+
+            // Degradation protection: if new summary is >30% shorter than old one
+            // AND the old one was substantial (>200 chars), keep the old one as backup
+            // and flag for a merge on next full refresh
+            if (oldLen > 200 && newLen < oldLen * 0.7) {
+                console.log(`⚠️ Summary degradation detected: ${oldLen} → ${newLen} chars (${Math.round((1 - newLen/oldLen) * 100)}% shorter)`);
+                // Save both — the old one as previousSummary for merge reference
+                mem.previousSummary = oldSummary;
+                mem.patientSummary = newSummary;
+                mem._summaryDegraded = true;
+            } else {
+                // Normal update — keep previous for reference but proceed
+                if (oldSummary) mem.previousSummary = oldSummary;
+                mem.patientSummary = newSummary;
+                mem._summaryDegraded = false;
+            }
             mem.version = (mem.version || 0) + 1;
-            console.log('🧠 AI Memory: Patient summary updated (v' + mem.version + ')');
+            console.log('🧠 AI Memory: Patient summary updated (v' + mem.version + ', ' + newLen + ' chars)');
         }
 
         // 2. Update per-problem insights
@@ -594,6 +631,21 @@ const AICoworker = {
             console.log('⚠️ LLM detected', memUpdates.conflictsDetected.length, 'conflict(s)');
         }
 
+        // 8. Update confidence-scored findings
+        if (memUpdates.keyFindings || (memUpdates.memoryClassification && memUpdates.memoryClassification.backgroundFacts)) {
+            this._updateScoredFindings(memUpdates);
+        }
+
+        // 9. Track consolidation counter — trigger cleanup every 5 interactions
+        mem.consolidationCount = (mem.consolidationCount || 0) + 1;
+        if (mem.consolidationCount >= 5) {
+            this._consolidateMemory();
+            mem.consolidationCount = 0;
+        }
+
+        // 10. Check for pending memory gating items (findings needing doctor confirmation)
+        this._checkMemoryGating();
+
         // Persist
         this.saveLongitudinalDoc();
 
@@ -601,8 +653,394 @@ const AICoworker = {
             hasSummary: !!mem.patientSummary,
             problemInsights: mem.problemInsights.size,
             interactionLog: mem.interactionLog.length,
+            scoredFindings: (this.longitudinalDoc.scoredFindings || []).length,
             version: mem.version
         });
+    },
+
+    // =====================================================
+    // OUTCOME TRACKING: Connect suggestions → orders → results
+    // =====================================================
+
+    /**
+     * Track which AI suggestion led to an executed action.
+     * Called from executeAction() to build the suggestion → order link.
+     * Later, when new lab/vital data arrives, we'll connect order → result.
+     */
+    _trackSuggestionOutcome(executedAction) {
+        if (!this.longitudinalDoc) return;
+
+        // Find the most recent AI suggestion that matches this action
+        const recentSuggestions = this.state.suggestedActions || [];
+        const categorizedActions = this.state.categorizedActions || {};
+        const allSuggestions = [
+            ...recentSuggestions.map(s => typeof s === 'string' ? s : s.text),
+            ...Object.values(categorizedActions).flat().map(a => typeof a === 'string' ? a : a.text)
+        ].filter(Boolean);
+
+        // Fuzzy match: find the suggestion most similar to what was executed
+        const actionText = executedAction.text.toLowerCase();
+        let bestMatch = null;
+        let bestScore = 0;
+        for (const suggestion of allSuggestions) {
+            const suggText = suggestion.toLowerCase();
+            // Simple overlap scoring
+            const words = actionText.split(/\s+/);
+            const matchedWords = words.filter(w => w.length > 2 && suggText.includes(w));
+            const score = matchedWords.length / words.length;
+            if (score > bestScore && score > 0.4) {
+                bestScore = score;
+                bestMatch = suggestion;
+            }
+        }
+
+        const outcome = {
+            id: 'outcome_' + Date.now(),
+            suggestion: bestMatch || executedAction.text,
+            action: executedAction.text,
+            actionTimestamp: executedAction.timestamp,
+            orderType: executedAction.orderType,
+            orderData: executedAction.orderData,
+            // These will be filled in later when results arrive:
+            resultText: null,
+            resultTimestamp: null,
+            wasHelpful: null, // null = pending, true = confirmed helpful, false = not helpful
+            status: 'awaiting_result' // awaiting_result → result_available → assessed
+        };
+
+        if (!this.longitudinalDoc.aiMemory.suggestionOutcomes) {
+            this.longitudinalDoc.aiMemory.suggestionOutcomes = [];
+        }
+        this.longitudinalDoc.aiMemory.suggestionOutcomes.push(outcome);
+        if (this.longitudinalDoc.aiMemory.suggestionOutcomes.length > 20) {
+            this.longitudinalDoc.aiMemory.suggestionOutcomes =
+                this.longitudinalDoc.aiMemory.suggestionOutcomes.slice(-20);
+        }
+
+        // Also sync to state
+        this.state.suggestionOutcomes = this.longitudinalDoc.aiMemory.suggestionOutcomes;
+
+        console.log('📊 Outcome tracked:', {
+            suggestion: bestMatch ? bestMatch.substring(0, 50) : '(direct)',
+            action: executedAction.text.substring(0, 50),
+            matchScore: bestScore.toFixed(2)
+        });
+    },
+
+    /**
+     * Check for new results that match pending suggestion outcomes.
+     * Called during data refresh or when new labs/vitals arrive.
+     * Connects the order → result link in the outcome chain.
+     */
+    _checkOutcomeResults() {
+        if (!this.longitudinalDoc) return;
+        const outcomes = this.longitudinalDoc.aiMemory.suggestionOutcomes || [];
+        const pendingOutcomes = outcomes.filter(o => o.status === 'awaiting_result');
+        if (pendingOutcomes.length === 0) return;
+
+        // Look at recent labs and vitals for potential matches
+        const recentLabs = [];
+        for (const [name, trend] of this.longitudinalDoc.longitudinalData.labs) {
+            if (trend.latestValue) {
+                recentLabs.push({
+                    name: name,
+                    value: trend.latestValue.value,
+                    unit: trend.latestValue.unit,
+                    flag: trend.latestValue.flag,
+                    date: trend.latestValue.date
+                });
+            }
+        }
+
+        for (const outcome of pendingOutcomes) {
+            if (!outcome.orderType) continue;
+
+            // For lab orders, check if a matching lab result has arrived since the order
+            if (outcome.orderType === 'lab' && outcome.orderData) {
+                const labName = (outcome.orderData.name || '').toLowerCase();
+                const matchingLab = recentLabs.find(l => {
+                    const matchesName = l.name.toLowerCase().includes(labName) ||
+                        labName.includes(l.name.toLowerCase());
+                    const afterOrder = new Date(l.date) > new Date(outcome.actionTimestamp);
+                    return matchesName && afterOrder;
+                });
+
+                if (matchingLab) {
+                    outcome.resultText = `${matchingLab.name}: ${matchingLab.value} ${matchingLab.unit || ''}${matchingLab.flag ? ' [' + matchingLab.flag + ']' : ''}`;
+                    outcome.resultTimestamp = matchingLab.date;
+                    outcome.status = 'result_available';
+                    console.log('📊 Outcome result linked:', outcome.action, '→', outcome.resultText);
+                }
+            }
+        }
+    },
+
+    // =====================================================
+    // CONFIDENCE-SCORED FINDINGS
+    // =====================================================
+
+    /**
+     * Update confidence-scored findings from LLM response.
+     * New findings start at confidence 0.6, existing ones get reinforced.
+     * Findings decay over time if not reinforced.
+     */
+    _updateScoredFindings(memUpdates) {
+        if (!this.longitudinalDoc) return;
+        const scored = this.longitudinalDoc.scoredFindings || [];
+        const now = new Date().toISOString();
+
+        // Apply temporal decay to all existing findings first
+        for (const f of scored) {
+            const hoursSinceReinforced = (Date.now() - new Date(f.lastReinforced || f.firstSeen).getTime()) / (1000 * 60 * 60);
+            // Decay rate: lose 0.02 confidence per hour (halving in ~25 hours)
+            f.confidence = Math.max(0.1, f.confidence - (hoursSinceReinforced * 0.02 * (f.decayRate || 1)));
+        }
+
+        // Process new findings from LLM
+        const newFindings = [];
+        if (memUpdates.keyFindings && Array.isArray(memUpdates.keyFindings)) {
+            newFindings.push(...memUpdates.keyFindings);
+        }
+
+        for (const findingText of newFindings) {
+            if (!findingText || typeof findingText !== 'string') continue;
+            const normalized = findingText.toLowerCase().trim();
+
+            // Check if this finding already exists (fuzzy match)
+            const existing = scored.find(f => {
+                const existingNorm = f.text.toLowerCase().trim();
+                // Exact match or high word overlap
+                if (existingNorm === normalized) return true;
+                const words = normalized.split(/\s+/).filter(w => w.length > 3);
+                const matchedWords = words.filter(w => existingNorm.includes(w));
+                return matchedWords.length / words.length > 0.6;
+            });
+
+            if (existing) {
+                // Reinforce: boost confidence, update text if newer is more specific
+                existing.confidence = Math.min(1.0, existing.confidence + 0.15);
+                existing.lastReinforced = now;
+                existing.reinforcementCount = (existing.reinforcementCount || 0) + 1;
+                // If new text is longer (more detailed), update
+                if (findingText.length > existing.text.length) {
+                    existing.text = findingText;
+                }
+            } else {
+                // New finding — starts at moderate confidence
+                scored.push({
+                    text: findingText,
+                    confidence: 0.6,
+                    firstSeen: now,
+                    lastReinforced: now,
+                    reinforcementCount: 0,
+                    source: 'llm',
+                    decayRate: 1.0, // Normal decay; doctor-confirmed findings get 0.2 (slower decay)
+                    confirmed: false // Not yet confirmed by doctor
+                });
+            }
+        }
+
+        // Prune findings below confidence threshold
+        this.longitudinalDoc.scoredFindings = scored
+            .filter(f => f.confidence > 0.15 || f.confirmed)
+            .sort((a, b) => b.confidence - a.confidence)
+            .slice(0, 30);
+    },
+
+    // =====================================================
+    // MEMORY CONSOLIDATION
+    // =====================================================
+
+    /**
+     * Periodic memory cleanup. Runs every 5 LLM interactions.
+     * - Prunes stale problem insights for resolved problems
+     * - Resolves old pending decisions (auto-expire after 24h)
+     * - Removes superseded observations
+     * - Cleans up old conflicts
+     * - Deduplicates background facts
+     */
+    _consolidateMemory() {
+        if (!this.longitudinalDoc) return;
+        console.log('🧹 Running memory consolidation...');
+
+        const doc = this.longitudinalDoc;
+        const mem = doc.aiMemory;
+        const ctx = doc.sessionContext;
+        const now = Date.now();
+        let cleaned = 0;
+
+        // 1. Prune problem insights for resolved problems
+        const activeProblems = new Set();
+        for (const [id, timeline] of doc.problemMatrix) {
+            if (timeline.problem.status === 'active') {
+                activeProblems.add(id);
+            }
+        }
+        for (const [id] of mem.problemInsights) {
+            if (!activeProblems.has(id) && !doc.problemMatrix.has(id)) {
+                mem.problemInsights.delete(id);
+                cleaned++;
+            }
+        }
+
+        // 2. Auto-expire old pending decisions (>24h without resolution)
+        if (ctx?.activeClinicalState?.pendingDecisions) {
+            const decisions = ctx.activeClinicalState.pendingDecisions;
+            for (const d of decisions) {
+                if (!d.resolvedAt && d.raisedAt) {
+                    const age = now - new Date(d.raisedAt).getTime();
+                    if (age > 24 * 60 * 60 * 1000) {
+                        d.resolvedAt = new Date().toISOString();
+                        d.resolution = 'auto-expired (>24h)';
+                        cleaned++;
+                    }
+                }
+            }
+            // Remove resolved decisions older than 48h
+            ctx.activeClinicalState.pendingDecisions = decisions.filter(d => {
+                if (!d.resolvedAt) return true;
+                return now - new Date(d.resolvedAt).getTime() < 48 * 60 * 60 * 1000;
+            });
+        }
+
+        // 3. Remove old superseded observations
+        if (ctx?.aiObservations) {
+            const before = ctx.aiObservations.length;
+            ctx.aiObservations = ctx.aiObservations.filter(o => {
+                if (typeof o === 'object' && o.status === 'superseded') {
+                    const age = now - new Date(o.timestamp || 0).getTime();
+                    return age < 12 * 60 * 60 * 1000; // Keep for 12h for reference
+                }
+                return true;
+            });
+            cleaned += before - ctx.aiObservations.length;
+        }
+
+        // 4. Resolve old conflicts (>48h)
+        if (ctx?.conflicts) {
+            for (const c of ctx.conflicts) {
+                if (!c.resolvedAt && c.detectedAt) {
+                    const age = now - new Date(c.detectedAt).getTime();
+                    if (age > 48 * 60 * 60 * 1000) {
+                        c.resolvedAt = new Date().toISOString();
+                        c.resolution = 'auto-expired';
+                        cleaned++;
+                    }
+                }
+            }
+        }
+
+        // 5. Deduplicate background facts
+        if (ctx?.activeClinicalState?.backgroundFacts) {
+            const seen = new Set();
+            ctx.activeClinicalState.backgroundFacts = ctx.activeClinicalState.backgroundFacts.filter(f => {
+                const key = (typeof f === 'string' ? f : f.text).toLowerCase().trim();
+                if (seen.has(key)) { cleaned++; return false; }
+                seen.add(key);
+                return true;
+            });
+        }
+
+        // 6. Clean up old executed actions (>72h)
+        if (mem.executedActions) {
+            const before = mem.executedActions.length;
+            mem.executedActions = mem.executedActions.filter(a => {
+                return now - new Date(a.timestamp).getTime() < 72 * 60 * 60 * 1000;
+            });
+            cleaned += before - mem.executedActions.length;
+        }
+
+        console.log(`🧹 Memory consolidation complete: ${cleaned} items cleaned`);
+    },
+
+    // =====================================================
+    // HUMAN-IN-THE-LOOP MEMORY GATING
+    // =====================================================
+
+    /**
+     * Check for new high-confidence findings or conflicts that should be
+     * surfaced to the doctor for confirmation/dismissal.
+     * Shows a subtle notification bar that doesn't interrupt workflow.
+     */
+    _checkMemoryGating() {
+        if (!this.longitudinalDoc) return;
+
+        const scored = this.longitudinalDoc.scoredFindings || [];
+        const ungated = scored.filter(f =>
+            !f.confirmed &&
+            f.confidence > 0.75 &&
+            f.reinforcementCount >= 2 // Mentioned at least 3 times
+        );
+
+        if (ungated.length === 0) return;
+
+        // Show the memory gating bar with the most confident unconfirmed finding
+        const topFinding = ungated[0];
+        this._showMemoryGatingBar(topFinding);
+    },
+
+    /**
+     * Show a subtle notification bar asking the doctor to confirm or dismiss
+     * a finding the AI has been tracking.
+     */
+    _showMemoryGatingBar(finding) {
+        // Don't show if one is already visible
+        if (document.querySelector('.memory-gating-bar')) return;
+
+        const bar = document.createElement('div');
+        bar.className = 'memory-gating-bar';
+        bar.innerHTML = `
+            <div class="memory-gating-content">
+                <span class="memory-gating-icon">🧠</span>
+                <span class="memory-gating-text">AI finding: <strong>${finding.text}</strong></span>
+                <span class="memory-gating-confidence">${Math.round(finding.confidence * 100)}% confident</span>
+            </div>
+            <div class="memory-gating-actions">
+                <button class="memory-gate-btn confirm" onclick="AICoworker._confirmFinding('${finding.text.replace(/'/g, "\\'")}')">✓ Confirm</button>
+                <button class="memory-gate-btn dismiss" onclick="AICoworker._dismissFinding('${finding.text.replace(/'/g, "\\'")}')">✗ Dismiss</button>
+                <button class="memory-gate-btn later" onclick="this.closest('.memory-gating-bar').remove()">Later</button>
+            </div>
+        `;
+
+        // Insert after the AI panel header
+        const aiPanel = document.querySelector('.ai-panel-content') || document.querySelector('#ai-panel');
+        if (aiPanel) {
+            aiPanel.insertBefore(bar, aiPanel.firstChild);
+        }
+    },
+
+    /**
+     * Doctor confirms a finding — boost confidence and slow decay rate
+     */
+    _confirmFinding(findingText) {
+        if (!this.longitudinalDoc) return;
+        const scored = this.longitudinalDoc.scoredFindings || [];
+        const finding = scored.find(f => f.text === findingText);
+        if (finding) {
+            finding.confirmed = true;
+            finding.confidence = Math.min(1.0, finding.confidence + 0.2);
+            finding.decayRate = 0.2; // 5x slower decay for confirmed findings
+            finding.confirmedAt = new Date().toISOString();
+            this.saveLongitudinalDoc();
+            console.log('✅ Finding confirmed by doctor:', findingText.substring(0, 60));
+        }
+        const bar = document.querySelector('.memory-gating-bar');
+        if (bar) bar.remove();
+        App.showToast('Finding confirmed — will persist in memory', 'success');
+    },
+
+    /**
+     * Doctor dismisses a finding — remove it from memory
+     */
+    _dismissFinding(findingText) {
+        if (!this.longitudinalDoc) return;
+        const scored = this.longitudinalDoc.scoredFindings || [];
+        this.longitudinalDoc.scoredFindings = scored.filter(f => f.text !== findingText);
+        this.saveLongitudinalDoc();
+        console.log('❌ Finding dismissed by doctor:', findingText.substring(0, 60));
+        const bar = document.querySelector('.memory-gating-bar');
+        if (bar) bar.remove();
+        App.showToast('Finding dismissed', 'info');
     },
 
     /**
@@ -4320,6 +4758,10 @@ ${ctx.dictationHistory.length > 0
         let systemPrompt, userMessage, clinicalContext;
         if (this.contextAssembler) {
             this.syncSessionStateToDocument();
+
+            // Check for new results matching pending suggestion outcomes
+            this._checkOutcomeResults();
+
             const prompt = this.contextAssembler.buildDictationPrompt(doctorThoughts);
             systemPrompt = prompt.systemPrompt;
             userMessage = prompt.userMessage;
@@ -4495,6 +4937,10 @@ RULES:
         let systemPrompt, userMessage, clinicalContext;
         if (this.contextAssembler) {
             this.syncSessionStateToDocument();
+
+            // Check for new results matching pending suggestion outcomes
+            this._checkOutcomeResults();
+
             const prompt = this.contextAssembler.buildRefreshPrompt(this.state.dictation);
             systemPrompt = prompt.systemPrompt;
             userMessage = prompt.userMessage;
@@ -4675,18 +5121,36 @@ RULES:
         this._completedActions.add(text);
 
         // Feed back to AI context — store with metadata so the AI knows what's been done
-        if (!this.state.executedActions) this.state.executedActions = [];
-        this.state.executedActions.push({
+        const executedAction = {
             text: text,
             category: category || 'unknown',
             orderType: action.orderType || null,
+            orderData: action.orderData || null,
             timestamp: new Date().toISOString()
-        });
-        // Keep last 20 executed actions
-        if (this.state.executedActions.length > 20) {
-            this.state.executedActions = this.state.executedActions.slice(-20);
+        };
+        if (!this.state.executedActions) this.state.executedActions = [];
+        this.state.executedActions.push(executedAction);
+        if (this.state.executedActions.length > 30) {
+            this.state.executedActions = this.state.executedActions.slice(-30);
         }
         this.saveState();
+
+        // PERSIST to longitudinal doc so it survives page reloads
+        if (this.longitudinalDoc) {
+            if (!this.longitudinalDoc.aiMemory.executedActions) {
+                this.longitudinalDoc.aiMemory.executedActions = [];
+            }
+            this.longitudinalDoc.aiMemory.executedActions.push(executedAction);
+            if (this.longitudinalDoc.aiMemory.executedActions.length > 30) {
+                this.longitudinalDoc.aiMemory.executedActions =
+                    this.longitudinalDoc.aiMemory.executedActions.slice(-30);
+            }
+
+            // OUTCOME TRACKING: Record which AI suggestion led to this action
+            this._trackSuggestionOutcome(executedAction);
+
+            this.saveLongitudinalDoc();
+        }
 
         this._removeActionFromUI(actionId);
 

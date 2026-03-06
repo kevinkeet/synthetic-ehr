@@ -203,13 +203,22 @@ RULES:
         // Build executed actions context if available
         const executedActionsBlock = this._getExecutedActionsBlock();
 
+        // Build selective memory merge block if previous summary was degraded
+        const mergeBlock = this._getMemoryMergeBlock();
+
+        // Build outcome context block
+        const outcomeBlock = this._getOutcomeTrackingBlock();
+
+        // Build scored findings context block
+        const scoredFindingsBlock = this._getScoredFindingsBlock();
+
         const userMessage = `## Clinical Context (with AI Memory)
 ${context}
-${executedActionsBlock}
+${executedActionsBlock}${mergeBlock}${outcomeBlock}${scoredFindingsBlock}
 ## Doctor's Current Assessment/Thoughts
 "${doctorThoughts}"
 
-Based on the doctor's thoughts and the clinical context above, provide an updated synthesis. Update the trajectory assessment, key findings, open questions, AND your patient summary based on this new information. Do NOT re-suggest actions that have already been completed (see "Already Completed Actions" above if present).`;
+Based on the doctor's thoughts and the clinical context above, provide an updated synthesis. Update the trajectory assessment, key findings, open questions, AND your patient summary based on this new information. Do NOT re-suggest actions that have already been completed (see "Already Completed Actions" above if present).${mergeBlock ? ' IMPORTANT: Your patientSummaryUpdate MUST be comprehensive — merge all important details from both the previous and current understanding. Do NOT lose information.' : ''}`;
 
         const maxTokens = mode ? mode.responseStyle.maxTokensDictation : 2500;
         return { systemPrompt, userMessage, maxTokens };
@@ -322,13 +331,16 @@ RULES:
 
         // Build executed actions context if available
         const executedActionsBlock = this._getExecutedActionsBlock();
+        const mergeBlock = this._getMemoryMergeBlock();
+        const outcomeBlock = this._getOutcomeTrackingBlock();
+        const scoredFindingsBlock = this._getScoredFindingsBlock();
 
         const userMessage = `## Full Clinical Context (with AI Memory)
 ${context}
-${executedActionsBlock}
+${executedActionsBlock}${mergeBlock}${outcomeBlock}${scoredFindingsBlock}
 ${dictation ? `## Doctor's Current Assessment\n"${dictation}"` : '## No doctor assessment recorded yet'}
 
-Provide a concise case synthesis. Be brief and clinical — no filler. Do NOT re-suggest actions that have already been completed (see "Already Completed Actions" above if present).`;
+Provide a concise case synthesis. Be brief and clinical — no filler. Do NOT re-suggest actions that have already been completed (see "Already Completed Actions" above if present).${mergeBlock ? ' IMPORTANT: Your patientSummaryUpdate MUST be comprehensive — merge all important details from both the previous and current understanding.' : ''}`;
 
         const maxTokens = mode ? mode.responseStyle.maxTokensRefresh : 3000;
         return { systemPrompt, userMessage, maxTokens };
@@ -507,6 +519,73 @@ ${noteData}`;
         });
 
         return '\n## Already Completed Actions (do NOT re-suggest these)\n' + lines.join('\n') + '\n';
+    }
+
+    /**
+     * Build a selective memory merge block when the previous summary was longer/better.
+     * Includes both old and new summaries so the LLM can merge them.
+     */
+    _getMemoryMergeBlock() {
+        if (typeof AICoworker === 'undefined' || !AICoworker.longitudinalDoc) return '';
+        const mem = AICoworker.longitudinalDoc.aiMemory;
+        if (!mem || !mem.previousSummary || !mem._summaryDegraded) return '';
+
+        return `\n## ⚠ MEMORY MERGE REQUIRED
+Your previous patient summary was more comprehensive than your latest update. You MUST merge both versions below into your new patientSummaryUpdate — do not lose any important clinical details.
+
+### Previous Summary (more comprehensive):
+${mem.previousSummary}
+
+### Latest Summary (may be missing details):
+${mem.patientSummary}
+
+Your patientSummaryUpdate should incorporate ALL important details from both versions.\n`;
+    }
+
+    /**
+     * Build an outcome tracking context block showing suggestion → order → result chains.
+     * Helps the LLM understand what happened after its suggestions were followed.
+     */
+    _getOutcomeTrackingBlock() {
+        if (typeof AICoworker === 'undefined' || !AICoworker.longitudinalDoc) return '';
+        const outcomes = AICoworker.longitudinalDoc.aiMemory.suggestionOutcomes || [];
+        if (outcomes.length === 0) return '';
+
+        const relevant = outcomes.filter(o => o.status === 'result_available' || o.status === 'awaiting_result');
+        if (relevant.length === 0) return '';
+
+        const lines = relevant.map(function(o) {
+            if (o.status === 'result_available') {
+                return '- ✅ Suggested: "' + o.suggestion + '" → Ordered → Result: ' + o.resultText;
+            } else {
+                return '- ⏳ Suggested: "' + o.suggestion + '" → Ordered → Awaiting result';
+            }
+        });
+
+        return '\n## Suggestion Outcomes (your previous recommendations and their results)\n' + lines.join('\n') + '\n';
+    }
+
+    /**
+     * Build a scored findings context block showing confidence-weighted findings.
+     * Higher confidence findings appear first and are marked as confirmed if doctor-validated.
+     */
+    _getScoredFindingsBlock() {
+        if (typeof AICoworker === 'undefined' || !AICoworker.longitudinalDoc) return '';
+        const scored = AICoworker.longitudinalDoc.scoredFindings || [];
+        if (scored.length === 0) return '';
+
+        // Only include findings above threshold
+        const significant = scored.filter(f => f.confidence > 0.3);
+        if (significant.length === 0) return '';
+
+        const lines = significant.slice(0, 10).map(function(f) {
+            const conf = Math.round(f.confidence * 100);
+            const badge = f.confirmed ? ' [DOCTOR-CONFIRMED]' : '';
+            const reinforced = f.reinforcementCount > 0 ? ' (×' + (f.reinforcementCount + 1) + ')' : '';
+            return '- [' + conf + '%] ' + f.text + badge + reinforced;
+        });
+
+        return '\n## Key Clinical Findings (confidence-scored, doctor-gated)\n' + lines.join('\n') + '\n';
     }
 }
 
