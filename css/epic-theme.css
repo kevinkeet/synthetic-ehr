@@ -9867,49 +9867,38 @@ html, body {
    Feedback Widget
    ======================================== */
 
-/* Floating trigger button — bottom-right corner */
+/* Feedback trigger button — inline in header-right, between Sim and ABOUT */
 .feedback-trigger-btn {
-    position: fixed;
-    bottom: 16px;
-    left: 16px;
     display: flex;
     align-items: center;
     gap: 5px;
-    padding: 6px 12px;
-    background: #4a5568;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.15);
     color: white;
     border: none;
-    border-radius: 20px;
+    border-radius: 5px;
     cursor: pointer;
-    font-size: 12px;
-    font-weight: 500;
     font-family: var(--font-family);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    transition: all 0.2s ease;
-    z-index: 9998;
-    opacity: 0.75;
+    transition: background 0.15s ease;
 }
 
 .feedback-trigger-btn:hover {
-    background: #2d3748;
-    opacity: 1;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    background: rgba(255, 255, 255, 0.25);
 }
 
 .feedback-trigger-btn.active {
-    background: #2b6cb0;
-    opacity: 1;
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .feedback-trigger-icon {
-    font-size: 14px;
+    font-size: 12px;
     line-height: 1;
 }
 
 .feedback-trigger-label {
-    font-size: 11px;
-    letter-spacing: 0.02em;
+    font-size: 10px;
+    font-weight: 500;
+    opacity: 0.8;
 }
 
 /* Modal overlay */

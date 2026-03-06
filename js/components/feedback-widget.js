@@ -53,7 +53,7 @@ const FeedbackWidget = {
      * Create the floating button and modal
      */
     createUI() {
-        // Floating trigger button
+        // Insert trigger button into header-right, between sim controls and ABOUT link
         let btn = document.getElementById('feedback-trigger-btn');
         if (!btn) {
             btn = document.createElement('button');
@@ -62,7 +62,16 @@ const FeedbackWidget = {
             btn.onclick = () => this.toggle();
             btn.title = 'Leave feedback';
             btn.innerHTML = '<span class="feedback-trigger-icon">&#128172;</span><span class="feedback-trigger-label">Feedback</span>';
-            document.body.appendChild(btn);
+
+            const headerRight = document.querySelector('.header-right');
+            const aboutLink = headerRight ? headerRight.querySelector('.header-about-link') : null;
+            if (aboutLink) {
+                headerRight.insertBefore(btn, aboutLink);
+            } else if (headerRight) {
+                headerRight.appendChild(btn);
+            } else {
+                document.body.appendChild(btn);
+            }
         }
 
         // Modal
