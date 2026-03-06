@@ -20,39 +20,32 @@ const Tutorial = {
             icon: '&#128203;'
         },
         {
-            target: '.content',
-            position: 'left',
-            title: 'Main Content',
-            description: 'This is where patient data appears as you navigate — lab results, medication lists, clinical notes, imaging reports, and vitals charts.',
-            icon: '&#128196;'
-        },
-        {
             target: '#ai-panel',
             position: 'left',
             title: 'AI Assistant',
             description: 'Your AI coworker lives here. It can summarize the chart, suggest orders, draft H&P notes, and reason through differential diagnoses — always deferring to your clinical judgment.',
-            icon: '&#129302;'
+            icon: '&#10024;'
         },
         {
             target: '#chat-trigger-buttons',
             position: 'right',
             title: 'Chat Interfaces',
             description: 'Talk to the simulated patient to gather history and build rapport, or communicate with the charge nurse who responds to your orders and flags clinical changes.',
-            icon: '&#128172;'
+            icon: '&#128100;'
         },
         {
             target: '.sim-controls',
             position: 'below',
             title: 'Simulation Controls',
             description: 'Start a clinical scenario here — choose a patient case, set the simulation speed, and manage the timeline. The simulation drives dynamic vitals, lab results, and nurse alerts.',
-            icon: '&#127919;'
+            icon: '&#9654;'
         },
         {
-            target: '.header-center',
+            target: '#feedback-trigger-btn',
             position: 'below',
-            title: 'Patient Banner',
-            description: 'Key demographics are always visible — name, MRN, DOB, age, and sex. The allergy banner below flags critical drug allergies.',
-            icon: '&#129489;'
+            title: 'Feedback',
+            description: 'Share your thoughts as you use the site. Click to open, then dictate or type — you can minimize the panel and keep recording while you click through pages. Hit submit when you\'re done.',
+            icon: '&#128172;'
         },
         {
             target: null, // Centered completion card
