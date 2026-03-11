@@ -11210,6 +11210,52 @@ html, body {
     background: rgba(0, 255, 136, 0.25) !important;
 }
 
+/* Order confirmation mode */
+.glasses-lens.lens-confirming {
+    border-color: #00ff88;
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.15), inset 0 0 20px rgba(0, 255, 136, 0.03);
+    animation: confirmPulse 1.5s ease-in-out infinite;
+}
+@keyframes confirmPulse {
+    0%, 100% { border-color: #00ff88; box-shadow: 0 0 20px rgba(0, 255, 136, 0.15); }
+    50% { border-color: #00cc6a; box-shadow: 0 0 30px rgba(0, 255, 136, 0.25); }
+}
+.lens-confirm-btn {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 6px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+}
+.lens-confirm-btn.confirm {
+    background: rgba(0, 255, 136, 0.2);
+    border: 1px solid #00ff88;
+    color: #00ff88;
+}
+.lens-confirm-btn.confirm:hover {
+    background: rgba(0, 255, 136, 0.35);
+}
+.lens-confirm-btn.cancel {
+    background: none;
+    border: 1px solid #1a3a2a;
+    color: #00aa5c;
+}
+.lens-confirm-btn.cancel:hover {
+    background: rgba(255, 100, 100, 0.15);
+    border-color: #ff6464;
+    color: #ff6464;
+}
+.confirm-icon {
+    font-size: 14px;
+    line-height: 1;
+}
+
 /* Responsive: stack lenses vertically on mobile */
 @media (max-width: 768px) {
     .glasses-frame {
