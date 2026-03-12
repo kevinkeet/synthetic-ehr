@@ -38,6 +38,7 @@ const DictationWidget = {
     _taskRegex: /\b(?:call|page|notify|tell the nurse|tell nursing|ask the nurse|ask nursing|consult|get (?:a )?consult)\b/i,
     _confirmRegex: /\b(?:confirm|yes confirm|confirm that|go ahead|approve|submit that)\b/i,
     _cancelRegex: /\b(?:cancel|nevermind|never mind|cancel that|scratch that)\b/i,
+    _refreshRegex: /\b(?:refresh analysis|refresh thinking|update analysis|re-analyze|reanalyze|analyze case)\b/i,
     // Interim classification hint — does it LOOK like an order so far?
     _orderHintRegex: /\b(?:order|put in|i need|let's get|let's order|can we get|start|hold|discontinue|call|page|notify|tell the|ask the)\b/i,
 
@@ -200,13 +201,17 @@ const DictationWidget = {
         this._interimBucket = null;
         this._renderInterim();
 
-        // Check for confirm/cancel voice commands first
+        // Check for voice commands first
         if (this._activeConfirmation && this._confirmRegex.test(text)) {
             this._confirmCurrentOrder();
             return;
         }
         if (this._activeConfirmation && this._cancelRegex.test(text)) {
             this._cancelCurrentOrder();
+            return;
+        }
+        if (this._refreshRegex.test(text)) {
+            this._triggerRefreshAnalysis();
             return;
         }
 
@@ -250,6 +255,25 @@ const DictationWidget = {
                 text: text,
                 timestamp: Date.now()
             });
+        }
+    },
+
+    // ==================== Voice Commands ====================
+
+    _triggerRefreshAnalysis() {
+        console.log('🎤 Voice command: refresh analysis');
+        if (typeof App !== 'undefined' && App.showToast) {
+            App.showToast('🔄 Refreshing analysis...', 'info');
+        }
+
+        // Update glasses if open
+        if (typeof SmartGlasses !== 'undefined' && SmartGlasses.isOpen) {
+            SmartGlasses.pushContextToLeftLens('⟳ Refreshing analysis...');
+        }
+
+        // Trigger incremental refresh which incorporates dictation context
+        if (typeof AICoworker !== 'undefined' && AICoworker.refreshThinking) {
+            AICoworker.refreshThinking();
         }
     },
 
