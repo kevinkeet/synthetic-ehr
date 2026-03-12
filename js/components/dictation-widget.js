@@ -21,6 +21,7 @@ const DictationWidget = {
     isListening: false,
     isMinimized: false,
     recognition: null,
+    _useDeepgram: false,  // true when backend + Deepgram available
 
     // Dual-pane transcript data
     contextLines: [],   // [{text, timestamp}]
@@ -43,6 +44,7 @@ const DictationWidget = {
     _writeNoteRegex: /\b(?:write (?:a )?(?:progress )?note|write (?:a )?(?:h\s*(?:and|&)\s*p|hp)|draft (?:a )?note|draft (?:a )?progress note)\b/i,
     _messageNurseRegex: /\b(?:message (?:the )?nurse|text (?:the )?nurse|tell (?:the )?nurse)\b\s*(.*)/i,
     _messagePatientRegex: /\b(?:message (?:the )?patient|ask (?:the )?patient|talk to (?:the )?patient)\b\s*(.*)/i,
+    _swapSpeakersRegex: /\b(?:that was the patient|swap speakers|switch speakers|that's the patient|patient speaking)\b/i,
     // Interim classification hint — does it LOOK like an order so far?
     _orderHintRegex: /\b(?:order|put in|i need|let's get|let's order|can we get|start|hold|discontinue|call|page|notify|tell the|ask the)\b/i,
 
@@ -126,12 +128,6 @@ const DictationWidget = {
     // ==================== Speech Recognition ====================
 
     startListening() {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            if (typeof App !== 'undefined') App.showToast('Speech recognition not supported', 'error');
-            return;
-        }
-
         // Mutual exclusion: stop other speech features
         if (typeof AmbientScribe !== 'undefined' && AmbientScribe.isListening) {
             AmbientScribe.stopListening();
@@ -143,6 +139,47 @@ const DictationWidget = {
         this.isListening = true;
         this._interimText = '';
         this._interimBucket = null;
+
+        // Choose Deepgram (server relay) or browser Web Speech API
+        this._useDeepgram = (typeof DeepgramClient !== 'undefined' &&
+                             typeof AICoworker !== 'undefined' &&
+                             AICoworker.backendAvailable);
+
+        if (this._useDeepgram) {
+            this._startDeepgram();
+        } else {
+            this._startBrowserSpeech();
+        }
+
+        this._updateMicIndicator();
+        this._updateModeIndicator();
+    },
+
+    _startDeepgram() {
+        const self = this;
+        DeepgramClient.onTranscript = function(data) {
+            self._onDeepgramTranscript(data);
+        };
+        DeepgramClient.onStateChange = function(state) {
+            if (state === 'disconnected' && self.isListening) {
+                console.warn('🎙️ Deepgram disconnected unexpectedly');
+                // Could auto-fallback to browser speech here
+            }
+        };
+        DeepgramClient.start().catch(err => {
+            console.error('Deepgram start failed, falling back to browser speech:', err);
+            this._useDeepgram = false;
+            this._startBrowserSpeech();
+            this._updateModeIndicator();
+        });
+    },
+
+    _startBrowserSpeech() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            if (typeof App !== 'undefined') App.showToast('Speech recognition not supported', 'error');
+            return;
+        }
 
         this.recognition = new SpeechRecognition();
         this.recognition.continuous = true;
@@ -177,12 +214,13 @@ const DictationWidget = {
         } catch (e) {
             console.error('Failed to start dictation:', e);
         }
-
-        this._updateMicIndicator();
     },
 
     stopListening() {
         this.isListening = false;
+        if (this._useDeepgram && typeof DeepgramClient !== 'undefined') {
+            DeepgramClient.stop();
+        }
         if (this.recognition) {
             try { this.recognition.stop(); } catch (e) { /* ok */ }
             this.recognition = null;
@@ -247,6 +285,13 @@ const DictationWidget = {
             this._triggerDigestDictation();
             return;
         }
+        if (this._swapSpeakersRegex.test(text)) {
+            if (typeof DeepgramClient !== 'undefined' && this._useDeepgram) {
+                DeepgramClient.swapSpeakers();
+                if (typeof App !== 'undefined') App.showToast('Speaker roles swapped', 'info');
+            }
+            return;
+        }
         if (this._writeNoteRegex.test(text)) {
             this._triggerWriteNote(text);
             return;
@@ -302,6 +347,7 @@ const DictationWidget = {
             }
             AICoworker.state._dictationContext.push({
                 text: text,
+                speaker: 'doctor',
                 timestamp: Date.now()
             });
         }
@@ -313,6 +359,96 @@ const DictationWidget = {
                 timestamp: new Date().toISOString()
             });
             AICoworker.saveLongitudinalDoc();
+        }
+    },
+
+    /**
+     * Forward patient speech to longitudinal document
+     */
+    _forwardPatientSpeech(text) {
+        if (typeof AICoworker === 'undefined') return;
+
+        // Transient session state
+        if (AICoworker.state) {
+            if (!AICoworker.state._dictationContext) {
+                AICoworker.state._dictationContext = [];
+            }
+            AICoworker.state._dictationContext.push({
+                text: text,
+                speaker: 'patient',
+                timestamp: Date.now()
+            });
+        }
+
+        // Persist to longitudinal document
+        if (AICoworker.longitudinalDoc && AICoworker.longitudinalDoc.sessionContext) {
+            if (!AICoworker.longitudinalDoc.sessionContext.patientDictation) {
+                AICoworker.longitudinalDoc.sessionContext.patientDictation = [];
+            }
+            AICoworker.longitudinalDoc.sessionContext.patientDictation.push({
+                text: text,
+                timestamp: new Date().toISOString()
+            });
+            AICoworker.saveLongitudinalDoc();
+        }
+    },
+
+    // ==================== Deepgram Transcript Handler ====================
+
+    /**
+     * Handle Deepgram transcript events with speaker diarization
+     */
+    _onDeepgramTranscript(data) {
+        const { transcript, speakerRole, isFinal, speechFinal } = data;
+
+        if (!isFinal) {
+            // Interim: show in-progress text
+            this._interimText = transcript;
+            this._interimBucket = (speakerRole === 'patient') ? 'patient' : this._classifyText(transcript);
+            this._renderInterim();
+            return;
+        }
+
+        // Final transcript — clear interim
+        this._interimText = '';
+        this._interimBucket = null;
+        this._renderInterim();
+
+        const text = transcript.trim();
+        if (!text) return;
+
+        const now = new Date();
+        const timestamp = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        if (speakerRole === 'patient') {
+            // Patient speech — store and display, no voice command processing
+            this.contextLines.push({ text, timestamp, speaker: 'patient' });
+            this._renderContextPane();
+            this._forwardPatientSpeech(text);
+
+            if (typeof SmartGlasses !== 'undefined' && SmartGlasses.isOpen) {
+                SmartGlasses.pushContextToLeftLens('[Patient] ' + text);
+            }
+        } else {
+            // Doctor speech — run through existing command/classification pipeline
+            this._processFinalText(text);
+        }
+
+        this._scrollPanes();
+    },
+
+    /**
+     * Update mode indicator in widget header
+     */
+    _updateModeIndicator() {
+        const indicator = document.getElementById('dictation-mode-indicator');
+        if (!indicator) return;
+        if (this._useDeepgram) {
+            indicator.textContent = 'Deepgram';
+            indicator.className = 'dictation-mode-indicator deepgram';
+        } else {
+            indicator.textContent = 'Browser';
+            indicator.className = 'dictation-mode-indicator browser';
         }
     },
 
@@ -637,6 +773,7 @@ Respond with ONLY valid JSON, no markdown fences:
                     <span class="mic-dot"></span>
                 </div>
                 <span class="dictation-title">Dictation</span>
+                <span class="dictation-mode-indicator" id="dictation-mode-indicator"></span>
                 <div class="dictation-header-actions">
                     <button class="dictation-header-btn dictation-pause-btn" id="dictation-pause-btn" onclick="event.stopPropagation(); DictationWidget.togglePause()" title="Pause dictation">&#9646;&#9646;</button>
                     <button class="dictation-header-btn" onclick="event.stopPropagation(); DictationWidget.clearTranscript()" title="Clear transcript">\u21BA</button>
@@ -679,9 +816,12 @@ Respond with ONLY valid JSON, no markdown fences:
             return;
         }
 
-        container.innerHTML = this.contextLines.map(line =>
-            `<div class="dictation-line context-line"><span class="dictation-timestamp">${line.timestamp}</span>${this._esc(line.text)}</div>`
-        ).join('');
+        container.innerHTML = this.contextLines.map(line => {
+            const isPatient = line.speaker === 'patient';
+            const cls = isPatient ? 'dictation-line context-line patient-line' : 'dictation-line context-line';
+            const prefix = isPatient ? '<span class="speaker-tag patient-tag">Patient:</span> ' : '';
+            return `<div class="${cls}"><span class="dictation-timestamp">${line.timestamp}</span>${prefix}${this._esc(line.text)}</div>`;
+        }).join('');
     },
 
     _renderOrderPane() {

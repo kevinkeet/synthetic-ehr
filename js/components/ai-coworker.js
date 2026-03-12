@@ -6761,20 +6761,29 @@ RULES:
         const session = this.longitudinalDoc.sessionContext;
         const lastDigested = mem.lastDigestedAt ? new Date(mem.lastDigestedAt) : null;
 
-        // Gather undigested dictation
-        const undigested = (session.doctorDictation || []).filter(d => {
+        // Gather undigested dictation from both doctor and patient
+        const filterSince = (arr) => (arr || []).filter(d => {
             if (!lastDigested) return true;
             return new Date(d.timestamp) > lastDigested;
         });
 
-        if (undigested.length === 0) {
+        const undigestedDoctor = filterSince(session.doctorDictation);
+        const undigestedPatient = filterSince(session.patientDictation);
+
+        if (undigestedDoctor.length === 0 && undigestedPatient.length === 0) {
             App.showToast('No new dictation to digest', 'info');
             return;
         }
 
-        // Build the combined dictation text
-        const dictationText = undigested.map(d => d.text).join('\n');
-        console.log(`🧠 Digesting ${undigested.length} dictation entries (${dictationText.length} chars)`);
+        // Build combined dictation text with speaker labels
+        // Merge and sort by timestamp, then format with speaker tags
+        const allEntries = [
+            ...undigestedDoctor.map(d => ({ ...d, speaker: 'Doctor' })),
+            ...undigestedPatient.map(d => ({ ...d, speaker: 'Patient' }))
+        ].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+        const dictationText = allEntries.map(d => `[${d.speaker}]: ${d.text}`).join('\n');
+        console.log(`🧠 Digesting ${allEntries.length} entries (${undigestedDoctor.length} doctor, ${undigestedPatient.length} patient, ${dictationText.length} chars)`);
 
         // Ensure memoryDocument exists (even if Learn hasn't been run)
         if (!mem.memoryDocument) {

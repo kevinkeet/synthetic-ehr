@@ -786,12 +786,12 @@ Respond with the COMPLETE updated memory document as JSON (same schema as before
         const existingProblems = memoryDocument?.problemAnalysis || [];
         const existingGestalt = memoryDocument?.clinicalGestalt || '';
 
-        const systemPrompt = `You are an AI clinical scribe. The attending physician has been dictating clinical observations, reasoning, and conversation with the patient. Parse this new dictation into a structured encounter narrative.
+        const systemPrompt = `You are an AI clinical scribe. The attending physician and patient have been speaking during a clinical encounter. Their speech has been transcribed with speaker labels: [Doctor] and [Patient].
 
 CRITICAL: The physician's clinical reasoning takes highest priority. Their assessment and thinking should heavily influence your output.
 
 You will receive:
-1. NEW DICTATION — raw text from the physician (may include clinical reasoning, exam findings, patient conversation)
+1. NEW DICTATION — speaker-labeled transcript lines. Lines starting with [Doctor] are the physician. Lines starting with [Patient] are the patient. If no speaker labels are present, assume all text is from the doctor.
 2. EXISTING ENCOUNTER NARRATIVE — what you've parsed so far (may be empty on first digest)
 3. EXISTING PROBLEMS — the current problem list from the memory document
 4. EXISTING GESTALT — the current one-liner clinical summary
@@ -813,6 +813,8 @@ Respond with JSON only, no preamble or markdown fences:
 
 RULES:
 - MERGE with existing narrative — append new items, preserve old ones
+- [Doctor] lines → clinicalReasoning (thoughts, reasoning) and examFindings (physical exam observations)
+- [Patient] lines → patientReported (symptoms, concerns, history as told by patient) and hpiComponents
 - For clinicalReasoning, always add the physician's thoughts verbatim or near-verbatim
 - For examFindings, extract specific findings with their system
 - For patientReported, capture patient statements and concerns

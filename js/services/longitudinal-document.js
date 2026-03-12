@@ -400,6 +400,7 @@ class LongitudinalClinicalDocument {
         // Context from current session
         this.sessionContext = {
             doctorDictation: [],
+            patientDictation: [],
             aiObservations: [],         // Structured: [{id, text, timestamp, status, supersededBy, category, version}]
             safetyFlags: [],
             reviewedItems: [],

@@ -11438,6 +11438,41 @@ html, body {
     color: #86efac;
 }
 
+/* Deepgram/Browser mode indicator */
+.dictation-mode-indicator {
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    margin-left: 4px;
+}
+.dictation-mode-indicator.deepgram {
+    background: rgba(74, 222, 128, 0.2);
+    color: #4ade80;
+}
+.dictation-mode-indicator.browser {
+    background: rgba(148, 163, 184, 0.2);
+    color: #94a3b8;
+}
+
+/* Patient speech in context pane */
+.dictation-line.patient-line {
+    font-style: italic;
+    border-left: 2px solid #60a5fa;
+    padding-left: 6px;
+    margin-left: 2px;
+    color: #93c5fd;
+}
+.speaker-tag.patient-tag {
+    color: #60a5fa;
+    font-weight: 600;
+    font-style: normal;
+    font-size: 10px;
+    text-transform: uppercase;
+}
+
 /* Mic indicator */
 .dictation-mic-indicator {
     width: 20px;
