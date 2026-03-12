@@ -289,9 +289,10 @@ const AIPanel = {
      * Load saved settings from localStorage — delegates to AICoworker for unified API key
      */
     loadSettings() {
-        // AICoworker.loadApiKey() handles migration and syncing to ClaudeAPI
-        if (typeof AICoworker !== 'undefined') {
-            AICoworker.loadApiKey();
+        // Load API key from localStorage (fallback for no-backend mode)
+        // Safe to call early — backend detection will override if server is available
+        if (typeof AICoworker !== 'undefined' && typeof AICoworker.loadApiKeyFallback === 'function') {
+            AICoworker.loadApiKeyFallback();
         }
     },
 

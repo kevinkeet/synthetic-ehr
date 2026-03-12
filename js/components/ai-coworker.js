@@ -4570,6 +4570,13 @@ Format your response as JSON:
     },
 
     /**
+     * Load API key — alias for backward compatibility
+     */
+    loadApiKey() {
+        return this.loadApiKeyFallback();
+    },
+
+    /**
      * Load API key from localStorage (fallback mode only, no backend)
      */
     loadApiKeyFallback() {

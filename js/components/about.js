@@ -69,8 +69,9 @@ const About = {
         // Mark as seen
         localStorage.setItem('about-seen', 'true');
 
-        // Check if API key is already configured
-        const hasApiKey = !!(typeof AICoworker !== 'undefined' && AICoworker.loadApiKey());
+        // Check if API key is already configured (backend or localStorage)
+        const backendMode = (typeof AICoworker !== 'undefined' && AICoworker.backendAvailable);
+        const hasApiKey = backendMode || !!(typeof AICoworker !== 'undefined' && AICoworker.loadApiKey());
 
         // Create modal container
         const overlay = document.createElement('div');
@@ -88,6 +89,10 @@ const About = {
                             <p class="about-hero-tagline">A PHI-free playground for exploring how AI can support clinical reasoning and medical decision-making.</p>
                         </div>
                         <div class="about-setup-section" id="about-setup-section">
+                            ${backendMode ? `
+                            <h2>&#10003; AI Ready</h2>
+                            <p style="color: #4ade80;">API key configured on server. All AI features are enabled.</p>
+                            ` : `
                             <h2>&#9889; Get Started</h2>
                             <p>To enable the AI features, enter your Anthropic API key below. It's stored locally in your browser and sent only to Anthropic's API.</p>
                             <div class="about-api-key-row">
@@ -99,6 +104,7 @@ const About = {
                             <p class="about-api-key-hint">
                                 <a href="https://console.anthropic.com/settings/keys" target="_blank">Get an API key from Anthropic Console &#8594;</a>
                             </p>
+                            `}
                         </div>
                         ${this.getFeatureCardsHtml()}
                         <div class="about-more-toggle">
@@ -240,8 +246,9 @@ const About = {
     async render() {
         const content = document.getElementById('main-content');
 
-        // Check if API key is already configured
-        const hasApiKey = !!(typeof AICoworker !== 'undefined' && AICoworker.loadApiKey());
+        // Check if API key is already configured (backend or localStorage)
+        const backendMode = (typeof AICoworker !== 'undefined' && AICoworker.backendAvailable);
+        const hasApiKey = backendMode || !!(typeof AICoworker !== 'undefined' && AICoworker.loadApiKey());
 
         // Show loading state
         content.innerHTML = `
@@ -253,6 +260,10 @@ const About = {
                     <p class="about-hero-tagline">A PHI-free playground for exploring how AI can support clinical reasoning and medical decision-making.</p>
                 </div>
                 <div class="about-setup-section" id="about-setup-section">
+                    ${backendMode ? `
+                    <h2>&#10003; AI Ready</h2>
+                    <p style="color: #4ade80;">API key configured on server. All AI features are enabled.</p>
+                    ` : `
                     <h2>&#9889; Get Started</h2>
                     <p>To enable the AI features, enter your Anthropic API key below. It's stored locally in your browser and sent only to Anthropic's API.</p>
                     <div class="about-api-key-row">
@@ -264,6 +275,7 @@ const About = {
                     <p class="about-api-key-hint">
                         <a href="https://console.anthropic.com/settings/keys" target="_blank">Get an API key from Anthropic Console &#8594;</a>
                     </p>
+                    `}
                 </div>
                 ${this.getFeatureCardsHtml()}
                 <div class="about-loading-more">Loading...</div>
