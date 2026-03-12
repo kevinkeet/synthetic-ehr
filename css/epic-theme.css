@@ -11081,7 +11081,7 @@ html, body {
     display: flex;
     gap: 0;
     align-items: stretch;
-    height: 280px;
+    height: 340px;
 }
 
 .glasses-lens {
@@ -11163,6 +11163,59 @@ html, body {
 }
 .lens-content-scrollable::-webkit-scrollbar-track {
     background: transparent;
+}
+
+/* Left lens layout — content shrinks, mode bar + nav stay visible */
+.glasses-lens-left .lens-content {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Left lens mode bar — Context / Notes / Data */
+.lens-mode-bar {
+    display: flex;
+    gap: 2px;
+    margin: 4px 0 2px;
+    padding: 2px;
+    background: rgba(0, 255, 136, 0.05);
+    border-radius: 4px;
+}
+.lens-mode-btn {
+    flex: 1;
+    background: transparent;
+    border: 1px solid transparent;
+    color: #4a9;
+    font-size: 9px;
+    font-family: 'Courier New', monospace;
+    padding: 3px 2px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+.lens-mode-btn:hover {
+    background: rgba(0, 255, 136, 0.1);
+    color: #00ff88;
+}
+.lens-mode-btn.active {
+    background: rgba(0, 255, 136, 0.15);
+    border-color: #00ff88;
+    color: #00ff88;
+    font-weight: 700;
+}
+
+/* Confirm card inside right lens */
+.lens-confirm-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.lens-confirm-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: auto;
+    padding-top: 6px;
 }
 
 /* Right lens scroll fix — needs min-height:0 to allow flex child to shrink and scroll */

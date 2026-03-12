@@ -498,6 +498,24 @@ const OrderEntry = {
     /**
      * Submit the order
      */
+    /**
+     * Submit an order directly without opening the form UI.
+     * Called by SmartGlasses and DictationWidget for voice-confirmed orders.
+     */
+    submitDirectOrder(orderType, details) {
+        if (!this.orderTypes[orderType]) {
+            console.warn('submitDirectOrder: unknown order type:', orderType);
+            return;
+        }
+
+        // Set up form state as if the user filled in the form
+        this.selectedType = orderType;
+        this.formData = { ...details };
+
+        // Delegate to the existing submitOrder flow
+        this.submitOrder();
+    },
+
     async submitOrder() {
         const config = this.orderTypes[this.selectedType];
 

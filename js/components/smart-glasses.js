@@ -1,7 +1,7 @@
 /**
  * Smart Glasses HUD Prototype
  * Simulates Even Realities G1 smart glasses display.
- * Left lens: Patient context (summary, problems, alerts)
+ * Left lens: Patient context (summary, problems, alerts, notes review, data review)
  * Right lens: Orders (suggested orders, order confirmation after dictation)
  *
  * Data source priority:
@@ -11,7 +11,12 @@
  * Order confirmation flow:
  * After dictating an order, call SmartGlasses.showOrderConfirmation(orderData)
  * to display a structured confirmation screen on the right lens.
- * The user confirms with the Even Realities ring tap (simulated by click).
+ * The user confirms with voice ("confirm") or Enter key.
+ *
+ * Left lens modes:
+ * - Default: paged patient context (summary, problems, alerts) via ←→
+ * - "review notes": recent notes view
+ * - "review data": recent labs/imaging/EKG results
  */
 const SmartGlasses = {
     isOpen: false,
@@ -24,6 +29,7 @@ const SmartGlasses = {
     _savedRightScreens: null, // Saved screens during confirmation mode
     _savedRightScreen: 0,
     _sessionOrders: [],       // Orders confirmed this session (for right lens)
+    _leftMode: 'context',     // 'context' | 'notes' | 'data'
 
     LINES_PER_SCREEN: 5,
     MAX_LINE_CHARS: 45,
@@ -40,6 +46,7 @@ const SmartGlasses = {
         this.rightScreen = 0;
         this._orderConfirmation = null;
         this._savedRightScreens = null;
+        this._leftMode = 'context';
 
         const state = (typeof AICoworker !== 'undefined') ? AICoworker.state : null;
         const glassesData = state ? state.glassesDisplay : null;
@@ -78,6 +85,7 @@ const SmartGlasses = {
         }
         this._orderConfirmation = null;
         this._savedRightScreens = null;
+        this._leftMode = 'context';
         this.isOpen = false;
     },
 
@@ -85,28 +93,38 @@ const SmartGlasses = {
 
     /**
      * Show an order confirmation on the right lens.
-     * @param {Object} orderData - The parsed order to confirm
-     * @param {string} orderData.type - 'medication'|'lab'|'imaging'|'consult'|'nursing'
-     * @param {string} orderData.summary - Human-readable one-liner (e.g. "Lasix 40mg IV Push x1")
-     * @param {Object} orderData.details - Structured fields for display
-     *   For meds: {name, dose, route, frequency, indication}
-     *   For labs: {name, priority, specimen, indication}
-     *   For imaging: {modality, bodyPart, contrast, priority, indication}
      */
     showOrderConfirmation(orderData) {
         if (!this.isOpen) this.open();
 
         this._orderConfirmation = orderData;
-        this._savedRightScreens = this.rightScreens;
-        this._savedRightScreen = this.rightScreen;
 
-        // Build confirmation screens for the right lens
-        const lines = this._buildConfirmationLines(orderData);
-        this.rightScreens = [{ title: 'CONFIRM ORDER', lines }];
-        this.rightScreen = 0;
+        // Build confirmation view in right lens
+        const contentEl = document.getElementById('lens-content-right');
+        const titleEl = document.getElementById('lens-title-right');
 
-        this._updateLens('right');
-        this._showConfirmationUI();
+        if (titleEl) titleEl.textContent = 'CONFIRM ORDER';
+
+        if (contentEl) {
+            const lines = this._buildConfirmationLines(orderData);
+            contentEl.innerHTML = `
+                <div class="lens-confirm-card">
+                    ${this._renderLines(lines)}
+                    <div class="lens-confirm-actions">
+                        <button class="lens-confirm-btn confirm" onclick="SmartGlasses.confirmOrder()" title="Confirm (Enter / say 'confirm')">
+                            <span class="confirm-icon">\u2713</span> CONFIRM
+                        </button>
+                        <button class="lens-confirm-btn cancel" onclick="SmartGlasses.cancelOrderConfirmation()" title="Cancel (Esc)">
+                            <span class="confirm-icon">\u2717</span> CANCEL
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Add pulsing border to right lens
+        const lens = document.getElementById('glasses-lens-right');
+        if (lens) lens.classList.add('lens-confirming');
     },
 
     _buildConfirmationLines(order) {
@@ -118,67 +136,34 @@ const SmartGlasses = {
             lines.push(t(`RX: ${d.name || order.summary}`));
             lines.push(t(`Dose: ${d.dose || '?'} ${d.route || ''}`));
             lines.push(t(`Freq: ${d.frequency || '?'}`));
-            lines.push(t(`For: ${d.indication || '—'}`));
-            lines.push('');
+            lines.push(t(`For: ${d.indication || '\u2014'}`));
         } else if (order.type === 'lab') {
             const d = order.details || {};
             lines.push(t(`LAB: ${d.name || order.summary}`));
             lines.push(t(`Priority: ${d.priority || 'Routine'}`));
-            lines.push(t(`Specimen: ${d.specimen || 'Blood'}`));
-            lines.push(t(`For: ${d.indication || '—'}`));
-            lines.push('');
+            lines.push(t(`For: ${d.indication || '\u2014'}`));
         } else if (order.type === 'imaging') {
             const d = order.details || {};
             lines.push(t(`IMG: ${d.modality || '?'} ${d.bodyPart || ''}`));
             lines.push(t(`Contrast: ${d.contrast || 'N/A'}`));
             lines.push(t(`Priority: ${d.priority || 'Routine'}`));
-            lines.push(t(`For: ${d.indication || '—'}`));
-            lines.push('');
         } else if (order.type === 'consult') {
             const d = order.details || {};
             lines.push(t(`CONSULT: ${d.specialty || order.summary}`));
-            lines.push(t(`Priority: ${d.priority || 'Routine'}`));
-            lines.push(t(`Reason: ${d.reason || '—'}`));
-            lines.push('');
-            lines.push('');
+            lines.push(t(`Reason: ${d.reason || '\u2014'}`));
         } else {
-            // Generic order
             lines.push(t(order.summary || 'Order pending'));
-            lines.push('');
-            lines.push('');
-            lines.push('');
-            lines.push('');
         }
 
         while (lines.length < this.LINES_PER_SCREEN) lines.push('');
         return lines.slice(0, this.LINES_PER_SCREEN);
     },
 
-    _showConfirmationUI() {
-        const lens = document.getElementById('glasses-lens-right');
-        if (!lens) return;
-
-        // Replace nav with confirmation buttons
-        const nav = lens.querySelector('.lens-nav');
-        if (nav) {
-            nav.innerHTML = `
-                <button class="lens-confirm-btn confirm" onclick="SmartGlasses.confirmOrder()" title="Confirm order (Enter / Ring tap)">
-                    <span class="confirm-icon">\u2713</span> CONFIRM
-                </button>
-                <button class="lens-confirm-btn cancel" onclick="SmartGlasses.cancelOrderConfirmation()" title="Cancel (Esc)">
-                    <span class="confirm-icon">\u2717</span> EDIT
-                </button>
-            `;
-        }
-
-        // Add pulsing border to right lens
-        lens.classList.add('lens-confirming');
-    },
-
     confirmOrder() {
         if (!this._orderConfirmation) return;
 
         const order = this._orderConfirmation;
+        this._orderConfirmation = null;
 
         // Track in session orders
         const orderName = order.summary || order.details?.name || 'Order';
@@ -186,15 +171,18 @@ const SmartGlasses = {
             this._sessionOrders.push(orderName);
         }
 
-        // Submit the order through the existing order entry system
+        // Submit directly through OrderEntry (no second form)
         if (typeof OrderEntry !== 'undefined' && order.details) {
-            if (order.type === 'medication') {
-                OrderEntry.quickOrder && OrderEntry.quickOrder(order.details);
-            } else if (order.type === 'lab') {
-                OrderEntry.quickLabOrder && OrderEntry.quickLabOrder(order.details);
-            } else if (order.type === 'imaging') {
-                OrderEntry.quickImagingOrder && OrderEntry.quickImagingOrder(order.details);
-            }
+            OrderEntry.submitDirectOrder(order.type, order.details);
+        }
+
+        // Record in AI memory
+        if (typeof AICoworker !== 'undefined' && AICoworker.recordExecutedOrder) {
+            AICoworker.recordExecutedOrder({
+                text: orderName,
+                orderType: order.type,
+                orderData: order.details || {}
+            });
         }
 
         // Show brief confirmed state
@@ -210,6 +198,10 @@ const SmartGlasses = {
                 ''
             ]);
         }
+
+        // Remove pulsing border
+        const lens = document.getElementById('glasses-lens-right');
+        if (lens) lens.classList.remove('lens-confirming');
 
         // Restore orders view after brief delay
         setTimeout(() => this._restoreRightLens(), 1500);
@@ -231,23 +223,16 @@ const SmartGlasses = {
 
         // Refresh the unified scrollable orders view
         this.refreshOrdersView();
-
-        // Restore normal nav
-        const nav = lens ? lens.querySelector('.lens-nav') : null;
-        if (nav) {
-            nav.innerHTML = '<span class="lens-nav-indicator" id="lens-nav-right">\u2191\u2193 scroll</span>';
-        }
     },
 
     // ==================== Live Updates from Dictation ====================
 
     /**
      * Push a new context line to the left lens (patient info).
-     * Called by DictationWidget when context is dictated.
-     * Adds a new "DICTATION" screen or appends to the last one.
      */
     pushContextToLeftLens(text) {
         if (!this.isOpen) return;
+        if (this._leftMode !== 'context') return; // Don't interrupt review modes
 
         const truncated = this._truncate(text, this.MAX_LINE_CHARS);
 
@@ -258,18 +243,16 @@ const SmartGlasses = {
             this.leftScreens.push(dictScreen);
         }
 
-        // Add line, rolling window of 5 lines (most recent)
+        // Add line, rolling window
         dictScreen.lines.push(truncated);
         if (dictScreen.lines.length > this.LINES_PER_SCREEN) {
             dictScreen.lines = dictScreen.lines.slice(-this.LINES_PER_SCREEN);
         }
-
-        // Pad to 5 lines
         while (dictScreen.lines.length < this.LINES_PER_SCREEN) {
             dictScreen.lines.push('');
         }
 
-        // Auto-navigate to the dictation screen
+        // Auto-navigate to dictation screen
         const dictIdx = this.leftScreens.indexOf(dictScreen);
         if (dictIdx >= 0) {
             this.leftScreen = dictIdx;
@@ -278,22 +261,214 @@ const SmartGlasses = {
     },
 
     /**
-     * Push a parsed order line to the right lens (orders).
-     * Called by DictationWidget when an order is being parsed or confirmed.
+     * Push a parsed order line to the right lens.
      */
     pushOrderToRightLens(orderText, status) {
         if (!this.isOpen || this._orderConfirmation) return;
 
-        // Track confirmed orders in session list
         if (status === 'confirmed') {
-            // Avoid duplicates
             if (!this._sessionOrders.some(o => o === orderText)) {
                 this._sessionOrders.push(orderText);
             }
         }
 
-        // Refresh the unified orders view
         this.refreshOrdersView();
+    },
+
+    // ==================== Left Lens Modes ====================
+
+    /**
+     * Switch left lens to notes review mode.
+     * Loads recent notes and displays them as paged screens.
+     */
+    async showNotesReview() {
+        if (!this.isOpen) return;
+        this._leftMode = 'notes';
+        this.leftScreen = 0;
+
+        const titleEl = document.getElementById('lens-title-left');
+        const contentEl = document.getElementById('lens-content-left');
+        const navEl = document.getElementById('lens-nav-left');
+
+        if (titleEl) titleEl.textContent = 'RECENT NOTES';
+        if (contentEl) contentEl.innerHTML = this._renderLines(['', 'Loading notes...', '', '', '']);
+        if (navEl) navEl.textContent = '...';
+
+        try {
+            // Load notes from data loader
+            let notes = [];
+            if (typeof dataLoader !== 'undefined' && dataLoader.loadNotesIndex) {
+                const index = await dataLoader.loadNotesIndex();
+                notes = Array.isArray(index) ? index : (index?.notes || []);
+            }
+
+            if (notes.length === 0) {
+                this.leftScreens = [{ title: 'RECENT NOTES', lines: ['', 'No notes found.', '', '', ''] }];
+            } else {
+                // Sort by date descending, take recent 10
+                const sorted = notes.sort((a, b) => new Date(b.date || b.noteDate || 0) - new Date(a.date || a.noteDate || 0)).slice(0, 10);
+
+                this.leftScreens = [];
+                for (const note of sorted) {
+                    const lines = [];
+                    const date = this._formatDate(note.date || note.noteDate);
+                    const type = note.type || note.noteType || 'Note';
+                    const author = note.author || note.provider || '';
+
+                    lines.push(this._truncate(`${type}`, this.MAX_LINE_CHARS));
+                    lines.push(this._truncate(date, this.MAX_LINE_CHARS));
+                    lines.push(this._truncate(author, this.MAX_LINE_CHARS));
+
+                    // Try to get a snippet
+                    const snippet = note.chiefComplaint || note.assessment || note.summary || note.title || '';
+                    if (snippet) {
+                        this._wordWrap(this._truncate(snippet, this.MAX_LINE_CHARS * 2), lines);
+                    }
+
+                    while (lines.length < this.LINES_PER_SCREEN) lines.push('');
+                    this.leftScreens.push({ title: type.toUpperCase(), lines: lines.slice(0, this.LINES_PER_SCREEN) });
+                }
+            }
+        } catch (err) {
+            console.error('Failed to load notes for glasses:', err);
+            this.leftScreens = [{ title: 'NOTES', lines: ['', 'Error loading notes.', '', '', ''] }];
+        }
+
+        this.leftScreen = 0;
+        this._updateLens('left');
+        this._updateLeftNav();
+        this._updateLeftModeButtons();
+    },
+
+    /**
+     * Switch left lens to data review mode.
+     * Loads recent labs, imaging, and EKGs.
+     */
+    async showDataReview() {
+        if (!this.isOpen) return;
+        this._leftMode = 'data';
+        this.leftScreen = 0;
+
+        const titleEl = document.getElementById('lens-title-left');
+        const contentEl = document.getElementById('lens-content-left');
+        const navEl = document.getElementById('lens-nav-left');
+
+        if (titleEl) titleEl.textContent = 'REVIEW DATA';
+        if (contentEl) contentEl.innerHTML = this._renderLines(['', 'Loading data...', '', '', '']);
+        if (navEl) navEl.textContent = '...';
+
+        try {
+            this.leftScreens = [];
+
+            // === LABS ===
+            if (typeof dataLoader !== 'undefined' && dataLoader.loadLabsIndex) {
+                const labIndex = await dataLoader.loadLabsIndex();
+                const panels = Array.isArray(labIndex) ? labIndex : (labIndex?.panels || labIndex?.labs || []);
+
+                // Sort by date, take 5 most recent
+                const recent = panels
+                    .sort((a, b) => new Date(b.collectedDate || b.date || 0) - new Date(a.collectedDate || a.date || 0))
+                    .slice(0, 5);
+
+                for (const panel of recent) {
+                    const lines = [];
+                    const name = panel.name || panel.panelName || 'Lab Panel';
+                    const date = this._formatDate(panel.collectedDate || panel.date);
+
+                    lines.push(this._truncate(`LAB: ${name}`, this.MAX_LINE_CHARS));
+                    lines.push(this._truncate(date, this.MAX_LINE_CHARS));
+
+                    // Show abnormal results if available
+                    const results = panel.results || panel.tests || [];
+                    const abnormals = results.filter(r => r.flag || r.abnormal || (r.status && r.status !== 'Normal'));
+                    if (abnormals.length > 0) {
+                        for (const r of abnormals.slice(0, 3)) {
+                            const val = r.value || r.result || '';
+                            const name = r.name || r.testName || '';
+                            lines.push(this._truncate(`\u26A0 ${name}: ${val}`, this.MAX_LINE_CHARS));
+                        }
+                    } else {
+                        lines.push('All within normal limits');
+                    }
+
+                    while (lines.length < this.LINES_PER_SCREEN) lines.push('');
+                    this.leftScreens.push({ title: 'LABS', lines: lines.slice(0, this.LINES_PER_SCREEN) });
+                }
+            }
+
+            // === IMAGING ===
+            if (typeof dataLoader !== 'undefined' && dataLoader.loadImaging) {
+                const imaging = await dataLoader.loadImaging();
+                const studies = Array.isArray(imaging) ? imaging : (imaging?.studies || imaging?.imaging || []);
+
+                const recent = studies
+                    .sort((a, b) => new Date(b.date || b.orderDate || 0) - new Date(a.date || a.orderDate || 0))
+                    .slice(0, 3);
+
+                for (const study of recent) {
+                    const lines = [];
+                    const type = study.type || study.modality || 'Imaging';
+                    const bodyPart = study.bodyPart || study.description || '';
+                    const date = this._formatDate(study.date || study.orderDate);
+                    const impression = study.impression || study.finding || study.result || '';
+
+                    lines.push(this._truncate(`${type}: ${bodyPart}`, this.MAX_LINE_CHARS));
+                    lines.push(this._truncate(date, this.MAX_LINE_CHARS));
+                    if (impression) {
+                        this._wordWrap(this._truncate(impression, this.MAX_LINE_CHARS * 3), lines);
+                    }
+
+                    while (lines.length < this.LINES_PER_SCREEN) lines.push('');
+                    this.leftScreens.push({ title: 'IMAGING', lines: lines.slice(0, this.LINES_PER_SCREEN) });
+                }
+            }
+
+            if (this.leftScreens.length === 0) {
+                this.leftScreens = [{ title: 'DATA', lines: ['', 'No data available.', '', '', ''] }];
+            }
+        } catch (err) {
+            console.error('Failed to load data for glasses:', err);
+            this.leftScreens = [{ title: 'DATA', lines: ['', 'Error loading data.', '', '', ''] }];
+        }
+
+        this.leftScreen = 0;
+        this._updateLens('left');
+        this._updateLeftNav();
+        this._updateLeftModeButtons();
+    },
+
+    /**
+     * Return left lens to default context mode.
+     */
+    showContextMode() {
+        this._leftMode = 'context';
+        this.leftScreen = 0;
+
+        const state = (typeof AICoworker !== 'undefined') ? AICoworker.state : null;
+        const glassesData = state ? state.glassesDisplay : null;
+
+        if (glassesData && glassesData.leftLens) {
+            this.leftScreens = this._parseLLMScreens(glassesData.leftLens, 'PATIENT');
+        } else {
+            const data = this._getGlassesData();
+            this.leftScreens = this._buildLeftScreensFallback(data);
+        }
+
+        this._updateLens('left');
+        this._updateLeftNav();
+        this._updateLeftModeButtons();
+    },
+
+    _updateLeftNav() {
+        const navEl = document.getElementById('lens-nav-left');
+        if (navEl) navEl.textContent = `${this.leftScreen + 1}/${this.leftScreens.length}`;
+    },
+
+    _updateLeftModeButtons() {
+        const btns = document.querySelectorAll('.lens-mode-btn');
+        btns.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.mode === this._leftMode);
+        });
     },
 
     // ==================== LLM Data Parsing ====================
@@ -346,7 +521,6 @@ const SmartGlasses = {
     },
 
     // ==================== Fallback Screen Builders ====================
-    // Left lens = Patient context (swapped from original)
 
     _buildLeftScreensFallback(data) {
         const screens = [];
@@ -402,11 +576,10 @@ const SmartGlasses = {
         return screens;
     },
 
-    // Right lens = Orders (swapped from original)
+    // Right lens = Orders
 
     /**
      * Build unified orders view HTML for the right lens.
-     * Single scrollable view: "ORDERED THIS SESSION" at top, separator, then recommended orders.
      */
     _buildOrdersViewHTML() {
         const lines = [];
@@ -431,7 +604,6 @@ const SmartGlasses = {
         const recs = this._getRecommendedOrders();
         if (recs.length > 0) {
             for (const rec of recs) {
-                // Check if already ordered this session
                 const isOrdered = this._sessionOrders.some(o =>
                     o.toLowerCase().includes(rec.text.toLowerCase().slice(0, 15)));
                 const cls = isOrdered ? 'lens-line lens-order-done' : 'lens-line lens-order-rec';
@@ -445,22 +617,17 @@ const SmartGlasses = {
         return lines.join('');
     },
 
-    /**
-     * Get recommended orders from AICoworker state.
-     */
     _getRecommendedOrders() {
         if (typeof AICoworker === 'undefined' || !AICoworker.state) return [];
 
         const recs = [];
 
-        // From suggested actions
         const actions = AICoworker.state.suggestedActions || [];
         for (const a of actions) {
             const text = typeof a === 'string' ? a : (a.text || '');
             if (text) recs.push({ text });
         }
 
-        // From categorized actions if available
         if (recs.length === 0) {
             const cats = AICoworker.state.categorizedActions || {};
             for (const key of ['labs', 'imaging', 'medications', 'communication', 'other']) {
@@ -476,15 +643,11 @@ const SmartGlasses = {
         return recs;
     },
 
-    /**
-     * Refresh the orders view on the right lens (call after any order change).
-     */
     refreshOrdersView() {
         if (!this.isOpen || this._orderConfirmation) return;
         const contentEl = document.getElementById('lens-content-right');
         if (contentEl) {
             contentEl.innerHTML = this._buildOrdersViewHTML();
-            // Auto-scroll to bottom to show latest
             contentEl.scrollTop = contentEl.scrollHeight;
         }
     },
@@ -499,7 +662,6 @@ const SmartGlasses = {
         overlay.setAttribute('aria-label', 'Smart Glasses HUD');
 
         const totalLeft = this.leftScreens.length;
-        const totalRight = this.rightScreens.length;
         const isLLM = (typeof AICoworker !== 'undefined') && AICoworker.state.glassesDisplay;
         const sourceLabel = isLLM ? 'AI-optimized' : 'fallback';
 
@@ -517,6 +679,11 @@ const SmartGlasses = {
                         <div class="lens-separator">\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500</div>
                         <div class="lens-content" id="lens-content-left">
                             ${this._renderLines(this.leftScreens[0]?.lines || [])}
+                        </div>
+                        <div class="lens-mode-bar">
+                            <button class="lens-mode-btn active" data-mode="context" onclick="SmartGlasses.showContextMode()" title="Patient context">\uD83D\uDC64 Context</button>
+                            <button class="lens-mode-btn" data-mode="notes" onclick="SmartGlasses.showNotesReview()" title="Review recent notes">\uD83D\uDCDD Notes</button>
+                            <button class="lens-mode-btn" data-mode="data" onclick="SmartGlasses.showDataReview()" title="Review labs & imaging">\uD83D\uDCCA Data</button>
                         </div>
                         <div class="lens-nav">
                             <button class="lens-nav-btn" onclick="SmartGlasses.prevScreen('left')" title="Previous (Left arrow)">\u25C0</button>
@@ -553,7 +720,7 @@ const SmartGlasses = {
     // ==================== Navigation ====================
 
     nextScreen(lens) {
-        if (this._orderConfirmation && lens === 'right') return; // Lock during confirmation
+        if (this._orderConfirmation && lens === 'right') return;
         if (lens === 'left') {
             if (this.leftScreens.length <= 1) return;
             this.leftScreen = (this.leftScreen + 1) % this.leftScreens.length;
@@ -565,7 +732,7 @@ const SmartGlasses = {
     },
 
     prevScreen(lens) {
-        if (this._orderConfirmation && lens === 'right') return; // Lock during confirmation
+        if (this._orderConfirmation && lens === 'right') return;
         if (lens === 'left') {
             if (this.leftScreens.length <= 1) return;
             this.leftScreen = (this.leftScreen - 1 + this.leftScreens.length) % this.leftScreens.length;
@@ -603,6 +770,16 @@ const SmartGlasses = {
     },
 
     // ==================== Utilities ====================
+
+    _formatDate(dateStr) {
+        if (!dateStr) return '';
+        try {
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        } catch {
+            return dateStr;
+        }
+    },
 
     _wordWrap(text, targetArray) {
         const words = text.split(' ');

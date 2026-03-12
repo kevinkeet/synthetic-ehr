@@ -45,6 +45,8 @@ const DictationWidget = {
     _messageNurseRegex: /\b(?:message (?:the )?nurse|text (?:the )?nurse|tell (?:the )?nurse)\b\s*(.*)/i,
     _messagePatientRegex: /\b(?:message (?:the )?patient|ask (?:the )?patient|talk to (?:the )?patient)\b\s*(.*)/i,
     _swapSpeakersRegex: /\b(?:that was the patient|swap speakers|switch speakers|that's the patient|patient speaking)\b/i,
+    _reviewNotesRegex: /\b(?:review (?:recent )?notes|show (?:recent )?notes|pull up notes)\b/i,
+    _reviewDataRegex: /\b(?:review (?:recent )?(?:data|labs|imaging|results)|show (?:recent )?(?:data|labs|results)|pull up (?:data|labs|results))\b/i,
     // Interim classification hint — does it LOOK like an order so far?
     _orderHintRegex: /\b(?:order|put in|i need|let's get|let's order|can we get|start|hold|discontinue|call|page|notify|tell the|ask the)\b/i,
 
@@ -289,6 +291,22 @@ const DictationWidget = {
             if (typeof DeepgramClient !== 'undefined' && this._useDeepgram) {
                 DeepgramClient.swapSpeakers();
                 if (typeof App !== 'undefined') App.showToast('Speaker roles swapped', 'info');
+            }
+            return;
+        }
+        if (this._reviewNotesRegex.test(text)) {
+            if (typeof SmartGlasses !== 'undefined') {
+                if (!SmartGlasses.isOpen) SmartGlasses.open();
+                SmartGlasses.showNotesReview();
+                if (typeof App !== 'undefined') App.showToast('📝 Reviewing notes...', 'info');
+            }
+            return;
+        }
+        if (this._reviewDataRegex.test(text)) {
+            if (typeof SmartGlasses !== 'undefined') {
+                if (!SmartGlasses.isOpen) SmartGlasses.open();
+                SmartGlasses.showDataReview();
+                if (typeof App !== 'undefined') App.showToast('📊 Reviewing data...', 'info');
             }
             return;
         }
@@ -691,9 +709,9 @@ Respond with ONLY valid JSON, no markdown fences:
         const order = this._activeConfirmation;
         this._activeConfirmation = null;
 
-        // Open OrderEntry with prefilled data
+        // Submit order directly (no second confirmation form)
         if (typeof OrderEntry !== 'undefined' && order.details) {
-            OrderEntry.openWithPrefill(order.type, order.details);
+            OrderEntry.submitDirectOrder(order.type, order.details);
         }
 
         // Record in AI memory
