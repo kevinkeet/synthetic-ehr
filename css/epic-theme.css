@@ -12440,6 +12440,61 @@ html, body {
     animation: learn-pulse 2s ease-in-out infinite;
 }
 
+/* Stage indicators during learning */
+.dl-stages {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-bottom: 8px;
+    padding: 6px 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+}
+.dl-stage {
+    font-size: 11px;
+    padding: 2px 0;
+    transition: all 0.3s;
+}
+.dl-stage-pending {
+    color: rgba(255, 255, 255, 0.25);
+}
+.dl-stage-done {
+    color: #4ade80;
+}
+.dl-stage-active {
+    color: #a5b4fc;
+    font-weight: 600;
+    animation: dl-stage-blink 1.5s ease-in-out infinite;
+}
+@keyframes dl-stage-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Spinning brain icon */
+.dl-spin {
+    animation: dl-brain-spin 2s linear infinite;
+}
+@keyframes dl-brain-spin {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(10deg); }
+    50% { transform: rotate(0deg); }
+    75% { transform: rotate(-10deg); }
+    100% { transform: rotate(0deg); }
+}
+
+/* Pulsing progress bar during LLM call */
+.dl-progress-bar-pulse {
+    animation: dl-bar-pulse 1.5s ease-in-out infinite !important;
+    background: linear-gradient(90deg, #6366f1, #818cf8, #6366f1) !important;
+    background-size: 200% 100% !important;
+}
+@keyframes dl-bar-pulse {
+    0% { background-position: 0% 50%; opacity: 0.7; }
+    50% { background-position: 100% 50%; opacity: 1; }
+    100% { background-position: 0% 50%; opacity: 0.7; }
+}
+
 @keyframes dl-brain-pulse {
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.7; transform: scale(1.1); }

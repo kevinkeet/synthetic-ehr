@@ -1608,15 +1608,34 @@ const AICoworker = {
                           `Level ${progress.currentLevel} — Deep Review`;
 
         html += `<div class="dl-progress-header">`;
-        html += `<span class="dl-progress-icon">&#129504;</span>`;
+        html += `<span class="dl-progress-icon dl-spin">&#129504;</span>`;
         html += `<span class="dl-progress-title">Learning Patient</span>`;
         html += `<span class="dl-progress-level">${levelLabel}</span>`;
         html += `</div>`;
 
-        // Progress bar
+        // Active stage indicator
+        const stage = this._deepLearn._stage || 'loading';
+        const stages = [
+            { key: 'loading', label: 'Loading chart data' },
+            { key: 'analyzing', label: progress.phase === 'level1' ? 'Analyzing with Sonnet' : 'Extracting with Haiku' },
+            { key: 'synthesizing', label: 'Building memory document' }
+        ];
+        html += `<div class="dl-stages">`;
+        for (const s of stages) {
+            const isCurrent = s.key === stage;
+            const isDone = stages.indexOf(s) < stages.findIndex(x => x.key === stage);
+            const cls = isCurrent ? 'dl-stage-active' : isDone ? 'dl-stage-done' : 'dl-stage-pending';
+            html += `<span class="dl-stage ${cls}">`;
+            html += isDone ? '&#10003; ' : isCurrent ? '&#9679; ' : '&#9675; ';
+            html += `${s.label}</span>`;
+        }
+        html += `</div>`;
+
+        // Progress bar (animated when analyzing)
         const pct = progress.percentComplete;
+        const animClass = stage === 'analyzing' ? ' dl-progress-bar-pulse' : '';
         html += `<div class="dl-progress-bar-wrap">`;
-        html += `<div class="dl-progress-bar" style="width: ${pct}%"></div>`;
+        html += `<div class="dl-progress-bar${animClass}" style="width: ${Math.max(pct, 5)}%"></div>`;
         html += `</div>`;
 
         // Stats
@@ -7067,6 +7086,10 @@ RULES:
         console.log(`🧠 Deep Learn Level 1: Loading ${batch.length} critical items...`);
         App.showToast(`Learning chart — Level 1 (${batch.length} items)...`, 'info');
 
+        // Stage tracking for progress UI
+        this._deepLearn._stage = 'loading';
+        this.render();
+
         // Load full content for all Level 1 items in parallel
         const dl = window.dataLoader;
         const pid = dl?.currentPatientId || 'PAT001';
@@ -7098,6 +7121,10 @@ RULES:
 
         console.log(`🧠 Deep Learn Level 1: Sending ${chartContext.length} chars to Sonnet`);
 
+        // Stage: Analyzing with Sonnet
+        this._deepLearn._stage = 'analyzing';
+        this.render();
+
         // Call Sonnet with the comprehensive Level 1 prompt
         const prompt = this.contextAssembler.buildDeepLearnLevel1Prompt(chartContext);
         const response = await this.callLLM(
@@ -7106,6 +7133,10 @@ RULES:
             prompt.maxTokens,
             { model: 'claude-sonnet-4-6' }
         );
+
+        // Stage: Building memory document
+        this._deepLearn._stage = 'synthesizing';
+        this.render();
 
         // Parse and store the memory document
         const memoryDoc = this._parseJSONResponse(response);
@@ -7170,6 +7201,8 @@ RULES:
 
         try {
             // Step 1: Load full content
+            dl._stage = 'loading';
+            this.render();
             const loader = window.dataLoader;
             const pid = loader?.currentPatientId || 'PAT001';
 
@@ -7191,9 +7224,13 @@ RULES:
             const loadedItems = (await Promise.all(loadPromises)).filter(i => i.data);
 
             // Step 2: Haiku extraction (parallel)
+            dl._stage = 'analyzing';
+            this.render();
             const extractions = await this._batchExtract(loadedItems);
 
             // Step 3: Sonnet synthesis
+            dl._stage = 'synthesizing';
+            this.render();
             const currentMemory = this.longitudinalDoc.aiMemory.memoryDocument;
             if (!currentMemory) {
                 throw new Error('No existing memory document — run Level 1 first');
