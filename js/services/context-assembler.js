@@ -96,11 +96,11 @@ Respond in this exact JSON format:
         {"name": "Subsequent problems: specific diagnoses or active issues", "urgency": "urgent|active|monitoring", "ddx": "DDx if differential is clinically meaningful, or null", "plan": "1-2 sentence plan"}
     ],
     "categorizedActions": {
-        "communication": [{"text": "Ask patient about dietary potassium intake"}, {"text": "Ask nurse for today\\'s I&Os"}],
-        "labs": [{"text": "Repeat BMP in 6 hours", "orderType": "lab", "orderData": {"name": "Basic Metabolic Panel", "specimen": "Blood", "priority": "Routine", "indication": "Monitor renal function and electrolytes post-diuresis"}}],
-        "imaging": [{"text": "Portable CXR now", "orderType": "imaging", "orderData": {"modality": "X-Ray", "bodyPart": "Chest", "contrast": "Without contrast", "priority": "STAT", "indication": "Evaluate pulmonary edema"}}],
-        "medications": [{"text": "Give furosemide 40mg IV x1 now", "orderType": "medication", "orderData": {"name": "Furosemide", "dose": "40 mg", "route": "IV Push", "frequency": "Once", "indication": "Acute decompensated heart failure"}}],
-        "other": [{"text": "Consult cardiology", "orderType": "consult", "orderData": {"specialty": "Cardiology", "priority": "Routine", "reason": "Evaluation of acute decompensated HFrEF"}}]
+        "communication": [{"text": "Ask patient about dietary potassium intake", "evidence": "Clinical reasoning: Dietary K+ intake assessment guides management of hyperkalemia"}, {"text": "Ask nurse for today\\'s I&Os", "evidence": "AHA/ACC HF 2022: Monitor I&O to guide diuresis targets"}],
+        "labs": [{"text": "Repeat BMP in 6 hours", "orderType": "lab", "orderData": {"name": "Basic Metabolic Panel", "specimen": "Blood", "priority": "Routine", "indication": "Monitor renal function and electrolytes post-diuresis"}, "evidence": "AHA/ACC HF 2022: Monitor renal function and electrolytes q6-12h during IV diuresis"}],
+        "imaging": [{"text": "Portable CXR now", "orderType": "imaging", "orderData": {"modality": "X-Ray", "bodyPart": "Chest", "contrast": "Without contrast", "priority": "STAT", "indication": "Evaluate pulmonary edema"}, "evidence": "AHA/ACC HF 2022: CXR to assess pulmonary congestion in acute decompensation"}],
+        "medications": [{"text": "Give furosemide 40mg IV x1 now", "orderType": "medication", "orderData": {"name": "Furosemide", "dose": "40 mg", "route": "IV Push", "frequency": "Once", "indication": "Acute decompensated heart failure"}, "evidence": "AHA/ACC HF 2022: IV loop diuretics first-line for acute decompensated HF with congestion"}],
+        "other": [{"text": "Consult cardiology", "orderType": "consult", "orderData": {"specialty": "Cardiology", "priority": "Routine", "reason": "Evaluation of acute decompensated HFrEF"}, "evidence": "Clinical reasoning: Specialist evaluation for acute HFrEF decompensation with reduced EF"}]
     },
     "summary": "1-2 sentence case summary with **bold** for key diagnoses and decisions",
     "keyConsiderations": [
@@ -181,6 +181,12 @@ RULES:
   * For med changes (hold/stop/discontinue/increase/decrease): NO orderType, just {"text": "Hold spironolactone until K+ < 5.0"} — these go to nurse chat, not order entry
   * Keep each category to 1-3 items MAX. Quality over quantity. Only the most important next steps.
   * Empty array is fine for categories with no actions needed
+  * evidence: REQUIRED for every action. A brief citation or clinical rationale justifying this specific action.
+    - Prefer named guidelines with year: "AHA/ACC HF Guidelines 2022", "KDIGO CKD 2024", "ADA Standards of Care 2025", "ESC AF Guidelines 2024"
+    - Or landmark trials: "RALES (1999)", "PARADIGM-HF (2014)", "DAPA-HF (2019)", "EMPA-REG (2015)"
+    - Format: "Source (Year): Brief rationale" — e.g. "KDIGO AKI 2012: Avoid nephrotoxins when Cr trending up"
+    - If no specific guideline applies, use "Clinical reasoning: ..." with brief rationale
+    - Keep under 120 characters
 - suggestedActions: MUST mirror the top items from categorizedActions verbatim. Do NOT add vague items to suggestedActions that aren't already in categorizedActions with full orderData. suggestedActions exists only for backward compatibility.
 - NEVER suggest vague actions like "monitor renal function", "consider anticoagulation", "order labs in 3 months", "follow up with specialist", "check electrolytes". Every action must be something you can do RIGHT NOW in this encounter — a specific order with dose/route/frequency, a specific question to ask, a specific consult to place.
 - For FUTURE follow-up items (recheck labs in X months, follow-up appointment): put in "documentation" category as {"text": "Add to discharge instructions: recheck BMP in 3 months"} — NOT as a lab order.
@@ -292,11 +298,11 @@ Respond in this exact JSON format:
         {"name": "Active problem", "urgency": "urgent|active|monitoring", "ddx": "DDx if meaningful, or null", "plan": "One sentence plan"}
     ],
     "categorizedActions": {
-        "communication": [{"text": "Ask patient about dietary K+ intake"}],
-        "labs": [{"text": "Repeat BMP in 6h", "orderType": "lab", "orderData": {"name": "Basic Metabolic Panel", "specimen": "Blood", "priority": "Routine", "indication": "Monitor renal function"}}],
-        "imaging": [{"text": "Portable CXR now", "orderType": "imaging", "orderData": {"modality": "X-Ray", "bodyPart": "Chest", "contrast": "Without contrast", "priority": "STAT", "indication": "Evaluate pulmonary edema"}}],
-        "medications": [{"text": "Furosemide 40mg IV x1 now", "orderType": "medication", "orderData": {"name": "Furosemide", "dose": "40 mg", "route": "IV Push", "frequency": "Once", "indication": "ADHF"}}],
-        "other": [{"text": "Consult cardiology", "orderType": "consult", "orderData": {"specialty": "Cardiology", "priority": "Routine", "reason": "Acute decompensated HFrEF"}}]
+        "communication": [{"text": "Ask patient about dietary K+ intake", "evidence": "Clinical reasoning: Dietary K+ assessment guides hyperkalemia management"}],
+        "labs": [{"text": "Repeat BMP in 6h", "orderType": "lab", "orderData": {"name": "Basic Metabolic Panel", "specimen": "Blood", "priority": "Routine", "indication": "Monitor renal function"}, "evidence": "AHA/ACC HF 2022: Monitor renal function q6-12h during IV diuresis"}],
+        "imaging": [{"text": "Portable CXR now", "orderType": "imaging", "orderData": {"modality": "X-Ray", "bodyPart": "Chest", "contrast": "Without contrast", "priority": "STAT", "indication": "Evaluate pulmonary edema"}, "evidence": "AHA/ACC HF 2022: CXR to assess congestion in acute decompensation"}],
+        "medications": [{"text": "Furosemide 40mg IV x1 now", "orderType": "medication", "orderData": {"name": "Furosemide", "dose": "40 mg", "route": "IV Push", "frequency": "Once", "indication": "ADHF"}, "evidence": "AHA/ACC HF 2022: IV loop diuretics first-line for ADHF with congestion"}],
+        "other": [{"text": "Consult cardiology", "orderType": "consult", "orderData": {"specialty": "Cardiology", "priority": "Routine", "reason": "Acute decompensated HFrEF"}, "evidence": "Clinical reasoning: Specialist evaluation for acute HFrEF decompensation"}]
     },
     "summary": "One sentence with **bold** for key diagnoses",
     "keyConsiderations": [
@@ -356,6 +362,7 @@ RULES:
   * Consults: orderType="consult", orderData={specialty, priority, reason}
   * Nursing: orderType="nursing", orderData={orderType, details, priority}
   * Communication: just {"text": "Ask patient..."} — NO orderType
+  * evidence: REQUIRED for every action. Brief citation: "Source (Year): Rationale". Prefer named guidelines (AHA/ACC, KDIGO, ADA, ESC) or landmark trials (RALES, PARADIGM-HF, DAPA-HF). Under 120 chars.
 - suggestedActions: MUST mirror top items from categorizedActions verbatim. No vague items here either.
 - keyConsiderations: allergies, contraindications, drug interactions. Use "critical" for life-threatening only
 - patientSummaryUpdate: your CORE MEMORY — one concise paragraph, not multiple

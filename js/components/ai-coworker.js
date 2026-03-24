@@ -1406,10 +1406,18 @@ const AICoworker = {
 
         // ===== THINKING BANNER (shown when AI is processing) =====
         if (isThinking) {
+            // Dynamic label based on streaming phase
+            const phaseLabels = {
+                'summary': 'Updating clinical summary',
+                'problems': 'Generating problem list',
+                'actions': 'Planning suggested actions'
+            };
+            const thinkingLabel = phaseLabels[this._streamingPhase] || 'Analyzing clinical context';
+
             html += '<div class="copilot-thinking-banner">';
             html += '<div class="thinking-banner-content">';
             html += '<span class="thinking-sparkle">&#10024;</span>';
-            html += '<span class="thinking-label">Analyzing clinical context</span>';
+            html += `<span class="thinking-label">${thinkingLabel}</span>`;
             html += '<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span>';
             html += '</div>';
             html += '<div class="thinking-progress-bar"><div class="thinking-progress-fill"></div></div>';
@@ -2431,32 +2439,44 @@ const AICoworker = {
                     const isMedChange = this._isMedChangeAction(text);
                     const isComm = cat.key === 'communication';
                     const actionId = `action_${cat.key}_${idx}`;
+                    const evidence = typeof item === 'object' ? item.evidence || '' : '';
 
                     // Store action data + category for retrieval on click
                     this._pendingActions[actionId] = item;
                     this._pendingActionCategories[actionId] = cat.key;
 
+                    // Evidence icon HTML (shown on hover, triggers popover)
+                    const evidenceHtml = evidence
+                        ? `<span class="evidence-trigger" onmouseenter="AICoworker._showEvidencePopover(this, '${this.escapeHtml(evidence).replace(/'/g, '&#39;')}')" onmouseleave="AICoworker._hideEvidencePopover()">&#9432;</span>`
+                        : '';
+
                     if (hasOrder && !isMedChange) {
                         // New order → opens OrderEntry
                         html += `<div class="action-item action-executable" onclick="AICoworker.executeAction('${actionId}')">`;
                         html += `<span class="action-text">${this.escapeHtml(text)}</span>`;
+                        html += evidenceHtml;
                         html += `<span class="action-execute-icon" title="Open order form">&#9654;</span>`;
                         html += `</div>`;
                     } else if (isComm) {
                         // Communication → opens patient/nurse chat
                         html += `<div class="action-item action-chat" onclick="AICoworker.executeAction('${actionId}')">`;
                         html += `<span class="action-text">${this.escapeHtml(text)}</span>`;
+                        html += evidenceHtml;
                         html += `<span class="action-chat-icon" title="Open chat">&#128172;</span>`;
                         html += `</div>`;
                     } else if (isMedChange) {
                         // Med change (hold/stop/increase) → nurse chat
                         html += `<div class="action-item action-chat" onclick="AICoworker.executeAction('${actionId}')">`;
                         html += `<span class="action-text">${this.escapeHtml(text)}</span>`;
+                        html += evidenceHtml;
                         html += `<span class="action-chat-icon" title="Tell nurse">&#128105;&#8205;&#9877;</span>`;
                         html += `</div>`;
                     } else {
                         // Fallback
-                        html += `<div class="action-item" onclick="AICoworker.executeAction('${actionId}')">${this.escapeHtml(text)}</div>`;
+                        html += `<div class="action-item" onclick="AICoworker.executeAction('${actionId}')">`;
+                        html += `<span class="action-text">${this.escapeHtml(text)}</span>`;
+                        html += evidenceHtml;
+                        html += `</div>`;
                     }
                 });
                 html += '</div>';
@@ -2467,6 +2487,39 @@ const AICoworker = {
 
         html += '</div></div>';
         return html;
+    },
+
+    /**
+     * Show evidence popover near the trigger element
+     */
+    _showEvidencePopover(triggerEl, evidenceText) {
+        this._hideEvidencePopover();
+        const popover = document.createElement('div');
+        popover.className = 'evidence-popover';
+        popover.innerHTML = '<span class="evidence-popover-icon">&#128214;</span> ' + evidenceText;
+        document.body.appendChild(popover);
+
+        // Position relative to trigger
+        const rect = triggerEl.getBoundingClientRect();
+        popover.style.left = Math.max(8, Math.min(rect.left - 40, window.innerWidth - 370)) + 'px';
+        popover.style.top = (rect.bottom + 6) + 'px';
+
+        // If popover goes below viewport, show above instead
+        requestAnimationFrame(() => {
+            const popRect = popover.getBoundingClientRect();
+            if (popRect.bottom > window.innerHeight - 10) {
+                popover.style.top = (rect.top - popRect.height - 6) + 'px';
+                popover.classList.add('evidence-popover-above');
+            }
+        });
+    },
+
+    /**
+     * Hide evidence popover
+     */
+    _hideEvidencePopover() {
+        const existing = document.querySelector('.evidence-popover');
+        if (existing) existing.remove();
     },
 
     /**
@@ -5598,10 +5651,107 @@ ${ctx.dictationHistory.length > 0
     },
 
     /**
+     * Call LLM with streaming enabled — reads SSE events and calls onChunk with accumulated text.
+     * Falls back to non-streaming callLLM if streaming fails or backend is proxy.
+     */
+    async callLLMStreaming(systemPrompt, userMessage, maxTokens, options, onChunk) {
+        const useModel = (options && options.model) || this.model;
+
+        // Store debug info
+        this.lastApiCall = {
+            timestamp: Date.now(),
+            systemPrompt, userMessage,
+            clinicalContext: '',
+            response: '', error: null,
+            model: useModel
+        };
+
+        if (this._backendReady) await this._backendReady;
+
+        if (!this.isApiConfigured()) {
+            this.lastApiCall.error = 'API key not configured';
+            if (!this.backendAvailable) this.openApiKeyModal();
+            throw new Error('API key not configured');
+        }
+
+        // Streaming only works with direct Anthropic access (not proxy)
+        if (this.backendAvailable) {
+            // Proxy doesn't support streaming — fall back to non-streaming
+            const text = await this.callLLM(systemPrompt, userMessage, maxTokens, options);
+            if (onChunk) onChunk(text);
+            return text;
+        }
+
+        const headers = {
+            'Content-Type': 'application/json',
+            'x-api-key': this.apiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true'
+        };
+
+        try {
+            const response = await fetch(this.apiEndpoint, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                    model: useModel,
+                    max_tokens: maxTokens || 1024,
+                    stream: true,
+                    system: systemPrompt,
+                    messages: [{ role: 'user', content: userMessage }]
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.error?.message || 'Streaming API request failed');
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let accumulated = '';
+            let buffer = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+                for (const line of lines) {
+                    if (!line.startsWith('data: ')) continue;
+                    const data = line.slice(6).trim();
+                    if (data === '[DONE]') continue;
+
+                    try {
+                        const event = JSON.parse(data);
+                        if (event.type === 'content_block_delta' && event.delta?.text) {
+                            accumulated += event.delta.text;
+                            if (onChunk) onChunk(accumulated);
+                        }
+                    } catch (e) {
+                        // Skip unparseable SSE events
+                    }
+                }
+            }
+
+            this.lastApiCall.response = accumulated;
+            return accumulated;
+        } catch (error) {
+            this.lastApiCall.error = error.message;
+            console.error('❌ Streaming LLM Error:', error);
+            throw error;
+        }
+    },
+
+    /**
      * Use LLM to synthesize doctor's thoughts with clinical context
      */
     async synthesizeWithLLM(doctorThoughts) {
         this.state.status = 'thinking';
+        this._streamingPhase = null; // Reset streaming phase
         this.render();
 
         // Track dictation in session context
@@ -5678,16 +5828,61 @@ RULES:
         this.lastApiCall.clinicalContext = clinicalContext;
 
         try {
-            // Use the faster analysis model for structured synthesis
-            const response = await this.callLLM(systemPrompt, userMessage, 4096, { model: this.analysisModel });
+            // Track which sections have been progressively updated
+            let lastProgressiveKeys = new Set();
+            let progressiveThrottleTimer = null;
+            const PROGRESSIVE_INTERVAL = 600; // ms between progressive renders
 
-            // Parse the JSON response with robust extraction
+            const onChunk = (accumulatedText) => {
+                // Throttle progressive updates to avoid excessive re-renders
+                if (progressiveThrottleTimer) return;
+                progressiveThrottleTimer = setTimeout(() => {
+                    progressiveThrottleTimer = null;
+                }, PROGRESSIVE_INTERVAL);
+
+                // Attempt partial JSON parse
+                const partial = this._parseJSONResponse(accumulatedText);
+                if (!partial) return;
+
+                // Detect which new sections have appeared
+                const newKeys = new Set();
+                if (partial.clinicalSummary) newKeys.add('summary');
+                if (partial.problemList && partial.problemList.length) newKeys.add('problems');
+                if (partial.categorizedActions) newKeys.add('actions');
+
+                // Only re-render if a new section has appeared
+                let hasNewSection = false;
+                for (const k of newKeys) {
+                    if (!lastProgressiveKeys.has(k)) {
+                        hasNewSection = true;
+                        lastProgressiveKeys.add(k);
+                    }
+                }
+
+                if (hasNewSection) {
+                    this._progressiveUpdate(partial);
+                }
+            };
+
+            // Use streaming for real-time progressive updates
+            const response = await this.callLLMStreaming(
+                systemPrompt, userMessage, 4096,
+                { model: this.analysisModel }, onChunk
+            );
+
+            // Clear any pending progressive timer
+            if (progressiveThrottleTimer) {
+                clearTimeout(progressiveThrottleTimer);
+                progressiveThrottleTimer = null;
+            }
+
+            // Parse the final complete JSON response
             const result = this._parseJSONResponse(response);
             if (!result) {
                 throw new Error('Could not parse AI response');
             }
 
-            // Update AI panel state
+            // Update AI panel state with final result
             if (result.summary) {
                 this.state.summary = result.summary;
             }
@@ -5775,6 +5970,67 @@ RULES:
             } else {
                 App.showToast(`API error: ${error.message}`, 'error');
             }
+        }
+    },
+
+    /**
+     * Progressive UI update during streaming — updates state with partial results
+     * and triggers a render so sections appear as the LLM generates them.
+     */
+    _progressiveUpdate(partial) {
+        let updated = false;
+
+        // Update thinking banner label based on what section is being generated
+        if (partial.categorizedActions && !this.state.categorizedActions) {
+            this._streamingPhase = 'actions';
+        } else if (partial.problemList && partial.problemList.length && !this.state.problemList?.length) {
+            this._streamingPhase = 'problems';
+        } else if (partial.clinicalSummary && !this.state.clinicalSummary?.demographics) {
+            this._streamingPhase = 'summary';
+        }
+
+        if (partial.oneLiner && partial.oneLiner !== this.state.aiOneLiner) {
+            this.state.aiOneLiner = partial.oneLiner;
+            updated = true;
+        }
+        if (partial.clinicalSummary && JSON.stringify(partial.clinicalSummary) !== JSON.stringify(this.state.clinicalSummary)) {
+            this.state.clinicalSummary = partial.clinicalSummary;
+            updated = true;
+        }
+        if (partial.problemList && partial.problemList.length && JSON.stringify(partial.problemList) !== JSON.stringify(this.state.problemList)) {
+            this.state.problemList = partial.problemList;
+            updated = true;
+        }
+        if (partial.categorizedActions && JSON.stringify(partial.categorizedActions) !== JSON.stringify(this.state.categorizedActions)) {
+            this.state.categorizedActions = partial.categorizedActions;
+            updated = true;
+        }
+        if (partial.summary && partial.summary !== this.state.summary) {
+            this.state.summary = partial.summary;
+            updated = true;
+        }
+
+        if (updated) {
+            this.render();
+            // Add brief highlight animation to updated sections
+            requestAnimationFrame(() => {
+                document.querySelectorAll('.copilot-section').forEach(el => {
+                    el.classList.remove('section-just-updated');
+                });
+                // Highlight sections that just got data
+                if (partial.clinicalSummary) {
+                    const el = document.querySelector('.summary-section');
+                    if (el) el.classList.add('section-just-updated');
+                }
+                if (partial.problemList?.length) {
+                    const el = document.querySelector('.problem-section');
+                    if (el) el.classList.add('section-just-updated');
+                }
+                if (partial.categorizedActions) {
+                    const el = document.querySelector('.actions-section');
+                    if (el) el.classList.add('section-just-updated');
+                }
+            });
         }
     },
 

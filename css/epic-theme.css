@@ -6117,6 +6117,17 @@ html, body {
     margin: 0 6px 4px;
     border-radius: 8px;
     background: rgba(247, 250, 252, 0.6);
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+/* Brief highlight when section receives new data from streaming */
+.copilot-section.section-just-updated {
+    box-shadow: inset 0 0 0 1.5px rgba(59, 130, 246, 0.35);
+    animation: sectionPulse 0.8s ease forwards;
+}
+@keyframes sectionPulse {
+    0% { box-shadow: inset 0 0 0 1.5px rgba(59, 130, 246, 0.45); }
+    100% { box-shadow: inset 0 0 0 1.5px rgba(59, 130, 246, 0); }
 }
 
 .copilot-section:last-child {
@@ -6579,6 +6590,67 @@ html, body {
 
 .action-item.action-chat:hover .action-chat-icon {
     opacity: 0.7;
+}
+
+/* Evidence citation trigger icon */
+.evidence-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    font-size: 13px;
+    color: #94a3b8;
+    cursor: help;
+    opacity: 0;
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+    margin-left: 2px;
+    position: relative;
+    z-index: 2;
+}
+.action-item:hover .evidence-trigger {
+    opacity: 1;
+}
+.evidence-trigger:hover {
+    color: #3b82f6;
+}
+
+/* Evidence popover tooltip */
+.evidence-popover {
+    position: fixed;
+    z-index: 99999;
+    background: rgba(15, 23, 42, 0.94);
+    color: #e2e8f0;
+    font-size: 11.5px;
+    line-height: 1.45;
+    padding: 8px 12px;
+    border-radius: 8px;
+    max-width: 350px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    pointer-events: none;
+    animation: evidenceFadeIn 0.15s ease;
+}
+.evidence-popover::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 50px;
+    width: 10px;
+    height: 10px;
+    background: rgba(15, 23, 42, 0.94);
+    transform: rotate(45deg);
+}
+.evidence-popover.evidence-popover-above::before {
+    top: auto;
+    bottom: -5px;
+}
+.evidence-popover-icon {
+    margin-right: 4px;
+}
+@keyframes evidenceFadeIn {
+    from { opacity: 0; transform: translateY(3px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .action-note-btn {
