@@ -756,6 +756,14 @@ const AICoworker = {
             popup.className = 'memory-viewer-popup';
             document.body.appendChild(popup);
         }
+        // Position to the left of the AI panel
+        const aiPanel = document.querySelector('.ai-panel');
+        if (aiPanel) {
+            const panelRect = aiPanel.getBoundingClientRect();
+            popup.style.right = (window.innerWidth - panelRect.left + 8) + 'px';
+        } else {
+            popup.style.right = '440px';
+        }
         popup.style.display = 'flex';
         this.renderMemoryViewer();
     },

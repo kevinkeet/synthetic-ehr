@@ -10529,13 +10529,12 @@ html, body {
 .memory-viewer-popup {
     position: fixed;
     top: 40px;
-    right: 420px;
-    width: 420px;
+    width: 400px;
     max-height: 85vh;
     background: white;
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-    z-index: 9999;
+    z-index: 10000;
     display: none;
     flex-direction: column;
     overflow: hidden;
