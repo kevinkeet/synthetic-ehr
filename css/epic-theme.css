@@ -9200,6 +9200,7 @@ html, body {
 /* Chat message body */
 .floating-chat-body {
     flex: 1;
+    min-height: 0;  /* Critical: allows flex child to shrink below content size for scrolling */
     overflow-y: auto;
     padding: 16px;
     display: flex;
