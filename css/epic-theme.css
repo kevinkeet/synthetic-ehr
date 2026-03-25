@@ -12325,6 +12325,24 @@ html, body {
 .dl-next-level {
     animation: learn-pulse 2s ease-in-out infinite;
 }
+.dl-between-footer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+.dl-between-footer .dl-reset {
+    flex: 0;
+    white-space: nowrap;
+    font-size: 10px;
+    padding: 4px 10px;
+    opacity: 0.7;
+}
+.dl-between-footer .dl-reset:hover {
+    opacity: 1;
+}
 
 /* Stage indicators during learning */
 .dl-stages {

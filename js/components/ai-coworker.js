@@ -2050,10 +2050,18 @@ const AICoworker = {
             html += '</button>';
         }
 
-        // Memory viewer button
-        html += `<button class="memory-viewer-btn" onclick="AICoworker.toggleMemoryViewer()" title="View AI Knowledge Base">&#129504;</button>`;
-
         html += `</div>`;
+
+        // Bottom row: memory viewer, reset, clear
+        html += '<div class="dl-between-footer">';
+        html += `<button class="memory-viewer-btn" onclick="AICoworker.toggleMemoryViewer()" title="View AI Knowledge Base">&#129504;</button>`;
+        html += `<button class="learn-action-btn learn-secondary dl-reset" onclick="AICoworker.resetLearnProgress()" title="Reset to Level 0 (keep knowledge)">`;
+        html += `<span class="learn-action-icon">&#8634;</span>`;
+        html += `<span class="learn-action-label">Reset to Level 0</span>`;
+        html += `</button>`;
+        html += `<button class="clear-memory-btn" onclick="AICoworker.clearMemory()" title="Clear all AI memory">&#128465;</button>`;
+        html += '</div>';
+
         html += '</div>';
         return html;
     },
@@ -7559,6 +7567,19 @@ RULES:
             levelFindings: [],
             aborted: false
         };
+    },
+
+    /**
+     * Reset learn progress back to Level 0 (idle) without clearing the memory document.
+     * The AI keeps whatever knowledge it has, but the level tracker resets so you can re-learn.
+     */
+    resetLearnProgress() {
+        if (!confirm('Reset learning progress back to Level 0?\n\nThe AI keeps its current knowledge base, but you can start learning from scratch again.')) return;
+        this._resetDeepLearn();
+        this._saveDeepLearnState();
+        this.state.status = 'ready';
+        this.render();
+        App.showToast('Learning progress reset to Level 0', 'info');
     },
 
     /**
