@@ -55,10 +55,6 @@ const FloatingChat = {
                 <span class="trigger-icon">&#128105;&#8205;&#9877;</span>
                 <span class="trigger-label">Nurse</span>
             </button>
-            <button class="chat-trigger-btn dictate-trigger" onclick="if(typeof DictationWidget!=='undefined') DictationWidget.toggle()" title="Dictate">
-                <span class="trigger-icon">&#127908;</span>
-                <span class="trigger-label">Dictate</span>
-            </button>
         `;
     },
 

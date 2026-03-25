@@ -1397,50 +1397,8 @@ const AICoworker = {
      * Create modals (no longer creates a floating panel - renders into AI panel tab)
      */
     createPanel() {
-        // Create dictation modal
-        this.createDictationModal();
-
         // Create note writing modal
         this.createNoteModal();
-    },
-
-    /**
-     * Create the "Dictation" modal for doctor's thoughts
-     */
-    createDictationModal() {
-        const modal = document.createElement('div');
-        modal.id = 'ai-dictation-modal';
-        modal.className = 'ai-modal';
-        modal.innerHTML = `
-            <div class="ai-modal-content dictation-modal">
-                <div class="ai-modal-header">
-                    <h3>🎤 Dictate Your Thoughts</h3>
-                    <button onclick="AICoworker.closeDictationModal()">×</button>
-                </div>
-                <div class="ai-modal-body">
-                    <p class="ai-modal-hint">Share your clinical reasoning. This will heavily influence the AI's understanding of your approach to this case.</p>
-                    <div class="dictation-controls">
-                        <button id="voice-record-btn" class="voice-btn" onclick="AICoworker.toggleVoiceRecording()">
-                            <span class="voice-icon">🎙️</span>
-                            <span class="voice-text">Start Recording</span>
-                        </button>
-                        <span class="dictation-or">or type below</span>
-                    </div>
-                    <textarea id="ai-dictation-input" rows="6" placeholder="e.g., I think this is a CHF exacerbation triggered by dietary indiscretion. Given his GI bleed history, I'm going to hold off on anticoagulation even though he has A-fib. Plan is diuresis and cardiology consult..."></textarea>
-                    <div class="dictation-history-toggle">
-                        <button onclick="AICoworker.toggleDictationHistory()" class="text-btn">
-                            📜 View previous thoughts (<span id="dictation-count">0</span>)
-                        </button>
-                    </div>
-                    <div id="dictation-history" class="dictation-history hidden"></div>
-                </div>
-                <div class="ai-modal-footer">
-                    <button class="btn btn-secondary" onclick="AICoworker.closeDictationModal()">Cancel</button>
-                    <button class="btn btn-primary" onclick="AICoworker.submitDictation()">💾 Save Thoughts</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
     },
 
     /**
@@ -1943,11 +1901,13 @@ const AICoworker = {
         }
         html += `</div>`;
 
-        // Progress bar (animated when analyzing)
+        // Progress bar (indeterminate pulse when analyzing, otherwise percentage)
         const pct = progress.percentComplete;
-        const animClass = stage === 'analyzing' ? ' dl-progress-bar-pulse' : '';
+        const isAnalyzing = stage === 'analyzing' || stage === 'synthesizing';
+        const animClass = isAnalyzing ? ' dl-progress-bar-pulse' : '';
+        const barWidth = isAnalyzing ? 100 : Math.max(pct, 5);
         html += `<div class="dl-progress-bar-wrap">`;
-        html += `<div class="dl-progress-bar${animClass}" style="width: ${Math.max(pct, 5)}%"></div>`;
+        html += `<div class="dl-progress-bar${animClass}" style="width: ${barWidth}%"></div>`;
         html += `</div>`;
 
         // Stats
@@ -3104,25 +3064,6 @@ const AICoworker = {
         }
     },
 
-    /**
-     * Toggle the "More" dropdown menu
-     */
-    toggleMoreMenu() {
-        const menu = document.getElementById('inline-more-menu');
-        if (menu) {
-            menu.classList.toggle('visible');
-            // Auto-close on click outside
-            if (menu.classList.contains('visible')) {
-                const closeHandler = (e) => {
-                    if (!menu.contains(e.target) && !e.target.classList.contains('inline-more-btn')) {
-                        menu.classList.remove('visible');
-                        document.removeEventListener('click', closeHandler);
-                    }
-                };
-                setTimeout(() => document.addEventListener('click', closeHandler), 0);
-            }
-        }
-    },
 
     /**
      * Clear AI memory for this patient — full reset.
@@ -5754,10 +5695,6 @@ ${document.getElementById('debug-response-text').value}
      * Open the prompt editor modal
      */
     openPromptEditor() {
-        // Close the More menu
-        const moreMenu = document.getElementById('inline-more-menu');
-        if (moreMenu) moreMenu.classList.remove('visible');
-
         let modal = document.getElementById('prompt-editor-modal');
         if (!modal) {
             modal = document.createElement('div');
@@ -7850,21 +7787,21 @@ RULES:
 
         // Assemble full text context via working memory, cap to prevent API overload
         let chartContext = this.workingMemory.assembleForDeepLearnLevel1(itemsWithData);
-        const MAX_CONTEXT = 40000; // ~10K tokens — fast enough for ~20 sec response
+        const MAX_CONTEXT = 25000; // ~6K tokens — keeps response fast (~15-20 sec)
         if (chartContext.length > MAX_CONTEXT) {
             console.warn(`🧠 Deep Learn: Context too large (${chartContext.length} chars), truncating to ${MAX_CONTEXT}`);
             chartContext = chartContext.substring(0, MAX_CONTEXT) + '\n\n[... Chart data truncated due to size. Focus on the data above.]';
         }
 
-        // Level 1 always uses Sonnet — it's the foundation pass and needs quality
-        const level1Model = 'claude-sonnet-4-6';
+        // Level 1 uses the user's analysis model setting
+        const level1Model = this.analysisModel || 'claude-sonnet-4-6';
         console.log(`🧠 Deep Learn Level 1: Sending ${chartContext.length} chars to ${level1Model}`);
 
         // Stage: Analyzing
         this._deepLearn._stage = 'analyzing';
         this.render();
 
-        // Call LLM with the comprehensive Level 1 prompt (always Sonnet for foundation quality)
+        // Call LLM with the comprehensive Level 1 prompt
         const prompt = this.contextAssembler.buildDeepLearnLevel1Prompt(chartContext);
         let response;
         try {
