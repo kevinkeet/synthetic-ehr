@@ -1847,7 +1847,7 @@ const AICoworker = {
         const stage = this._deepLearn._stage || 'loading';
         const stages = [
             { key: 'loading', label: 'Loading chart data' },
-            { key: 'analyzing', label: progress.phase === 'level1' ? 'Analyzing with Sonnet' : 'Extracting with Haiku' },
+            { key: 'analyzing', label: progress.phase === 'level1' ? 'Analyzing chart' : 'Extracting details' },
             { key: 'synthesizing', label: 'Building memory document' }
         ];
         html += `<div class="dl-stages">`;
@@ -4410,8 +4410,8 @@ ${contextSummary}
 What clarifying questions do you have before writing this ${noteTypeName}?`;
 
         try {
-            // Fast LLM call with small token budget (use Haiku for speed)
-            const response = await this.callLLM(systemPrompt, userMessage, 512, { model: 'claude-haiku-4-5-20251001' });
+            // Fast LLM call with small token budget
+            const response = await this.callLLM(systemPrompt, userMessage, 512, { model: this.analysisModel });
 
             if (!response || response.trim() === 'READY_TO_WRITE') {
                 // No clarification needed — proceed directly
@@ -6451,7 +6451,7 @@ RULES:
                     prompt.systemPrompt,
                     prompt.userMessage,
                     prompt.maxTokens,
-                    { model: 'claude-haiku-4-5-20251001' }
+                    { model: this.analysisModel }
                 );
 
                 const memoryDoc = this._parseJSONResponse(response);
@@ -7758,27 +7758,37 @@ RULES:
         const loadedItems = await Promise.all(loadPromises);
         const itemsWithData = loadedItems.filter(i => i.data);
 
-        // Update progress
+        // Update progress (show loading progress)
         this._deepLearn.processedCount = itemsWithData.length;
         this.render();
 
         // Assemble full text context via working memory
         const chartContext = this.workingMemory.assembleForDeepLearnLevel1(itemsWithData);
 
-        console.log(`🧠 Deep Learn Level 1: Sending ${chartContext.length} chars to Sonnet`);
+        console.log(`🧠 Deep Learn Level 1: Sending ${chartContext.length} chars to ${this.dictationModel}`);
 
-        // Stage: Analyzing with Sonnet
+        // Stage: Analyzing
         this._deepLearn._stage = 'analyzing';
         this.render();
 
-        // Call Sonnet with the comprehensive Level 1 prompt
+        // Call LLM with the comprehensive Level 1 prompt (use dictationModel for quality)
         const prompt = this.contextAssembler.buildDeepLearnLevel1Prompt(chartContext);
-        const response = await this.callLLM(
-            prompt.systemPrompt,
-            prompt.userMessage,
-            prompt.maxTokens,
-            { model: 'claude-sonnet-4-6' }
-        );
+        let response;
+        try {
+            response = await this.callLLM(
+                prompt.systemPrompt,
+                prompt.userMessage,
+                prompt.maxTokens,
+                { model: this.dictationModel }
+            );
+        } catch (apiErr) {
+            console.error('Level 1 API call failed:', apiErr);
+            this._deepLearn.phase = 'between_levels';
+            this._deepLearn._stage = null;
+            this.state.status = 'ready';
+            this.render();
+            throw apiErr;
+        }
 
         // Stage: Building memory document
         this._deepLearn._stage = 'synthesizing';
@@ -7790,8 +7800,9 @@ RULES:
             throw new Error('Could not parse memory document from Level 1 response');
         }
 
-        // Mark items as processed
+        // Mark items as processed and sync count
         batch.forEach(item => this._deepLearn.processed.add(item.id));
+        this._deepLearn.processedCount = this._deepLearn.processed.size;
 
         // Store memory
         this._applyMemoryDocument(memoryDoc);
@@ -7799,6 +7810,7 @@ RULES:
         // Transition to between-levels state
         this._deepLearn.phase = 'between_levels';
         this.state.status = 'ready';
+        this.render();
 
         const remaining = this._deepLearn.totalItems - this._deepLearn.processedCount;
         const remainingLevels = this._deepLearn.totalLevels - 1;
@@ -7884,9 +7896,9 @@ RULES:
 
             const updatedMemory = await this._synthesizeBatch(currentMemory, extractions);
 
-            // Mark processed
+            // Mark processed and sync count
             batch.forEach(item => dl.processed.add(item.id));
-            dl.processedCount += loadedItems.length;
+            dl.processedCount = dl.processed.size;
 
             // Apply updated memory
             this._applyMemoryDocument(updatedMemory);
@@ -8005,7 +8017,7 @@ RULES:
             requests.push({
                 systemPrompt: prompt.systemPrompt,
                 userMessage: prompt.userMessage,
-                model: 'claude-haiku-4-5-20251001',
+                model: this.analysisModel,
                 maxTokens: prompt.maxTokens
             });
         }
@@ -8059,7 +8071,7 @@ RULES:
             prompt.systemPrompt,
             prompt.userMessage,
             prompt.maxTokens,
-            { model: 'claude-sonnet-4-6' }
+            { model: this.dictationModel }
         );
 
         const updatedMemory = this._parseJSONResponse(response);
@@ -8295,7 +8307,7 @@ RULES:
                 {
                     systemPrompt: prompt.systemPrompt,
                     maxTokens: prompt.maxTokens,
-                    model: 'claude-haiku-4-5-20251001'
+                    model: this.analysisModel
                 }
             );
 
@@ -8460,7 +8472,7 @@ RULES:
                 prompt.systemPrompt,
                 prompt.userMessage,
                 prompt.maxTokens,
-                { model: 'claude-haiku-4-5-20251001' }
+                { model: this.analysisModel }
             );
 
             const result = this._parseJSONResponse(response);
