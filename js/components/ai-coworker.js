@@ -1980,14 +1980,8 @@ const AICoworker = {
         }
         html += `</div>`;
 
-        // Progress bar (indeterminate pulse when analyzing, otherwise percentage)
-        const pct = progress.percentComplete;
-        const isAnalyzing = stage === 'analyzing' || stage === 'synthesizing';
-        const animClass = isAnalyzing ? ' dl-progress-bar-pulse' : '';
-        const barWidth = isAnalyzing ? 100 : Math.max(pct, 5);
-        html += `<div class="dl-progress-bar-wrap">`;
-        html += `<div class="dl-progress-bar${animClass}" style="width: ${barWidth}%"></div>`;
-        html += `</div>`;
+        // Segmented progress bar with pulse on active level
+        html += this._renderSegmentedProgressBar(progress, stage);
 
         // Stats
         html += `<div class="dl-progress-stats">`;
@@ -1996,6 +1990,61 @@ const AICoworker = {
             html += `<span class="dl-progress-breakdown">${progress.noteCount} notes · ${progress.labCount} labs · ${progress.imagingCount} imaging</span>`;
         }
         html += `</div>`;
+
+        html += '</div>';
+        return html;
+    },
+
+    /**
+     * Render a segmented progress bar divided by learning levels.
+     * Completed levels are filled with their level color. The active level pulses.
+     * @param {object} progress — from _getDeepLearnProgress()
+     * @param {string} activeStage — 'loading'|'analyzing'|'synthesizing' or null
+     */
+    _renderSegmentedProgressBar(progress, activeStage) {
+        const levelColors = ['', '#6366f1', '#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+        const getColor = (lvl) => levelColors[Math.min(lvl, levelColors.length - 1)] || '#94a3b8';
+
+        const totalLevels = progress.totalLevels || 1;
+        const currentLevel = progress.currentLevel || 0;
+        const batchSizes = progress.batchSizes || [];
+        const totalItems = progress.totalItems || 1;
+
+        // Compute segment widths proportional to batch sizes
+        let segments = [];
+        if (batchSizes.length > 0) {
+            segments = batchSizes.map((size, i) => ({
+                level: i + 1,
+                widthPct: (size / totalItems) * 100,
+                size
+            }));
+        } else {
+            // Fallback: equal segments
+            for (let i = 1; i <= totalLevels; i++) {
+                segments.push({ level: i, widthPct: 100 / totalLevels, size: Math.round(totalItems / totalLevels) });
+            }
+        }
+
+        let html = '<div class="dl-segmented-bar">';
+
+        segments.forEach(seg => {
+            const isCompleted = seg.level < currentLevel;
+            const isActive = seg.level === currentLevel;
+            const isFuture = seg.level > currentLevel;
+            const color = getColor(seg.level);
+
+            let cls = 'dl-seg';
+            if (isCompleted) cls += ' dl-seg-done';
+            else if (isActive) cls += ' dl-seg-active';
+            else cls += ' dl-seg-future';
+
+            const isPulsing = isActive && (activeStage === 'analyzing' || activeStage === 'synthesizing');
+
+            html += `<div class="${cls}${isPulsing ? ' dl-seg-pulse' : ''}" style="width: ${seg.widthPct}%; --seg-color: ${color};" title="Level ${seg.level}: ${seg.size} items">`;
+            html += `<div class="dl-seg-fill"></div>`;
+            html += `<span class="dl-seg-label">L${seg.level}</span>`;
+            html += `</div>`;
+        });
 
         html += '</div>';
         return html;
@@ -2015,10 +2064,8 @@ const AICoworker = {
         html += `<span class="dl-between-pct">${pct}% of chart</span>`;
         html += `</div>`;
 
-        // Progress bar
-        html += `<div class="dl-progress-bar-wrap">`;
-        html += `<div class="dl-progress-bar" style="width: ${pct}%"></div>`;
-        html += `</div>`;
+        // Segmented progress bar — divided by level
+        html += this._renderSegmentedProgressBar(progress);
 
         // Remaining info
         html += `<div class="dl-between-remaining">`;
@@ -8413,7 +8460,7 @@ RULES:
                 currentLevel: this._deepLearn.currentLevel,
                 totalLevels: this._deepLearn.totalLevels,
                 processedIds: Array.from(this._deepLearn.processed),
-                // Don't save queue/batches — they'll be rebuilt from chart map
+                levelBatchSizes: (this._deepLearn.levelBatches || []).map(b => b.length),
             };
             localStorage.setItem(`deepLearn_${pid}`, JSON.stringify(state));
         } catch (e) {
@@ -8439,6 +8486,7 @@ RULES:
             this._deepLearn.currentLevel = state.currentLevel || 0;
             this._deepLearn.totalLevels = state.totalLevels || 0;
             this._deepLearn.processed = new Set(state.processedIds || []);
+            this._deepLearn._savedBatchSizes = state.levelBatchSizes || [];
 
             console.log(`🧠 Restored deep learn state: Level ${state.currentLevel}, ${state.processedCount}/${state.totalItems} items, phase: ${state.phase}`);
             return true;
@@ -8458,6 +8506,11 @@ RULES:
         const remainingLevels = Math.max(0, dl.totalLevels - dl.currentLevel);
         const map = dl.chartMap || { notes: [], labs: [], imaging: [] };
 
+        // Compute per-level batch sizes for segmented progress bar
+        const batchSizes = (dl.levelBatches && dl.levelBatches.length > 0)
+            ? dl.levelBatches.map(b => b.length)
+            : (dl._savedBatchSizes || []);
+
         return {
             phase: dl.phase,
             currentLevel: dl.currentLevel,
@@ -8467,6 +8520,7 @@ RULES:
             percentComplete: pct,
             remaining,
             remainingLevels,
+            batchSizes,
             noteCount: map.notes.length,
             labCount: map.labs.length,
             imagingCount: map.imaging.length,

@@ -12324,6 +12324,64 @@ html, body {
 .dl-between-actions .learn-action-btn {
     flex: 1;
 }
+/* Segmented progress bar — divided by level */
+.dl-segmented-bar {
+    display: flex;
+    height: 18px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.06);
+    margin-bottom: 6px;
+    gap: 1px;
+}
+.dl-seg {
+    position: relative;
+    overflow: hidden;
+    min-width: 16px;
+    transition: all 0.4s ease;
+}
+.dl-seg-fill {
+    position: absolute;
+    inset: 0;
+    transition: opacity 0.4s ease;
+}
+.dl-seg-done .dl-seg-fill {
+    background: var(--seg-color);
+    opacity: 0.85;
+}
+.dl-seg-active .dl-seg-fill {
+    background: var(--seg-color);
+    opacity: 0.5;
+}
+.dl-seg-future .dl-seg-fill {
+    background: var(--seg-color);
+    opacity: 0.12;
+}
+.dl-seg-pulse .dl-seg-fill {
+    animation: segPulse 1.5s ease-in-out infinite;
+}
+@keyframes segPulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+}
+.dl-seg-label {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.dl-seg-future .dl-seg-label {
+    color: rgba(255, 255, 255, 0.3);
+    text-shadow: none;
+}
+
 .dl-next-level {
     animation: learn-pulse 2s ease-in-out infinite;
 }
