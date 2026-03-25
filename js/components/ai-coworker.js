@@ -6048,8 +6048,21 @@ ${ctx.dictationHistory.length > 0
                 throw new Error(errorMsg);
             }
 
-            const data = await response.json();
-            const responseText = data.content[0].text;
+            // Parse response — guard against HTML error pages returned with 200 status
+            let data;
+            try {
+                data = await response.json();
+            } catch (jsonErr) {
+                const text = await response.text().catch(() => '');
+                const preview = text.substring(0, 200);
+                this.lastApiCall.error = `Response was not JSON: ${preview}`;
+                throw new Error(`API returned non-JSON response (possible CORS or proxy error). Preview: ${preview}`);
+            }
+            const responseText = data.content?.[0]?.text;
+            if (!responseText) {
+                this.lastApiCall.error = 'Empty response from API';
+                throw new Error('API returned empty or malformed response');
+            }
 
             // Store successful response
             this.lastApiCall.response = responseText;
@@ -7826,10 +7839,20 @@ RULES:
         this.render();
 
         // Parse and store the memory document
-        const memoryDoc = this._parseJSONResponse(response);
+        let memoryDoc = this._parseJSONResponse(response);
         if (!memoryDoc) {
             console.error('Level 1: Could not parse JSON from response. First 500 chars:', response?.substring(0, 500));
-            throw new Error('Could not parse memory document from Level 1 response');
+            // Fallback: create a minimal memory doc from the raw text
+            memoryDoc = {
+                patientOverview: response?.substring(0, 2000) || 'Level 1 analysis completed but response was not structured JSON.',
+                problemAnalysis: [],
+                safetyProfile: { allergies: [], contraindications: [], criticalValues: [], interactions: [], renalDosing: [] },
+                medicationRationale: [],
+                labTrends: { key_values: [] },
+                pendingItems: [],
+                clinicalGestalt: 'Analysis completed — memory document may be incomplete. Try Redo Level 1.'
+            };
+            App.showToast('Memory document partially parsed — try Redo Level 1 for better results', 'warning');
         }
         if (!memoryDoc.patientOverview) {
             console.warn('Level 1: patientOverview missing from response, using clinicalGestalt or summary as fallback');
