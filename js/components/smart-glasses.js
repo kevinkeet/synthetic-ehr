@@ -51,6 +51,12 @@ const SmartGlasses = {
     open() {
         if (this.isOpen) return;
         this.isOpen = true;
+
+        // Initialize BLE listeners on first open
+        if (!this._bleInitialized) {
+            this._bleInitialized = true;
+            this._initBLEListeners();
+        }
         this.leftScreen = 0;
         this.rightScreen = 0;
         this._orderConfirmation = null;
@@ -1455,7 +1461,14 @@ const SmartGlasses = {
                     </div>
                 </div>
                 <div class="glasses-footer">
-                    PROTOTYPE \u00B7 Even Realities G1 \u00B7 \u2191\u2193 Scroll \u00B7 Esc Close
+                    <span class="glasses-footer-left">
+                        <span class="g1-ble-status" id="g1-ble-status">${this._getBLEStatusHTML()}</span>
+                    </span>
+                    <span class="glasses-footer-center">Even Realities G1 \u00B7 \u2191\u2193 Scroll \u00B7 Esc Close</span>
+                    <span class="glasses-footer-right">
+                        <button class="g1-connect-btn" id="g1-connect-btn" onclick="SmartGlasses.toggleBLEConnection()" title="${typeof G1Bluetooth !== 'undefined' && G1Bluetooth.isConnected() ? 'Disconnect from glasses' : 'Connect to G1 glasses via Bluetooth'}">${typeof G1Bluetooth !== 'undefined' && G1Bluetooth.isConnected() ? '\uD83D\uDD35 Disconnect' : '\uD83D\uDD17 Connect G1'}</button>
+                        <button class="g1-push-btn" onclick="SmartGlasses.pushToGlasses()" title="Push current display to G1 glasses" ${typeof G1Bluetooth !== 'undefined' && G1Bluetooth.isConnected() ? '' : 'disabled'}>\uD83D\uDCE4 Push to G1</button>
+                    </span>
                 </div>
             </div>
         `;
@@ -1563,6 +1576,146 @@ const SmartGlasses = {
         const el = document.createElement('span');
         el.textContent = str;
         return el.innerHTML;
+    },
+
+    // ==================== G1 BLE Integration ====================
+
+    /**
+     * Toggle BLE connection to Even Realities G1 glasses
+     */
+    async toggleBLEConnection() {
+        if (typeof G1Bluetooth === 'undefined') {
+            App.showToast('G1 Bluetooth driver not loaded', 'warning');
+            return;
+        }
+
+        if (G1Bluetooth.isConnected()) {
+            G1Bluetooth.disconnect();
+            App.showToast('Disconnected from G1 glasses', 'info');
+        } else {
+            App.showToast('Scanning for G1 glasses...', 'info');
+            try {
+                const connected = await G1Bluetooth.connect();
+                if (connected) {
+                    App.showToast('Connected to G1 glasses!', 'success');
+                    // Auto-push current display after connecting
+                    this.pushToGlasses();
+                }
+            } catch (err) {
+                App.showToast(`G1 connection failed: ${err.message}`, 'error');
+            }
+        }
+        this._updateBLEUI();
+    },
+
+    /**
+     * Push the current glasses display data to the real G1 hardware via BLE.
+     */
+    async pushToGlasses() {
+        if (typeof G1Bluetooth === 'undefined' || !G1Bluetooth.isConnected()) {
+            App.showToast('G1 not connected — connect first', 'warning');
+            return;
+        }
+
+        // Try LLM-generated glassesDisplay first (pre-formatted for G1)
+        const state = (typeof AICoworker !== 'undefined') ? AICoworker.state : null;
+        if (state?.glassesDisplay) {
+            console.log('👓 Pushing LLM-generated HUD to G1...');
+            const success = await G1Bluetooth.sendClinicalHUD(state.glassesDisplay);
+            if (success) {
+                App.showToast('Clinical HUD pushed to G1 glasses', 'success');
+                return;
+            }
+        }
+
+        // Fallback: build screens from current state
+        const data = this._getGlassesData();
+        if (!data) {
+            App.showToast('No clinical data to push — run analysis first', 'warning');
+            return;
+        }
+
+        const screens = this._buildLeftScreensFallback(data);
+        const rightScreens = this._buildRightScreensFallback(data);
+        const allScreens = [...screens, ...rightScreens];
+
+        console.log(`👓 Pushing ${allScreens.length} fallback screens to G1...`);
+        const success = await G1Bluetooth.sendText(allScreens);
+        if (success) {
+            App.showToast(`Pushed ${allScreens.length} screens to G1 glasses`, 'success');
+        }
+    },
+
+    /**
+     * Get BLE status HTML for the footer
+     */
+    _getBLEStatusHTML() {
+        if (typeof G1Bluetooth === 'undefined') return '<span class="g1-status-dot g1-unavailable"></span> BLE N/A';
+        if (G1Bluetooth.isConnected()) return '<span class="g1-status-dot g1-connected"></span> G1 Connected';
+        return '<span class="g1-status-dot g1-disconnected"></span> G1 Not Connected';
+    },
+
+    /**
+     * Update BLE UI elements after connection state changes
+     */
+    _updateBLEUI() {
+        const statusEl = document.getElementById('g1-ble-status');
+        if (statusEl) statusEl.innerHTML = this._getBLEStatusHTML();
+
+        const connectBtn = document.getElementById('g1-connect-btn');
+        if (connectBtn) {
+            const connected = typeof G1Bluetooth !== 'undefined' && G1Bluetooth.isConnected();
+            connectBtn.textContent = connected ? '\uD83D\uDD35 Disconnect' : '\uD83D\uDD17 Connect G1';
+            connectBtn.title = connected ? 'Disconnect from glasses' : 'Connect to G1 glasses via Bluetooth';
+        }
+
+        const pushBtn = document.querySelector('.g1-push-btn');
+        if (pushBtn) {
+            pushBtn.disabled = !(typeof G1Bluetooth !== 'undefined' && G1Bluetooth.isConnected());
+        }
+    },
+
+    /**
+     * Initialize G1 BLE event listeners
+     */
+    _initBLEListeners() {
+        if (typeof G1Bluetooth === 'undefined') return;
+
+        G1Bluetooth.on('connected', () => this._updateBLEUI());
+        G1Bluetooth.on('disconnected', () => this._updateBLEUI());
+
+        // TouchBar navigation from glasses
+        G1Bluetooth.on('touchbar', ({ action }) => {
+            if (action === 'single_tap') {
+                // Tap to advance screen — push next page
+                this.pushToGlasses();
+            } else if (action === 'double_tap') {
+                // Double tap to close
+                this.close();
+            } else if (action === 'ai_start') {
+                // Long press — start voice dictation
+                if (typeof DictationWidget !== 'undefined') {
+                    DictationWidget.open();
+                }
+            }
+        });
+
+        // Auto-push when AI state updates (if connected)
+        if (typeof AICoworker !== 'undefined') {
+            const origRender = AICoworker.render.bind(AICoworker);
+            let pushDebounce = null;
+            const autoPush = () => {
+                if (G1Bluetooth.isConnected() && AICoworker.state?.glassesDisplay) {
+                    if (pushDebounce) clearTimeout(pushDebounce);
+                    pushDebounce = setTimeout(() => this.pushToGlasses(), 2000);
+                }
+            };
+            // Hook into state changes
+            G1Bluetooth.on('connected', () => {
+                // Push immediately on connect
+                setTimeout(() => this.pushToGlasses(), 500);
+            });
+        }
     }
 };
 
