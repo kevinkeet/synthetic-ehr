@@ -28,8 +28,9 @@ const AICoworker = {
     apiKey: null,
     apiEndpoint: '/api/claude',
     backendAvailable: false,
-    model: 'claude-sonnet-4-6',
-    analysisModel: 'claude-sonnet-4-6', // Default all tasks to Sonnet 4.6
+    model: 'claude-haiku-4-5-20251001',
+    analysisModel: 'claude-haiku-4-5-20251001', // Haiku for fast prototyping
+    dictationModel: 'claude-sonnet-4-6', // Keep Sonnet for dictation synthesis (higher quality)
 
     // Current mode config (synced from AIModeConfig)
     get mode_config() {
@@ -563,6 +564,9 @@ const AICoworker = {
 
         const mem = this.longitudinalDoc.aiMemory;
 
+        // Snapshot old memory for diff highlighting in viewer
+        const oldSnapshot = this._snapshotMemory(mem);
+
         // 1. Update patient summary with DEGRADATION PROTECTION
         if (memUpdates.patientSummaryUpdate) {
             const oldSummary = mem.patientSummary || '';
@@ -718,6 +722,201 @@ const AICoworker = {
             scoredFindings: (this.longitudinalDoc.scoredFindings || []).length,
             version: mem.version
         });
+
+        // Update memory viewer with diff highlighting
+        this._updateMemoryViewer(oldSnapshot);
+    },
+
+    // =====================================================
+    // MEMORY VIEWER: Live document popup with diff highlighting
+    // =====================================================
+
+    _memoryViewerOpen: false,
+
+    /**
+     * Toggle the memory viewer popup
+     */
+    toggleMemoryViewer() {
+        if (this._memoryViewerOpen) {
+            this.closeMemoryViewer();
+        } else {
+            this.openMemoryViewer();
+        }
+    },
+
+    /**
+     * Open the memory viewer popup
+     */
+    openMemoryViewer() {
+        this._memoryViewerOpen = true;
+        let popup = document.getElementById('memory-viewer-popup');
+        if (!popup) {
+            popup = document.createElement('div');
+            popup.id = 'memory-viewer-popup';
+            popup.className = 'memory-viewer-popup';
+            document.body.appendChild(popup);
+        }
+        popup.style.display = 'flex';
+        this.renderMemoryViewer();
+    },
+
+    /**
+     * Close the memory viewer popup
+     */
+    closeMemoryViewer() {
+        this._memoryViewerOpen = false;
+        const popup = document.getElementById('memory-viewer-popup');
+        if (popup) popup.style.display = 'none';
+    },
+
+    /**
+     * Snapshot current memory state for diff comparison
+     */
+    _snapshotMemory(mem) {
+        if (!mem) return {};
+        return {
+            patientSummary: mem.patientSummary || '',
+            problemInsights: mem.problemInsights ? new Map(mem.problemInsights) : new Map(),
+            interactionLogLen: (mem.interactionLog || []).length,
+            version: mem.version || 0
+        };
+    },
+
+    /**
+     * Render the memory viewer content
+     */
+    renderMemoryViewer(diffLines) {
+        const popup = document.getElementById('memory-viewer-popup');
+        if (!popup) return;
+
+        const mem = this.longitudinalDoc?.aiMemory;
+        if (!mem) {
+            popup.innerHTML = '<div class="memory-viewer-header"><span>🧠 AI Memory</span><button onclick="AICoworker.closeMemoryViewer()">✕</button></div><div class="memory-viewer-body"><div class="memory-empty">No memory yet. Run "Learn Patient" or "Analyze Case" first.</div></div>';
+            return;
+        }
+
+        let html = '<div class="memory-viewer-header">';
+        html += '<span>🧠 AI Memory Document</span>';
+        html += `<span class="memory-meta">v${mem.version || 0}</span>`;
+        html += '<button onclick="AICoworker.closeMemoryViewer()">✕</button>';
+        html += '</div>';
+        html += '<div class="memory-viewer-body">';
+
+        // Patient Summary
+        html += '<div class="memory-section">';
+        html += '<div class="memory-section-title">Patient Summary</div>';
+        if (mem.patientSummary) {
+            const lines = mem.patientSummary.split('\n');
+            html += '<div class="memory-section-content">';
+            lines.forEach((line, i) => {
+                const isHighlighted = diffLines && diffLines.summaryLines && diffLines.summaryLines.has(i);
+                html += `<div class="${isHighlighted ? 'memory-diff-highlight' : ''}">${this.escapeHtml(line) || '&nbsp;'}</div>`;
+            });
+            html += '</div>';
+        } else {
+            html += '<div class="memory-section-content memory-empty">No summary yet</div>';
+        }
+        html += '</div>';
+
+        // Problem Insights
+        if (mem.problemInsights && mem.problemInsights.size > 0) {
+            html += '<div class="memory-section">';
+            html += `<div class="memory-section-title">Problem Insights (${mem.problemInsights.size})</div>`;
+            html += '<div class="memory-section-content">';
+            mem.problemInsights.forEach((insight, id) => {
+                const isNew = diffLines && diffLines.newInsights && diffLines.newInsights.has(id);
+                html += `<div class="memory-insight-item ${isNew ? 'memory-diff-highlight' : ''}">`;
+                html += `<strong>${this.escapeHtml(id)}</strong>: ${this.escapeHtml(insight)}`;
+                html += '</div>';
+            });
+            html += '</div></div>';
+        }
+
+        // Key Findings (from scored findings)
+        const scored = this.longitudinalDoc?.scoredFindings;
+        if (scored && scored.length > 0) {
+            html += '<div class="memory-section">';
+            html += `<div class="memory-section-title">Key Findings (${scored.length})</div>`;
+            html += '<div class="memory-section-content">';
+            scored.slice(0, 15).forEach(f => {
+                const conf = f.confidence ? ` (${Math.round(f.confidence * 100)}%)` : '';
+                html += `<div class="memory-finding-item">${this.escapeHtml(f.text)}${conf}</div>`;
+            });
+            html += '</div></div>';
+        }
+
+        // Recent Interactions
+        if (mem.interactionLog && mem.interactionLog.length > 0) {
+            const recent = mem.interactionLog.slice(-5).reverse();
+            html += '<div class="memory-section">';
+            html += `<div class="memory-section-title">Recent Interactions (${mem.interactionLog.length} total)</div>`;
+            html += '<div class="memory-section-content">';
+            recent.forEach((entry, i) => {
+                const isNew = i === 0 && diffLines && diffLines.newInteraction;
+                const time = entry.timestamp ? new Date(entry.timestamp).toLocaleTimeString() : '';
+                html += `<div class="memory-log-item ${isNew ? 'memory-diff-highlight' : ''}">`;
+                html += `<span class="memory-log-time">${time}</span> `;
+                html += `<span class="memory-log-type">${entry.type || ''}</span> `;
+                html += this.escapeHtml((entry.summary || '').substring(0, 120));
+                html += '</div>';
+            });
+            html += '</div></div>';
+        }
+
+        // Metadata
+        html += '<div class="memory-section memory-section-meta">';
+        html += '<div class="memory-section-title">Metadata</div>';
+        html += '<div class="memory-section-content">';
+        if (mem.lastLearnedAt) html += `<div>Learned: ${new Date(mem.lastLearnedAt).toLocaleString()}</div>`;
+        if (mem.lastRefreshedAt) html += `<div>Refreshed: ${new Date(mem.lastRefreshedAt).toLocaleString()}</div>`;
+        if (mem.lastDigestedAt) html += `<div>Last dictation: ${new Date(mem.lastDigestedAt).toLocaleString()}</div>`;
+        html += `<div>Consolidation count: ${mem.consolidationCount || 0}</div>`;
+        html += '</div></div>';
+
+        html += '</div>';
+        popup.innerHTML = html;
+    },
+
+    /**
+     * Update memory viewer with diff highlighting after a write-back
+     */
+    _updateMemoryViewer(oldSnapshot) {
+        if (!this._memoryViewerOpen) return;
+
+        const mem = this.longitudinalDoc?.aiMemory;
+        if (!mem || !oldSnapshot) {
+            this.renderMemoryViewer();
+            return;
+        }
+
+        // Compute diffs
+        const diffLines = { summaryLines: new Set(), newInsights: new Set(), newInteraction: false };
+
+        // Summary line-by-line diff
+        const oldLines = (oldSnapshot.patientSummary || '').split('\n');
+        const newLines = (mem.patientSummary || '').split('\n');
+        newLines.forEach((line, i) => {
+            if (i >= oldLines.length || line !== oldLines[i]) {
+                diffLines.summaryLines.add(i);
+            }
+        });
+
+        // New or changed problem insights
+        if (mem.problemInsights) {
+            mem.problemInsights.forEach((insight, id) => {
+                const oldInsight = oldSnapshot.problemInsights ? oldSnapshot.problemInsights.get(id) : undefined;
+                if (oldInsight === undefined || oldInsight !== insight) {
+                    diffLines.newInsights.add(id);
+                }
+            });
+        }
+
+        // New interaction log entry
+        if ((mem.interactionLog || []).length > (oldSnapshot.interactionLogLen || 0)) {
+            diffLines.newInteraction = true;
+        }
+
+        this.renderMemoryViewer(diffLines);
     },
 
     // =====================================================
@@ -1606,6 +1805,13 @@ const AICoworker = {
             html += '<span class="learn-action-icon">&#9989;</span>';
             html += '<span class="learn-action-label">Analyzed</span>';
             if (analyzeTime) html += `<span class="learn-action-time">${analyzeTime}</span>`;
+            html += '</button>';
+        }
+
+        // === View Memory Button ===
+        if (status.hasMemory) {
+            html += '<button class="memory-viewer-btn" onclick="AICoworker.toggleMemoryViewer()" title="View AI memory document">';
+            html += '&#129504;';
             html += '</button>';
         }
 
@@ -6048,10 +6254,10 @@ RULES:
                 }
             };
 
-            // Use streaming for real-time progressive updates
+            // Use streaming for real-time progressive updates (dictation stays on Sonnet for quality)
             const response = await this.callLLMStreaming(
                 systemPrompt, userMessage, 4096,
-                { model: this.analysisModel }, onChunk
+                { model: this.dictationModel }, onChunk
             );
 
             // Clear any pending progressive timer
