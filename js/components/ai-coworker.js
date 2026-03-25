@@ -2913,23 +2913,17 @@ const AICoworker = {
         // Inline prompt editor (shown/hidden by toggle)
         html += this.renderInlinePromptEditor();
 
-        // Input row with mode-specific placeholder
+        // Input row: textarea for quick typed questions + dictate button for voice
         var placeholder = 'Ask a question or share your thinking...';
         if (mode) {
             if (mode.id === 'reactive') placeholder = 'Give an order or ask a question...';
             else if (mode.id === 'proactive') placeholder = 'Share your thinking or challenge me...';
         }
         html += '<div class="inline-input-row">';
-        var isHandsFree = this._handsFreeActive || false;
-        html += '<button class="inline-mic-btn' + (isHandsFree ? ' recording' : '') + '" onclick="AICoworker.toggleHandsFree()" title="' + (isHandsFree ? 'Stop hands-free' : 'Hands-free voice mode') + '">&#127908;</button>';
-        html += '<textarea id="copilot-inline-input" class="inline-textarea' + (isHandsFree ? ' voice-active' : '') + '" rows="1" placeholder="' + (isHandsFree ? 'Listening... speak now' : placeholder) + '" onkeydown="AICoworker.handleInputKeydown(event)"></textarea>';
+        html += '<button class="inline-dictate-btn" onclick="if(typeof DictationWidget!==\'undefined\') DictationWidget.toggle()" title="Open Dictation (voice + orders)">&#127908;</button>';
+        html += '<textarea id="copilot-inline-input" class="inline-textarea" rows="1" placeholder="' + placeholder + '" onkeydown="AICoworker.handleInputKeydown(event)"></textarea>';
         html += '<button class="inline-send-btn" onclick="AICoworker.handleInlineSubmit()" title="Send">&#9654;</button>';
         html += '</div>';
-        // Silence timer indicator
-        if (isHandsFree) {
-            var secs = Math.round((this._handsFreeTimeout || 3000) / 1000);
-            html += '<div class="hands-free-status" id="hands-free-status"><span class="hf-pulse"></span> Hands-free mode &mdash; auto-submits after ' + secs + 's silence</div>';
-        }
 
         html += '</div>';
         return html;

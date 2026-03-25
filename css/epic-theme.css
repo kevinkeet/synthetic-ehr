@@ -7186,6 +7186,7 @@ html, body {
 
 /* ===== Hands-Free Voice Mode ===== */
 
+.inline-dictate-btn,
 .inline-mic-btn {
     width: 34px;
     height: 34px;
@@ -7202,6 +7203,7 @@ html, body {
     transition: all 0.2s ease;
 }
 
+.inline-dictate-btn:hover,
 .inline-mic-btn:hover {
     background: #e5e7eb;
     color: var(--text-primary);
