@@ -795,7 +795,7 @@ const AICoworker = {
 
     /**
      * Render the memory viewer — shows the ACTUAL knowledge base the AI uses.
-     * Prioritizes the structured memoryDocument (from Deep Learn) over the lighter patientSummary.
+     * Color-codes content by learning level so users can see understanding deepen.
      */
     renderMemoryViewer(diffFields) {
         const popup = document.getElementById('memory-viewer-popup');
@@ -807,26 +807,91 @@ const AICoworker = {
             return;
         }
 
-        const doc = mem.memoryDocument; // The real structured knowledge base
-        const diff = diffFields || {};
+        const doc = mem.memoryDocument;
+        const levelHistory = mem._levelHistory || [];
+        // Build a map: for each level, what's new/changed
+        const latestDiff = levelHistory.length > 0 ? levelHistory[levelHistory.length - 1].diff : null;
+        const maxLevel = doc?._levelMeta?.lastLevel || 1;
+
+        // Level color palette
+        const levelColors = [
+            '', // unused (0)
+            '#6366f1', // Level 1 — indigo
+            '#3b82f6', // Level 2 — blue
+            '#06b6d4', // Level 3 — cyan
+            '#10b981', // Level 4 — emerald
+            '#f59e0b', // Level 5 — amber
+            '#ef4444', // Level 6 — red
+            '#8b5cf6', // Level 7 — violet
+            '#ec4899', // Level 8 — pink
+        ];
+        const getLevelColor = (lvl) => levelColors[Math.min(lvl, levelColors.length - 1)] || '#94a3b8';
+        const levelTag = (lvl) => `<span class="memory-level-tag" style="background: ${getLevelColor(lvl)}20; color: ${getLevelColor(lvl)}; border: 1px solid ${getLevelColor(lvl)}40;">L${lvl}</span>`;
+
+        const showRaw = this._memoryViewerRawMode || false;
 
         let html = '<div class="memory-viewer-header">';
         html += '<span>🧠 AI Knowledge Base</span>';
+        html += '<div class="memory-header-actions">';
+        html += `<button class="memory-raw-toggle${showRaw ? ' active' : ''}" onclick="AICoworker._memoryViewerRawMode = !AICoworker._memoryViewerRawMode; AICoworker.renderMemoryViewer();" title="Toggle raw JSON view">&lt;/&gt;</button>`;
         html += `<span class="memory-meta">v${mem.version || 0}</span>`;
         html += '<button onclick="AICoworker.closeMemoryViewer()">✕</button>';
         html += '</div>';
+        html += '</div>';
+
+        // Level legend
+        if (levelHistory.length > 0) {
+            html += '<div class="memory-level-legend">';
+            for (let i = 1; i <= maxLevel; i++) {
+                const entry = levelHistory.find(h => h.level === i);
+                const time = entry ? new Date(entry.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+                html += `<span class="memory-level-chip" style="background: ${getLevelColor(i)}18; color: ${getLevelColor(i)}; border: 1px solid ${getLevelColor(i)}35;">`;
+                html += `Level ${i}`;
+                if (time) html += ` <span class="memory-level-time">${time}</span>`;
+                html += '</span>';
+            }
+            html += '</div>';
+        }
+
         html += '<div class="memory-viewer-body">';
 
-        if (doc) {
-            // === PATIENT OVERVIEW (the core mental model) ===
+        // RAW JSON VIEW — show the actual document structure
+        if (showRaw && doc) {
+            html += '<div class="memory-raw-view">';
+            // Strip internal metadata for display
+            const displayDoc = Object.assign({}, doc);
+            delete displayDoc._levelMeta;
+            const jsonStr = JSON.stringify(displayDoc, null, 2);
+            // Syntax highlight: keys, strings, numbers, booleans
+            const highlighted = this.escapeHtml(jsonStr)
+                .replace(/"([^"]+)":/g, '<span class="json-key">"$1"</span>:')
+                .replace(/: "([^"]*?)"/g, ': <span class="json-string">"$1"</span>')
+                .replace(/: (\d+\.?\d*)/g, ': <span class="json-number">$1</span>')
+                .replace(/: (true|false|null)/g, ': <span class="json-bool">$1</span>');
+            html += `<pre class="memory-raw-json">${highlighted}</pre>`;
+            html += '</div>';
+        } else if (doc) {
+            // Helper: check if an item index is new at a specific level
+            const isNewAtLatestLevel = (section, idx) => {
+                if (!latestDiff) return false;
+                if (section === 'problems') return latestDiff.newProblems?.includes(idx);
+                if (section === 'changedProblems') return latestDiff.changedProblems?.includes(idx);
+                if (section === 'meds') return latestDiff.newMeds?.includes(idx);
+                if (section === 'labs') return latestDiff.newLabTrends?.includes(idx);
+                if (section === 'pending') return latestDiff.newPendingItems?.includes(idx);
+                return false;
+            };
+            const latestLevelColor = getLevelColor(maxLevel);
+            const itemLevelStyle = (isNew) => isNew ? ` style="border-left: 3px solid ${latestLevelColor}; padding-left: 8px;"` : '';
+
+            // === PATIENT OVERVIEW ===
             if (doc.patientOverview) {
+                const changed = latestDiff?.overviewChanged && maxLevel > 1;
                 html += '<div class="memory-section">';
-                html += '<div class="memory-section-title">Patient Overview</div>';
-                html += '<div class="memory-section-content">';
-                const lines = doc.patientOverview.split('\n');
-                lines.forEach((line, i) => {
-                    const hl = diff.overviewLines && diff.overviewLines.has(i) ? ' memory-diff-highlight' : '';
-                    html += `<div class="${hl}">${this.escapeHtml(line) || '&nbsp;'}</div>`;
+                html += `<div class="memory-section-title">Patient Overview ${changed ? levelTag(maxLevel) + ' <span class="memory-updated-label">updated</span>' : ''}</div>`;
+                html += `<div class="memory-section-content"${changed ? ` style="border-left: 3px solid ${latestLevelColor}; padding-left: 10px;"` : ''}>`;
+                doc.patientOverview.split('\n').forEach(line => {
+                    html += `<div>${this.escapeHtml(line) || '&nbsp;'}</div>`;
                 });
                 html += '</div></div>';
             }
@@ -837,18 +902,21 @@ const AICoworker = {
                 html += `<div class="memory-section-title">Problem Analysis (${doc.problemAnalysis.length})</div>`;
                 html += '<div class="memory-section-content">';
                 doc.problemAnalysis.forEach((p, i) => {
-                    const hl = diff.changedProblems && diff.changedProblems.has(i) ? ' memory-diff-highlight' : '';
-                    html += `<div class="memory-problem-item${hl}">`;
+                    const isNew = isNewAtLatestLevel('problems', i);
+                    const isChanged = isNewAtLatestLevel('changedProblems', i);
+                    const tag = isNew ? ' ' + levelTag(maxLevel) + ' <span class="memory-new-badge">new</span>' :
+                                isChanged ? ' ' + levelTag(maxLevel) + ' <span class="memory-updated-label">updated</span>' : '';
+                    html += `<div class="memory-problem-item"${itemLevelStyle(isNew || isChanged)}>`;
                     const statusBadge = p.status ? `<span class="memory-status-badge memory-status-${p.status}">${p.status}</span>` : '';
                     const trendArrow = p.trajectory === 'improving' ? ' ↗' : p.trajectory === 'worsening' ? ' ↘' : p.trajectory === 'stable' ? ' →' : '';
-                    html += `<div class="memory-problem-name">${this.escapeHtml(p.problem || '')} ${statusBadge}${trendArrow}</div>`;
+                    html += `<div class="memory-problem-name">${this.escapeHtml(p.problem || '')} ${statusBadge}${trendArrow}${tag}</div>`;
                     if (p.plan) html += `<div class="memory-problem-plan"><strong>Plan:</strong> ${this.escapeHtml(p.plan)}</div>`;
                     if (p.keyData && p.keyData.length) {
                         html += '<div class="memory-problem-data">';
-                        p.keyData.slice(0, 5).forEach(d => { html += `<div>• ${this.escapeHtml(d)}</div>`; });
-                        if (p.keyData.length > 5) html += `<div class="memory-muted">... +${p.keyData.length - 5} more</div>`;
+                        p.keyData.forEach(d => { html += `<div>• ${this.escapeHtml(d)}</div>`; });
                         html += '</div>';
                     }
+                    if (p.timeline) html += `<div class="memory-problem-timeline"><strong>Timeline:</strong> ${this.escapeHtml(p.timeline)}</div>`;
                     if (p.medRationale) html += `<div class="memory-problem-meds"><strong>Meds:</strong> ${this.escapeHtml(p.medRationale)}</div>`;
                     html += '</div>';
                 });
@@ -894,9 +962,10 @@ const AICoworker = {
                 html += '<div class="memory-section">';
                 html += `<div class="memory-section-title">💊 Medication Rationale (${doc.medicationRationale.length})</div>`;
                 html += '<div class="memory-section-content">';
-                doc.medicationRationale.forEach(m => {
-                    html += '<div class="memory-med-item">';
-                    html += `<div class="memory-med-name">${this.escapeHtml(m.name || '')}</div>`;
+                doc.medicationRationale.forEach((m, i) => {
+                    const isNew = isNewAtLatestLevel('meds', i);
+                    html += `<div class="memory-med-item"${itemLevelStyle(isNew)}>`;
+                    html += `<div class="memory-med-name">${this.escapeHtml(m.name || '')}${isNew ? ' ' + levelTag(maxLevel) : ''}</div>`;
                     if (m.indication) html += `<div class="memory-med-detail"><strong>For:</strong> ${this.escapeHtml(m.indication)}</div>`;
                     if (m.rationale) html += `<div class="memory-med-detail"><strong>Why:</strong> ${this.escapeHtml(m.rationale)}</div>`;
                     if (m.monitoring) html += `<div class="memory-med-detail"><strong>Monitor:</strong> ${this.escapeHtml(m.monitoring)}</div>`;
@@ -910,10 +979,12 @@ const AICoworker = {
                 html += '<div class="memory-section">';
                 html += `<div class="memory-section-title">🔬 Lab Trends (${doc.labTrends.key_values.length})</div>`;
                 html += '<div class="memory-section-content">';
-                doc.labTrends.key_values.forEach(lab => {
+                doc.labTrends.key_values.forEach((lab, i) => {
+                    const isNew = isNewAtLatestLevel('labs', i);
                     const trendArrow = lab.trend === 'rising' ? '↑' : lab.trend === 'falling' ? '↓' : lab.trend === 'stable' ? '→' : '~';
-                    html += `<div class="memory-lab-item">`;
+                    html += `<div class="memory-lab-item"${itemLevelStyle(isNew)}>`;
                     html += `<strong>${this.escapeHtml(lab.test || '')}</strong> ${trendArrow} `;
+                    if (isNew) html += levelTag(maxLevel) + ' ';
                     if (lab.values && lab.values.length) {
                         const recent = lab.values.slice(-3).map(v => v.value + (v.flag && v.flag !== 'normal' ? ` [${v.flag}]` : '')).join(' → ');
                         html += `<span class="memory-lab-values">${this.escapeHtml(recent)}</span>`;
@@ -929,21 +1000,22 @@ const AICoworker = {
                 html += '<div class="memory-section">';
                 html += `<div class="memory-section-title">📋 Pending Items (${doc.pendingItems.length})</div>`;
                 html += '<div class="memory-section-content">';
-                doc.pendingItems.forEach(item => {
-                    html += `<div>• ${this.escapeHtml(item)}</div>`;
+                doc.pendingItems.forEach((item, i) => {
+                    const isNew = isNewAtLatestLevel('pending', i);
+                    html += `<div${itemLevelStyle(isNew)}>• ${this.escapeHtml(item)}${isNew ? ' ' + levelTag(maxLevel) : ''}</div>`;
                 });
                 html += '</div></div>';
             }
 
             // === CLINICAL GESTALT ===
             if (doc.clinicalGestalt) {
+                const changed = latestDiff?.gestaltChanged && maxLevel > 1;
                 html += '<div class="memory-section">';
-                html += '<div class="memory-section-title">Clinical Gestalt</div>';
+                html += `<div class="memory-section-title">Clinical Gestalt ${changed ? levelTag(maxLevel) + ' <span class="memory-updated-label">updated</span>' : ''}</div>`;
                 html += `<div class="memory-section-content"><em>${this.escapeHtml(doc.clinicalGestalt)}</em></div>`;
                 html += '</div>';
             }
         } else if (mem.patientSummary) {
-            // Fallback: no structured memoryDocument, show the lighter patientSummary
             html += '<div class="memory-section">';
             html += '<div class="memory-section-title">Patient Summary (from analysis)</div>';
             html += '<div class="memory-section-content">';
@@ -963,6 +1035,7 @@ const AICoworker = {
         if (mem.lastRefreshedAt) html += `<div>Refreshed: ${new Date(mem.lastRefreshedAt).toLocaleString()}</div>`;
         if (mem.lastDigestedAt) html += `<div>Last dictation: ${new Date(mem.lastDigestedAt).toLocaleString()}</div>`;
         html += `<div>Version: ${mem.version || 0} | Interactions: ${(mem.interactionLog || []).length}</div>`;
+        if (levelHistory.length > 0) html += `<div>Levels learned: ${levelHistory.length} (latest: Level ${maxLevel})</div>`;
         html += '</div></div>';
 
         html += '</div>';
@@ -8158,7 +8231,100 @@ RULES:
      * Apply a memory document to the longitudinal doc and panel state.
      * Shared by Level 1 and Level 2+ synthesis.
      */
+    /**
+     * Compute what changed between two memory documents for level-diff visualization.
+     * Returns sets of new/changed items keyed by section.
+     */
+    _computeMemoryLevelDiff(prevDoc, newDoc, level) {
+        const diff = {
+            level,
+            overviewChanged: false,
+            newProblems: [],      // indices of new problems
+            changedProblems: [],  // indices of problems with changed content
+            newMeds: [],          // indices of new medications
+            newLabTrends: [],     // indices of new lab trends
+            newSafetyItems: [],   // new safety items (allergies, contraindications, etc.)
+            newPendingItems: [],  // new pending items
+            gestaltChanged: false
+        };
+
+        if (!prevDoc) {
+            // Everything is new (Level 1)
+            diff.overviewChanged = true;
+            diff.gestaltChanged = true;
+            if (newDoc.problemAnalysis) diff.newProblems = newDoc.problemAnalysis.map((_, i) => i);
+            if (newDoc.medicationRationale) diff.newMeds = newDoc.medicationRationale.map((_, i) => i);
+            if (newDoc.labTrends?.key_values) diff.newLabTrends = newDoc.labTrends.key_values.map((_, i) => i);
+            if (newDoc.pendingItems) diff.newPendingItems = newDoc.pendingItems.map((_, i) => i);
+            return diff;
+        }
+
+        // Overview changed?
+        if ((newDoc.patientOverview || '') !== (prevDoc.patientOverview || '')) {
+            diff.overviewChanged = true;
+        }
+        // Gestalt changed?
+        if ((newDoc.clinicalGestalt || '') !== (prevDoc.clinicalGestalt || '')) {
+            diff.gestaltChanged = true;
+        }
+
+        // Problem analysis diff
+        const prevProblems = (prevDoc.problemAnalysis || []).map(p => p.problem);
+        (newDoc.problemAnalysis || []).forEach((p, i) => {
+            const prevIdx = prevProblems.indexOf(p.problem);
+            if (prevIdx === -1) {
+                diff.newProblems.push(i);
+            } else {
+                const prev = prevDoc.problemAnalysis[prevIdx];
+                if (JSON.stringify(prev) !== JSON.stringify(p)) {
+                    diff.changedProblems.push(i);
+                }
+            }
+        });
+
+        // Medication diff
+        const prevMeds = (prevDoc.medicationRationale || []).map(m => m.name);
+        (newDoc.medicationRationale || []).forEach((m, i) => {
+            if (!prevMeds.includes(m.name)) diff.newMeds.push(i);
+        });
+
+        // Lab trends diff
+        const prevLabs = (prevDoc.labTrends?.key_values || []).map(l => l.test);
+        (newDoc.labTrends?.key_values || []).forEach((l, i) => {
+            if (!prevLabs.includes(l.test)) diff.newLabTrends.push(i);
+        });
+
+        // Pending items diff
+        const prevPending = new Set(prevDoc.pendingItems || []);
+        (newDoc.pendingItems || []).forEach((item, i) => {
+            if (!prevPending.has(item)) diff.newPendingItems.push(i);
+        });
+
+        return diff;
+    },
+
     _applyMemoryDocument(memoryDoc) {
+        const currentLevel = this._deepLearn.currentLevel || 1;
+        const prevDoc = this.longitudinalDoc.aiMemory.memoryDocument;
+
+        // Compute diff: what's new or changed at this level
+        const levelDiff = this._computeMemoryLevelDiff(prevDoc, memoryDoc, currentLevel);
+
+        // Store level history for the viewer
+        if (!this.longitudinalDoc.aiMemory._levelHistory) {
+            this.longitudinalDoc.aiMemory._levelHistory = [];
+        }
+        this.longitudinalDoc.aiMemory._levelHistory.push({
+            level: currentLevel,
+            timestamp: new Date().toISOString(),
+            diff: levelDiff
+        });
+
+        // Tag the memory doc with level source info
+        memoryDoc._levelMeta = memoryDoc._levelMeta || {};
+        memoryDoc._levelMeta.lastLevel = currentLevel;
+        memoryDoc._levelMeta.levelDiffs = this.longitudinalDoc.aiMemory._levelHistory;
+
         // Store in longitudinal doc's aiMemory
         this.longitudinalDoc.aiMemory.memoryDocument = memoryDoc;
         this.longitudinalDoc.aiMemory.lastLearnedAt = new Date().toISOString();
@@ -8212,6 +8378,11 @@ RULES:
         }
 
         this.state.lastUpdated = new Date().toISOString();
+
+        // Auto-refresh the memory viewer if it's open
+        if (this._memoryViewerOpen) {
+            this.renderMemoryViewer();
+        }
     },
 
     /**
