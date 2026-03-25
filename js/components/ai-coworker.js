@@ -1808,8 +1808,9 @@ const AICoworker = {
             html += '</button>';
         }
 
-        // === View Memory Button ===
-        if (status.hasMemory) {
+        // === View Memory Button === (show if any AI memory exists)
+        const hasAnyMemory = status.hasMemory || !!this.longitudinalDoc?.aiMemory?.patientSummary;
+        if (hasAnyMemory) {
             html += '<button class="memory-viewer-btn" onclick="AICoworker.toggleMemoryViewer()" title="View AI memory document">';
             html += '&#129504;';
             html += '</button>';
