@@ -1816,14 +1816,6 @@ const AICoworker = {
             html += '</button>';
         }
 
-        // === View Memory Button === (show if any AI memory exists)
-        const hasAnyMemory = status.hasMemory || !!this.longitudinalDoc?.aiMemory?.patientSummary;
-        if (hasAnyMemory) {
-            html += '<button class="memory-viewer-btn" onclick="AICoworker.toggleMemoryViewer()" title="View AI memory document">';
-            html += '&#129504;';
-            html += '</button>';
-        }
-
         // === Clear Memory Button ===
         if (status.hasMemory || hasAnalysis) {
             html += '<button class="clear-memory-btn" onclick="AICoworker.clearMemory()" title="Clear AI memory and start fresh">';
