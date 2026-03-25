@@ -10668,6 +10668,69 @@ html, body {
     color: #94a3b8;
 }
 
+/* Problem analysis items */
+.memory-problem-item {
+    padding: 6px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+.memory-problem-item:last-child { border-bottom: none; }
+.memory-problem-name {
+    font-weight: 700;
+    font-size: 12px;
+    color: #1e293b;
+    margin-bottom: 2px;
+}
+.memory-problem-plan, .memory-problem-meds {
+    font-size: 11px;
+    margin-top: 2px;
+    line-height: 1.4;
+}
+.memory-problem-data {
+    font-size: 10.5px;
+    color: #475569;
+    margin-top: 2px;
+}
+.memory-problem-data > div { padding: 0.5px 0; }
+.memory-status-badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    vertical-align: middle;
+    margin-left: 4px;
+}
+.memory-status-active, .memory-status-acute { background: #fef2f2; color: #dc2626; }
+.memory-status-stable, .memory-status-chronic { background: #f0fdf4; color: #16a34a; }
+.memory-status-resolving { background: #eff6ff; color: #2563eb; }
+.memory-muted { color: #94a3b8; font-size: 10px; font-style: italic; }
+
+/* Safety profile */
+.memory-section-safety .memory-section-title { color: #dc2626; }
+.memory-safety-group { margin-bottom: 6px; }
+.memory-safety-group > div { padding: 1px 0; font-size: 11px; }
+.memory-safety-group em { color: #64748b; font-size: 10px; }
+
+/* Medication items */
+.memory-med-item {
+    padding: 4px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+.memory-med-item:last-child { border-bottom: none; }
+.memory-med-name { font-weight: 700; font-size: 11.5px; color: #1e40af; }
+.memory-med-detail { font-size: 10.5px; color: #475569; margin-top: 1px; }
+
+/* Lab trend items */
+.memory-lab-item {
+    padding: 3px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 11px;
+}
+.memory-lab-item:last-child { border-bottom: none; }
+.memory-lab-values { color: #475569; font-size: 10.5px; }
+
 /* Memory viewer button in learn bar */
 .memory-viewer-btn {
     background: none;

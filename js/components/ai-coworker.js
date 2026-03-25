@@ -791,94 +791,175 @@ const AICoworker = {
     },
 
     /**
-     * Render the memory viewer content
+     * Render the memory viewer — shows the ACTUAL knowledge base the AI uses.
+     * Prioritizes the structured memoryDocument (from Deep Learn) over the lighter patientSummary.
      */
-    renderMemoryViewer(diffLines) {
+    renderMemoryViewer(diffFields) {
         const popup = document.getElementById('memory-viewer-popup');
         if (!popup) return;
 
         const mem = this.longitudinalDoc?.aiMemory;
         if (!mem) {
-            popup.innerHTML = '<div class="memory-viewer-header"><span>🧠 AI Memory</span><button onclick="AICoworker.closeMemoryViewer()">✕</button></div><div class="memory-viewer-body"><div class="memory-empty">No memory yet. Run "Learn Patient" or "Analyze Case" first.</div></div>';
+            popup.innerHTML = '<div class="memory-viewer-header"><span>🧠 AI Knowledge Base</span><button onclick="AICoworker.closeMemoryViewer()">✕</button></div><div class="memory-viewer-body"><div class="memory-empty">No memory yet. Run "Learn Patient" or "Analyze Case" first.</div></div>';
             return;
         }
 
+        const doc = mem.memoryDocument; // The real structured knowledge base
+        const diff = diffFields || {};
+
         let html = '<div class="memory-viewer-header">';
-        html += '<span>🧠 AI Memory Document</span>';
+        html += '<span>🧠 AI Knowledge Base</span>';
         html += `<span class="memory-meta">v${mem.version || 0}</span>`;
         html += '<button onclick="AICoworker.closeMemoryViewer()">✕</button>';
         html += '</div>';
         html += '<div class="memory-viewer-body">';
 
-        // Patient Summary
-        html += '<div class="memory-section">';
-        html += '<div class="memory-section-title">Patient Summary</div>';
-        if (mem.patientSummary) {
-            const lines = mem.patientSummary.split('\n');
+        if (doc) {
+            // === PATIENT OVERVIEW (the core mental model) ===
+            if (doc.patientOverview) {
+                html += '<div class="memory-section">';
+                html += '<div class="memory-section-title">Patient Overview</div>';
+                html += '<div class="memory-section-content">';
+                const lines = doc.patientOverview.split('\n');
+                lines.forEach((line, i) => {
+                    const hl = diff.overviewLines && diff.overviewLines.has(i) ? ' memory-diff-highlight' : '';
+                    html += `<div class="${hl}">${this.escapeHtml(line) || '&nbsp;'}</div>`;
+                });
+                html += '</div></div>';
+            }
+
+            // === PROBLEM ANALYSIS ===
+            if (doc.problemAnalysis && doc.problemAnalysis.length > 0) {
+                html += '<div class="memory-section">';
+                html += `<div class="memory-section-title">Problem Analysis (${doc.problemAnalysis.length})</div>`;
+                html += '<div class="memory-section-content">';
+                doc.problemAnalysis.forEach((p, i) => {
+                    const hl = diff.changedProblems && diff.changedProblems.has(i) ? ' memory-diff-highlight' : '';
+                    html += `<div class="memory-problem-item${hl}">`;
+                    const statusBadge = p.status ? `<span class="memory-status-badge memory-status-${p.status}">${p.status}</span>` : '';
+                    const trendArrow = p.trajectory === 'improving' ? ' ↗' : p.trajectory === 'worsening' ? ' ↘' : p.trajectory === 'stable' ? ' →' : '';
+                    html += `<div class="memory-problem-name">${this.escapeHtml(p.problem || '')} ${statusBadge}${trendArrow}</div>`;
+                    if (p.plan) html += `<div class="memory-problem-plan"><strong>Plan:</strong> ${this.escapeHtml(p.plan)}</div>`;
+                    if (p.keyData && p.keyData.length) {
+                        html += '<div class="memory-problem-data">';
+                        p.keyData.slice(0, 5).forEach(d => { html += `<div>• ${this.escapeHtml(d)}</div>`; });
+                        if (p.keyData.length > 5) html += `<div class="memory-muted">... +${p.keyData.length - 5} more</div>`;
+                        html += '</div>';
+                    }
+                    if (p.medRationale) html += `<div class="memory-problem-meds"><strong>Meds:</strong> ${this.escapeHtml(p.medRationale)}</div>`;
+                    html += '</div>';
+                });
+                html += '</div></div>';
+            }
+
+            // === SAFETY PROFILE ===
+            if (doc.safetyProfile) {
+                const sp = doc.safetyProfile;
+                html += '<div class="memory-section memory-section-safety">';
+                html += '<div class="memory-section-title">⚠️ Safety Profile</div>';
+                html += '<div class="memory-section-content">';
+                if (sp.allergies && sp.allergies.length) {
+                    html += '<div class="memory-safety-group"><strong>Allergies:</strong>';
+                    sp.allergies.forEach(a => {
+                        const sev = a.severity ? ` [${a.severity}]` : '';
+                        html += `<div>• ${this.escapeHtml(a.substance || '')}${sev} — ${this.escapeHtml(a.reaction || '')}`;
+                        if (a.implications) html += ` <em>(${this.escapeHtml(a.implications)})</em>`;
+                        html += '</div>';
+                    });
+                    html += '</div>';
+                }
+                if (sp.contraindications && sp.contraindications.length) {
+                    html += '<div class="memory-safety-group"><strong>Contraindications:</strong>';
+                    sp.contraindications.forEach(c => { html += `<div>• ${this.escapeHtml(c)}</div>`; });
+                    html += '</div>';
+                }
+                if (sp.criticalValues && sp.criticalValues.length) {
+                    html += '<div class="memory-safety-group"><strong>Critical Values:</strong>';
+                    sp.criticalValues.forEach(v => { html += `<div>• ${this.escapeHtml(v)}</div>`; });
+                    html += '</div>';
+                }
+                if (sp.renalDosing && sp.renalDosing.length) {
+                    html += '<div class="memory-safety-group"><strong>Renal Dosing:</strong>';
+                    sp.renalDosing.forEach(r => { html += `<div>• ${this.escapeHtml(r)}</div>`; });
+                    html += '</div>';
+                }
+                html += '</div></div>';
+            }
+
+            // === MEDICATION RATIONALE ===
+            if (doc.medicationRationale && doc.medicationRationale.length) {
+                html += '<div class="memory-section">';
+                html += `<div class="memory-section-title">💊 Medication Rationale (${doc.medicationRationale.length})</div>`;
+                html += '<div class="memory-section-content">';
+                doc.medicationRationale.forEach(m => {
+                    html += '<div class="memory-med-item">';
+                    html += `<div class="memory-med-name">${this.escapeHtml(m.name || '')}</div>`;
+                    if (m.indication) html += `<div class="memory-med-detail"><strong>For:</strong> ${this.escapeHtml(m.indication)}</div>`;
+                    if (m.rationale) html += `<div class="memory-med-detail"><strong>Why:</strong> ${this.escapeHtml(m.rationale)}</div>`;
+                    if (m.monitoring) html += `<div class="memory-med-detail"><strong>Monitor:</strong> ${this.escapeHtml(m.monitoring)}</div>`;
+                    html += '</div>';
+                });
+                html += '</div></div>';
+            }
+
+            // === LAB TRENDS ===
+            if (doc.labTrends && doc.labTrends.key_values && doc.labTrends.key_values.length) {
+                html += '<div class="memory-section">';
+                html += `<div class="memory-section-title">🔬 Lab Trends (${doc.labTrends.key_values.length})</div>`;
+                html += '<div class="memory-section-content">';
+                doc.labTrends.key_values.forEach(lab => {
+                    const trendArrow = lab.trend === 'rising' ? '↑' : lab.trend === 'falling' ? '↓' : lab.trend === 'stable' ? '→' : '~';
+                    html += `<div class="memory-lab-item">`;
+                    html += `<strong>${this.escapeHtml(lab.test || '')}</strong> ${trendArrow} `;
+                    if (lab.values && lab.values.length) {
+                        const recent = lab.values.slice(-3).map(v => v.value + (v.flag && v.flag !== 'normal' ? ` [${v.flag}]` : '')).join(' → ');
+                        html += `<span class="memory-lab-values">${this.escapeHtml(recent)}</span>`;
+                    }
+                    if (lab.significance) html += `<div class="memory-muted">${this.escapeHtml(lab.significance)}</div>`;
+                    html += '</div>';
+                });
+                html += '</div></div>';
+            }
+
+            // === PENDING ITEMS ===
+            if (doc.pendingItems && doc.pendingItems.length) {
+                html += '<div class="memory-section">';
+                html += `<div class="memory-section-title">📋 Pending Items (${doc.pendingItems.length})</div>`;
+                html += '<div class="memory-section-content">';
+                doc.pendingItems.forEach(item => {
+                    html += `<div>• ${this.escapeHtml(item)}</div>`;
+                });
+                html += '</div></div>';
+            }
+
+            // === CLINICAL GESTALT ===
+            if (doc.clinicalGestalt) {
+                html += '<div class="memory-section">';
+                html += '<div class="memory-section-title">Clinical Gestalt</div>';
+                html += `<div class="memory-section-content"><em>${this.escapeHtml(doc.clinicalGestalt)}</em></div>`;
+                html += '</div>';
+            }
+        } else if (mem.patientSummary) {
+            // Fallback: no structured memoryDocument, show the lighter patientSummary
+            html += '<div class="memory-section">';
+            html += '<div class="memory-section-title">Patient Summary (from analysis)</div>';
             html += '<div class="memory-section-content">';
-            lines.forEach((line, i) => {
-                const isHighlighted = diffLines && diffLines.summaryLines && diffLines.summaryLines.has(i);
-                html += `<div class="${isHighlighted ? 'memory-diff-highlight' : ''}">${this.escapeHtml(line) || '&nbsp;'}</div>`;
+            mem.patientSummary.split('\n').forEach(line => {
+                html += `<div>${this.escapeHtml(line) || '&nbsp;'}</div>`;
             });
-            html += '</div>';
+            html += '</div></div>';
         } else {
-            html += '<div class="memory-section-content memory-empty">No summary yet</div>';
-        }
-        html += '</div>';
-
-        // Problem Insights
-        if (mem.problemInsights && mem.problemInsights.size > 0) {
-            html += '<div class="memory-section">';
-            html += `<div class="memory-section-title">Problem Insights (${mem.problemInsights.size})</div>`;
-            html += '<div class="memory-section-content">';
-            mem.problemInsights.forEach((insight, id) => {
-                const isNew = diffLines && diffLines.newInsights && diffLines.newInsights.has(id);
-                html += `<div class="memory-insight-item ${isNew ? 'memory-diff-highlight' : ''}">`;
-                html += `<strong>${this.escapeHtml(id)}</strong>: ${this.escapeHtml(insight)}`;
-                html += '</div>';
-            });
-            html += '</div></div>';
+            html += '<div class="memory-empty">No knowledge base yet. Run "Learn Patient" to build one.</div>';
         }
 
-        // Key Findings (from scored findings)
-        const scored = this.longitudinalDoc?.scoredFindings;
-        if (scored && scored.length > 0) {
-            html += '<div class="memory-section">';
-            html += `<div class="memory-section-title">Key Findings (${scored.length})</div>`;
-            html += '<div class="memory-section-content">';
-            scored.slice(0, 15).forEach(f => {
-                const conf = f.confidence ? ` (${Math.round(f.confidence * 100)}%)` : '';
-                html += `<div class="memory-finding-item">${this.escapeHtml(f.text)}${conf}</div>`;
-            });
-            html += '</div></div>';
-        }
-
-        // Recent Interactions
-        if (mem.interactionLog && mem.interactionLog.length > 0) {
-            const recent = mem.interactionLog.slice(-5).reverse();
-            html += '<div class="memory-section">';
-            html += `<div class="memory-section-title">Recent Interactions (${mem.interactionLog.length} total)</div>`;
-            html += '<div class="memory-section-content">';
-            recent.forEach((entry, i) => {
-                const isNew = i === 0 && diffLines && diffLines.newInteraction;
-                const time = entry.timestamp ? new Date(entry.timestamp).toLocaleTimeString() : '';
-                html += `<div class="memory-log-item ${isNew ? 'memory-diff-highlight' : ''}">`;
-                html += `<span class="memory-log-time">${time}</span> `;
-                html += `<span class="memory-log-type">${entry.type || ''}</span> `;
-                html += this.escapeHtml((entry.summary || '').substring(0, 120));
-                html += '</div>';
-            });
-            html += '</div></div>';
-        }
-
-        // Metadata
+        // === METADATA ===
         html += '<div class="memory-section memory-section-meta">';
         html += '<div class="memory-section-title">Metadata</div>';
         html += '<div class="memory-section-content">';
         if (mem.lastLearnedAt) html += `<div>Learned: ${new Date(mem.lastLearnedAt).toLocaleString()}</div>`;
         if (mem.lastRefreshedAt) html += `<div>Refreshed: ${new Date(mem.lastRefreshedAt).toLocaleString()}</div>`;
         if (mem.lastDigestedAt) html += `<div>Last dictation: ${new Date(mem.lastDigestedAt).toLocaleString()}</div>`;
-        html += `<div>Consolidation count: ${mem.consolidationCount || 0}</div>`;
+        html += `<div>Version: ${mem.version || 0} | Interactions: ${(mem.interactionLog || []).length}</div>`;
         html += '</div></div>';
 
         html += '</div>';
