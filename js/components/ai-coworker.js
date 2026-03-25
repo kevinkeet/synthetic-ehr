@@ -6018,8 +6018,15 @@ ${ctx.dictationHistory.length > 0
             });
 
             if (!response.ok) {
-                const error = await response.json();
-                const errorMsg = error.error?.message || 'API request failed';
+                let errorMsg = `API request failed (HTTP ${response.status})`;
+                try {
+                    const error = await response.json();
+                    errorMsg = error.error?.message || errorMsg;
+                } catch (parseErr) {
+                    // Response wasn't JSON (HTML error page, etc.)
+                    const text = await response.text().catch(() => '');
+                    errorMsg = `HTTP ${response.status}: ${text.substring(0, 200) || response.statusText}`;
+                }
                 this.lastApiCall.error = errorMsg;
                 console.error('❌ LLM API Error:', errorMsg);
                 throw new Error(errorMsg);
@@ -7633,16 +7640,16 @@ RULES:
             const isCriticalType = item.type === 'note' && criticalTypes.includes(item.meta.noteType);
             const isImaging = item.type === 'imaging';
 
-            if (level1Items.length < 60 && (isRecent || isCriticalType || isImaging)) {
+            if (level1Items.length < 15 && (isRecent || isCriticalType || isImaging)) {
                 level1Items.push(item);
             } else {
                 remainingItems.push(item);
             }
         }
 
-        // If Level 1 is too small, add more recent items
-        if (level1Items.length < 20) {
-            while (level1Items.length < 40 && remainingItems.length > 0) {
+        // If Level 1 is too small, add a few more
+        if (level1Items.length < 8) {
+            while (level1Items.length < 12 && remainingItems.length > 0) {
                 level1Items.push(remainingItems.shift());
             }
         }
@@ -7764,7 +7771,7 @@ RULES:
 
         // Assemble full text context via working memory, cap to prevent API overload
         let chartContext = this.workingMemory.assembleForDeepLearnLevel1(itemsWithData);
-        const MAX_CONTEXT = 120000; // ~30K tokens — safe for Sonnet/Haiku context windows
+        const MAX_CONTEXT = 40000; // ~10K tokens — fast enough for ~20 sec response
         if (chartContext.length > MAX_CONTEXT) {
             console.warn(`🧠 Deep Learn: Context too large (${chartContext.length} chars), truncating to ${MAX_CONTEXT}`);
             chartContext = chartContext.substring(0, MAX_CONTEXT) + '\n\n[... Chart data truncated due to size. Focus on the data above.]';

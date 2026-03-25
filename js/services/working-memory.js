@@ -768,8 +768,8 @@ class WorkingMemoryAssembler {
                 if (!body) {
                     body = n.content || n.text || n.body || n.preview || '[no content]';
                 }
-                // Cap individual note at 8000 chars to prevent one massive note from dominating
-                if (body.length > 8000) body = body.substring(0, 8000) + '\n... [truncated]';
+                // Cap individual note to keep Level 1 fast
+                if (body.length > 3000) body = body.substring(0, 3000) + '\n... [truncated]';
                 sections.push(header + '\n' + body);
             });
         }

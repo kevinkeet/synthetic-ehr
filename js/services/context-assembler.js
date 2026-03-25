@@ -882,7 +882,7 @@ Respond with ONLY the JSON, no preamble or markdown fences.`;
         return {
             systemPrompt,
             userMessage: `Here is the patient chart data for your comprehensive review:\n\n${chartContext}`,
-            maxTokens: 8192
+            maxTokens: 4096
         };
     }
 
