@@ -831,58 +831,55 @@ Respond with the COMPLETE updated memory document as JSON (same schema as before
      * Model: Sonnet. Max tokens: 8192.
      */
     buildDeepLearnLevel1Prompt(chartContext) {
-        const systemPrompt = `You are an AI clinical co-pilot performing a COMPREHENSIVE chart review for the first time. You are reading the most critical and recent portions of a patient's medical record.
+        const systemPrompt = `You are an AI clinical co-pilot performing a chart review. Build a structured MEMORY DOCUMENT from the patient data below.
 
-Your task: Build a thorough, structured MEMORY DOCUMENT that will serve as your persistent clinical knowledge of this patient for ALL future interactions. This must be detailed enough to answer clinical questions, suggest orders, and catch safety issues WITHOUT re-reading the chart.
+CRITICAL: You MUST populate ALL 7 top-level fields. Output the fields in this EXACT order. Do NOT skip any field.
 
-Read every note, lab, and imaging report carefully. Produce this EXACT JSON structure:
+Respond with ONLY valid JSON, no preamble or markdown fences:
 
 {
-    "patientOverview": "4-6 paragraph comprehensive mental model. Include: demographics, chief complaint, full HPI, PMH with clinical qualifiers (EF%, baseline Cr, A1c, NYHA class, MELD, etc.), surgical history, social/functional status, and current clinical trajectory. Write as a clinician would present this patient on rounds.",
+    "clinicalGestalt": "2-3 sentence clinical gestalt — the 30-second handoff story.",
+    "patientOverview": "2-3 paragraph overview: demographics, PMH with qualifiers (EF%, Cr, A1c, NYHA), social/functional status, current trajectory.",
+    "safetyProfile": {
+        "allergies": [{"substance": "X", "reaction": "Y", "severity": "mild|moderate|severe|anaphylaxis"}],
+        "contraindications": ["Drug/class contraindicated and why"],
+        "criticalValues": ["Critical lab or vital with context"],
+        "renalDosing": ["Meds needing renal adjustment"]
+    },
     "problemAnalysis": [
         {
             "problem": "Problem name",
             "status": "active|stable|acute|chronic|resolving",
             "trajectory": "improving|worsening|stable|fluctuating",
-            "keyData": ["Every relevant lab value, imaging finding, exam finding, procedure result for this problem"],
-            "plan": "Current management plan with specific medications, doses, and monitoring",
-            "medRationale": "Why the patient is on specific meds for this problem, including dose rationale",
-            "timeline": "Key dates and events in the history of this problem"
+            "keyData": ["Key lab/imaging/exam findings for this problem"],
+            "plan": "Current management with specific meds and doses",
+            "medRationale": "Why these meds at these doses",
+            "timeline": "Key dates in problem history"
         }
     ],
-    "safetyProfile": {
-        "allergies": [{"substance": "...", "reaction": "...", "severity": "mild|moderate|severe|anaphylaxis", "implications": "What to avoid, cross-reactivity concerns"}],
-        "contraindications": ["Specific drugs/classes contraindicated and why — be exhaustive"],
-        "criticalValues": ["Any critical lab values or vital signs with clinical context"],
-        "interactions": ["Drug-drug or drug-disease interactions to watch"],
-        "renalDosing": ["Medications that need renal dose adjustment given current GFR"]
-    },
     "medicationRationale": [
-        {"name": "Med name + dose + route + frequency", "indication": "What it's for", "rationale": "Why this specific med/dose — clinical reasoning", "monitoring": "What to monitor"}
+        {"name": "Med + dose + route + freq", "indication": "What for", "rationale": "Why this med/dose", "monitoring": "What to monitor"}
     ],
     "labTrends": {
         "key_values": [
-            {"test": "Test name", "values": [{"date": "...", "value": "...", "flag": "H|L|normal"}], "trend": "stable|rising|falling|fluctuating", "significance": "Clinical meaning"}
+            {"test": "Test name", "values": [{"date": "D", "value": "V", "flag": "H|L|normal"}], "trend": "stable|rising|falling", "significance": "Meaning"}
         ]
     },
-    "pendingItems": ["Pending results, decisions, follow-ups, unresolved questions — be comprehensive"],
-    "clinicalGestalt": "2-3 sentence clinical gestalt — the story of this patient, their trajectory, and what matters most right now."
+    "pendingItems": ["Unresolved items, follow-ups, pending results"]
 }
 
 RULES:
-- problemAnalysis: Include ALL active AND significant chronic problems, ordered by acuity. Include every clinical qualifier you find (EF%, GFR, A1c, INR target, etc.)
-- safetyProfile: Be EXHAUSTIVE — this is safety-critical. Lives depend on this section.
-- medicationRationale: Include EVERY current medication. If reason is unclear from chart, note "indication unclear from chart"
-- labTrends: Track the 10-15 most clinically significant lab values across time
-- pendingItems: Everything unresolved, awaited, or needing follow-up
-- clinicalGestalt: What would you tell an incoming covering physician in 30 seconds?
-
-Respond with ONLY the JSON, no preamble or markdown fences.`;
+- clinicalGestalt and safetyProfile go FIRST — they're shortest and most critical
+- patientOverview: 2-3 paragraphs max, concise but include all qualifiers (EF%, baseline Cr, A1c, etc.)
+- problemAnalysis: Top 5-8 problems by acuity. Use abbreviations freely.
+- medicationRationale: All current meds. Brief rationale per med.
+- labTrends: Top 8-10 most significant labs. Only last 2-3 values per trend.
+- Be CONCISE. Abbreviate. This is a working clinical document, not a textbook.`;
 
         return {
             systemPrompt,
-            userMessage: `Here is the patient chart data for your comprehensive review:\n\n${chartContext}`,
-            maxTokens: 4096
+            userMessage: `Chart data for review:\n\n${chartContext}`,
+            maxTokens: 8192
         };
     }
 

@@ -7988,21 +7988,43 @@ RULES:
             console.error('Level 1: Could not parse JSON from response. First 500 chars:', response?.substring(0, 500));
             // Fallback: create a minimal memory doc from the raw text
             memoryDoc = {
+                clinicalGestalt: 'Analysis completed — memory document may be incomplete. Try Redo Level 1.',
                 patientOverview: response?.substring(0, 2000) || 'Level 1 analysis completed but response was not structured JSON.',
+                safetyProfile: { allergies: [], contraindications: [], criticalValues: [], renalDosing: [] },
                 problemAnalysis: [],
-                safetyProfile: { allergies: [], contraindications: [], criticalValues: [], interactions: [], renalDosing: [] },
                 medicationRationale: [],
                 labTrends: { key_values: [] },
-                pendingItems: [],
-                clinicalGestalt: 'Analysis completed — memory document may be incomplete. Try Redo Level 1.'
+                pendingItems: []
             };
             App.showToast('Memory document partially parsed — try Redo Level 1 for better results', 'warning');
         }
+
+        // Validate and fill missing fields — ensure all 7 top-level fields exist
+        if (!memoryDoc.clinicalGestalt) {
+            memoryDoc.clinicalGestalt = memoryDoc.summary || memoryDoc.patientSummary || '';
+        }
         if (!memoryDoc.patientOverview) {
-            console.warn('Level 1: patientOverview missing from response, using clinicalGestalt or summary as fallback');
-            // Try fallback fields the LLM might have used instead
             memoryDoc.patientOverview = memoryDoc.clinicalGestalt || memoryDoc.summary || memoryDoc.patientSummary || 'Patient overview not generated';
         }
+        if (!memoryDoc.safetyProfile || typeof memoryDoc.safetyProfile !== 'object') {
+            memoryDoc.safetyProfile = { allergies: [], contraindications: [], criticalValues: [], renalDosing: [] };
+        }
+        if (!Array.isArray(memoryDoc.problemAnalysis)) memoryDoc.problemAnalysis = [];
+        if (!Array.isArray(memoryDoc.medicationRationale)) memoryDoc.medicationRationale = [];
+        if (!memoryDoc.labTrends || !memoryDoc.labTrends.key_values) memoryDoc.labTrends = { key_values: [] };
+        if (!Array.isArray(memoryDoc.pendingItems)) memoryDoc.pendingItems = [];
+
+        // Log completeness
+        const fieldCount = [
+            memoryDoc.clinicalGestalt ? 1 : 0,
+            memoryDoc.patientOverview ? 1 : 0,
+            memoryDoc.problemAnalysis.length > 0 ? 1 : 0,
+            memoryDoc.safetyProfile.allergies?.length > 0 || memoryDoc.safetyProfile.contraindications?.length > 0 ? 1 : 0,
+            memoryDoc.medicationRationale.length > 0 ? 1 : 0,
+            memoryDoc.labTrends.key_values.length > 0 ? 1 : 0,
+            memoryDoc.pendingItems.length > 0 ? 1 : 0
+        ].reduce((a, b) => a + b, 0);
+        console.log(`🧠 Level 1 completeness: ${fieldCount}/7 fields populated (${memoryDoc.problemAnalysis.length} problems, ${memoryDoc.medicationRationale.length} meds, ${memoryDoc.labTrends.key_values.length} lab trends)`);
 
         // Mark items as processed and sync count
         batch.forEach(item => this._deepLearn.processed.add(item.id));
@@ -8279,12 +8301,25 @@ RULES:
         );
 
         const updatedMemory = this._parseJSONResponse(response);
-        if (updatedMemory && !updatedMemory.patientOverview) {
-            updatedMemory.patientOverview = updatedMemory.clinicalGestalt || updatedMemory.summary || 'Patient overview not generated';
-        }
         if (!updatedMemory) {
             throw new Error('Could not parse updated memory from synthesis response');
         }
+
+        // Ensure all required fields exist — carry forward from current if missing
+        if (!updatedMemory.clinicalGestalt) updatedMemory.clinicalGestalt = currentMemory.clinicalGestalt || '';
+        if (!updatedMemory.patientOverview) updatedMemory.patientOverview = currentMemory.patientOverview || updatedMemory.clinicalGestalt || '';
+        if (!updatedMemory.safetyProfile || typeof updatedMemory.safetyProfile !== 'object') updatedMemory.safetyProfile = currentMemory.safetyProfile || { allergies: [], contraindications: [], criticalValues: [], renalDosing: [] };
+        if (!Array.isArray(updatedMemory.problemAnalysis)) updatedMemory.problemAnalysis = currentMemory.problemAnalysis || [];
+        if (!Array.isArray(updatedMemory.medicationRationale)) updatedMemory.medicationRationale = currentMemory.medicationRationale || [];
+        if (!updatedMemory.labTrends || !updatedMemory.labTrends.key_values) updatedMemory.labTrends = currentMemory.labTrends || { key_values: [] };
+        if (!Array.isArray(updatedMemory.pendingItems)) updatedMemory.pendingItems = currentMemory.pendingItems || [];
+
+        const fieldCount = [
+            updatedMemory.problemAnalysis.length > 0 ? 1 : 0,
+            updatedMemory.medicationRationale.length > 0 ? 1 : 0,
+            updatedMemory.labTrends.key_values.length > 0 ? 1 : 0,
+        ].reduce((a, b) => a + b, 0);
+        console.log(`🧠 Synthesis result: ${updatedMemory.problemAnalysis.length} problems, ${updatedMemory.medicationRationale.length} meds, ${updatedMemory.labTrends.key_values.length} lab trends (${fieldCount}/3 data fields populated)`);
 
         return updatedMemory;
     },
