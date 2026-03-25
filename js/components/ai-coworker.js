@@ -758,11 +758,14 @@ const AICoworker = {
         }
         // Position to the left of the AI panel
         const aiPanel = document.querySelector('.ai-panel');
-        if (aiPanel) {
+        if (aiPanel && aiPanel.offsetWidth > 50) {
             const panelRect = aiPanel.getBoundingClientRect();
-            popup.style.right = (window.innerWidth - panelRect.left + 8) + 'px';
+            const rightPos = window.innerWidth - panelRect.left + 8;
+            // Ensure the popup doesn't go off-screen left
+            const maxRight = window.innerWidth - 420;
+            popup.style.right = Math.min(rightPos, maxRight) + 'px';
         } else {
-            popup.style.right = '440px';
+            popup.style.right = '20px';
         }
         popup.style.display = 'flex';
         this.renderMemoryViewer();
@@ -1855,8 +1858,11 @@ const AICoworker = {
             html += '</button>';
         }
 
-        // === Clear Memory Button ===
+        // === Memory Viewer + Clear Memory Buttons ===
         if (status.hasMemory || hasAnalysis) {
+            html += '<button class="memory-viewer-btn" onclick="AICoworker.toggleMemoryViewer()" title="View AI Knowledge Base">';
+            html += '&#129504;';
+            html += '</button>';
             html += '<button class="clear-memory-btn" onclick="AICoworker.clearMemory()" title="Clear AI memory and start fresh">';
             html += '&#128465;';
             html += '</button>';
@@ -1970,6 +1976,9 @@ const AICoworker = {
             html += '<span class="learn-action-label">Analyzed</span>';
             html += '</button>';
         }
+
+        // Memory viewer button
+        html += `<button class="memory-viewer-btn" onclick="AICoworker.toggleMemoryViewer()" title="View AI Knowledge Base">&#129504;</button>`;
 
         html += `</div>`;
         html += '</div>';
