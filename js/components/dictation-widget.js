@@ -627,7 +627,7 @@ const DictationWidget = {
     // ==================== Order Parsing ====================
 
     async _parseOrderWithClaude(orderPhrase) {
-        if (typeof AICoworker === 'undefined' || !AICoworker.apiKey) {
+        if (typeof AICoworker === 'undefined' || !AICoworker.isApiConfigured()) {
             this._markOrderError('No API key configured');
             return;
         }
