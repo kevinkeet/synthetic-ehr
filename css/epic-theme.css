@@ -11597,7 +11597,7 @@ html, body {
 .g1-unavailable { background: #666; opacity: 0.4; }
 
 /* G1 connect/push buttons */
-.g1-connect-btn, .g1-push-btn {
+.g1-analyze-btn, .g1-connect-btn, .g1-push-btn {
     font-family: 'Courier New', monospace;
     font-size: 9px;
     font-weight: 600;
@@ -11610,7 +11610,7 @@ html, body {
     transition: all 0.15s;
     white-space: nowrap;
 }
-.g1-connect-btn:hover, .g1-push-btn:hover {
+.g1-analyze-btn:hover, .g1-connect-btn:hover, .g1-push-btn:hover {
     background: rgba(0, 255, 136, 0.2);
     border-color: rgba(0, 255, 136, 0.5);
 }

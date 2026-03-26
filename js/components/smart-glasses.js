@@ -1488,6 +1488,7 @@ const SmartGlasses = {
                     </span>
                     <span class="glasses-footer-center">Even Realities G1 \u00B7 \u2191\u2193 Scroll \u00B7 Esc Close</span>
                     <span class="glasses-footer-right">
+                        <button class="g1-analyze-btn" onclick="SmartGlasses.refreshAnalysis()" title="Re-analyze case and update display">\uD83D\uDD04 Analyze</button>
                         <button class="g1-connect-btn" id="g1-connect-btn" onclick="SmartGlasses.toggleBLEConnection()" title="${typeof G1Bluetooth !== 'undefined' && G1Bluetooth.isConnected() ? 'Disconnect from glasses' : 'Connect to G1 glasses via Bluetooth'}">${typeof G1Bluetooth !== 'undefined' && G1Bluetooth.isConnected() ? '\uD83D\uDD35 Disconnect' : '\uD83D\uDD17 Connect G1'}</button>
                         <button class="g1-push-btn" onclick="SmartGlasses.pushToGlasses()" title="Push current display to G1 glasses" ${typeof G1Bluetooth !== 'undefined' && G1Bluetooth.isConnected() ? '' : 'disabled'}>\uD83D\uDCE4 Push to G1</button>
                     </span>
@@ -1694,6 +1695,68 @@ const SmartGlasses = {
         const pushBtn = document.querySelector('.g1-push-btn');
         if (pushBtn) {
             pushBtn.disabled = !(typeof G1Bluetooth !== 'undefined' && G1Bluetooth.isConnected());
+        }
+    },
+
+    /**
+     * Trigger AI analysis from the glasses view and refresh both lenses when done.
+     */
+    refreshAnalysis() {
+        if (typeof AICoworker === 'undefined' || !AICoworker.isApiConfigured()) {
+            if (typeof App !== 'undefined') App.showToast('API key not configured', 'warning');
+            return;
+        }
+
+        // Show a loading state on the analyze button
+        const btn = document.querySelector('.g1-analyze-btn');
+        if (btn) {
+            btn.textContent = '\u23F3 Analyzing...';
+            btn.disabled = true;
+        }
+
+        // Start analysis
+        AICoworker.refreshThinking();
+
+        // Poll for completion and refresh glasses content
+        const poll = setInterval(() => {
+            if (AICoworker.state?.status === 'ready') {
+                clearInterval(poll);
+                // Refresh both lenses
+                this._refreshGlassesContent();
+                // Reset button
+                if (btn) {
+                    btn.textContent = '\uD83D\uDD04 Analyze';
+                    btn.disabled = false;
+                }
+                if (typeof App !== 'undefined') App.showToast('Glasses display updated', 'success');
+                // Auto-push to hardware if connected
+                if (typeof G1Bluetooth !== 'undefined' && G1Bluetooth.isConnected()) {
+                    this.pushToGlasses();
+                }
+            }
+        }, 1000);
+
+        // Safety timeout — stop polling after 60s
+        setTimeout(() => {
+            clearInterval(poll);
+            if (btn) { btn.textContent = '\uD83D\uDD04 Analyze'; btn.disabled = false; }
+        }, 60000);
+    },
+
+    /**
+     * Refresh both lens contents with current AI state
+     */
+    _refreshGlassesContent() {
+        // Refresh left lens
+        const leftEl = document.getElementById('lens-content-left');
+        if (leftEl) {
+            const data = this._getGlassesData();
+            leftEl.innerHTML = this._buildContextScrollableHTML(data);
+        }
+        // Refresh right lens
+        const rightEl = document.getElementById('lens-content-right');
+        if (rightEl) {
+            rightEl.innerHTML = this._buildOrdersViewHTML();
         }
     },
 
