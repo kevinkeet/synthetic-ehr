@@ -90,6 +90,8 @@ const SimulationEngine = {
         this.isRunning = true;
         this.isPaused = false;
         this.simulationStartTime = Date.now();
+        this._lastNurseAlertTime = null;
+        this._lastPatientAlertTime = null;
 
         // Start the tick loop
         this.tickInterval = setInterval(() => this.tick(), this.tickRate);
@@ -502,15 +504,21 @@ const SimulationEngine = {
                 NurseChat.saveHistory();
                 if (typeof FloatingChat !== 'undefined') {
                     FloatingChat.addMessage('nurse', 'assistant', trigger.message);
-                    // Show unread badge instead of forcefully opening
                     FloatingChat.showUnreadBadge('nurse');
                 }
             }
 
-            // Show toast notification
+            // Show toast only for urgent alerts or the first alert (avoid spam)
             if (typeof App !== 'undefined') {
-                const icon = trigger.priority === 'urgent' ? '🚨' : '📞';
-                App.showToast(`${icon} Urgent call from the nurse!`, trigger.priority === 'urgent' ? 'error' : 'warning');
+                if (!this._lastNurseAlertTime || trigger.priority === 'urgent') {
+                    const icon = trigger.priority === 'urgent' ? '🚨' : '📞';
+                    App.showToast(`${icon} New message from nurse`, trigger.priority === 'urgent' ? 'error' : 'info', 3000);
+                    this._lastNurseAlertTime = Date.now();
+                } else if (Date.now() - this._lastNurseAlertTime > 30000) {
+                    // At most one toast every 30 seconds for non-urgent
+                    App.showToast('📞 New message from nurse', 'info', 3000);
+                    this._lastNurseAlertTime = Date.now();
+                }
             }
 
             // If this is the A-fib trigger, make EKG available and show a prompt
@@ -557,9 +565,12 @@ const SimulationEngine = {
                 }
             }
 
-            // Show toast notification
+            // Show toast — rate-limited to avoid spam
             if (typeof App !== 'undefined') {
-                App.showToast('😰 Patient needs your attention...', 'warning');
+                if (!this._lastPatientAlertTime || Date.now() - this._lastPatientAlertTime > 30000) {
+                    App.showToast('😰 Patient needs your attention...', 'warning', 3000);
+                    this._lastPatientAlertTime = Date.now();
+                }
             }
         }
 

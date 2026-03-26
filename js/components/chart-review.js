@@ -40,6 +40,12 @@ const ChartReview = {
                     ${this.renderDemographicsWidget()}
                 </div>
             `;
+
+            // Listen for simulation ticks to update vitals in real time
+            if (typeof SimulationEngine !== 'undefined' && !this._simTickRegistered) {
+                this._simTickRegistered = true;
+                SimulationEngine.on('tick', (data) => this._updateVitalsFromSim(data));
+            }
         } catch (error) {
             console.error('Error rendering chart review:', error);
             content.innerHTML = `
@@ -197,33 +203,33 @@ const ChartReview = {
                             <div class="empty-state-text">No vitals recorded</div>
                         </div>
                     ` : `
-                        <div style="font-size: 11px; color: #666; margin-bottom: 12px;">
+                        <div style="font-size: 11px; color: #666; margin-bottom: 12px;" id="vitals-widget-time">
                             ${DateUtils.formatDateTime(mostRecent.date)}
                         </div>
                         <div class="widget-item">
                             <span class="widget-item-label">Blood Pressure</span>
-                            <span class="widget-item-value">${mostRecent.systolic}/${mostRecent.diastolic} mmHg</span>
+                            <span class="widget-item-value" id="vitals-widget-bp">${mostRecent.systolic}/${mostRecent.diastolic} mmHg</span>
                         </div>
                         <div class="widget-item">
                             <span class="widget-item-label">Heart Rate</span>
-                            <span class="widget-item-value">${mostRecent.heartRate} bpm</span>
+                            <span class="widget-item-value" id="vitals-widget-hr">${mostRecent.heartRate} bpm</span>
                         </div>
                         <div class="widget-item">
                             <span class="widget-item-label">Respiratory Rate</span>
-                            <span class="widget-item-value">${mostRecent.respiratoryRate} /min</span>
+                            <span class="widget-item-value" id="vitals-widget-rr">${mostRecent.respiratoryRate} /min</span>
                         </div>
                         <div class="widget-item">
                             <span class="widget-item-label">Temperature</span>
-                            <span class="widget-item-value">${mostRecent.temperature} °F</span>
+                            <span class="widget-item-value" id="vitals-widget-temp">${mostRecent.temperature} °F</span>
                         </div>
                         <div class="widget-item">
                             <span class="widget-item-label">SpO2</span>
-                            <span class="widget-item-value">${mostRecent.spO2}%</span>
+                            <span class="widget-item-value" id="vitals-widget-spo2">${mostRecent.spO2}%</span>
                         </div>
                         ${mostRecent.weight ? `
                         <div class="widget-item">
                             <span class="widget-item-label">Weight</span>
-                            <span class="widget-item-value">${mostRecent.weight} kg</span>
+                            <span class="widget-item-value" id="vitals-widget-weight">${mostRecent.weight} kg</span>
                         </div>
                         ` : ''}
                     `}
@@ -321,6 +327,30 @@ const ChartReview = {
                 </div>
             </div>
         `;
+    },
+
+    /**
+     * Update vitals widget in real time during simulation
+     */
+    _updateVitalsFromSim(data) {
+        if (!data.state || !data.state.vitals) return;
+        const v = data.state.vitals;
+        const setEl = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val;
+        };
+        setEl('vitals-widget-bp', `${Math.round(v.systolic)}/${Math.round(v.diastolic)} mmHg`);
+        setEl('vitals-widget-hr', `${Math.round(v.heartRate)} bpm`);
+        setEl('vitals-widget-rr', `${Math.round(v.respiratoryRate)} /min`);
+        setEl('vitals-widget-temp', `${(v.temperature || 98.6).toFixed(1)} °F`);
+        setEl('vitals-widget-spo2', `${Math.round(v.oxygenSaturation)}%`);
+        if (v.weight) setEl('vitals-widget-weight', `${v.weight.toFixed(1)} kg`);
+        if (data.time) {
+            setEl('vitals-widget-time', new Date(data.time).toLocaleString('en-US', {
+                month: 'short', day: 'numeric', year: 'numeric',
+                hour: 'numeric', minute: '2-digit', hour12: true
+            }));
+        }
     }
 };
 
