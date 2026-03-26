@@ -1488,6 +1488,7 @@ const SmartGlasses = {
                     </span>
                     <span class="glasses-footer-center">Even Realities G1 \u00B7 \u2191\u2193 Scroll \u00B7 Esc Close</span>
                     <span class="glasses-footer-right">
+                        <button class="g1-dictate-btn" id="g1-dictate-btn" onclick="SmartGlasses.toggleDictation()" title="Toggle dictation">${this._getDictateButtonHTML()}</button>
                         <button class="g1-analyze-btn" onclick="SmartGlasses.refreshAnalysis()" title="Re-analyze case and update display">\uD83D\uDD04 Analyze</button>
                         <button class="g1-connect-btn" id="g1-connect-btn" onclick="SmartGlasses.toggleBLEConnection()" title="${typeof G1Bluetooth !== 'undefined' && G1Bluetooth.isConnected() ? 'Disconnect from glasses' : 'Connect to G1 glasses via Bluetooth'}">${typeof G1Bluetooth !== 'undefined' && G1Bluetooth.isConnected() ? '\uD83D\uDD35 Disconnect' : '\uD83D\uDD17 Connect G1'}</button>
                         <button class="g1-push-btn" onclick="SmartGlasses.pushToGlasses()" title="Push current display to G1 glasses" ${typeof G1Bluetooth !== 'undefined' && G1Bluetooth.isConnected() ? '' : 'disabled'}>\uD83D\uDCE4 Push to G1</button>
@@ -1758,6 +1759,80 @@ const SmartGlasses = {
         if (rightEl) {
             rightEl.innerHTML = this._buildOrdersViewHTML();
         }
+    },
+
+    // ==================== Dictation from Glasses ====================
+
+    /**
+     * Toggle dictation on/off from the glasses interface.
+     * Opens/closes the DictationWidget and updates the button state.
+     */
+    toggleDictation() {
+        if (typeof DictationWidget === 'undefined') {
+            if (typeof App !== 'undefined') App.showToast('Dictation not available', 'warning');
+            return;
+        }
+
+        if (DictationWidget.isOpen) {
+            DictationWidget.close();
+            this._dictating = false;
+        } else {
+            DictationWidget.open();
+            this._dictating = true;
+        }
+        this._updateDictateUI();
+
+        // Poll for dictation completion to update glasses display after synthesis
+        if (this._dictating) {
+            if (this._dictationPoll) clearInterval(this._dictationPoll);
+            this._dictationPoll = setInterval(() => {
+                // Check if dictation widget closed or synthesis finished
+                const stillOpen = typeof DictationWidget !== 'undefined' && DictationWidget.isOpen;
+                if (!stillOpen && this._dictating) {
+                    this._dictating = false;
+                    clearInterval(this._dictationPoll);
+                    this._dictationPoll = null;
+                    this._updateDictateUI();
+
+                    // Refresh glasses content after dictation synthesis completes
+                    setTimeout(() => {
+                        this._refreshGlassesContent();
+                        // Push updated display to hardware if connected
+                        if (typeof G1Bluetooth !== 'undefined' && G1Bluetooth.isConnected()) {
+                            this.pushToGlasses();
+                        }
+                    }, 2000);
+                }
+            }, 1000);
+        } else {
+            if (this._dictationPoll) {
+                clearInterval(this._dictationPoll);
+                this._dictationPoll = null;
+            }
+        }
+    },
+
+    /**
+     * Get the dictate button HTML based on current state
+     */
+    _getDictateButtonHTML() {
+        const isActive = this._dictating || (typeof DictationWidget !== 'undefined' && DictationWidget.isOpen);
+        if (isActive) {
+            return '\uD83D\uDD34 Stop Dictation';
+        }
+        return '\uD83C\uDF99 Dictate';
+    },
+
+    /**
+     * Update dictate button appearance
+     */
+    _updateDictateUI() {
+        const btn = document.getElementById('g1-dictate-btn');
+        if (!btn) return;
+        const isActive = this._dictating || (typeof DictationWidget !== 'undefined' && DictationWidget.isOpen);
+        btn.innerHTML = this._getDictateButtonHTML();
+        btn.classList.toggle('g1-dictating', isActive);
+        btn.title = isActive ? 'Stop dictation' : 'Start dictation';
     },
 
     /**
