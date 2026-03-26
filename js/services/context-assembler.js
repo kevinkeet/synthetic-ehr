@@ -872,7 +872,7 @@ RULES:
         return {
             systemPrompt,
             userMessage: `Chart data for review:\n\n${chartContext}`,
-            maxTokens: 8192
+            maxTokens: 4096
         };
     }
 

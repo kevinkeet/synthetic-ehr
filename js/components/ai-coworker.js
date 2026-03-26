@@ -7960,7 +7960,7 @@ RULES:
 
         // Assemble full text context via working memory, cap to prevent API overload
         let chartContext = this.workingMemory.assembleForDeepLearnLevel1(itemsWithData);
-        const MAX_CONTEXT = 25000; // ~6K tokens — keeps response fast (~15-20 sec)
+        const MAX_CONTEXT = 15000; // ~4K tokens — keeps Level 1 fast (~10-15 sec) and avoids 502s
         if (chartContext.length > MAX_CONTEXT) {
             console.warn(`🧠 Deep Learn: Context too large (${chartContext.length} chars), truncating to ${MAX_CONTEXT}`);
             chartContext = chartContext.substring(0, MAX_CONTEXT) + '\n\n[... Chart data truncated due to size. Focus on the data above.]';
