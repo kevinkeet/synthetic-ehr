@@ -8136,9 +8136,21 @@ RULES:
             // Step 3: Sonnet synthesis
             dl._stage = 'synthesizing';
             this.render();
-            const currentMemory = this.longitudinalDoc.aiMemory.memoryDocument;
+            let currentMemory = this.longitudinalDoc.aiMemory.memoryDocument;
             if (!currentMemory) {
-                throw new Error('No existing memory document — run Level 1 first');
+                // No memory document — auto-run Level 1 first
+                console.log('🧠 No memory document found — auto-running Level 1 before continuing');
+                App.showToast('Building foundation first (Level 1)...', 'info');
+                await this._runLevel1();
+                currentMemory = this.longitudinalDoc.aiMemory.memoryDocument;
+                if (!currentMemory) {
+                    throw new Error('Level 1 failed to produce a memory document');
+                }
+                // Reset state for continuing with the current level
+                dl.phase = 'level2+';
+                dl.currentLevel = nextLevelIdx + 1;
+                this.state.status = 'learning';
+                this.render();
             }
 
             const updatedMemory = await this._synthesizeBatch(currentMemory, extractions);
