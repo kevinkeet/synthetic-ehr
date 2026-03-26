@@ -9804,10 +9804,10 @@ html, body {
 /* --- Chat Buttons: repositioned to sidebar edge --- */
 .chat-trigger-buttons {
     position: fixed;
-    bottom: 16px;
-    left: 12px;
+    bottom: 8px;
+    left: 200px;
     transform: none;
-    flex-direction: column;
+    flex-direction: row;
     gap: 4px;
     z-index: 999;
     padding: 0;

@@ -199,10 +199,14 @@ const About = {
                 btn.innerHTML = '&#10003; Saved';
                 btn.classList.add('saved');
             }
-            if (typeof App !== 'undefined') App.showToast('API key saved', 'success');
+            if (typeof App !== 'undefined') App.showToast('API key saved — AI features ready!', 'success');
+            this._apiKeyJustSaved = true;
 
-            // Auto-analysis disabled — user clicks Learn/Analyze manually.
-            // AICoworker._triggerBackgroundAnalysis();
+            // Update the Enter button to hint at what happens next
+            const enterBtn = document.querySelector('.about-enter-btn');
+            if (enterBtn) {
+                enterBtn.innerHTML = '&#10024; Enter &amp; Start AI Analysis';
+            }
         }
     },
 
@@ -212,6 +216,23 @@ const About = {
     closeModal() {
         const overlay = document.getElementById('about-modal-overlay');
         if (overlay) overlay.remove();
+
+        // If API key was just saved, auto-expand AI panel and start analysis
+        if (this._apiKeyJustSaved) {
+            this._apiKeyJustSaved = false;
+            setTimeout(() => {
+                // Expand the AI panel
+                if (typeof AIPanel !== 'undefined' && !AIPanel.isExpanded) {
+                    AIPanel.toggle();
+                }
+                // Auto-trigger analysis after a moment so the user sees it working
+                setTimeout(() => {
+                    if (typeof AICoworker !== 'undefined' && AICoworker.isApiConfigured()) {
+                        AICoworker.refreshThinking();
+                    }
+                }, 800);
+            }, 400);
+        }
     },
 
     /**
