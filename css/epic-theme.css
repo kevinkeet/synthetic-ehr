@@ -10558,22 +10558,43 @@ html, body {
 
 .memory-viewer-popup {
     position: fixed;
-    top: 40px;
-    width: 400px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    width: min(520px, 90vw);
     max-height: 85vh;
     background: white;
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-    z-index: 10000;
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.05);
+    z-index: 10001;
     display: none;
     flex-direction: column;
     overflow: hidden;
-    border: 1px solid #e2e8f0;
-    animation: memViewerSlideIn 0.2s ease;
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
 }
-@keyframes memViewerSlideIn {
-    from { opacity: 0; transform: translateX(10px); }
-    to { opacity: 1; transform: translateX(0); }
+.memory-viewer-popup.visible {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* Memory stats row in learn bar */
+.dl-memory-stats {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    font-size: 10.5px;
+    color: #475569;
+    padding: 2px 0 4px;
+}
+.dl-stat strong {
+    color: #1e3a5f;
+    font-weight: 700;
+}
+.dl-stat-dot {
+    color: #94a3b8;
+    margin: 0 1px;
 }
 
 .memory-viewer-header {

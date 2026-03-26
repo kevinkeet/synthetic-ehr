@@ -756,18 +756,8 @@ const AICoworker = {
             popup.className = 'memory-viewer-popup';
             document.body.appendChild(popup);
         }
-        // Position to the left of the AI panel
-        const aiPanel = document.querySelector('.ai-panel');
-        if (aiPanel && aiPanel.offsetWidth > 50) {
-            const panelRect = aiPanel.getBoundingClientRect();
-            const rightPos = window.innerWidth - panelRect.left + 8;
-            // Ensure the popup doesn't go off-screen left
-            const maxRight = window.innerWidth - 420;
-            popup.style.right = Math.min(rightPos, maxRight) + 'px';
-        } else {
-            popup.style.right = '20px';
-        }
         popup.style.display = 'flex';
+        requestAnimationFrame(() => popup.classList.add('visible'));
         this.renderMemoryViewer();
     },
 
@@ -777,7 +767,10 @@ const AICoworker = {
     closeMemoryViewer() {
         this._memoryViewerOpen = false;
         const popup = document.getElementById('memory-viewer-popup');
-        if (popup) popup.style.display = 'none';
+        if (popup) {
+            popup.classList.remove('visible');
+            setTimeout(() => { popup.style.display = 'none'; }, 200);
+        }
     },
 
     /**
@@ -2071,6 +2064,29 @@ const AICoworker = {
         html += `<div class="dl-between-remaining">`;
         html += `${progress.remaining} items remaining · ${progress.remainingLevels} levels left`;
         html += `</div>`;
+
+        // Live memory stats — shows what's in the knowledge base
+        const memDoc = this.longitudinalDoc?.aiMemory?.memoryDocument;
+        if (memDoc) {
+            const problemCount = memDoc.problemAnalysis?.length || 0;
+            const medCount = memDoc.medicationRationale?.length || 0;
+            const labCount = memDoc.labTrends?.key_values?.length || 0;
+            const allergyCount = memDoc.safetyProfile?.allergies?.length || 0;
+            const pendingCount = memDoc.pendingItems?.length || 0;
+            html += `<div class="dl-memory-stats">`;
+            html += `<span class="dl-stat" title="Problems analyzed"><strong>${problemCount}</strong> problems</span>`;
+            html += `<span class="dl-stat-dot">·</span>`;
+            html += `<span class="dl-stat" title="Medications with rationale"><strong>${medCount}</strong> meds</span>`;
+            html += `<span class="dl-stat-dot">·</span>`;
+            html += `<span class="dl-stat" title="Lab trends tracked"><strong>${labCount}</strong> lab trends</span>`;
+            html += `<span class="dl-stat-dot">·</span>`;
+            html += `<span class="dl-stat" title="Allergies"><strong>${allergyCount}</strong> allergies</span>`;
+            if (pendingCount > 0) {
+                html += `<span class="dl-stat-dot">·</span>`;
+                html += `<span class="dl-stat" title="Pending items"><strong>${pendingCount}</strong> pending</span>`;
+            }
+            html += `</div>`;
+        }
 
         // Action buttons
         html += `<div class="dl-between-actions">`;
@@ -8033,6 +8049,11 @@ RULES:
         // Store memory
         this._applyMemoryDocument(memoryDoc);
 
+        // Auto-open memory viewer to show what was learned
+        if (!this._memoryViewerOpen) {
+            this.openMemoryViewer();
+        }
+
         // Transition to between-levels state
         this._deepLearn.phase = 'between_levels';
         this.state.status = 'ready';
@@ -8128,6 +8149,11 @@ RULES:
 
             // Apply updated memory
             this._applyMemoryDocument(updatedMemory);
+
+            // Auto-open memory viewer to show new data from this level
+            if (!this._memoryViewerOpen) {
+                this.openMemoryViewer();
+            }
 
             // Check if complete
             const remainingLevels = dl.totalLevels - dl.currentLevel;
