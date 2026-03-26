@@ -141,9 +141,8 @@ const AIPanel = {
         this.isCollapsed = false;
         localStorage.setItem('ai-panel-collapsed', 'false');
 
-        // Auto-analysis disabled — Learn/Analyze are manual-only now.
-        // Memory is restored from localStorage via hydrateFromMemory().
-        // this._autoAnalyzeIfNeeded();
+        // Auto-learn and analyze when panel expands
+        this._autoLearnAndAnalyze();
     },
 
     /**
@@ -154,6 +153,49 @@ const AIPanel = {
      * Skips if analysis was recently performed (e.g. background run on API key entry).
      * Manual refresh (clicking the refresh button) always bypasses this check.
      */
+    /**
+     * Auto-learn (Level 1) then analyze when the panel expands.
+     * Skips if already learned/analyzed, API not configured, or data not ready.
+     */
+    _autoLearnAndAnalyze() {
+        if (typeof AICoworker === 'undefined') return;
+        if (!AICoworker.isApiConfigured()) return;
+
+        // Wait for context assembler (patient data loaded)
+        if (!AICoworker.contextAssembler) {
+            // Queue for later — onPatientLoaded will call us
+            AICoworker._pendingAutoAnalysis = true;
+            return;
+        }
+
+        // Skip if already thinking/learning
+        if (AICoworker.state?.status === 'thinking' || AICoworker.state?.status === 'learning') return;
+
+        // Skip if recently analyzed
+        if (AICoworker.wasRecentlyAnalyzed()) return;
+
+        // Check if we already have LLM data (from cache or prior session)
+        const hasLLMData = AICoworker.state?.problemList?.some(p => p.plan);
+        if (hasLLMData) return;
+
+        // Delay slightly to let expand animation finish
+        setTimeout(async () => {
+            if (!AICoworker.contextAssembler || !AICoworker.isApiConfigured()) return;
+
+            try {
+                // If never learned, do Level 1 first
+                if (!AICoworker._deepLearn || AICoworker._deepLearn.phase === 'idle') {
+                    await AICoworker.learnPatient();
+                }
+                // Then analyze
+                AICoworker.refreshThinking();
+            } catch (e) {
+                console.warn('Auto-learn/analyze failed, trying analyze only:', e);
+                try { AICoworker.refreshThinking(); } catch (e2) { /* silent */ }
+            }
+        }, 600);
+    },
+
     _autoAnalyzeIfNeeded() {
         if (typeof AICoworker === 'undefined') return;
 

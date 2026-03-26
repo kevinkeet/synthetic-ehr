@@ -217,7 +217,7 @@ const About = {
         const overlay = document.getElementById('about-modal-overlay');
         if (overlay) overlay.remove();
 
-        // If API key was just saved, auto-expand AI panel and start analysis
+        // If API key was just saved, auto-expand AI panel and start Learn → Analyze
         if (this._apiKeyJustSaved) {
             this._apiKeyJustSaved = false;
             setTimeout(() => {
@@ -225,10 +225,17 @@ const About = {
                 if (typeof AIPanel !== 'undefined' && !AIPanel.isExpanded) {
                     AIPanel.toggle();
                 }
-                // Auto-trigger analysis after a moment so the user sees it working
-                setTimeout(() => {
+                // Auto-trigger Learn Patient (Level 1) → then Analyze Case
+                setTimeout(async () => {
                     if (typeof AICoworker !== 'undefined' && AICoworker.isApiConfigured()) {
-                        AICoworker.refreshThinking();
+                        try {
+                            await AICoworker.learnPatient();
+                            // After Level 1 completes, auto-analyze
+                            AICoworker.refreshThinking();
+                        } catch (e) {
+                            console.warn('Auto-learn failed, falling back to analyze:', e);
+                            AICoworker.refreshThinking();
+                        }
                     }
                 }, 800);
             }, 400);
