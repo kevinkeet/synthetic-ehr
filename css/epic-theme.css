@@ -12553,121 +12553,180 @@ html, body {
 }
 
 /* Between-levels header */
-.dl-between-header {
+/* ── Clean between-levels design ── */
+
+/* Status row: badge + progress bar + percentage */
+.dl-status-row {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     margin-bottom: 8px;
 }
-.dl-between-icon {
-    font-size: 14px;
-    color: #4ade80;
-}
-.dl-between-title {
-    font-size: 12px;
-    font-weight: 700;
-    color: #4ade80;
-}
-.dl-between-pct {
+.dl-status-badge {
     font-size: 10px;
-    color: rgba(255, 255, 255, 0.5);
-    margin-left: auto;
+    font-weight: 700;
+    color: #fff;
+    background: #2b6cb0;
+    padding: 2px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+}
+.dl-status-bar-wrap {
+    flex: 1;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+.dl-status-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #2b6cb0, #4299e1);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+.dl-status-pct {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    min-width: 30px;
+    text-align: right;
 }
 
-/* Remaining info */
-.dl-between-remaining {
-    font-size: 10px;
-    color: rgba(255, 255, 255, 0.4);
+/* Knowledge stats row */
+.dl-knowledge-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
     margin-bottom: 8px;
+    font-size: 10.5px;
+    color: rgba(255, 255, 255, 0.55);
+}
+.dl-k-stat strong {
+    color: rgba(255, 255, 255, 0.85);
+}
+.dl-k-dot { opacity: 0.3; }
+.dl-kb-btn {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.dl-kb-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Action row: primary + secondary buttons */
+.dl-action-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+.dl-btn {
+    flex: 1;
+    padding: 7px 12px;
+    border-radius: 4px;
+    border: none;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
     text-align: center;
 }
+.dl-btn-primary {
+    background: #2b6cb0;
+    color: #fff;
+}
+.dl-btn-primary:hover {
+    background: #3182ce;
+}
+.dl-btn-analyze {
+    background: #38a169;
+    color: #fff;
+}
+.dl-btn-analyze:hover {
+    background: #48bb78;
+}
+.dl-btn-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.dl-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+}
 
-/* Between-levels action buttons */
-.dl-between-actions {
-    display: flex;
-    gap: 6px;
+/* Overflow menu (⋯) for less-used actions */
+.dl-overflow {
+    position: relative;
+    flex-shrink: 0;
 }
-.dl-between-actions .learn-action-btn {
-    flex: 1;
-}
-/* Segmented progress bar — divided by level */
-.dl-segmented-bar {
-    display: flex;
-    height: 18px;
+.dl-btn-icon {
+    width: 30px;
+    height: 30px;
     border-radius: 4px;
-    overflow: hidden;
-    background: rgba(255, 255, 255, 0.06);
-    margin-bottom: 6px;
-    gap: 1px;
-}
-.dl-seg {
-    position: relative;
-    overflow: hidden;
-    min-width: 16px;
-    transition: all 0.4s ease;
-}
-.dl-seg-fill {
-    position: absolute;
-    inset: 0;
-    transition: opacity 0.4s ease;
-}
-.dl-seg-done .dl-seg-fill {
-    background: var(--seg-color);
-    opacity: 0.85;
-}
-.dl-seg-active .dl-seg-fill {
-    background: var(--seg-color);
-    opacity: 0.5;
-}
-.dl-seg-future .dl-seg-fill {
-    background: var(--seg-color);
-    opacity: 0.12;
-}
-.dl-seg-pulse .dl-seg-fill {
-    animation: segPulse 1.5s ease-in-out infinite;
-}
-@keyframes segPulse {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 0.7; }
-}
-.dl-seg-label {
-    position: relative;
-    z-index: 1;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 16px;
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 100%;
-    font-size: 8.5px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
+    transition: all 0.15s;
+}
+.dl-btn-icon:hover {
+    background: rgba(255, 255, 255, 0.08);
     color: rgba(255, 255, 255, 0.9);
-    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
-.dl-seg-future .dl-seg-label {
-    color: rgba(255, 255, 255, 0.3);
-    text-shadow: none;
+.dl-overflow-menu {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    margin-bottom: 4px;
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+    padding: 4px;
+    min-width: 150px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    z-index: 100;
 }
-
-.dl-next-level {
-    animation: learn-pulse 2s ease-in-out infinite;
+.dl-overflow.open .dl-overflow-menu {
+    display: block;
 }
-.dl-between-footer {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 8px;
-    padding-top: 6px;
-    border-top: 1px solid rgba(255,255,255,0.08);
+.dl-overflow-menu button {
+    display: block;
+    width: 100%;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 11px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.1s;
 }
-.dl-between-footer .dl-reset {
-    flex: 0;
-    white-space: nowrap;
-    font-size: 10px;
-    padding: 4px 10px;
-    opacity: 0.7;
+.dl-overflow-menu button:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
 }
-.dl-between-footer .dl-reset:hover {
-    opacity: 1;
+.dl-overflow-danger {
+    color: #f87171 !important;
+}
+.dl-overflow-danger:hover {
+    background: rgba(248, 113, 113, 0.1) !important;
 }
 
 /* Stage indicators during learning */

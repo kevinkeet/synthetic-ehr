@@ -2055,87 +2055,70 @@ const AICoworker = {
     },
 
     /**
-     * Render deep learn between-levels state with Next Level button
+     * Render deep learn between-levels state — clean, polished design
      */
     _renderDeepLearnBetweenLevels(progress) {
+        const pct = progress.percentComplete;
+        const hasAnalysis = !!(this.state.aiOneLiner || this.state.problemList?.length > 0);
+        const memDoc = this.longitudinalDoc?.aiMemory?.memoryDocument;
+
         let html = '<div class="deep-learn-between">';
 
-        // Completion summary
-        const pct = progress.percentComplete;
-        html += `<div class="dl-between-header">`;
-        html += `<span class="dl-between-icon">&#9989;</span>`;
-        html += `<span class="dl-between-title">Level ${progress.currentLevel} Complete</span>`;
-        html += `<span class="dl-between-pct">${pct}% of chart</span>`;
-        html += `</div>`;
-
-        // Segmented progress bar — divided by level
-        html += this._renderSegmentedProgressBar(progress);
-
-        // Remaining info
-        html += `<div class="dl-between-remaining">`;
-        html += `${progress.remaining} items remaining · ${progress.remainingLevels} levels left`;
-        html += `</div>`;
-
-        // Live memory stats — shows what's in the knowledge base
-        const memDoc = this.longitudinalDoc?.aiMemory?.memoryDocument;
-        if (memDoc) {
-            const problemCount = memDoc.problemAnalysis?.length || 0;
-            const medCount = memDoc.medicationRationale?.length || 0;
-            const labCount = memDoc.labTrends?.key_values?.length || 0;
-            const allergyCount = memDoc.safetyProfile?.allergies?.length || 0;
-            const pendingCount = memDoc.pendingItems?.length || 0;
-            html += `<div class="dl-memory-stats">`;
-            html += `<span class="dl-stat" title="Problems analyzed"><strong>${problemCount}</strong> problems</span>`;
-            html += `<span class="dl-stat-dot">·</span>`;
-            html += `<span class="dl-stat" title="Medications with rationale"><strong>${medCount}</strong> meds</span>`;
-            html += `<span class="dl-stat-dot">·</span>`;
-            html += `<span class="dl-stat" title="Lab trends tracked"><strong>${labCount}</strong> lab trends</span>`;
-            html += `<span class="dl-stat-dot">·</span>`;
-            html += `<span class="dl-stat" title="Allergies"><strong>${allergyCount}</strong> allergies</span>`;
-            if (pendingCount > 0) {
-                html += `<span class="dl-stat-dot">·</span>`;
-                html += `<span class="dl-stat" title="Pending items"><strong>${pendingCount}</strong> pending</span>`;
-            }
-            html += `</div>`;
-        }
-
-        // Action buttons
-        html += `<div class="dl-between-actions">`;
-        html += `<button class="learn-action-btn learn-secondary dl-redo-level" onclick="AICoworker.redoCurrentLevel()" title="Re-run this level's analysis">`;
-        html += `<span class="learn-action-icon">&#8635;</span>`;
-        html += `<span class="learn-action-label">Redo Level ${progress.currentLevel}</span>`;
-        html += `</button>`;
-        html += `<button class="learn-action-btn learn-primary dl-next-level" onclick="AICoworker.learnPatient()" title="Process next batch of chart data">`;
-        html += `<span class="learn-action-icon">&#9654;</span>`;
-        html += `<span class="learn-action-label">Next Level</span>`;
-        html += `</button>`;
-
-        // Analyze Case (can analyze with partial learn)
-        const hasAnalysis = !!(this.state.aiOneLiner || this.state.problemList?.length > 0);
-        if (!hasAnalysis) {
-            html += '<button class="learn-action-btn analyze-primary" onclick="AICoworker.refreshThinking()" title="Analyze with current knowledge">';
-            html += '<span class="learn-action-icon">&#128269;</span>';
-            html += '<span class="learn-action-label">Analyze Case</span>';
-            html += '</button>';
-        } else {
-            html += '<button class="learn-action-btn analyze-done" onclick="AICoworker.refreshThinking()" title="Re-analyze case">';
-            html += '<span class="learn-action-icon">&#9989;</span>';
-            html += '<span class="learn-action-label">Analyzed</span>';
-            html += '</button>';
-        }
-
-        html += `</div>`;
-
-        // Bottom row: memory viewer, reset, clear
-        html += '<div class="dl-between-footer">';
-        html += `<button class="memory-viewer-btn" onclick="AICoworker.toggleMemoryViewer()" title="View AI Knowledge Base">&#129504;</button>`;
-        html += `<button class="learn-action-btn learn-secondary dl-reset" onclick="AICoworker.resetLearnProgress()" title="Reset to Level 0 (keep knowledge)">`;
-        html += `<span class="learn-action-icon">&#8634;</span>`;
-        html += `<span class="learn-action-label">Reset to Level 0</span>`;
-        html += `</button>`;
-        html += `<button class="clear-memory-btn" onclick="AICoworker.clearMemory()" title="Clear all AI memory">&#128465;</button>`;
+        // ── Top row: status + percentage ──
+        html += '<div class="dl-status-row">';
+        html += `<span class="dl-status-badge">Level ${progress.currentLevel}</span>`;
+        html += '<div class="dl-status-bar-wrap">';
+        html += `<div class="dl-status-bar" style="width: ${pct}%"></div>`;
+        html += '</div>';
+        html += `<span class="dl-status-pct">${pct}%</span>`;
         html += '</div>';
 
+        // ── Knowledge stats (compact) ──
+        if (memDoc) {
+            const stats = [
+                { n: memDoc.problemAnalysis?.length || 0, label: 'problems' },
+                { n: memDoc.medicationRationale?.length || 0, label: 'meds' },
+                { n: memDoc.labTrends?.key_values?.length || 0, label: 'labs' },
+            ].filter(s => s.n > 0);
+
+            if (stats.length > 0) {
+                html += '<div class="dl-knowledge-row">';
+                stats.forEach((s, i) => {
+                    if (i > 0) html += '<span class="dl-k-dot">·</span>';
+                    html += `<span class="dl-k-stat"><strong>${s.n}</strong> ${s.label}</span>`;
+                });
+                html += `<button class="dl-kb-btn" onclick="AICoworker.toggleMemoryViewer()" title="View Knowledge Base">View KB</button>`;
+                html += '</div>';
+            }
+        }
+
+        // ── Action buttons: single row, primary action emphasized ──
+        html += '<div class="dl-action-row">';
+
+        if (progress.remainingLevels > 0) {
+            html += `<button class="dl-btn dl-btn-primary" onclick="AICoworker.learnPatient()" title="Learn next ${progress.batchSizes?.[progress.currentLevel] || '?'} items">`;
+            html += `Continue Learning</button>`;
+        }
+
+        if (!hasAnalysis) {
+            html += `<button class="dl-btn dl-btn-analyze" onclick="AICoworker.refreshThinking()" title="Generate clinical synthesis">`;
+            html += `Analyze</button>`;
+        } else {
+            html += `<button class="dl-btn dl-btn-secondary" onclick="AICoworker.refreshThinking()" title="Re-analyze">`;
+            html += `Re-Analyze</button>`;
+        }
+
+        // Overflow menu for less-used actions
+        html += `<div class="dl-overflow">`;
+        html += `<button class="dl-btn-icon" onclick="this.parentElement.classList.toggle('open')" title="More options">⋯</button>`;
+        html += `<div class="dl-overflow-menu">`;
+        html += `<button onclick="AICoworker.redoCurrentLevel();this.closest('.dl-overflow').classList.remove('open')">Redo Level ${progress.currentLevel}</button>`;
+        html += `<button onclick="AICoworker.resetLearnProgress();this.closest('.dl-overflow').classList.remove('open')">Reset Progress</button>`;
+        html += `<button onclick="AICoworker.clearMemory();this.closest('.dl-overflow').classList.remove('open')" class="dl-overflow-danger">Clear Memory</button>`;
+        html += `</div>`;
+        html += `</div>`;
+
+        html += '</div>';
         html += '</div>';
         return html;
     },
