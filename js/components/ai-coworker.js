@@ -1772,6 +1772,9 @@ const AICoworker = {
         // ===== SECTION 1.5: CONTEXT LINE (Reactive mode — minimal 1-line summary) =====
         if (sections.contextLine) html += this.renderContextLine();
 
+        // ===== SECTION 1.7: ONE-LINER (AI gestalt) =====
+        if (sections.clinicalSummary) html += this.renderStatusLine();
+
         // ===== SECTION 2: CLINICAL SUMMARY (3 sentences) =====
         if (sections.clinicalSummary) html += this.renderClinicalSummary(isThinking);
 
@@ -6636,15 +6639,21 @@ RULES:
                 };
 
                 const onIncChunk = (accText) => {
-                    let updated = false;
-
                     // 1. One-liner (clinicalGestalt) — appears first in JSON
                     const gestalt = extractField(accText, 'clinicalGestalt');
                     if (gestalt && gestalt !== lastRenderedFields.gestalt) {
                         lastRenderedFields.gestalt = gestalt;
                         this.state.aiOneLiner = gestalt;
                         this._streamingPhase = 'summary';
-                        updated = true;
+                        // Targeted DOM update — just the one-liner
+                        const lineEl = document.querySelector('.status-line-text');
+                        if (lineEl) {
+                            lineEl.textContent = gestalt;
+                        } else {
+                            // First appearance — need full render to create the element
+                            this.render();
+                            return;
+                        }
                     }
 
                     // 2. Patient overview — appears second
@@ -6652,7 +6661,14 @@ RULES:
                     if (overview && overview !== lastRenderedFields.overview) {
                         lastRenderedFields.overview = overview;
                         this.state.summary = overview;
-                        updated = true;
+                        // Targeted DOM update — just the summary section
+                        const summaryEl = document.querySelector('.summary-section .copilot-section-body');
+                        if (summaryEl) {
+                            summaryEl.innerHTML = this.renderClinicalSummary(true).replace(/<div class="copilot-section[^>]*>.*?<div class="copilot-section-body">/, '').replace(/<\/div>\s*<\/div>\s*$/, '');
+                        } else {
+                            this.render();
+                            return;
+                        }
                     }
 
                     // 3. Try full JSON parse for structured fields (problems, etc.)
@@ -6667,17 +6683,17 @@ RULES:
                                 plan: p.plan || ''
                             }));
                             this._streamingPhase = 'problems';
-                            updated = true;
+                            this.render(); // Full render for problems (complex HTML)
+                            return;
                         }
                         if (partial.categorizedActions && !lastRenderedFields.hasActions) {
                             lastRenderedFields.hasActions = true;
                             this.state.categorizedActions = partial.categorizedActions;
                             this._streamingPhase = 'actions';
-                            updated = true;
+                            this.render();
+                            return;
                         }
                     }
-
-                    if (updated) this.render();
                 };
 
                 const response = await this.callLLMStreaming(
