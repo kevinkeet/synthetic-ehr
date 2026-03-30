@@ -32,6 +32,15 @@ const App = {
         // Initialize order entry
         OrderEntry.init();
 
+        // Initialize Supabase auth + settings sync (before AI so settings are loaded)
+        if (typeof SupabaseSync !== 'undefined') {
+            try {
+                await SupabaseSync.init();
+            } catch (e) {
+                console.warn('Supabase init failed (non-fatal):', e.message);
+            }
+        }
+
         // Initialize AI panel
         AIPanel.init();
 

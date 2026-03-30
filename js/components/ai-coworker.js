@@ -149,6 +149,14 @@ const AICoworker = {
         this.loadModelPreferences(); // Load saved model choices
         this.setupEventListeners();
 
+        // Listen for cloud settings sync (Supabase)
+        window.addEventListener('settings:synced-from-cloud', () => {
+            console.log('🔐 Cloud settings synced — reloading preferences');
+            this.loadApiKeyFallback();
+            this.loadModelPreferences();
+            if (typeof AIPanel !== 'undefined' && AIPanel.loadSettings) AIPanel.loadSettings();
+        });
+
         // Listen for external updates via postMessage
         window.addEventListener('message', (event) => this.handleExternalMessage(event));
 

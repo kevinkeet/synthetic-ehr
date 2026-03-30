@@ -23,6 +23,11 @@ const About = {
      * Called once from app init.
      */
     checkFirstVisit() {
+        // If user is already logged in via Supabase, skip the modal
+        if (typeof SupabaseSync !== 'undefined' && SupabaseSync.isAuthenticated()) {
+            console.log('🔐 User already authenticated — skipping About modal');
+            return;
+        }
         const seen = localStorage.getItem('about-seen');
         if (!seen) {
             this.showModal();
@@ -88,6 +93,7 @@ const About = {
                             </div>
                             <p class="about-hero-tagline">A PHI-free playground for exploring how AI can support clinical reasoning and medical decision-making.</p>
                         </div>
+                        <div class="about-auth-section" id="about-auth-section"></div>
                         <div class="about-setup-section" id="about-setup-section">
                             ${backendMode ? `
                             <h2>&#10003; AI Ready</h2>
@@ -130,6 +136,11 @@ const About = {
         `;
 
         document.body.appendChild(overlay);
+
+        // Render Supabase auth UI if available
+        if (typeof SupabaseSync !== 'undefined' && SupabaseSync.renderAuthUI) {
+            SupabaseSync.renderAuthUI('about-auth-section');
+        }
 
         // Close on backdrop click
         overlay.addEventListener('click', (e) => {
