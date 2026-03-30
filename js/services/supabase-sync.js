@@ -360,8 +360,24 @@ const SupabaseSync = (() => {
                   style="width:100%;">Sign In</button>
         </form>
         <div id="supabase-auth-message" style="margin-top:8px;font-size:0.9em;"></div>
+        <div style="margin-top:12px;text-align:center;border-top:1px solid #e2e8f0;padding-top:12px;">
+          <button type="button" class="btn" id="supabase-guest-btn"
+                  style="width:100%;color:#94a3b8;font-size:12px;">Continue as Guest</button>
+          <p style="font-size:11px;color:#94a3b8;margin-top:4px;">Your settings won't sync across devices</p>
+        </div>
       </div>
     `;
+
+    // Guest button — close the About modal and continue without login
+    const guestBtn = container.querySelector('#supabase-guest-btn');
+    if (guestBtn) {
+      guestBtn.addEventListener('click', () => {
+        log('Continuing as guest');
+        if (typeof About !== 'undefined' && About.closeModal) {
+          About.closeModal();
+        }
+      });
+    }
 
     let mode = 'signin'; // 'signin' | 'register'
     const tabs = container.querySelectorAll('.supabase-tab-btn');
