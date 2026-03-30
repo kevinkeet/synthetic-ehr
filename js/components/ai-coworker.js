@@ -6625,47 +6625,59 @@ RULES:
                 const prompt = this.contextAssembler.buildRefreshMemoryPrompt();
                 console.log(`🔄 Incremental refresh: ${prompt.userMessage.length} chars (vs full chart)`);
 
-                // Progressive streaming for incremental refresh
-                let incThrottle = null;
-                let lastIncHash = '';
+                // Progressive streaming — extract completed fields via regex
+                // This works even before the full JSON is parseable
+                let lastRenderedFields = {};
+                const extractField = (text, field) => {
+                    // Match "field": "value" or "field": "multi\nline\nvalue"
+                    const re = new RegExp('"' + field + '"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"');
+                    const m = text.match(re);
+                    return m ? m[1].replace(/\\n/g, '\n').replace(/\\"/g, '"') : null;
+                };
+
                 const onIncChunk = (accText) => {
-                    if (incThrottle) return;
-                    incThrottle = setTimeout(() => { incThrottle = null; }, 400);
+                    let updated = false;
+
+                    // 1. One-liner (clinicalGestalt) — appears first in JSON
+                    const gestalt = extractField(accText, 'clinicalGestalt');
+                    if (gestalt && gestalt !== lastRenderedFields.gestalt) {
+                        lastRenderedFields.gestalt = gestalt;
+                        this.state.aiOneLiner = gestalt;
+                        this._streamingPhase = 'summary';
+                        updated = true;
+                    }
+
+                    // 2. Patient overview — appears second
+                    const overview = extractField(accText, 'patientOverview');
+                    if (overview && overview !== lastRenderedFields.overview) {
+                        lastRenderedFields.overview = overview;
+                        this.state.summary = overview;
+                        updated = true;
+                    }
+
+                    // 3. Try full JSON parse for structured fields (problems, etc.)
                     const partial = this._parseJSONResponse(accText);
-                    if (!partial) return;
-                    const hash = [
-                        partial.clinicalGestalt ? 'G' : '',
-                        partial.patientOverview ? 'O' : '',
-                        partial.problemAnalysis?.length || 0,
-                        partial.safetyProfile ? 'S' : '',
-                    ].join(',');
-                    if (hash !== lastIncHash) {
-                        lastIncHash = hash;
-                        // Map memory doc fields to panel state for progressive display
-                        let updated = false;
-                        if (partial.clinicalGestalt && partial.clinicalGestalt !== this.state.aiOneLiner) {
-                            this.state.aiOneLiner = partial.clinicalGestalt;
-                            updated = true;
-                        }
-                        if (partial.patientOverview && partial.patientOverview !== this.state.summary) {
-                            this.state.summary = partial.patientOverview;
-                            updated = true;
-                        }
-                        if (partial.problemAnalysis?.length && JSON.stringify(partial.problemAnalysis) !== JSON.stringify(this.state._lastIncProblems)) {
-                            this.state._lastIncProblems = partial.problemAnalysis;
+                    if (partial) {
+                        if (partial.problemAnalysis?.length && partial.problemAnalysis.length !== lastRenderedFields.problemCount) {
+                            lastRenderedFields.problemCount = partial.problemAnalysis.length;
                             this.state.problemList = partial.problemAnalysis.map(p => ({
                                 name: p.problem,
                                 urgency: p.status === 'acute' ? 'urgent' : (p.status === 'active' ? 'active' : 'monitoring'),
                                 ddx: null,
                                 plan: p.plan || ''
                             }));
+                            this._streamingPhase = 'problems';
                             updated = true;
                         }
-                        if (updated) {
-                            this._streamingPhase = partial.problemAnalysis?.length ? 'problems' : 'summary';
-                            this.render();
+                        if (partial.categorizedActions && !lastRenderedFields.hasActions) {
+                            lastRenderedFields.hasActions = true;
+                            this.state.categorizedActions = partial.categorizedActions;
+                            this._streamingPhase = 'actions';
+                            updated = true;
                         }
                     }
+
+                    if (updated) this.render();
                 };
 
                 const response = await this.callLLMStreaming(
@@ -6675,8 +6687,7 @@ RULES:
                     { model: this.analysisModel },
                     onIncChunk
                 );
-                if (incThrottle) { clearTimeout(incThrottle); }
-                delete this.state._lastIncProblems;
+                // Streaming complete — clean up
 
                 const memoryDoc = this._parseJSONResponse(response);
                 if (memoryDoc && memoryDoc.patientOverview) {

@@ -859,15 +859,16 @@ RULES:
 - If new data contradicts your memory, update your memory and note the change
 - Keep the same JSON structure
 
-Respond with the COMPLETE updated memory document as JSON (same schema as before), no preamble or markdown fences.
+Respond with the COMPLETE updated memory document as JSON. Output fields in this EXACT order. No preamble or markdown fences.
 
 {
-    "patientOverview": "...",
-    "problemAnalysis": [...],
-    "safetyProfile": {...},
-    "medicationRationale": [...],
-    "pendingItems": [...],
-    "clinicalGestalt": "..."
+    "clinicalGestalt": "One-sentence clinical gestalt — the 10-second handoff",
+    "patientOverview": "2-3 paragraph overview with PMH qualifiers",
+    "problemAnalysis": [{"problem": "Name", "status": "active", "trajectory": "stable", "keyData": [...], "plan": "...", "timeline": "..."}],
+    "safetyProfile": {"allergies": [...], "contraindications": [...], "criticalValues": [...], "renalDosing": [...]},
+    "medicationRationale": [{"name": "Med+dose", "indication": "...", "rationale": "...", "monitoring": "..."}],
+    "labTrends": {"key_values": [{"test": "Name", "values": [...], "trend": "stable", "significance": "..."}]},
+    "pendingItems": ["..."]
 }`;
 
         const userMessage = refreshContext;
@@ -875,7 +876,7 @@ Respond with the COMPLETE updated memory document as JSON (same schema as before
         return {
             systemPrompt,
             userMessage,
-            maxTokens: 2048
+            maxTokens: 4096
         };
     }
 
