@@ -53,6 +53,59 @@
     --font-mono: 'SF Mono', 'Monaco', 'Consolas', monospace;
 }
 
+/* Lucide icon sizing */
+.lucide-inline {
+    width: 16px;
+    height: 16px;
+    vertical-align: -2px;
+    display: inline-block;
+    flex-shrink: 0;
+}
+.lucide-inline-sm {
+    width: 13px;
+    height: 13px;
+    vertical-align: -2px;
+    display: inline-block;
+    flex-shrink: 0;
+}
+.lucide-sparkle {
+    color: var(--primary-light);
+}
+/* Nav icon sizing for sidebar */
+.nav-icon svg, .nav-icon i {
+    width: 15px;
+    height: 15px;
+    stroke-width: 1.8;
+}
+/* AI panel header icon sizing */
+.ai-settings-btn-header svg, .ai-settings-btn-header i {
+    width: 17px;
+    height: 17px;
+    stroke-width: 1.6;
+}
+.ai-panel-toggle svg, .ai-panel-toggle i {
+    width: 16px;
+    height: 16px;
+}
+/* Section header icon sizing */
+.copilot-section-header svg, .copilot-section-header i[data-lucide] {
+    width: 14px;
+    height: 14px;
+    vertical-align: -2px;
+    stroke-width: 2;
+}
+/* Action category icon sizing */
+.action-cat-icon svg, .action-cat-icon i {
+    width: 14px;
+    height: 14px;
+    vertical-align: -2px;
+}
+/* Floating AI button icon */
+.ai-panel-floating-btn svg, .ai-panel-floating-btn i {
+    width: 18px;
+    height: 18px;
+}
+
 /* Reset & Base Styles */
 * {
     margin: 0;
@@ -348,6 +401,7 @@ html, body {
     color: var(--text-white);
     overflow-y: auto;
     flex-shrink: 0;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.08);
 }
 
 .nav-section {
@@ -376,8 +430,10 @@ html, body {
     color: rgba(255,255,255,0.75);
     text-decoration: none;
     font-size: 13px;
-    transition: all 0.15s ease;
+    transition: all 0.2s ease;
     border-left: 3px solid transparent;
+    border-radius: 0 6px 6px 0;
+    margin-right: 6px;
 }
 
 .nav-item:hover {
@@ -2607,6 +2663,7 @@ html, body {
     overflow: hidden;
     transition: width 0.3s ease, opacity 0.3s ease;
     position: relative;
+    box-shadow: -2px 0 12px rgba(0,0,0,0.04);
 }
 
 .ai-panel.resizing {
@@ -6198,10 +6255,11 @@ html, body {
 .copilot-section {
     padding: 8px 12px 10px;
     border-bottom: none;
-    margin: 0 6px 4px;
-    border-radius: 8px;
-    background: rgba(247, 250, 252, 0.6);
+    margin: 0 6px 6px;
+    border-radius: 10px;
+    background: rgba(247, 250, 252, 0.7);
     transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    border: 1px solid rgba(226, 232, 240, 0.5);
 }
 
 /* Brief highlight when section receives new data from streaming */

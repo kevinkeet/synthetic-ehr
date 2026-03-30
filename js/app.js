@@ -9,6 +9,21 @@ const App = {
     isInitialized: false,
 
     /**
+     * Refresh Lucide icons — call after dynamic content is rendered.
+     * Debounced to avoid excessive calls during rapid re-renders.
+     */
+    _lucideTimer: null,
+    refreshIcons() {
+        if (this._lucideTimer) return;
+        this._lucideTimer = setTimeout(() => {
+            this._lucideTimer = null;
+            if (typeof lucide !== 'undefined') {
+                try { lucide.createIcons(); } catch (e) { /* ignore */ }
+            }
+        }, 50);
+    },
+
+    /**
      * Initialize the application
      */
     async init() {
@@ -750,6 +765,10 @@ const App = {
 
 // Initialize app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize Lucide icons (converts <i data-lucide="..."> to SVG)
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
     App.init();
 });
 

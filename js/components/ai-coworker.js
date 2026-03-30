@@ -1728,7 +1728,7 @@ const AICoworker = {
         if (isLearning) {
             html += '<div class="copilot-thinking-banner learning-banner">';
             html += '<div class="thinking-banner-content">';
-            html += '<span class="thinking-sparkle">&#129504;</span>';
+            html += '<span class="thinking-sparkle"><i data-lucide="brain" class="lucide-inline"></i></span>';
             html += '<span class="thinking-label">Learning patient chart</span>';
             html += '<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span>';
             html += '</div>';
@@ -1755,7 +1755,7 @@ const AICoworker = {
 
             html += '<div class="copilot-thinking-banner">';
             html += '<div class="thinking-banner-content">';
-            html += '<span class="thinking-sparkle">&#10024;</span>';
+            html += '<span class="thinking-sparkle"><i data-lucide="sparkles" class="lucide-inline"></i></span>';
             html += `<span class="thinking-label">${thinkingLabel}</span>`;
             html += '<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span>';
             html += '</div>';
@@ -1794,6 +1794,9 @@ const AICoworker = {
         html += this.renderInlineInput();
 
         body.innerHTML = html;
+
+        // Refresh Lucide icons in the newly rendered content
+        if (typeof App !== 'undefined' && App.refreshIcons) App.refreshIcons();
 
         // Auto-resize inline textarea
         const textarea = document.getElementById('copilot-inline-input');
@@ -2632,7 +2635,7 @@ const AICoworker = {
             let html = '<div class="clinical-summary' + (isThinking && !collapsed ? ' copilot-section shimmer-loading' : '') + '">';
             html += `<div class="copilot-section-header collapsible-header" onclick="AICoworker.toggleSection('summary')">`;
             html += `<span class="collapse-chevron">${chevron}</span>`;
-            html += '<span>&#128203;</span> Clinical Summary';
+            html += '<i data-lucide="clipboard-list" class="lucide-inline"></i> Clinical Summary';
             html += '</div>';
 
             if (!collapsed) {
@@ -2680,9 +2683,9 @@ const AICoworker = {
         let html = '<div class="copilot-section problem-list-section">';
         html += `<div class="copilot-section-header collapsible-header" onclick="AICoworker.toggleSection('problems')">`;
         html += `<span class="collapse-chevron">${chevron}</span>`;
-        html += '<span>&#127973;</span> Problem List';
+        html += '<i data-lucide="list-checks" class="lucide-inline"></i> Problem List';
         html += '<div class="section-actions">';
-        html += '<button class="section-action-btn" onclick="event.stopPropagation(); AICoworker.refreshThinking()" title="Refresh analysis">&#128260;</button>';
+        html += '<button class="section-action-btn" onclick="event.stopPropagation(); AICoworker.refreshThinking()" title="Refresh analysis"><i data-lucide="refresh-cw" class="lucide-inline-sm"></i></button>';
         html += '</div></div>';
 
         if (collapsed) {
@@ -2773,7 +2776,7 @@ const AICoworker = {
             // Show typing indicator when AI is thinking and last message was from user
             if (this.state.status === 'thinking' && recentMsgs.length > 0 && recentMsgs[recentMsgs.length - 1].role === 'user') {
                 html += '<div class="thread-msg thread-msg-ai thread-msg-typing">';
-                html += '<div class="thread-msg-label">&#10024; AI</div>';
+                html += '<div class="thread-msg-label"><i data-lucide="sparkles" class="lucide-inline-sm"></i> AI</div>';
                 html += '<div class="thread-msg-text"><span class="typing-indicator"><span></span><span></span><span></span></span></div>';
                 html += '</div>';
             }
@@ -2839,18 +2842,18 @@ const AICoworker = {
         this._pendingActionCategories = {};
 
         const categories = [
-            { key: 'communication', icon: '&#128172;', label: 'Talk to patient/nurse', items: actions?.communication || [] },
-            { key: 'labs', icon: '&#128300;', label: 'Order labs', items: actions?.labs || [] },
-            { key: 'imaging', icon: '&#128247;', label: 'Order imaging', items: actions?.imaging || [] },
-            { key: 'medications', icon: '&#128138;', label: 'Medication orders', items: actions?.medications || [] },
-            { key: 'other', icon: '&#128203;', label: 'Other orders', items: actions?.other || [] },
-            { key: 'documentation', icon: '&#128221;', label: 'Documentation', items: [], _static: true }
+            { key: 'communication', icon: '<i data-lucide="message-square" class="lucide-inline"></i>', label: 'Talk to patient/nurse', items: actions?.communication || [] },
+            { key: 'labs', icon: '<i data-lucide="test-tubes" class="lucide-inline"></i>', label: 'Order labs', items: actions?.labs || [] },
+            { key: 'imaging', icon: '<i data-lucide="scan" class="lucide-inline"></i>', label: 'Order imaging', items: actions?.imaging || [] },
+            { key: 'medications', icon: '<i data-lucide="pill" class="lucide-inline"></i>', label: 'Medication orders', items: actions?.medications || [] },
+            { key: 'other', icon: '<i data-lucide="clipboard-list" class="lucide-inline"></i>', label: 'Other orders', items: actions?.other || [] },
+            { key: 'documentation', icon: '<i data-lucide="file-edit" class="lucide-inline"></i>', label: 'Documentation', items: [], _static: true }
         ];
 
         let html = '<div class="copilot-section actions-section' + (isThinking && !collapsed ? ' shimmer-loading' : '') + '">';
         html += `<div class="copilot-section-header collapsible-header" onclick="AICoworker.toggleSection('actions')">`;
         html += `<span class="collapse-chevron">${chevron}</span>`;
-        html += '<span>&#9989;</span> Suggested Actions';
+        html += '<i data-lucide="check-circle" class="lucide-inline"></i> Suggested Actions';
         html += '</div>';
 
         if (collapsed) {
