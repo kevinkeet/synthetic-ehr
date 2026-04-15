@@ -12494,9 +12494,11 @@ html, body {
 /* ===== Deep Learn Progress UI ===== */
 .deep-learn-progress,
 .deep-learn-between {
-    padding: 10px 12px;
-    background: rgba(30, 30, 40, 0.6);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 8px 10px;
+    margin: 2px 6px 4px;
+    background: linear-gradient(135deg, #1e293b, #1a2332);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 /* Active progress header */
@@ -12556,6 +12558,75 @@ html, body {
 /* ── Clean between-levels design ── */
 
 /* Status row: badge + progress bar + percentage */
+/* ── Collapsed learn bar: single compact strip ── */
+.dl-collapsed {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    margin: 2px 6px 4px;
+    background: rgba(43, 108, 176, 0.08);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.dl-collapsed:hover {
+    background: rgba(43, 108, 176, 0.14);
+}
+.dl-collapsed-badge {
+    font-size: 9px;
+    font-weight: 700;
+    color: #fff;
+    background: #2b6cb0;
+    padding: 1px 5px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+.dl-collapsed-bar-wrap {
+    flex: 1;
+    height: 3px;
+    background: rgba(0, 0, 0, 0.08);
+    border-radius: 2px;
+    overflow: hidden;
+}
+.dl-collapsed-bar {
+    display: block;
+    height: 100%;
+    background: #2b6cb0;
+    border-radius: 2px;
+}
+.dl-collapsed-info {
+    font-size: 10px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+.dl-collapsed-expand {
+    font-size: 8px;
+    color: var(--text-muted);
+    opacity: 0.5;
+}
+
+/* ── Collapse/expand button in expanded learn bar ── */
+.dl-collapse-btn {
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 3px;
+    transition: all 0.15s;
+}
+.dl-collapse-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+}
+
 .dl-status-row {
     display: flex;
     align-items: center;

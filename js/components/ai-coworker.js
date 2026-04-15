@@ -2058,25 +2058,50 @@ const AICoworker = {
     },
 
     /**
-     * Render deep learn between-levels state — clean, polished design
+     * Toggle the learn bar expanded/collapsed state
+     */
+    toggleLearnBarCollapse() {
+        this._learnBarCollapsed = !this._learnBarCollapsed;
+        this.render();
+    },
+
+    /**
+     * Render deep learn between-levels state — collapsible design
      */
     _renderDeepLearnBetweenLevels(progress) {
         const pct = progress.percentComplete;
         const hasAnalysis = !!(this.state.aiOneLiner || this.state.problemList?.length > 0);
         const memDoc = this.longitudinalDoc?.aiMemory?.memoryDocument;
+        const collapsed = this._learnBarCollapsed || false;
 
+        // ── Collapsed: single compact strip ──
+        if (collapsed) {
+            const problemCount = memDoc?.problemAnalysis?.length || 0;
+            let html = '<div class="dl-collapsed" onclick="AICoworker.toggleLearnBarCollapse()">';
+            html += `<span class="dl-collapsed-badge">L${progress.currentLevel}</span>`;
+            html += `<span class="dl-collapsed-bar-wrap"><span class="dl-collapsed-bar" style="width:${pct}%"></span></span>`;
+            html += `<span class="dl-collapsed-info">${pct}%`;
+            if (problemCount > 0) html += ` · ${problemCount} problems`;
+            html += `</span>`;
+            html += `<span class="dl-collapsed-expand" title="Expand">&#9660;</span>`;
+            html += '</div>';
+            return html;
+        }
+
+        // ── Expanded ──
         let html = '<div class="deep-learn-between">';
 
-        // ── Top row: status + percentage ──
+        // Collapse button
         html += '<div class="dl-status-row">';
         html += `<span class="dl-status-badge">Level ${progress.currentLevel}</span>`;
         html += '<div class="dl-status-bar-wrap">';
         html += `<div class="dl-status-bar" style="width: ${pct}%"></div>`;
         html += '</div>';
         html += `<span class="dl-status-pct">${pct}%</span>`;
+        html += `<button class="dl-collapse-btn" onclick="event.stopPropagation();AICoworker.toggleLearnBarCollapse()" title="Minimize">&#9650;</button>`;
         html += '</div>';
 
-        // ── Knowledge stats (compact) ──
+        // Knowledge stats
         if (memDoc) {
             const stats = [
                 { n: memDoc.problemAnalysis?.length || 0, label: 'problems' },
@@ -2095,31 +2120,26 @@ const AICoworker = {
             }
         }
 
-        // ── Action buttons: single row, primary action emphasized ──
+        // Action buttons
         html += '<div class="dl-action-row">';
 
         if (progress.remainingLevels > 0) {
-            html += `<button class="dl-btn dl-btn-primary" onclick="AICoworker.learnPatient()" title="Learn next ${progress.batchSizes?.[progress.currentLevel] || '?'} items">`;
-            html += `Continue Learning</button>`;
+            html += `<button class="dl-btn dl-btn-primary" onclick="AICoworker.learnPatient()">Continue Learning</button>`;
         }
 
         if (!hasAnalysis) {
-            html += `<button class="dl-btn dl-btn-analyze" onclick="AICoworker.refreshThinking()" title="Generate clinical synthesis">`;
-            html += `Analyze</button>`;
+            html += `<button class="dl-btn dl-btn-analyze" onclick="AICoworker.refreshThinking()">Analyze</button>`;
         } else {
-            html += `<button class="dl-btn dl-btn-secondary" onclick="AICoworker.refreshThinking()" title="Re-analyze">`;
-            html += `Re-Analyze</button>`;
+            html += `<button class="dl-btn dl-btn-secondary" onclick="AICoworker.refreshThinking()">Re-Analyze</button>`;
         }
 
-        // Overflow menu for less-used actions
         html += `<div class="dl-overflow">`;
-        html += `<button class="dl-btn-icon" onclick="this.parentElement.classList.toggle('open')" title="More options">⋯</button>`;
+        html += `<button class="dl-btn-icon" onclick="this.parentElement.classList.toggle('open')">⋯</button>`;
         html += `<div class="dl-overflow-menu">`;
         html += `<button onclick="AICoworker.redoCurrentLevel();this.closest('.dl-overflow').classList.remove('open')">Redo Level ${progress.currentLevel}</button>`;
         html += `<button onclick="AICoworker.resetLearnProgress();this.closest('.dl-overflow').classList.remove('open')">Reset Progress</button>`;
         html += `<button onclick="AICoworker.clearMemory();this.closest('.dl-overflow').classList.remove('open')" class="dl-overflow-danger">Clear Memory</button>`;
-        html += `</div>`;
-        html += `</div>`;
+        html += `</div></div>`;
 
         html += '</div>';
         html += '</div>';
