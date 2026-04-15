@@ -9,9 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@evenrealities/even_hub_sdk": "latest"
+    "@evenrealities/even_hub_sdk": "latest",
+    "@evenrealities/evenhub-simulator": "^0.6.2"
   },
   "devDependencies": {
+    "@evenrealities/evenhub-cli": "^0.1.11",
     "vite": "^6.0.0"
   }
 }

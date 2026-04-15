@@ -1836,6 +1836,40 @@ const SmartGlasses = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
         }).catch(() => { /* server may not be running */ });
+
+        // Supabase (for real G2 glasses via cloud)
+        this._pushToSupabase(payload);
+    },
+
+    /**
+     * Push glasses state to Supabase REST API for G2 companion app sync
+     */
+    async _pushToSupabase(payload) {
+        const url = window.__SUPABASE_URL;
+        const key = window.__SUPABASE_ANON_KEY;
+        if (!url || !key) return;
+
+        try {
+            // Upsert to glasses_state table using user_id from SupabaseSync
+            const userId = typeof SupabaseSync !== 'undefined' && SupabaseSync.isAuthenticated()
+                ? SupabaseSync.getUser()?.id
+                : 'anonymous';
+
+            await fetch(url + '/rest/v1/glasses_state', {
+                method: 'POST',
+                headers: {
+                    'apikey': key,
+                    'Authorization': 'Bearer ' + key,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'resolution=merge-duplicates'
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    state: payload,
+                    updated_at: new Date().toISOString()
+                })
+            });
+        } catch (e) { /* silently fail */ }
     },
 
     /**

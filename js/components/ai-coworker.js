@@ -6550,6 +6550,11 @@ RULES:
             this.render();
             App.showToast('AI synthesis updated', 'success');
 
+            // Push updated state to glasses
+            if (typeof SmartGlasses !== 'undefined' && SmartGlasses._pushToG2Companion) {
+                SmartGlasses._pushToG2Companion(this.state, null);
+            }
+
         } catch (error) {
             console.error('LLM synthesis error:', error);
             this.state.status = 'ready';
@@ -6763,6 +6768,12 @@ RULES:
                     this._saveModeCache();
                     this.render();
                     App.showToast('Analysis complete', 'success');
+
+                    // Push updated state to glasses
+                    if (typeof SmartGlasses !== 'undefined' && SmartGlasses._pushToG2Companion) {
+                        SmartGlasses._pushToG2Companion(this.state, null);
+                    }
+
                     if (btn) btn.classList.remove('spinning');
                     return;
                 }
@@ -6951,6 +6962,11 @@ RULES:
 
             this.render();
             App.showToast('AI analysis refreshed', 'success');
+
+            // Push updated state to glasses
+            if (typeof SmartGlasses !== 'undefined' && SmartGlasses._pushToG2Companion) {
+                SmartGlasses._pushToG2Companion(this.state, null);
+            }
 
         } catch (error) {
             console.error('LLM refresh error:', error);
