@@ -22,18 +22,18 @@ const AIPreferences = (() => {
     };
 
     const ASSERTIVENESS_LABELS = {
-        1: 'Scribe — Organizes facts, no opinions',
-        2: 'Observer — Brief observations, safety flags only',
-        3: 'Copilot — Summarizes, suggests next steps',
-        4: 'Consultant — Full DDx, evidence-based plans',
-        5: 'Attending — Challenges reasoning, teaches, debates'
+        1: 'Passive — Facts only, no interpretation',
+        2: 'Reserved — Observations + safety flags',
+        3: 'Balanced — Summarizes, suggests, flags concerns',
+        4: 'Engaged — Full analysis, challenges gaps',
+        5: 'Assertive — Opinionated, debates, teaches'
     };
 
     // Each level defines: personality prefix, which sections to include,
     // which optional JSON fields to add, and depth instructions
     const ASSERTIVENESS_PROFILES = {
         1: {
-            prefix: 'You are a clinical scribe. Your ONLY job is to organize the available data into a clean summary. Do NOT offer opinions, differential diagnoses, or suggest actions. Do NOT interpret findings — just report them. The physician will make all decisions.',
+            prefix: 'You are a clinical AI assistant operating in PASSIVE mode. Your ONLY job is to organize the available data into a clean summary. Do NOT offer opinions, differential diagnoses, or suggest actions. Do NOT interpret findings — just report them. The physician will make all decisions.',
             includeSections: ['clinicalSummary', 'problemList'],
             excludeSections: ['categorizedActions', 'suggestedActions', 'keyConsiderations', 'thinking', 'ddxChallenge', 'teachingPoints'],
             problemListRule: 'List problems with status only. Do NOT include plans, DDx, or recommendations. Just "Problem — status (active/stable/monitoring)".',
@@ -42,7 +42,7 @@ const AIPreferences = (() => {
             extraFields: []
         },
         2: {
-            prefix: 'You are a quiet clinical observer. Report findings clearly. Only flag SAFETY CONCERNS (critical values, drug interactions, allergies). Defer all clinical decisions to the physician. Do not suggest actions unless they involve patient safety.',
+            prefix: 'You are a clinical AI assistant operating in RESERVED mode. Report findings clearly. Only flag SAFETY CONCERNS (critical values, drug interactions, allergies). Defer all clinical decisions to the physician. Do not suggest actions unless they involve patient safety.',
             includeSections: ['clinicalSummary', 'problemList', 'keyConsiderations'],
             excludeSections: ['categorizedActions', 'suggestedActions', 'ddxChallenge', 'teachingPoints'],
             problemListRule: 'List problems with brief status and trajectory. Include a 1-sentence plan only if one already exists in the chart. Do NOT suggest new plans.',
@@ -51,7 +51,7 @@ const AIPreferences = (() => {
             extraFields: []
         },
         3: {
-            prefix: 'You are a balanced clinical assistant. Summarize findings, suggest reasonable next steps, and flag safety concerns. Support the physician\'s decision-making without being pushy. Offer 2-4 suggested actions focused on what needs to happen next.',
+            prefix: 'You are a clinical AI assistant operating in BALANCED mode. Summarize findings, suggest reasonable next steps, and flag safety concerns. Support the physician\'s decision-making without being pushy. Offer 2-4 suggested actions focused on what needs to happen next.',
             includeSections: ['clinicalSummary', 'problemList', 'categorizedActions', 'keyConsiderations', 'thinking'],
             excludeSections: ['ddxChallenge', 'teachingPoints'],
             problemListRule: 'List 3-5 active problems with plans. Problem #1 should be the chief complaint with a brief DDx (2-3 items). Keep plans actionable and specific.',
@@ -60,7 +60,7 @@ const AIPreferences = (() => {
             extraFields: []
         },
         4: {
-            prefix: 'You are a proactive clinical consultant. Provide a thorough analysis with differential diagnoses, evidence-based reasoning, and comprehensive action plans. Actively identify gaps in the workup. Challenge the current differential if it seems incomplete. Cite guidelines when relevant.',
+            prefix: 'You are a clinical AI assistant operating in ENGAGED mode. Provide a thorough analysis with differential diagnoses, evidence-based reasoning, and comprehensive action plans. Actively identify gaps in the workup. Challenge the current differential if it seems incomplete. Cite guidelines when relevant.',
             includeSections: ['clinicalSummary', 'problemList', 'categorizedActions', 'keyConsiderations', 'thinking'],
             excludeSections: [],
             problemListRule: 'List 4-6 problems. Problem #1 MUST have a comprehensive DDx with 3-5 diagnoses and brief reasoning for/against each. All problems need specific, evidence-based plans with guideline references where applicable.',
@@ -69,7 +69,7 @@ const AIPreferences = (() => {
             extraFields: ['ddxChallenge']
         },
         5: {
-            prefix: 'You are a senior attending physician reviewing this case with a trainee. Be OPINIONATED. Question the physician\'s reasoning. Challenge weak differential diagnoses. Point out what they might be missing. Teach through Socratic questioning. Cite specific guidelines and landmark trials. If you disagree with the current plan, say so directly and explain why. Hold them to a high standard.',
+            prefix: 'You are a clinical AI assistant operating in ASSERTIVE mode. Be OPINIONATED. Question the physician\'s reasoning. Challenge weak differential diagnoses. Point out what they might be missing. Teach through Socratic questioning. Cite specific guidelines and landmark trials. If you disagree with the current plan, say so directly and explain why. Hold the physician to a high standard of clinical reasoning.',
             includeSections: ['clinicalSummary', 'problemList', 'categorizedActions', 'keyConsiderations', 'thinking'],
             excludeSections: [],
             problemListRule: 'List 5-8 problems comprehensively. Problem #1 MUST have a rigorous DDx with 4-6 diagnoses, each with specific evidence for/against from this patient\'s data. Challenge the most likely diagnosis — what could be missed? All problems need evidence-based plans with specific guideline citations.',
@@ -394,9 +394,9 @@ const AIPreferences = (() => {
             <div class="customize-section customize-assertiveness-section">
                 <h3>AI Cognitive Level</h3>
                 <div class="assertive-slider-row">
-                    <span class="assertive-end-label">Scribe</span>
+                    <span class="assertive-end-label">Passive</span>
                     <input type="range" id="customize-assertiveness" min="1" max="5" step="1" value="${val}" class="customize-slider">
-                    <span class="assertive-end-label">Attending</span>
+                    <span class="assertive-end-label">Assertive</span>
                 </div>
                 <div class="assertive-level-name customize-assertiveness-label">${ASSERTIVENESS_LABELS[val]}</div>
                 <div class="assertive-description" id="assertive-description">${levelDescriptions[val]}</div>
