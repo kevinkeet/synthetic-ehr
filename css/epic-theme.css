@@ -11807,6 +11807,62 @@ html, body {
     background: rgba(0, 255, 136, 0.08);
 }
 
+/* Glasses display preferences panel */
+.glasses-editor {
+    background: #0a1520;
+    border-top: 1px solid rgba(0, 255, 136, 0.15);
+    padding: 10px 14px;
+}
+.glasses-editor-header {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: 'Courier New', monospace; font-size: 11px; color: #8fc; margin-bottom: 8px;
+}
+.glasses-editor-hint { font-size: 9px; color: rgba(0, 255, 136, 0.4); }
+.glasses-prefs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.glasses-pref-group { background: rgba(0, 255, 136, 0.04); border-radius: 4px; padding: 6px 8px; }
+.glasses-pref-group label:first-child {
+    display: block; font-family: 'Courier New', monospace; font-size: 9px;
+    font-weight: 600; color: rgba(0, 255, 136, 0.6); text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 4px;
+}
+.glasses-pref-btns { display: flex; gap: 3px; }
+.glasses-pref-btns button {
+    flex: 1; padding: 3px 6px; border-radius: 3px; border: 1px solid rgba(0, 255, 136, 0.15);
+    background: transparent; color: rgba(0, 255, 136, 0.5); font-family: 'Courier New', monospace;
+    font-size: 9px; cursor: pointer; transition: all 0.15s;
+}
+.glasses-pref-btns button:hover { background: rgba(0, 255, 136, 0.08); color: #8fc; }
+.glasses-pref-btns button.active {
+    background: rgba(0, 255, 136, 0.15); color: #8fc; border-color: rgba(0, 255, 136, 0.4);
+}
+.glasses-pref-checks { display: flex; flex-direction: column; gap: 2px; }
+.glasses-pref-checks label {
+    font-family: 'Courier New', monospace !important; font-size: 9px !important;
+    color: rgba(0, 255, 136, 0.6) !important; display: flex !important; align-items: center;
+    gap: 4px; cursor: pointer; text-transform: none !important; letter-spacing: 0 !important;
+    margin: 0 !important;
+}
+.glasses-pref-checks input { accent-color: #0f8; }
+.glasses-editor-footer {
+    display: flex; justify-content: flex-end; align-items: center; gap: 6px;
+    margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(0, 255, 136, 0.08);
+}
+.glasses-editor-reset, .glasses-editor-push {
+    font-family: 'Courier New', monospace; font-size: 9px; padding: 4px 10px;
+    border-radius: 3px; border: 1px solid rgba(0, 255, 136, 0.2); cursor: pointer;
+    transition: all 0.15s;
+}
+.glasses-editor-reset { background: transparent; color: rgba(0, 255, 136, 0.4); }
+.glasses-editor-reset:hover { color: #8fc; background: rgba(0, 255, 136, 0.05); }
+.glasses-editor-push { background: rgba(0, 255, 136, 0.12); color: #8fc; }
+.glasses-editor-push:hover { background: rgba(0, 255, 136, 0.2); }
+.glasses-edit-btn {
+    font-family: 'Courier New', monospace; font-size: 9px; font-weight: 600;
+    padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(0, 255, 136, 0.3);
+    background: rgba(0, 255, 136, 0.08); color: #0d4a2a; cursor: pointer; transition: all 0.15s;
+}
+.glasses-edit-btn:hover { background: rgba(0, 255, 136, 0.2); border-color: rgba(0, 255, 136, 0.5); }
+
 /* Glasses trigger button green glow */
 .glasses-btn:hover {
     background: rgba(0, 255, 136, 0.25) !important;

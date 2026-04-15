@@ -1486,13 +1486,59 @@ const SmartGlasses = {
                     <span class="glasses-footer-left">
                         <span class="g1-ble-status" id="g1-ble-status">${this._getBLEStatusHTML()}</span>
                     </span>
-                    <span class="glasses-footer-center">Even Realities G1 \u00B7 \u2191\u2193 Scroll \u00B7 Esc Close</span>
+                    <span class="glasses-footer-center">Even Realities G2 \u00B7 \u2191\u2193 Scroll \u00B7 Esc Close</span>
                     <span class="glasses-footer-right">
                         <button class="g1-dictate-btn" id="g1-dictate-btn" onclick="SmartGlasses.toggleDictation()" title="Toggle dictation">${this._getDictateButtonHTML()}</button>
                         <button class="g1-analyze-btn" onclick="SmartGlasses.refreshAnalysis()" title="Re-analyze case and update display">\uD83D\uDD04 Analyze</button>
-                        <button class="g1-connect-btn" id="g1-connect-btn" onclick="SmartGlasses.toggleBLEConnection()" title="${typeof G1Bluetooth !== 'undefined' && G1Bluetooth.isConnected() ? 'Disconnect from glasses' : 'Connect to G1 glasses via Bluetooth'}">${typeof G1Bluetooth !== 'undefined' && G1Bluetooth.isConnected() ? '\uD83D\uDD35 Disconnect' : '\uD83D\uDD17 Connect G1'}</button>
-                        <button class="g1-push-btn" onclick="SmartGlasses.pushToGlasses()" title="Push current display to G1 glasses" ${typeof G1Bluetooth !== 'undefined' && G1Bluetooth.isConnected() ? '' : 'disabled'}>\uD83D\uDCE4 Push to G1</button>
+                        <button class="glasses-edit-btn" onclick="SmartGlasses.toggleEditor()" title="Edit glasses display content">\u270E Edit</button>
+                        <button class="g1-push-btn" onclick="SmartGlasses.pushToGlasses()" title="Push to glasses">\uD83D\uDCE4 Push</button>
                     </span>
+                </div>
+                <div class="glasses-editor" id="glasses-editor" style="display:none;">
+                    <div class="glasses-editor-header">
+                        <span>Display Preferences</span>
+                        <span class="glasses-editor-hint">Adjust what appears on the glasses</span>
+                    </div>
+                    <div class="glasses-prefs-grid">
+                        <div class="glasses-pref-group">
+                            <label>Content Density</label>
+                            <div class="glasses-pref-btns">
+                                <button class="${this._getGlassesPref('density') === 'minimal' ? 'active' : ''}" onclick="SmartGlasses.setGlassesPref('density','minimal')">Minimal</button>
+                                <button class="${this._getGlassesPref('density') === 'standard' ? 'active' : ''}" onclick="SmartGlasses.setGlassesPref('density','standard')">Standard</button>
+                                <button class="${this._getGlassesPref('density') === 'detailed' ? 'active' : ''}" onclick="SmartGlasses.setGlassesPref('density','detailed')">Detailed</button>
+                            </div>
+                        </div>
+                        <div class="glasses-pref-group">
+                            <label>Emphasize</label>
+                            <div class="glasses-pref-btns">
+                                <button class="${this._getGlassesPref('emphasis') === 'summary' ? 'active' : ''}" onclick="SmartGlasses.setGlassesPref('emphasis','summary')">Summary</button>
+                                <button class="${this._getGlassesPref('emphasis') === 'actions' ? 'active' : ''}" onclick="SmartGlasses.setGlassesPref('emphasis','actions')">Actions</button>
+                                <button class="${this._getGlassesPref('emphasis') === 'problems' ? 'active' : ''}" onclick="SmartGlasses.setGlassesPref('emphasis','problems')">Problems</button>
+                                <button class="${this._getGlassesPref('emphasis') === 'balanced' ? 'active' : ''}" onclick="SmartGlasses.setGlassesPref('emphasis','balanced')">Balanced</button>
+                            </div>
+                        </div>
+                        <div class="glasses-pref-group">
+                            <label>Sections to Show</label>
+                            <div class="glasses-pref-checks">
+                                <label><input type="checkbox" ${this._getGlassesPref('showPatient') !== false ? 'checked' : ''} onchange="SmartGlasses.setGlassesPref('showPatient',this.checked)"> Patient Summary</label>
+                                <label><input type="checkbox" ${this._getGlassesPref('showProblems') !== false ? 'checked' : ''} onchange="SmartGlasses.setGlassesPref('showProblems',this.checked)"> Problem List</label>
+                                <label><input type="checkbox" ${this._getGlassesPref('showOrders') !== false ? 'checked' : ''} onchange="SmartGlasses.setGlassesPref('showOrders',this.checked)"> Orders/Actions</label>
+                                <label><input type="checkbox" ${this._getGlassesPref('showAlerts') !== false ? 'checked' : ''} onchange="SmartGlasses.setGlassesPref('showAlerts',this.checked)"> Safety Alerts</label>
+                            </div>
+                        </div>
+                        <div class="glasses-pref-group">
+                            <label>Max Actions per Category</label>
+                            <div class="glasses-pref-btns">
+                                <button class="${this._getGlassesPref('maxActions') === 2 ? 'active' : ''}" onclick="SmartGlasses.setGlassesPref('maxActions',2)">2</button>
+                                <button class="${this._getGlassesPref('maxActions') === 4 ? 'active' : ''}" onclick="SmartGlasses.setGlassesPref('maxActions',4)">4</button>
+                                <button class="${this._getGlassesPref('maxActions') === 8 ? 'active' : ''}" onclick="SmartGlasses.setGlassesPref('maxActions',8)">All</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glasses-editor-footer">
+                        <button class="glasses-editor-reset" onclick="SmartGlasses.resetGlassesPrefs()">Reset Defaults</button>
+                        <button class="glasses-editor-push" onclick="SmartGlasses.applyPrefsAndPush()">Apply & Push</button>
+                    </div>
                 </div>
             </div>
         `;
@@ -1881,6 +1927,241 @@ const SmartGlasses = {
             return '\uD83D\uDD34 Stop Dictation';
         }
         return '\uD83C\uDF99 Dictate';
+    },
+
+    // ==================== Display Preferences ====================
+
+    _GLASSES_PREFS_KEY: 'glasses-display-prefs',
+    _GLASSES_PREFS_DEFAULTS: {
+        density: 'standard',
+        emphasis: 'balanced',
+        showPatient: true,
+        showProblems: true,
+        showOrders: true,
+        showAlerts: true,
+        maxActions: 4,
+    },
+
+    toggleEditor() {
+        var editor = document.getElementById('glasses-editor');
+        if (!editor) return;
+        editor.style.display = editor.style.display === 'none' ? 'block' : 'none';
+    },
+
+    _getGlassesPref(key) {
+        try {
+            var saved = JSON.parse(localStorage.getItem(this._GLASSES_PREFS_KEY) || '{}');
+            return saved[key] !== undefined ? saved[key] : this._GLASSES_PREFS_DEFAULTS[key];
+        } catch (e) { return this._GLASSES_PREFS_DEFAULTS[key]; }
+    },
+
+    setGlassesPref(key, value) {
+        try {
+            var saved = JSON.parse(localStorage.getItem(this._GLASSES_PREFS_KEY) || '{}');
+            saved[key] = value;
+            localStorage.setItem(this._GLASSES_PREFS_KEY, JSON.stringify(saved));
+        } catch (e) {}
+        this._refreshPrefsUI();
+        this._refreshGlassesContent();
+    },
+
+    resetGlassesPrefs() {
+        localStorage.removeItem(this._GLASSES_PREFS_KEY);
+        this._refreshPrefsUI();
+        this._refreshGlassesContent();
+        if (typeof App !== 'undefined') App.showToast('Glasses preferences reset', 'info');
+    },
+
+    applyPrefsAndPush() {
+        this._refreshGlassesContent();
+        this.pushToGlasses();
+        if (typeof App !== 'undefined') App.showToast('Preferences applied & pushed', 'success');
+    },
+
+    _refreshPrefsUI() {
+        var editor = document.getElementById('glasses-editor');
+        if (!editor || editor.style.display === 'none') return;
+        var density = this._getGlassesPref('density');
+        editor.querySelectorAll('.glasses-pref-group:nth-child(1) .glasses-pref-btns button').forEach(function(btn) {
+            btn.classList.toggle('active', btn.textContent.toLowerCase() === density);
+        });
+        var emphasis = this._getGlassesPref('emphasis');
+        editor.querySelectorAll('.glasses-pref-group:nth-child(2) .glasses-pref-btns button').forEach(function(btn) {
+            btn.classList.toggle('active', btn.textContent.toLowerCase() === emphasis);
+        });
+        var maxAct = this._getGlassesPref('maxActions');
+        editor.querySelectorAll('.glasses-pref-group:nth-child(4) .glasses-pref-btns button').forEach(function(btn) {
+            var val = btn.textContent === 'All' ? 8 : parseInt(btn.textContent);
+            btn.classList.toggle('active', val === maxAct);
+        });
+        var keys = ['showPatient', 'showProblems', 'showOrders', 'showAlerts'];
+        editor.querySelectorAll('.glasses-pref-checks input').forEach(function(cb, i) {
+            cb.checked = this._getGlassesPref(keys[i]) !== false;
+        }.bind(this));
+    },
+
+    getGlassesPromptInstructions() {
+        var density = this._getGlassesPref('density');
+        var emphasis = this._getGlassesPref('emphasis');
+        var maxActions = this._getGlassesPref('maxActions');
+        var inst = 'glassesDisplay formatting preferences:\n';
+        if (density === 'minimal') inst += '- MINIMAL: Max 3 lines/screen, heavy abbreviations, key values only.\n';
+        else if (density === 'detailed') inst += '- DETAILED: Use all 5 lines/screen with context, trends, reasoning.\n';
+        else inst += '- STANDARD: 4-5 lines/screen, concise but complete.\n';
+        if (emphasis === 'actions') inst += '- EMPHASIS ORDERS: Prioritize actions, up to ' + maxActions + ' per category.\n';
+        else if (emphasis === 'summary') inst += '- EMPHASIS PATIENT SUMMARY: Detailed context, brief orders.\n';
+        else if (emphasis === 'problems') inst += '- EMPHASIS PROBLEMS: Detailed DDx, brief orders.\n';
+        inst += '- Max ' + maxActions + ' actions per category.\n';
+        return inst;
+    },
+
+    // Legacy stubs (kept for compatibility, no longer used)
+    _getScreenTexts() {
+        const state = (typeof AICoworker !== 'undefined') ? AICoworker.state : null;
+        const data = this._getGlassesData();
+        const cs = state?.clinicalSummary;
+        const gl = state?.glassesDisplay;
+
+        return [
+            // Patient
+            gl?.leftLens?.[0]
+                ? (gl.leftLens[0].lines || []).join('\n')
+                : [
+                    state?.aiOneLiner || '',
+                    cs?.demographics ? 'ID: ' + cs.demographics : '',
+                    cs?.functional ? 'Fx: ' + cs.functional : '',
+                    cs?.presentation ? 'Now: ' + cs.presentation : '',
+                  ].filter(Boolean).join('\n\n'),
+            // Problems
+            gl?.leftLens?.[1]
+                ? (gl.leftLens[1].lines || []).join('\n')
+                : (state?.problemList || []).map(function(p, i) {
+                    return (p.urgency === 'urgent' ? '! ' : '  ') + (i + 1) + '. ' + p.name + (p.plan ? '\n   ' + p.plan : '');
+                  }).join('\n') || 'No problems yet.',
+            // Orders
+            gl?.rightLens
+                ? gl.rightLens.map(function(s) { return (s.lines || []).join('\n'); }).join('\n\n')
+                : 'No orders yet.',
+            // Alerts
+            gl?.leftLens?.[2]
+                ? (gl.leftLens[2].lines || []).join('\n')
+                : (state?.keyConsiderations || []).map(function(kc) {
+                    return (kc.severity === 'critical' ? '! ' : '- ') + kc.text;
+                  }).join('\n') || 'No alerts.',
+        ];
+    },
+
+    /**
+     * Select an editor tab
+     */
+    selectEditorTab(idx) {
+        // Save current tab content
+        if (this._editorScreens) {
+            const ta = document.getElementById('glasses-editor-textarea');
+            if (ta) this._editorScreens[this._editorTab] = ta.value;
+        }
+        this._editorTab = idx;
+        this._renderEditorTab();
+    },
+
+    /**
+     * Render the active editor tab
+     */
+    _renderEditorTab() {
+        const tabs = document.querySelectorAll('.glasses-editor-tab');
+        tabs.forEach(function(t, i) { t.classList.toggle('active', i === this._editorTab); }.bind(this));
+
+        const ta = document.getElementById('glasses-editor-textarea');
+        if (ta && this._editorScreens) {
+            ta.value = this._editorScreens[this._editorTab] || '';
+            this._updateCharCount(ta.value);
+        }
+    },
+
+    /**
+     * Handle editor text input — live preview
+     */
+    onEditorInput(value) {
+        if (!this._editorScreens) return;
+        this._editorScreens[this._editorTab] = value;
+        this._updateCharCount(value);
+
+        // Live preview: update the glasses display
+        this._previewEditorContent();
+    },
+
+    /**
+     * Update character count display
+     */
+    _updateCharCount(text) {
+        const el = document.getElementById('glasses-editor-charcount');
+        if (el) {
+            const len = (text || '').length;
+            el.textContent = len + ' / 900 chars';
+            el.style.color = len > 900 ? '#f44' : '';
+        }
+    },
+
+    /**
+     * Preview current editor content in the glasses display
+     */
+    _previewEditorContent() {
+        if (!this._editorScreens) return;
+        const names = ['PATIENT', 'PROBLEMS', 'ORDERS', 'ALERTS'];
+        const content = this._editorScreens[this._editorTab] || '';
+        const title = names[this._editorTab];
+
+        // Update the left lens content with the editor text
+        const leftContent = document.getElementById('lens-content-left');
+        if (leftContent) {
+            leftContent.innerHTML = '<div class="lens-line" style="color: #a5d6a7; font-weight: bold;">\u2500\u2500 ' + title + ' \u2500\u2500</div>' +
+                content.split('\n').map(function(l) {
+                    return '<div class="lens-line">' + (l || '&nbsp;') + '</div>';
+                }).join('');
+        }
+    },
+
+    /**
+     * Reset editor to AI-generated content
+     */
+    resetEditorToAI() {
+        this._editorScreens = this._getScreenTexts();
+        this._renderEditorTab();
+        this._previewEditorContent();
+    },
+
+    /**
+     * Push all editor screens to glasses via Supabase
+     */
+    pushEditorContent() {
+        if (!this._editorScreens) return;
+
+        // Build a custom glassesDisplay payload from editor content
+        var names = ['PATIENT', 'PROBLEMS', 'ORDERS', 'ALERTS'];
+        var payload = {
+            oneLiner: '',
+            clinicalSummary: {},
+            problemList: [],
+            categorizedActions: {},
+            keyConsiderations: [],
+            glassesDisplay: {
+                leftLens: [
+                    { title: names[0], lines: (this._editorScreens[0] || '').split('\n') },
+                    { title: names[1], lines: (this._editorScreens[1] || '').split('\n') },
+                    { title: names[3], lines: (this._editorScreens[3] || '').split('\n') },
+                ],
+                rightLens: [
+                    { title: names[2], lines: (this._editorScreens[2] || '').split('\n') },
+                ],
+            },
+        };
+
+        this._pushToG2Companion(null, null);
+        // Override with custom payload
+        try { localStorage.setItem('glasses-hud-data', JSON.stringify(payload)); } catch (e) {}
+        this._pushToSupabase(payload);
+
+        if (typeof App !== 'undefined') App.showToast('Custom content pushed to glasses', 'success');
     },
 
     /**
