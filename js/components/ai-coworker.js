@@ -3188,6 +3188,196 @@ const AICoworker = {
      * Handle inline input submission with smart routing.
      * Questions → askClaudeAbout(), clinical thinking → synthesizeWithLLM()
      */
+    // ────────────────────────────────────────────────────────────
+    // VOICE / TEXT COMMANDS — short phrases that trigger app actions
+    // instead of being sent to the LLM as a question.
+    // ────────────────────────────────────────────────────────────
+
+    /**
+     * Registry of recognized commands. Each entry has:
+     *   patterns: array of regex matching the whole input
+     *   run:      function executed on match (may be async)
+     *   feedback: chat-thread label shown after execution
+     *
+     * Commands only trigger when the WHOLE user input matches — so a
+     * clinical dictation like "I'll analyze the labs before prescribing"
+     * does NOT trigger the analyze command.
+     */
+    _getCommands() {
+        return [
+            {
+                name: 'analyze',
+                patterns: [
+                    /^\s*(?:please\s+)?(?:re[-\s]?)?analyze(?:\s+(?:the\s+)?(?:case|patient|chart))?\s*[.!?]?\s*$/i,
+                    /^\s*update(?:\s+(?:the|my))?\s+analysis\s*[.!?]?\s*$/i,
+                    /^\s*(?:refresh|redo|rerun|run)\s+(?:the\s+)?analysis\s*[.!?]?\s*$/i,
+                    /^\s*give\s+me\s+(?:an?\s+)?(?:new\s+|updated\s+|fresh\s+)?analysis\s*[.!?]?\s*$/i,
+                ],
+                run: () => this.refreshThinking(),
+                feedback: '🔍 Re-analyzing the case…',
+            },
+            {
+                name: 'learn_deeper',
+                patterns: [
+                    /^\s*(?:learn|go)\s+(?:deeper|further|more|to\s+(?:the\s+)?next\s+level)\s*[.!?]?\s*$/i,
+                    /^\s*(?:continue|keep)\s+learning\s*[.!?]?\s*$/i,
+                    /^\s*deepen\s+(?:your\s+|the\s+)?(?:understanding|knowledge)\s*[.!?]?\s*$/i,
+                    /^\s*next\s+level\s*[.!?]?\s*$/i,
+                    /^\s*learn\s+(?:the\s+)?chart\s+deeper\s*[.!?]?\s*$/i,
+                ],
+                run: () => this.learnPatient(),
+                feedback: '🧠 Learning the chart (next level)…',
+            },
+            {
+                name: 'learn',
+                patterns: [
+                    /^\s*learn(?:\s+(?:the\s+)?(?:patient|chart))?\s*[.!?]?\s*$/i,
+                    /^\s*(?:start|begin)\s+learning\s*[.!?]?\s*$/i,
+                    /^\s*read\s+the\s+chart\s*[.!?]?\s*$/i,
+                ],
+                run: () => this.learnPatient(),
+                feedback: '🧠 Learning the chart…',
+            },
+            {
+                name: 'assertiveness_up',
+                patterns: [
+                    /^\s*(?:be\s+)?(?:more|a\s+bit\s+more)\s+(?:cognitively\s+)?(?:assertive|proactive|opinionated|engaged|active)\s*[.!?]?\s*$/i,
+                    /^\s*(?:increase|raise|bump|push)(?:\s+(?:up|the))?\s+assertiveness\s*[.!?]?\s*$/i,
+                    /^\s*push(?:\s+me)?\s+harder\s*[.!?]?\s*$/i,
+                    /^\s*challenge\s+me\s+more\s*[.!?]?\s*$/i,
+                ],
+                run: () => this._adjustAssertiveness(+1),
+                feedback: '', // dynamic, set by _adjustAssertiveness
+            },
+            {
+                name: 'assertiveness_down',
+                patterns: [
+                    /^\s*(?:be\s+)?(?:less|a\s+bit\s+less)\s+(?:cognitively\s+)?(?:assertive|proactive|opinionated)\s*[.!?]?\s*$/i,
+                    /^\s*(?:be\s+)?(?:more|a\s+bit\s+more)\s+(?:passive|reserved|quiet)\s*[.!?]?\s*$/i,
+                    /^\s*(?:decrease|lower|drop|reduce)\s+assertiveness\s*[.!?]?\s*$/i,
+                    /^\s*(?:stop\s+(?:giving|with)\s+opinions|just\s+the\s+facts)\s*[.!?]?\s*$/i,
+                    /^\s*tone\s+it\s+down\s*[.!?]?\s*$/i,
+                ],
+                run: () => this._adjustAssertiveness(-1),
+                feedback: '',
+            },
+            {
+                name: 'assertiveness_set',
+                patterns: [
+                    /^\s*(?:set|switch|change)(?:\s+(?:to|mode\s+to))?\s+(passive|reserved|balanced|engaged|assertive)(?:\s+mode)?\s*[.!?]?\s*$/i,
+                    /^\s*(?:go|switch)\s+(?:to\s+)?(passive|reserved|balanced|engaged|assertive)(?:\s+mode)?\s*[.!?]?\s*$/i,
+                    /^\s*(passive|reserved|balanced|engaged|assertive)\s+mode\s*[.!?]?\s*$/i,
+                ],
+                run: (match) => {
+                    const label = match[1].toLowerCase();
+                    const map = { passive: 1, reserved: 2, balanced: 3, engaged: 4, assertive: 5 };
+                    return this._setAssertiveness(map[label]);
+                },
+                feedback: '',
+            },
+            {
+                name: 'show_memory',
+                patterns: [
+                    /^\s*(?:show|open|view|see)\s+(?:the\s+)?(?:memory|knowledge\s+base|kb)\s*[.!?]?\s*$/i,
+                    /^\s*what\s+(?:do\s+you|have\s+you)\s+(?:know|learned)\?\s*$/i,
+                ],
+                run: () => this.toggleMemoryViewer && this.toggleMemoryViewer(),
+                feedback: '💾 Opening knowledge base…',
+            },
+            {
+                name: 'clear_memory',
+                patterns: [
+                    /^\s*(?:clear|wipe|reset|forget)\s+(?:all\s+)?memory\s*[.!?]?\s*$/i,
+                    /^\s*(?:forget\s+everything|start\s+over)\s*[.!?]?\s*$/i,
+                ],
+                run: () => {
+                    if (confirm('Clear all AI memory for this patient? This cannot be undone.')) {
+                        this.clearMemory && this.clearMemory();
+                    }
+                },
+                feedback: '🗑️ Clearing memory (confirmation required)…',
+            },
+            {
+                name: 'open_glasses',
+                patterns: [
+                    /^\s*(?:open|show|view)\s+(?:the\s+)?(?:glasses|hud|smart\s+glasses)\s*[.!?]?\s*$/i,
+                    /^\s*glasses\s+hud\s*[.!?]?\s*$/i,
+                ],
+                run: () => (typeof SmartGlasses !== 'undefined') && SmartGlasses.toggle(),
+                feedback: '👓 Opening smart glasses HUD…',
+            },
+            {
+                name: 'open_customize',
+                patterns: [
+                    /^\s*(?:open|show)\s+(?:ai\s+)?(?:preferences|settings|customize)\s*[.!?]?\s*$/i,
+                    /^\s*customize\s+(?:the\s+)?ai\s*[.!?]?\s*$/i,
+                ],
+                run: () => (typeof AIPreferences !== 'undefined') && AIPreferences.openCustomizePanel(),
+                feedback: '⚙️ Opening AI preferences…',
+            },
+        ];
+    },
+
+    /**
+     * Check if the given user text is a recognized command.
+     * @returns {object|null} { command, match, feedback } or null if no match
+     */
+    _recognizeCommand(text) {
+        if (!text || text.length > 120) return null; // Commands are short by nature
+        const commands = this._getCommands();
+        for (const cmd of commands) {
+            for (const pattern of cmd.patterns) {
+                const match = text.match(pattern);
+                if (match) return { command: cmd, match, feedback: cmd.feedback };
+            }
+        }
+        return null;
+    },
+
+    /**
+     * Execute a matched command — show user input and feedback in the thread.
+     */
+    async _executeCommand(recognized, originalText) {
+        // Echo user's command in the thread
+        this._pushToThread('user', 'ask', originalText);
+
+        // Show a tool-indicator-style feedback line
+        if (recognized.feedback) {
+            this._pushToThread('ai', 'tool', recognized.feedback);
+        }
+        this.render();
+
+        try {
+            await recognized.command.run(recognized.match);
+        } catch (e) {
+            console.error('Command execution failed:', e);
+            if (typeof App !== 'undefined') App.showToast('Command failed: ' + e.message, 'error');
+        }
+    },
+
+    /**
+     * Nudge assertiveness up or down by 1, clamped to [1, 5].
+     */
+    _adjustAssertiveness(delta) {
+        if (typeof AIPreferences === 'undefined') return;
+        const prefs = AIPreferences.get();
+        const next = Math.max(1, Math.min(5, (prefs.assertiveness || 3) + delta));
+        return this._setAssertiveness(next);
+    },
+
+    /**
+     * Set assertiveness to a specific level.
+     */
+    _setAssertiveness(level) {
+        if (typeof AIPreferences === 'undefined') return;
+        const labels = { 1: 'Passive', 2: 'Reserved', 3: 'Balanced', 4: 'Engaged', 5: 'Assertive' };
+        AIPreferences.update({ assertiveness: level });
+        const label = labels[level] || 'Balanced';
+        this._pushToThread('ai', 'memory', `⚙️ AI mode set to ${label} (level ${level})`);
+        if (typeof App !== 'undefined') App.showToast(`AI set to ${label}`, 'success');
+        this.render();
+    },
+
     handleInlineSubmit() {
         const textarea = document.getElementById('copilot-inline-input');
         if (!textarea) return;
@@ -3200,6 +3390,13 @@ const AICoworker = {
         // Intercept: if awaiting note clarification response, route there
         if (this.state.awaitingNoteClarification) {
             this._handleClarificationResponse(text);
+            return;
+        }
+
+        // Intercept: recognized voice/text command → execute action directly
+        const recognized = this._recognizeCommand(text);
+        if (recognized) {
+            this._executeCommand(recognized, text);
             return;
         }
 
