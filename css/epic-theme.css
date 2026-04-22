@@ -6891,6 +6891,52 @@ html, body {
     color: #2563eb;
 }
 
+/* ── Tool-call indicator (compact "searching..." row) ── */
+.thread-tool-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    margin: 3px 0 3px 28px;
+    font-size: 11px;
+    color: #64748b;
+    font-style: italic;
+    background: rgba(100, 116, 139, 0.06);
+    border-left: 2px solid rgba(99, 102, 241, 0.3);
+    border-radius: 0 4px 4px 0;
+    animation: toolIndicatorFade 0.3s ease;
+}
+.thread-tool-indicator::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #6366f1;
+    animation: toolIndicatorPulse 1.2s ease-in-out infinite;
+}
+@keyframes toolIndicatorFade {
+    from { opacity: 0; transform: translateX(-4px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes toolIndicatorPulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+}
+
+/* ── Memory-updated chip (after tool calls enrich memory) ── */
+.thread-memory-indicator {
+    display: inline-block;
+    padding: 3px 10px;
+    margin: 4px 0 4px 28px;
+    font-size: 10.5px;
+    font-weight: 500;
+    color: #059669;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: 10px;
+    animation: toolIndicatorFade 0.3s ease;
+}
+
 /* "Just write it" quick-action button */
 .clarify-skip-btn {
     display: inline-block;

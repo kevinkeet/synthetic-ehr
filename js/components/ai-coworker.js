@@ -2800,6 +2800,13 @@ const AICoworker = {
             html += '<div class="conversation-thread">';
             var recentMsgs = this.state.conversationThread.slice(-10);
             recentMsgs.forEach(msg => {
+                // Compact tool-call / memory-update indicator rows
+                if (msg.role === 'ai' && (msg.type === 'tool' || msg.type === 'memory')) {
+                    const indClass = msg.type === 'tool' ? 'thread-tool-indicator' : 'thread-memory-indicator';
+                    html += `<div class="${indClass}">${this.escapeHtml(msg.text)}</div>`;
+                    return;
+                }
+
                 const cls = msg.role === 'user' ? 'thread-msg-user' : 'thread-msg-ai';
                 let label;
                 if (msg.role === 'user') {
@@ -6181,6 +6188,143 @@ ${ctx.dictationHistory.length > 0
     },
 
     /**
+     * Call the Anthropic API with tool use enabled. Claude may request one or more
+     * tool calls; we execute them, feed results back, and loop until Claude stops.
+     *
+     * @param {string} systemPrompt
+     * @param {string} userMessage
+     * @param {number} maxTokens
+     * @param {Array} tools - Tool schemas (from ChartTools.getSchemas())
+     * @param {object} options - { model, onToolCall, onToolResult, maxIterations }
+     *   onToolCall(name, input)    — called when Claude requests a tool (for UI indicator)
+     *   onToolResult(name, result) — called after we execute the tool (for memory enrichment)
+     *   maxIterations              — safety cap on tool-use loop (default 8)
+     * @returns {Promise<string>} Final text response from Claude
+     */
+    async callLLMWithTools(systemPrompt, userMessage, maxTokens, tools, options) {
+        options = options || {};
+        const useModel = options.model || this.model;
+        const maxIter = options.maxIterations || 8;
+
+        this.lastApiCall = {
+            timestamp: Date.now(),
+            systemPrompt, userMessage, clinicalContext: '',
+            response: '', error: null, model: useModel,
+            toolCalls: [],
+        };
+
+        if (this._backendReady) await this._backendReady;
+        if (!this.isApiConfigured()) {
+            this.lastApiCall.error = 'API key not configured';
+            if (!this.backendAvailable) this.openApiKeyModal();
+            throw new Error('API key not configured');
+        }
+
+        const headers = { 'Content-Type': 'application/json' };
+        if (!this.backendAvailable) {
+            headers['x-api-key'] = this.apiKey;
+            headers['anthropic-version'] = '2023-06-01';
+            headers['anthropic-dangerous-direct-browser-access'] = 'true';
+        }
+
+        // Conversation array; grows as Claude requests tools and we feed results
+        const messages = [{ role: 'user', content: userMessage }];
+        let finalText = '';
+
+        for (let iter = 0; iter < maxIter; iter++) {
+            const response = await fetch(this.apiEndpoint, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({
+                    model: useModel,
+                    max_tokens: maxTokens || 2048,
+                    system: systemPrompt,
+                    tools: tools,
+                    messages: messages,
+                }),
+            });
+
+            if (!response.ok) {
+                let errMsg = `API request failed (HTTP ${response.status})`;
+                try {
+                    const err = await response.json();
+                    errMsg = err.error?.message || errMsg;
+                } catch {
+                    const text = await response.text().catch(() => '');
+                    errMsg = `HTTP ${response.status}: ${text.substring(0, 200)}`;
+                }
+                this.lastApiCall.error = errMsg;
+                throw new Error(errMsg);
+            }
+
+            const data = await response.json();
+            const stopReason = data.stop_reason;
+            const contentBlocks = data.content || [];
+
+            // Collect any text blocks into finalText
+            contentBlocks.forEach(block => {
+                if (block.type === 'text' && block.text) {
+                    finalText += (finalText ? '\n' : '') + block.text;
+                }
+            });
+
+            // If Claude didn't request any tools, we're done
+            if (stopReason !== 'tool_use') {
+                this.lastApiCall.response = finalText;
+                return finalText;
+            }
+
+            // Claude wants tools. Add its response to history, then execute each tool.
+            messages.push({ role: 'assistant', content: contentBlocks });
+
+            const toolResultBlocks = [];
+            for (const block of contentBlocks) {
+                if (block.type !== 'tool_use') continue;
+                const { id, name, input } = block;
+
+                if (typeof options.onToolCall === 'function') {
+                    try { options.onToolCall(name, input); } catch {}
+                }
+
+                let result;
+                try {
+                    result = await ChartTools.execute(name, input);
+                } catch (err) {
+                    result = { ok: false, error: err.message, data: null };
+                }
+
+                this.lastApiCall.toolCalls.push({ name, input, ok: result.ok, summary: result.summary });
+
+                if (typeof options.onToolResult === 'function') {
+                    try { options.onToolResult(name, result, input); } catch {}
+                }
+
+                // Send result back to Claude. Cap content size to avoid blowing context.
+                let resultText;
+                if (result.ok) {
+                    const payload = { summary: result.summary, data: result.data };
+                    resultText = JSON.stringify(payload).substring(0, 20000);
+                } else {
+                    resultText = JSON.stringify({ error: result.error || 'tool failed' });
+                }
+
+                toolResultBlocks.push({
+                    type: 'tool_result',
+                    tool_use_id: id,
+                    content: resultText,
+                });
+            }
+
+            messages.push({ role: 'user', content: toolResultBlocks });
+        }
+
+        // Hit the iteration cap — return whatever text we have
+        console.warn(`callLLMWithTools: hit maxIterations=${maxIter}`);
+        this.lastApiCall.response = finalText;
+        return finalText;
+    },
+
+    /**
      * Call the Anthropic API with the given prompt
      * @param {string} systemPrompt
      * @param {string} userMessage
@@ -7401,7 +7545,47 @@ RULES:
         }
 
         try {
-            const response = await this.callLLM(systemPrompt, userMessage, maxTokens);
+            // Use tool-enabled call if ChartTools is loaded — lets Claude search chart
+            // for specific details not in the memory document, and enriches memory as it goes.
+            const useTools = typeof ChartTools !== 'undefined';
+            let response;
+            let enrichedFactCount = 0;
+
+            if (useTools) {
+                const tools = ChartTools.getSchemas();
+                const enrichedToolCalls = [];
+
+                response = await this.callLLMWithTools(
+                    systemPrompt,
+                    userMessage,
+                    maxTokens,
+                    tools,
+                    {
+                        onToolCall: (name, input) => {
+                            // Show a "searching..." indicator in the thread
+                            const hint = this._describeToolCall(name, input);
+                            this._pushToThread('ai', 'tool', hint);
+                            this.render();
+                        },
+                        onToolResult: (name, result, input) => {
+                            // Enrich memory document with facts from this tool result
+                            if (result?.ok && result.factsToRemember?.length) {
+                                const added = this._enrichMemoryFromToolResult(result.factsToRemember);
+                                enrichedFactCount += added;
+                                enrichedToolCalls.push({ name, added });
+                            }
+                        },
+                    }
+                );
+
+                // After all tool calls complete, show a single consolidated chip if any facts were added
+                if (enrichedFactCount > 0) {
+                    this._pushToThread('ai', 'memory',
+                        `💾 Memory updated — added ${enrichedFactCount} new fact${enrichedFactCount === 1 ? '' : 's'}`);
+                }
+            } else {
+                response = await this.callLLM(systemPrompt, userMessage, maxTokens);
+            }
 
             // Strip memory_update block from display text
             const displayText = response.replace(/<memory_update>[\s\S]*?<\/memory_update>/, '').trim();
@@ -7425,6 +7609,11 @@ RULES:
                 }
             }
 
+            // Persist memory doc if tool-driven enrichment happened
+            if (enrichedFactCount > 0) {
+                this.saveLongitudinalDoc && this.saveLongitudinalDoc();
+            }
+
             this.state.status = 'ready';
             this.saveState();
             this.render();
@@ -7438,6 +7627,104 @@ RULES:
             }
             this.render();
         }
+    },
+
+    /**
+     * Return a human-friendly one-line description of a tool call for the UI.
+     */
+    _describeToolCall(name, input) {
+        switch (name) {
+            case 'search_notes':
+                return `🔎 Searching notes for "${input.query || ''}"${input.department ? ' in ' + input.department : ''}...`;
+            case 'get_note':
+                return `📄 Reading note ${input.note_id}...`;
+            case 'search_labs':
+                return `🧪 Pulling lab trend for "${input.test_name}"...`;
+            case 'get_medication_history':
+                return `💊 Looking up "${input.medication_name}" history...`;
+            case 'search_chart':
+                return `🔎 Searching chart for "${input.query || ''}"...`;
+            default:
+                return `🔎 Using ${name}...`;
+        }
+    },
+
+    /**
+     * Append facts from a tool result into the memory document, avoiding dupes.
+     * Returns the number of facts actually added.
+     */
+    _enrichMemoryFromToolResult(facts) {
+        if (!Array.isArray(facts) || facts.length === 0) return 0;
+        const doc = this.longitudinalDoc?.aiMemory?.memoryDocument;
+        if (!doc) return 0;
+
+        let added = 0;
+
+        facts.forEach(f => {
+            if (!f || !f.section || !f.text) return;
+            switch (f.section) {
+                case 'notes': {
+                    // Add to a "discoveredFacts" bucket (avoid bloating problemAnalysis)
+                    if (!doc.discoveredFacts) doc.discoveredFacts = [];
+                    const dupe = doc.discoveredFacts.some(x => x.text === f.text);
+                    if (!dupe) {
+                        doc.discoveredFacts.push({ source: 'notes', text: f.text, meta: f.meta, addedAt: new Date().toISOString() });
+                        added++;
+                    }
+                    break;
+                }
+                case 'labTrends': {
+                    if (!doc.labTrends) doc.labTrends = { key_values: [] };
+                    if (!doc.labTrends.key_values) doc.labTrends.key_values = [];
+                    const key = (f.meta?.testName || '').toLowerCase();
+                    const existing = doc.labTrends.key_values.findIndex(lt => (lt.test || '').toLowerCase() === key);
+                    if (existing >= 0) {
+                        // Merge in any new values
+                        const merged = doc.labTrends.key_values[existing];
+                        merged.values = f.meta.values || merged.values;
+                        added++;
+                    } else {
+                        doc.labTrends.key_values.push({
+                            test: f.meta?.testName,
+                            values: f.meta?.values || [],
+                            trend: 'unknown',
+                            significance: f.text,
+                        });
+                        added++;
+                    }
+                    break;
+                }
+                case 'medications': {
+                    if (!doc.medicationRationale) doc.medicationRationale = [];
+                    const name = (f.meta?.name || '').toLowerCase();
+                    const dupe = doc.medicationRationale.some(m => (m.name || '').toLowerCase() === name && (m.status || 'active') === (f.meta?.status || 'active'));
+                    if (!dupe && name) {
+                        doc.medicationRationale.push({
+                            name: f.meta.name,
+                            dose: f.meta.dose,
+                            indication: f.meta.indication,
+                            rationale: f.text,
+                            status: f.meta.status,
+                        });
+                        added++;
+                    }
+                    break;
+                }
+                default: {
+                    // Unknown section — drop into discoveredFacts
+                    if (!doc.discoveredFacts) doc.discoveredFacts = [];
+                    doc.discoveredFacts.push({ source: f.section, text: f.text, meta: f.meta, addedAt: new Date().toISOString() });
+                    added++;
+                }
+            }
+        });
+
+        // If the memory viewer is open, refresh it so the user sees changes
+        if (this._memoryViewerOpen && typeof this.renderMemoryViewer === 'function') {
+            try { this.renderMemoryViewer(); } catch {}
+        }
+
+        return added;
     },
 
     /**
