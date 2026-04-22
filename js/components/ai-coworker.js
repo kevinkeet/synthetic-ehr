@@ -8266,6 +8266,21 @@ RULES:
         this.saveState();
         this._saveModeCache();
         this.render();
+
+        // Auto-trigger analysis once Level 1 produced meaningful content.
+        // Skip if the memory doc is the error fallback (empty problem list = parse failed).
+        const hasMeaningfulContent = memoryDoc.problemAnalysis?.length > 0 ||
+            memoryDoc.medicationRationale?.length > 0 ||
+            (memoryDoc.patientOverview && memoryDoc.patientOverview.length > 100);
+        const hasAnalysisAlready = !!(this.state.aiOneLiner || this.state.problemList?.length > 0);
+
+        if (hasMeaningfulContent && !hasAnalysisAlready) {
+            console.log('🧠 Level 1 complete — auto-triggering analysis');
+            // Small delay so the "Level 1 complete" toast is visible and the UI settles
+            setTimeout(() => {
+                this.refreshThinking();
+            }, 800);
+        }
     },
 
     /**
@@ -8376,6 +8391,18 @@ RULES:
             this.render();
 
             console.log(`🧠 Deep Learn Level ${dl.currentLevel} complete: ${dl.processedCount}/${dl.totalItems} items`);
+
+            // Auto-trigger analysis refresh after each level so the AI's output
+            // stays in sync with its deepening knowledge base.
+            const currentMem = this.longitudinalDoc?.aiMemory?.memoryDocument;
+            const hasMeaningful = currentMem?.problemAnalysis?.length > 0 ||
+                currentMem?.medicationRationale?.length > 0;
+            if (hasMeaningful) {
+                console.log(`🧠 Level ${dl.currentLevel} complete — auto-refreshing analysis`);
+                setTimeout(() => {
+                    this.refreshThinking();
+                }, 800);
+            }
 
         } catch (error) {
             console.error(`Deep Learn Level ${dl.currentLevel} error:`, error);
