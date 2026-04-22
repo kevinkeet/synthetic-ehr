@@ -28,9 +28,9 @@ const AICoworker = {
     apiKey: null,
     apiEndpoint: '/api/claude',
     backendAvailable: false,
-    model: 'claude-haiku-4-5-20251001',
-    analysisModel: 'claude-haiku-4-5-20251001', // Haiku for fast prototyping
-    dictationModel: 'claude-sonnet-4-6', // Keep Sonnet for dictation synthesis (higher quality)
+    model: 'claude-opus-4-7',
+    analysisModel: 'claude-opus-4-7', // Opus 4.7 for highest-quality analysis
+    dictationModel: 'claude-opus-4-7', // Opus 4.7 for dictation synthesis
 
     // Current mode config (synced from AIModeConfig)
     get mode_config() {
@@ -41,8 +41,9 @@ const AICoworker = {
     availableModels: [
         { id: 'claude-haiku-4-5-20251001', label: 'Haiku 4.5', description: 'Fastest, good for structured tasks' },
         { id: 'claude-sonnet-4-5-20250929', label: 'Sonnet 4.5', description: 'Balanced quality and speed' },
-        { id: 'claude-sonnet-4-6', label: 'Sonnet 4.6', description: 'Latest balanced model' },
-        { id: 'claude-opus-4-6', label: 'Opus 4.6', description: 'Highest quality, slowest' }
+        { id: 'claude-sonnet-4-6', label: 'Sonnet 4.6', description: 'Latest balanced Sonnet' },
+        { id: 'claude-opus-4-6', label: 'Opus 4.6', description: 'Previous flagship' },
+        { id: 'claude-opus-4-7', label: 'Opus 4.7', description: 'Highest quality — latest flagship (default)' }
     ],
 
     // Longitudinal Clinical Document
@@ -1885,17 +1886,60 @@ const AICoworker = {
 
         if (isThinking) return ''; // Thinking banner handles this
 
+        const hasAnalysis = !!(this.state.aiOneLiner || this.state.problemList?.length > 0);
+
+        // === EMPTY STATE: No memory, no analysis — first-time user welcome ===
+        if (!status.hasMemory && !hasAnalysis) {
+            let html = '<div class="learn-welcome">';
+            html += '<div class="learn-welcome-header">';
+            html += '<span class="learn-welcome-icon">&#10024;</span>';
+            html += '<span class="learn-welcome-title">Welcome to Acting Intern</span>';
+            html += '</div>';
+            html += '<div class="learn-welcome-text">';
+            html += 'The AI hasn\'t reviewed this patient yet. Start by having it learn the chart, then analyze the case.';
+            html += '</div>';
+            html += '<div class="learn-welcome-steps">';
+            html += '<button class="learn-welcome-cta primary" onclick="AICoworker.learnPatient()">';
+            html += '<span class="cta-step">1</span>';
+            html += '<span class="cta-label">';
+            html += '<span class="cta-label-main">Learn Patient</span>';
+            html += '<span class="cta-label-sub">Scan chart for key findings (~20s)</span>';
+            html += '</span>';
+            html += '<span class="cta-arrow">&#9654;</span>';
+            html += '</button>';
+            html += '<button class="learn-welcome-cta secondary" onclick="AICoworker.refreshThinking()" title="Skip learning and analyze directly">';
+            html += '<span class="cta-step">2</span>';
+            html += '<span class="cta-label">';
+            html += '<span class="cta-label-main">Analyze Case</span>';
+            html += '<span class="cta-label-sub">Summary, problems, next steps</span>';
+            html += '</span>';
+            html += '</button>';
+            html += '</div>';
+            html += '</div>';
+            return html;
+        }
+
+        // === LEARNED BUT NOT ANALYZED — prompt the next step ===
+        if (status.hasMemory && !hasAnalysis) {
+            let html = '<div class="learn-nextstep">';
+            html += '<div class="learn-nextstep-status">';
+            html += '<span class="learn-nextstep-check">&#10003;</span>';
+            html += '<span class="learn-nextstep-text">Chart learned. Ready to analyze.</span>';
+            html += '</div>';
+            html += '<button class="learn-action-btn analyze-primary analyze-prompt-cta" onclick="AICoworker.refreshThinking()">';
+            html += '<span class="learn-action-icon">&#128269;</span>';
+            html += '<span class="learn-action-label">Analyze Case</span>';
+            html += '<span class="cta-arrow">&#9654;</span>';
+            html += '</button>';
+            html += '</div>';
+            return html;
+        }
+
+        // === LEARNED + ANALYZED — normal bar with subtle controls ===
         let html = '<div class="learn-bar">';
 
-        // === Learn Patient Button ===
-        if (!status.hasMemory) {
-            // Not yet learned — prominent
-            html += '<button class="learn-action-btn learn-primary" onclick="AICoworker.learnPatient()" title="Deep chart analysis with multi-pass learning">';
-            html += '<span class="learn-action-icon">&#129504;</span>';
-            html += '<span class="learn-action-label">Learn Patient</span>';
-            html += '</button>';
-        } else if (progress.isComplete) {
-            // Fully learned
+        // Learn Patient button (shown compact)
+        if (progress.isComplete) {
             const learnedAt = status.lastLearnedAt ? new Date(status.lastLearnedAt) : null;
             const learnTime = learnedAt ? this._formatTimeAgo(learnedAt) : '';
             html += '<button class="learn-action-btn learn-complete" onclick="AICoworker.learnPatient()" title="Chart fully analyzed — click to re-learn">';
@@ -1904,7 +1948,6 @@ const AICoworker = {
             if (learnTime) html += `<span class="learn-action-time">${learnTime}</span>`;
             html += '</button>';
         } else if (progress.phase === 'between_levels' && progress.remainingLevels <= 0) {
-            // Complete but phase not marked
             const learnedAt = status.lastLearnedAt ? new Date(status.lastLearnedAt) : null;
             const learnTime = learnedAt ? this._formatTimeAgo(learnedAt) : '';
             html += '<button class="learn-action-btn learn-done" onclick="AICoworker.learnPatient()" title="Re-read full chart">';
@@ -1913,7 +1956,6 @@ const AICoworker = {
             if (learnTime) html += `<span class="learn-action-time">${learnTime}</span>`;
             html += '</button>';
         } else {
-            // Partially learned (has memory but deep learn not complete)
             const pct = progress.percentComplete || 0;
             html += '<button class="learn-action-btn learn-partial" onclick="AICoworker.learnPatient()" title="Continue deep chart analysis">';
             html += '<span class="learn-action-icon">&#129504;</span>';
@@ -1921,32 +1963,22 @@ const AICoworker = {
             html += '</button>';
         }
 
-        // === Analyze Case Button ===
-        const hasAnalysis = !!(this.state.aiOneLiner || this.state.problemList?.length > 0);
-        if (!hasAnalysis) {
-            html += '<button class="learn-action-btn analyze-primary" onclick="AICoworker.refreshThinking()" title="Full case synthesis and analysis">';
-            html += '<span class="learn-action-icon">&#128269;</span>';
-            html += '<span class="learn-action-label">Analyze Case</span>';
-            html += '</button>';
-        } else {
-            const analyzedAt = this.state.lastUpdated ? new Date(this.state.lastUpdated) : null;
-            const analyzeTime = analyzedAt ? this._formatTimeAgo(analyzedAt) : '';
-            html += '<button class="learn-action-btn analyze-done" onclick="AICoworker.refreshThinking()" title="Re-analyze case">';
-            html += '<span class="learn-action-icon">&#9989;</span>';
-            html += '<span class="learn-action-label">Analyzed</span>';
-            if (analyzeTime) html += `<span class="learn-action-time">${analyzeTime}</span>`;
-            html += '</button>';
-        }
+        // Update Analysis button — more prominent than before
+        const analyzedAt = this.state.lastUpdated ? new Date(this.state.lastUpdated) : null;
+        const analyzeTime = analyzedAt ? this._formatTimeAgo(analyzedAt) : '';
+        html += '<button class="learn-action-btn analyze-refresh" onclick="AICoworker.refreshThinking()" title="Update analysis with any new info">';
+        html += '<span class="learn-action-icon">&#8635;</span>';
+        html += '<span class="learn-action-label">Update Analysis</span>';
+        if (analyzeTime) html += `<span class="learn-action-time">${analyzeTime}</span>`;
+        html += '</button>';
 
-        // === Memory Viewer + Clear Memory Buttons ===
-        if (status.hasMemory || hasAnalysis) {
-            html += '<button class="memory-viewer-btn" onclick="AICoworker.toggleMemoryViewer()" title="View AI Knowledge Base">';
-            html += '&#129504;';
-            html += '</button>';
-            html += '<button class="clear-memory-btn" onclick="AICoworker.clearMemory()" title="Clear AI memory and start fresh">';
-            html += '&#128465;';
-            html += '</button>';
-        }
+        // Memory Viewer + Clear Memory Buttons
+        html += '<button class="memory-viewer-btn" onclick="AICoworker.toggleMemoryViewer()" title="View AI Knowledge Base">';
+        html += '&#129504;';
+        html += '</button>';
+        html += '<button class="clear-memory-btn" onclick="AICoworker.clearMemory()" title="Clear AI memory and start fresh">';
+        html += '&#128465;';
+        html += '</button>';
 
         html += '</div>';
         return html;

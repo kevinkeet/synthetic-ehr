@@ -12402,6 +12402,169 @@ html, body {
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+/* ── Welcome state (first-time user, no memory) ── */
+.learn-welcome {
+    background: linear-gradient(135deg, #1e3a5f, #1a2f4a);
+    border-radius: 10px;
+    padding: 14px 14px 12px;
+    margin: 6px 8px 4px;
+    border: 1px solid rgba(99, 179, 237, 0.25);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+.learn-welcome-header {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 6px;
+}
+.learn-welcome-icon {
+    font-size: 14px;
+    color: #fbbf24;
+}
+.learn-welcome-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.2px;
+}
+.learn-welcome-text {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.45;
+    margin-bottom: 10px;
+}
+.learn-welcome-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+.learn-welcome-cta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    transition: all 0.15s ease;
+    font-family: inherit;
+}
+.learn-welcome-cta.primary {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+    animation: welcomePulse 2.5s ease-in-out infinite;
+}
+.learn-welcome-cta.primary:hover {
+    background: linear-gradient(135deg, #4a90e8, #3b72d8);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.5);
+}
+.learn-welcome-cta.secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.learn-welcome-cta.secondary:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+.cta-step {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.learn-welcome-cta.secondary .cta-step {
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.75);
+}
+.cta-label {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+.cta-label-main {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.25;
+}
+.cta-label-sub {
+    font-size: 10px;
+    opacity: 0.75;
+    margin-top: 1px;
+    line-height: 1.2;
+}
+.cta-arrow {
+    font-size: 9px;
+    opacity: 0.7;
+    flex-shrink: 0;
+}
+@keyframes welcomePulse {
+    0%, 100% { box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4); }
+    50% { box-shadow: 0 2px 16px rgba(59, 130, 246, 0.65); }
+}
+
+/* ── Next-step state (learned, not analyzed) ── */
+.learn-nextstep {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    margin: 4px 8px;
+    background: linear-gradient(135deg, #1a2f4a, #1e3a5f);
+    border-radius: 8px;
+    border: 1px solid rgba(99, 179, 237, 0.25);
+}
+.learn-nextstep-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+}
+.learn-nextstep-check {
+    color: #4ade80;
+    font-size: 13px;
+}
+.learn-nextstep-text {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.8);
+}
+.analyze-prompt-cta {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: #fff !important;
+    border: none !important;
+    padding: 7px 12px !important;
+    animation: welcomePulse 2.5s ease-in-out infinite;
+}
+.analyze-prompt-cta:hover {
+    background: linear-gradient(135deg, #12c98b, #06ad73) !important;
+    transform: translateY(-1px);
+}
+
+/* ── Update Analysis button (learned + analyzed state) ── */
+.learn-action-btn.analyze-refresh {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: rgba(59, 130, 246, 0.4);
+    color: #93c5fd;
+}
+.learn-action-btn.analyze-refresh:hover {
+    background: rgba(59, 130, 246, 0.25);
+    border-color: rgba(59, 130, 246, 0.6);
+    color: #fff;
+}
+
 /* Shared styles for Learn + Analyze buttons */
 .learn-action-btn {
     display: flex;
