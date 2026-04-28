@@ -40,7 +40,9 @@ function json(body, status = 200) {
   }));
 }
 
-function fit(s, max = 40) {
+// Loose cap for storage; the plugin word-wraps inside the G2's 144-px-tall
+// container, so we don't need to truncate aggressively here.
+function fit(s, max = 200) {
   if (!s) return '';
   s = String(s);
   return s.length <= max ? s : s.slice(0, max - 1) + '…';
@@ -54,7 +56,7 @@ function formatBottom(ev) {
     ev.kind === 'order'     ? '→ ' :
     ev.kind === 'alert'     ? '⚠ ' : '';
   const close = ev.kind === 'dictation' ? '”' : '';
-  return fit(`${prefix}${ev.text || ''}${close}${glyph}`);
+  return fit(`${prefix}${ev.text || ''}${close}${glyph}`, 200);
 }
 
 async function safeJson(request) {

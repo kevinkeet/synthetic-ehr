@@ -130,14 +130,14 @@
         },
 
         buildDictationEvent: function (text, glyph) {
-            return { kind: 'dictation', text: this._compress(text, 32), glyph: glyph || '\u2713' };
+            return { kind: 'dictation', text: this._compress(text, 140), glyph: glyph || '\u2713' };
         },
 
         buildOrderEvent: function (orderData) {
             if (!orderData) return null;
             var text = this._summarizeOrder(orderData);
             var safety = this._checkOrderSafety(orderData);
-            return { kind: 'order', text: this._compress(text, 30), glyph: safety };
+            return { kind: 'order', text: this._compress(text, 120), glyph: safety };
         },
 
         /**

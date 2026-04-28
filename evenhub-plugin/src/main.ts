@@ -124,6 +124,44 @@ function fit(s: string, max = G2_MAX_LINE): string {
   return s.length <= max ? s : s.slice(0, max - 1) + '…';
 }
 
+/**
+ * Wrap text at word boundaries to <= maxCharsPerLine chars per line, joined
+ * with '\n'. The G2 SDK accepts '\n' inside a TextContainerProperty's content.
+ * Caps at maxLines lines and adds an ellipsis if more would overflow.
+ * Prefer this over fit() for the bottom container (144 px tall ≈ 3–4 lines).
+ */
+function wrap(text: string, maxCharsPerLine = G2_MAX_LINE, maxLines = 3): string {
+  if (!text) return '';
+  text = String(text).replace(/\s+/g, ' ').trim();
+  if (text.length <= maxCharsPerLine) return text;
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let cur = '';
+  for (const w of words) {
+    const candidate = cur ? cur + ' ' + w : w;
+    if (candidate.length <= maxCharsPerLine) {
+      cur = candidate;
+    } else {
+      if (cur) lines.push(cur);
+      if (lines.length >= maxLines) { cur = ''; break; }
+      // Single word longer than the line — hard-break it.
+      cur = w.length > maxCharsPerLine ? w.slice(0, maxCharsPerLine - 1) + '…' : w;
+    }
+  }
+  if (cur && lines.length < maxLines) lines.push(cur);
+  if (lines.length === maxLines) {
+    // If there were leftover words, mark truncation on the last line.
+    const consumedLen = lines.reduce((a, l) => a + l.length + 1, 0);
+    if (consumedLen < text.length) {
+      const last = lines[maxLines - 1];
+      lines[maxLines - 1] = last.length >= maxCharsPerLine
+        ? last.slice(0, maxCharsPerLine - 1) + '…'
+        : last + '…';
+    }
+  }
+  return lines.join('\n');
+}
+
 function setStatus(html: string) {
   const el = document.getElementById('status');
   if (el) el.innerHTML = html;
@@ -258,8 +296,10 @@ function computeLines(): { top: string; bottom: string } {
 async function applyRender() {
   if (!bridge) return;
   const lines = computeLines();
-  const top = fit(lines.top);
-  const bottom = fit(lines.bottom);
+  // Anchor (top): one line max, fits cleanly. Truncate hard if too long.
+  const top = fit(lines.top, G2_MAX_LINE);
+  // Event/page content (bottom): wrap to up to 3 lines using \n inside the container.
+  const bottom = wrap(lines.bottom, G2_MAX_LINE, 3);
   if (top === localState.lastTop && bottom === localState.lastBottom) return;
 
   if (top !== localState.lastTop) {
