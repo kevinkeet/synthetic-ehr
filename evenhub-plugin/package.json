@@ -1,0 +1,21 @@
+{
+  "name": "acting-intern-glasses-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Even Hub plugin: renders the Acting Intern HUD on G2",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "pack": "npm run build && evenhub pack app.json dist -o acting-intern.ehpk",
+    "qr": "evenhub qr --url http://localhost:5173"
+  },
+  "dependencies": {
+    "@evenrealities/even_hub_sdk": "^0.0.10"
+  },
+  "devDependencies": {
+    "@evenrealities/evenhub-cli": "^0.1.12",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.10"
+  }
+}

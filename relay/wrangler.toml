@@ -1,0 +1,12 @@
+name = "acting-intern-relay"
+main = "src/worker.js"
+compatibility_date = "2026-01-15"
+
+# Per-secret state lives in a Durable Object with SQLite storage (free tier).
+[[durable_objects.bindings]]
+name = "HUD_STATE"
+class_name = "HudState"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["HudState"]

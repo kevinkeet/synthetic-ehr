@@ -1,0 +1,14 @@
+{
+  "name": "acting-intern-relay",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cloudflare Worker that relays HUD updates from the EHR to the Even Hub plugin",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "^3.78.0"
+  }
+}
