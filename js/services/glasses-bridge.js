@@ -27,9 +27,9 @@
     // can read these from the JS bundle, so don't bake anything more sensitive.
     var BAKED_DEFAULTS = {
         endpoint: 'https://acting-intern-relay.kevinkeet.workers.dev',
-        secret: '',         // <-- paste your shared secret here to skip retyping
-        enabled: false,     // off by default until secret is set
-        useG2Mic: false
+        secret: '59e10ba81146f1ad82b254e590f2734ae6bc92d9561ea23b244dc667386ffd16',
+        enabled: true,      // baked secret → safe to auto-enable on first load
+        useG2Mic: false     // user opts in via the G2 settings toggle
     };
 
     function escAttr(s) {
