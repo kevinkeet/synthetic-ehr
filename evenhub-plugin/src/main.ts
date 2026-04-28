@@ -26,6 +26,26 @@ import {
   type EvenHubEvent,
 } from '@evenrealities/even_hub_sdk';
 
+// Injected by Vite at build time (see vite.config.ts).
+declare const __APP_VERSION__: string;
+declare const __BUILD_TIME_ISO__: string;
+
+function buildBadgeHtml(): string {
+  let timeStr = __BUILD_TIME_ISO__;
+  try {
+    const d = new Date(__BUILD_TIME_ISO__);
+    timeStr = d.toLocaleString(undefined, {
+      year: 'numeric', month: 'short', day: 'numeric',
+      hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
+    });
+  } catch { /* fall through to ISO string */ }
+  return `<div style="font-family:system-ui;font-size:11px;color:#888;text-align:center;padding:8px 12px;border-bottom:1px solid #eee;background:#fafafa;">
+    Acting Intern <strong style="color:#2563eb;">v${__APP_VERSION__}</strong>
+    <span style="color:#bbb;margin:0 6px;">·</span>
+    built ${timeStr}
+  </div>`;
+}
+
 // ---------- Config & local state ----------
 
 type Config = { relay: string; secret: string; deepgramKey: string };
@@ -172,6 +192,7 @@ function setStatus(html: string) {
 
 function renderSetupForm(initial: Partial<Config>) {
   setStatus(`
+    ${buildBadgeHtml()}
     <div style="max-width:520px;margin:0 auto;font-family:system-ui;padding:16px;">
       <h2 style="margin:0 0 8px;font-size:18px;">Acting Intern HUD setup</h2>
       <p style="margin:0 0 16px;color:#555;font-size:13px;line-height:1.4;">
@@ -507,6 +528,7 @@ async function pollLoop() {
 async function startPlugin(config: Config) {
   cfg = config;
   setStatus(`
+    ${buildBadgeHtml()}
     <div style="max-width:520px;margin:0 auto;font-family:system-ui;padding:16px;color:#444;">
       <p style="margin:0 0 8px;">Acting Intern HUD active.</p>
       <p style="margin:0 0 8px;font-size:13px;color:#666;" id="plugin-state">Waiting for first push…</p>
