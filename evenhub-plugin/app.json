@@ -2,17 +2,23 @@
   "package_id": "com.actingintern.glasses",
   "edition": "202601",
   "name": "Acting Intern",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "min_app_version": "2.0.0",
   "min_sdk_version": "0.0.10",
   "entrypoint": "index.html",
   "permissions": [
     {
       "name": "network",
-      "desc": "Polls the Acting Intern HUD relay for live patient context, dictation findings, and order verification.",
+      "desc": "Polls the Acting Intern HUD relay for live patient context, dictation findings, and order verification. Streams G2 mic audio to Deepgram for hands-free dictation.",
       "whitelist": [
-        "https://acting-intern-relay.workers.dev"
+        "https://acting-intern-relay.kevinkeet.workers.dev",
+        "https://api.deepgram.com",
+        "wss://api.deepgram.com"
       ]
+    },
+    {
+      "name": "g2-microphone",
+      "desc": "Capture audio from the G2 microphones and stream it to Deepgram so the doctor can dictate notes and orders without using a laptop or phone microphone."
     }
   ],
   "supported_languages": ["en"]

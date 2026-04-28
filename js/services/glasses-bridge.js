@@ -1,10 +1,15 @@
 /**
- * GlassesBridge — pushes a 2-line HUD ({anchor, event}) to the Acting Intern
- * MentraOS app, which forwards to Even Realities G2 glasses via showDoubleTextWall.
+ * GlassesBridge — pushes HUD content to the Acting Intern relay
+ * (Cloudflare Worker), which the Even Hub plugin polls and renders to G2.
  *
- * The G2 is binocular (same image to both eyes), so this is intentionally minimal:
- *   topText    = anchor: persistent patient identity + decision-changing number
- *   bottomText = event:  the most recent dictated finding OR the most recent order
+ *   anchor (top line)   = persistent patient identity + decision-changing number
+ *   bottom (event line) = the most recent dictated finding OR the most recent order
+ *   views               = multi-page browseable content (notes, AI, problems, alerts, plan)
+ *                          plugin navigates locally with ring/temple inputs
+ *   desiredMode         = EHR can ask plugin to switch to a specific view
+ *                          (e.g. on voice command "show notes")
+ *   transcripts         = G2 mic transcripts flow back: plugin → relay → EHR poller
+ *                          → DictationWidget._processFinalText (acts as if from local mic)
  *
  * Settings persist in localStorage. Disabled by default — clinician opts in.
  */
@@ -14,6 +19,7 @@
     var STORAGE_KEY = 'glasses-bridge-config-v1';
     var REQUEST_TIMEOUT_MS = 4000;
     var COALESCE_MS = 120;
+    var MIC_POLL_MS = 250;
 
     function escAttr(s) {
         return String(s == null ? '' : s)
@@ -24,15 +30,18 @@
     var GlassesBridge = {
         _config: null,
         _lastAnchor: '',
+        _lastViewsJson: '',
         _coalesceTimer: null,
-        _pending: null, // { anchor?, event? }
+        _pending: null,
         _inFlight: 0,
+        _micPollTimer: null,
+        _micLastSeenId: 0,
 
         // ==================== Config ====================
 
         _loadConfig: function () {
             if (this._config) return this._config;
-            var defaults = { endpoint: '', secret: '', enabled: false };
+            var defaults = { endpoint: '', secret: '', enabled: false, useG2Mic: false };
             try {
                 var raw = localStorage.getItem(STORAGE_KEY);
                 this._config = raw ? Object.assign(defaults, JSON.parse(raw)) : defaults;
@@ -50,6 +59,9 @@
             this._loadConfig();
             Object.assign(this._config, patch || {});
             this._saveConfig();
+            // Sync mic poll loop to current settings.
+            if (this.isG2MicEnabled()) this._startMicPolling();
+            else this._stopMicPolling();
         },
 
         getConfig: function () { return Object.assign({}, this._loadConfig()); },
@@ -59,14 +71,16 @@
             return !!(c.enabled && c.endpoint && c.secret);
         },
 
+        isG2MicEnabled: function () {
+            var c = this._loadConfig();
+            return !!(c.enabled && c.endpoint && c.secret && c.useG2Mic);
+        },
+
         enable: function () { this.configure({ enabled: true }); },
         disable: function () { this.configure({ enabled: false }); },
 
         // ==================== Public push API ====================
 
-        /**
-         * Set the persistent top line. Idempotent — same anchor twice is a no-op.
-         */
         setAnchor: function (anchor) {
             if (!anchor || typeof anchor !== 'string') return;
             anchor = anchor.trim();
@@ -76,14 +90,25 @@
             this._enqueue({ anchor: anchor });
         },
 
-        /**
-         * Push a transient bottom-line event.
-         *   { kind: 'dictation'|'order'|'alert'|'clear', text: string, glyph?: '✓'|'⚠'|'?' }
-         */
         pushEvent: function (event) {
             if (!event || !event.kind) return;
             console.log('[GlassesBridge] event →', event.kind, event.text, event.glyph || '');
             this._enqueue({ event: event });
+        },
+
+        pushViews: function (views) {
+            if (!views) return;
+            var json = JSON.stringify(views);
+            if (json === this._lastViewsJson) return;
+            this._lastViewsJson = json;
+            this._enqueue({ views: views });
+        },
+
+        setDesiredMode: function (mode) {
+            if (!this.isEnabled()) return;
+            var c = this._loadConfig();
+            console.log('[GlassesBridge] mode →', mode);
+            this._post(c, '/mode', { mode: mode });
         },
 
         clear: function () {
@@ -92,42 +117,207 @@
 
         // ==================== Builders (formatting helpers) ====================
 
-        /**
-         * Build the anchor from AICoworker state + longitudinal doc.
-         * Pattern: "RM 73M HFrEF · Cr 2.4↑ eGFR 28"
-         * Falls back gracefully when data is missing.
-         */
         buildAnchor: function () {
             var pieces = [];
-
             var initials = this._patientInitials();
             var ageSex = this._ageSex();
             if (initials || ageSex) pieces.push((initials + ' ' + ageSex).trim());
-
             var dx = this._dominantDx();
             if (dx) pieces.push(dx);
-
             var renal = this._renalSnapshot();
             if (renal) pieces.push(renal);
-
             return pieces.length ? pieces.join(' \u00B7 ') : '';
         },
 
-        /**
-         * Build a dictation event from an extracted finding string.
-         */
         buildDictationEvent: function (text, glyph) {
             return { kind: 'dictation', text: this._compress(text, 32), glyph: glyph || '\u2713' };
         },
 
-        /**
-         * Build an order event with safety glyph derived from chart context.
-         */
         buildOrderEvent: function (orderData) {
             if (!orderData) return null;
             var text = this._summarizeOrder(orderData);
             var safety = this._checkOrderSafety(orderData);
             return { kind: 'order', text: this._compress(text, 30), glyph: safety };
+        },
+
+        /**
+         * Build the multi-page views object from current chart + AI state.
+         * Returns { live: [], notes: [...], ai: [...], problems: [...],
+         *           alerts: [...], plan: [...] }
+         * Each page is { line1, line2 } — exactly what the plugin will render
+         * to the two stacked text containers on G2.
+         */
+        buildViews: function () {
+            return {
+                live: [],
+                notes: this._buildNotesPages(),
+                ai: this._buildAIPages(),
+                problems: this._buildProblemsPages(),
+                alerts: this._buildAlertsPages(),
+                plan: this._buildPlanPages()
+            };
+        },
+
+        // ==================== Page builders ====================
+
+        _buildNotesPages: function () {
+            try {
+                var src = (typeof NotesList !== 'undefined' && NotesList.notes) ? NotesList.notes : [];
+                if (!src.length) return [];
+                return src.slice(0, 20).map(function (n, i) {
+                    var date = n.date || n.noteDate || '';
+                    var title = (n.type || n.title || 'Note').toString();
+                    var author = n.author ? ' \u00B7 ' + n.author : '';
+                    return {
+                        line1: 'Note ' + (i + 1) + '/' + Math.min(src.length, 20) + ' \u00B7 ' + GlassesBridge._compress(title + author, 30),
+                        line2: GlassesBridge._compress(date, 38)
+                    };
+                });
+            } catch (_) { return []; }
+        },
+
+        _buildAIPages: function () {
+            try {
+                if (typeof AICoworker === 'undefined' || !AICoworker.state) return [];
+                var s = AICoworker.state;
+                var pages = [];
+                if (s.aiOneLiner) pages.push({ line1: 'AI Gestalt', line2: this._compress(s.aiOneLiner, 38) });
+                if (s.summary) pages.push({ line1: 'Summary', line2: this._compress(this._stripMarkdown(s.summary), 38) });
+                if (s.thinking) pages.push({ line1: 'Trajectory', line2: this._compress(s.thinking, 38) });
+                if (s.trajectoryAssessment) pages.push({ line1: 'Trajectory+', line2: this._compress(s.trajectoryAssessment, 38) });
+                if (s.clinicalSummary && s.clinicalSummary.demographics) {
+                    pages.push({ line1: 'Demographics', line2: this._compress(s.clinicalSummary.demographics, 38) });
+                }
+                if (s.clinicalSummary && s.clinicalSummary.presentation) {
+                    pages.push({ line1: 'Presentation', line2: this._compress(s.clinicalSummary.presentation, 38) });
+                }
+                return pages;
+            } catch (_) { return []; }
+        },
+
+        _buildProblemsPages: function () {
+            try {
+                if (typeof AICoworker === 'undefined' || !AICoworker.state) return [];
+                var probs = AICoworker.state.problemList || [];
+                var self = this;
+                return probs.slice(0, 12).map(function (p) {
+                    var icon = p.urgency === 'urgent' ? '! ' : (p.urgency === 'monitoring' ? '~ ' : '  ');
+                    return {
+                        line1: icon + self._compress(p.name || '', 36),
+                        line2: self._compress(p.plan || p.ddx || '', 38)
+                    };
+                });
+            } catch (_) { return []; }
+        },
+
+        _buildAlertsPages: function () {
+            try {
+                var pages = [];
+                if (typeof AICoworker !== 'undefined' && AICoworker.state) {
+                    var flags = AICoworker.state.flags || [];
+                    flags.slice(0, 8).forEach(function (f) {
+                        var text = typeof f === 'string' ? f : (f.text || '');
+                        if (text) pages.push({ line1: '\u26A0 Safety flag', line2: GlassesBridge._compress(text, 38) });
+                    });
+                    var key = AICoworker.state.keyConsiderations || [];
+                    key.slice(0, 5).forEach(function (k) {
+                        var text = typeof k === 'string' ? k : (k.text || '');
+                        if (text) pages.push({ line1: '\u26A0 Consideration', line2: GlassesBridge._compress(text, 38) });
+                    });
+                }
+                // Critical labs from longitudinal doc
+                try {
+                    var labs = AICoworker.longitudinalDoc && AICoworker.longitudinalDoc.longitudinalData && AICoworker.longitudinalDoc.longitudinalData.labs;
+                    if (labs && labs.forEach) {
+                        labs.forEach(function (trend, name) {
+                            if (trend && trend.latestValue && trend.latestValue.flag === 'CRITICAL') {
+                                var v = trend.latestValue;
+                                pages.push({
+                                    line1: '\u26A0 Critical lab',
+                                    line2: GlassesBridge._compress(name + ' ' + v.value + (v.unit || ''), 38)
+                                });
+                            }
+                        });
+                    }
+                } catch (_) {}
+                // Allergies
+                var pt = this._patient();
+                if (pt && Array.isArray(pt.allergies)) {
+                    pt.allergies.slice(0, 4).forEach(function (a) {
+                        var sub = a.substance || a.name || '';
+                        var rx = a.reaction || '';
+                        if (sub) pages.push({ line1: '\u26A0 Allergy', line2: GlassesBridge._compress(sub + (rx ? ' \u2192 ' + rx : ''), 38) });
+                    });
+                }
+                return pages;
+            } catch (_) { return []; }
+        },
+
+        _buildPlanPages: function () {
+            try {
+                if (typeof AICoworker === 'undefined' || !AICoworker.state) return [];
+                var s = AICoworker.state;
+                var pages = [];
+                var actions = s.suggestedActions || [];
+                actions.slice(0, 12).forEach(function (a) {
+                    var text = typeof a === 'string' ? a : (a.text || '');
+                    if (text) pages.push({ line1: '\u2192 Plan', line2: GlassesBridge._compress(text, 38) });
+                });
+                // Categorized actions if present and not already captured
+                var cat = s.categorizedActions || {};
+                ['medications', 'labs', 'imaging', 'communication', 'other'].forEach(function (key) {
+                    var arr = cat[key] || [];
+                    arr.slice(0, 5).forEach(function (a) {
+                        var text = a.text || '';
+                        if (text && !pages.some(function (p) { return p.line2.indexOf(text.slice(0, 20)) >= 0; })) {
+                            pages.push({ line1: '\u2192 ' + key, line2: GlassesBridge._compress(text, 38) });
+                        }
+                    });
+                });
+                return pages;
+            } catch (_) { return []; }
+        },
+
+        // ==================== Private: G2 mic polling ====================
+
+        _startMicPolling: function () {
+            if (this._micPollTimer) return;
+            console.log('[GlassesBridge] G2 mic poll loop started');
+            var self = this;
+            this._micPollTimer = setInterval(function () { self._pollMicOnce(); }, MIC_POLL_MS);
+        },
+
+        _stopMicPolling: function () {
+            if (!this._micPollTimer) return;
+            clearInterval(this._micPollTimer);
+            this._micPollTimer = null;
+            console.log('[GlassesBridge] G2 mic poll loop stopped');
+        },
+
+        _pollMicOnce: function () {
+            if (!this.isG2MicEnabled()) return;
+            var c = this._loadConfig();
+            var url = c.endpoint.replace(/\/+$/, '') + '/transcripts?since=' + this._micLastSeenId;
+            var self = this;
+            fetch(url, { headers: { 'X-Glasses-Secret': c.secret }, cache: 'no-store' })
+                .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+                .then(function (data) {
+                    if (!data || !Array.isArray(data.items)) return;
+                    data.items.forEach(function (item) {
+                        if (item.id > self._micLastSeenId) self._micLastSeenId = item.id;
+                        if (item.isFinal !== false && item.text && typeof DictationWidget !== 'undefined' && DictationWidget._processFinalText) {
+                            console.log('[GlassesBridge] G2 mic transcript →', item.text);
+                            try { DictationWidget._processFinalText(item.text); } catch (e) { console.warn('[GlassesBridge] _processFinalText threw', e); }
+                        }
+                    });
+                })
+                .catch(function (err) {
+                    // Silent during a single failed poll; log only once per minute
+                    if (!self._lastMicErrLog || Date.now() - self._lastMicErrLog > 60000) {
+                        console.warn('[GlassesBridge] mic poll failed:', err && err.message);
+                        self._lastMicErrLog = Date.now();
+                    }
+                });
         },
 
         // ==================== Private: anchor data extraction ====================
@@ -169,7 +359,6 @@
                 if (typeof AICoworker === 'undefined' || !AICoworker.state) return '';
                 var probs = AICoworker.state.problemList || AICoworker.state.problems || [];
                 if (!probs.length) return '';
-                // Skip the chief-complaint placeholder (problem #1 per the prompt schema is the CC)
                 var pick = probs[1] || probs[0];
                 if (!pick) return '';
                 var name = pick.name || pick.text || pick.diagnosis || '';
@@ -182,7 +371,6 @@
                 if (typeof AICoworker === 'undefined' || !AICoworker.longitudinalDoc) return '';
                 var labs = AICoworker.longitudinalDoc.longitudinalData && AICoworker.longitudinalDoc.longitudinalData.labs;
                 if (!labs) return '';
-                // labs is a Map keyed by lab name
                 var trend = (labs.get && labs.get('Creatinine')) || labs.Creatinine;
                 if (!trend || !trend.latestValue) return '';
                 var v = trend.latestValue;
@@ -194,7 +382,6 @@
         _abbreviateDx: function (name) {
             if (!name) return '';
             var s = name.trim();
-            // Common abbreviations
             var map = [
                 [/heart failure with reduced ejection fraction/i, 'HFrEF'],
                 [/heart failure with preserved ejection fraction/i, 'HFpEF'],
@@ -215,8 +402,11 @@
             for (var i = 0; i < map.length; i++) {
                 if (map[i][0].test(s)) return map[i][1];
             }
-            // Default: first word, capitalised, max 12 chars
             return s.split(/\s+/)[0].slice(0, 12);
+        },
+
+        _stripMarkdown: function (s) {
+            return String(s || '').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1');
         },
 
         // ==================== Private: order summarization + safety ====================
@@ -240,29 +430,21 @@
                 if (t !== 'medication') return '\u2713';
                 var d = orderData.details || orderData.orderData || {};
                 var name = (d.name || '').toLowerCase();
-
-                // Allergy match
                 var allergies = this._getAllergies();
                 for (var i = 0; i < allergies.length; i++) {
                     var a = allergies[i].toLowerCase();
                     if (a && (name.indexOf(a) >= 0 || a.indexOf(name) >= 0)) return '\u26A0';
-                    // Cross-reactivity heuristics
                     if (a.indexOf('penicillin') >= 0 && /(cillin|cef[a-z]+|amoxi|ampici)/.test(name)) return '\u26A0';
                     if (a.indexOf('sulfa') >= 0 && /(sulfa|tmp.smx|bactrim|sulfameth)/.test(name)) return '\u26A0';
                 }
-
-                // K+ raisers when K is high
                 var k = this._latestLab('Potassium');
                 if (k && k.value >= 5.0 && /(spironolactone|eplerenone|lisinopril|enalapril|losartan|valsartan|potassium)/.test(name)) {
                     return '\u26A0';
                 }
-
-                // Renal-cleared at low eGFR (rough — flag for review, not a hard stop)
                 var cr = this._latestLab('Creatinine');
                 if (cr && cr.value >= 2.0 && /(metformin|gabapentin|enoxaparin|nitrofurantoin)/.test(name)) {
                     return '\u26A0';
                 }
-
                 return '\u2713';
             } catch (_) { return ''; }
         },
@@ -289,21 +471,6 @@
             if (!text) return '';
             text = String(text).replace(/\s+/g, ' ').trim();
             return text.length <= max ? text : text.slice(0, max - 1) + '\u2026';
-        },
-
-        // ==================== Private: networking ====================
-
-        _enqueue: function (patch) {
-            if (!this.isEnabled()) return;
-            this._pending = Object.assign(this._pending || {}, patch);
-            if (this._coalesceTimer) return;
-            var self = this;
-            this._coalesceTimer = setTimeout(function () {
-                self._coalesceTimer = null;
-                var payload = self._pending;
-                self._pending = null;
-                if (payload) self._send(payload);
-            }, COALESCE_MS);
         },
 
         // ==================== Settings UI ====================
@@ -340,9 +507,13 @@
                     '<input id="gb-secret" type="password" autocomplete="off" placeholder="X-Glasses-Secret header value" value="' + escAttr(c.secret) + '" ' +
                     'style="display:block;width:100%;padding:8px 10px;margin-top:4px;border:1px solid #ccc;border-radius:4px;font-size:14px;box-sizing:border-box;font-family:monospace;">' +
                   '</label>' +
-                  '<label style="display:flex;align-items:center;gap:8px;margin:18px 0;font-size:14px;cursor:pointer;">' +
+                  '<label style="display:flex;align-items:center;gap:8px;margin:18px 0 6px;font-size:14px;cursor:pointer;">' +
                     '<input id="gb-enabled" type="checkbox" ' + (c.enabled ? 'checked' : '') + ' style="width:16px;height:16px;cursor:pointer;">' +
                     '<span>Enable HUD output</span>' +
+                  '</label>' +
+                  '<label style="display:flex;align-items:center;gap:8px;margin:6px 0 12px;font-size:14px;cursor:pointer;">' +
+                    '<input id="gb-mic" type="checkbox" ' + (c.useG2Mic ? 'checked' : '') + ' style="width:16px;height:16px;cursor:pointer;">' +
+                    '<span>Use G2 mic for dictation <span style="color:#888;font-weight:400;font-size:12px;">(requires plugin Deepgram setup)</span></span>' +
                   '</label>' +
                   '<div id="gb-status" style="font-size:12px;color:#888;min-height:18px;margin-bottom:12px;"></div>' +
                   '<div style="display:flex;justify-content:flex-end;gap:8px;">' +
@@ -368,7 +539,8 @@
                 return {
                     endpoint: document.getElementById('gb-endpoint').value.trim(),
                     secret: document.getElementById('gb-secret').value.trim(),
-                    enabled: document.getElementById('gb-enabled').checked
+                    enabled: document.getElementById('gb-enabled').checked,
+                    useG2Mic: document.getElementById('gb-mic').checked
                 };
             };
 
@@ -382,37 +554,64 @@
                 var f = readForm();
                 if (!f.endpoint || !f.secret) { setStatus('Endpoint and secret required.', false); return; }
                 self.configure(f);
-                self._lastAnchor = ''; // force re-send
+                self._lastAnchor = '';
                 self.setAnchor(self.buildAnchor() || 'Acting Intern \u00B7 test');
                 self.pushEvent({ kind: 'dictation', text: 'glasses test', glyph: '\u2713' });
+                self.pushViews(self.buildViews());
                 setStatus('Test sent. Check your G2.', true);
             };
         },
 
+        // ==================== Private: networking ====================
+
+        _enqueue: function (patch) {
+            if (!this.isEnabled()) return;
+            this._pending = Object.assign(this._pending || {}, patch);
+            if (this._coalesceTimer) return;
+            var self = this;
+            this._coalesceTimer = setTimeout(function () {
+                self._coalesceTimer = null;
+                var payload = self._pending;
+                self._pending = null;
+                if (payload) self._send(payload);
+            }, COALESCE_MS);
+        },
+
         _send: function (payload) {
             var c = this._loadConfig();
-            var path = payload.event ? '/event' : '/anchor';
+            // Fan out: anchor/event → /event (or /anchor), views → /views.
+            if (payload.event !== undefined || payload.anchor !== undefined) {
+                if (payload.event !== undefined) {
+                    this._post(c, '/event', { anchor: payload.anchor, event: payload.event });
+                } else {
+                    this._post(c, '/anchor', { anchor: payload.anchor });
+                }
+            }
+            if (payload.views !== undefined) {
+                this._post(c, '/views', { views: payload.views });
+            }
+        },
+
+        _post: function (c, path, body) {
             var url = c.endpoint.replace(/\/+$/, '') + path;
             var headers = { 'Content-Type': 'application/json', 'X-Glasses-Secret': c.secret };
-
             var controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
             var timeoutId = controller ? setTimeout(function () { controller.abort(); }, REQUEST_TIMEOUT_MS) : null;
-
             this._inFlight++;
             var self = this;
-            fetch(url, {
+            return fetch(url, {
                 method: 'POST',
                 headers: headers,
-                body: JSON.stringify(payload),
+                body: JSON.stringify(body),
                 signal: controller ? controller.signal : undefined
             })
             .then(function (r) {
                 if (!r.ok && r.status === 401) console.warn('[GlassesBridge] 401 — check shared secret');
-                else if (!r.ok) console.warn('[GlassesBridge] relay error', r.status);
+                else if (!r.ok) console.warn('[GlassesBridge] relay error', r.status, 'on', path);
             })
             .catch(function (err) {
-                if (err && err.name === 'AbortError') console.warn('[GlassesBridge] timeout');
-                else console.warn('[GlassesBridge] push failed:', err && err.message);
+                if (err && err.name === 'AbortError') console.warn('[GlassesBridge] timeout on', path);
+                else console.warn('[GlassesBridge] push failed:', err && err.message, 'on', path);
             })
             .finally(function () {
                 if (timeoutId) clearTimeout(timeoutId);
@@ -421,5 +620,9 @@
         }
     };
 
-    if (typeof window !== 'undefined') window.GlassesBridge = GlassesBridge;
+    if (typeof window !== 'undefined') {
+        window.GlassesBridge = GlassesBridge;
+        // Auto-start mic polling if config already says so (page reload after save).
+        if (GlassesBridge.isG2MicEnabled()) GlassesBridge._startMicPolling();
+    }
 })();
