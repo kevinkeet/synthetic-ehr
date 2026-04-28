@@ -378,32 +378,30 @@ function computeContent(): string {
   const s = localState.relay;
   if (!s) return 'Acting Intern · waiting for chart';
 
-  // Pending action ALWAYS takes precedence — the doctor needs to see + decide
-  // before navigating to anything else. Renders a small modal-style block.
+  // Pending action ALWAYS takes precedence. Decorated as a modal with strong
+  // visual delimiters so it's unmistakable from regular content.
   if (s.pendingAction && s.pendingAction.summary) {
     const a = s.pendingAction;
-    const lines = [
-      `>> CONFIRM ${a.kind.toUpperCase()}? ${a.glyph || ''}`,
-      ...wrapLines(a.summary, G2_MAX_LINE),
-      '',
-      '[CLICK]=confirm  [DBL]=cancel',
-    ];
+    const summary = wrapLines(a.summary, G2_MAX_LINE);
+    const isWarn = a.glyph === '⚠';
+    const lines: string[] = [];
+    // Big visible heading. Glyph at end of line so it doesn't get eaten by
+    // box-drawing chars (a font quirk we hit on real device).
+    lines.push(isWarn
+      ? `>>> CAUTION — CONFIRM ${a.kind.toUpperCase()}`
+      : `>>> CONFIRM ${a.kind.toUpperCase()}`);
+    lines.push('');
+    summary.slice(0, 3).forEach(l => lines.push(l));
+    while (lines.length < VISIBLE_LINES - 1) lines.push('');
+    lines.push('CLICK=accept   DBL=cancel');
     return lines.slice(0, VISIBLE_LINES).join('\n');
   }
 
-  if (localState.mode === 'live') {
-    const anchor = s.anchor || 'Acting Intern · ready';
-    const bottom = s.bottom || '';
-    // Wrap each separately so the visual feels like "anchor up top, latest event below"
-    const anchorLines = wrapLines(anchor, G2_MAX_LINE);
-    const bottomLines = bottom ? wrapLines(bottom, G2_MAX_LINE) : [];
-    const all = [...anchorLines.slice(0, 2), ...bottomLines.slice(0, VISIBLE_LINES - anchorLines.slice(0, 2).length)];
-    return all.join('\n') || ' ';
-  }
+  if (localState.mode === 'live') return computeLiveContent(s);
+
   const pages = (s.views && s.views[localState.mode]) || [];
-  if (!pages.length) {
-    return `${MODE_LABELS[localState.mode]} — no items\n${s.anchor || ''}`;
-  }
+  if (!pages.length) return computeEmptyState(s);
+
   const idx = Math.min(Math.max(0, localState.page), pages.length - 1);
   const page = pages[idx];
 
@@ -419,7 +417,9 @@ function computeContent(): string {
     return stack.slice(off, off + VISIBLE_LINES).join('\n') || ' ';
   }
 
-  // Non-live modes: 1-line header + (VISIBLE_LINES - 1) content lines.
+  // Non-live modes: tightened header. Drop "1/1" when only one page (it's just
+  // noise) and keep page numbers only when meaningful. Scroll indicator is
+  // compact: "▲3-7/12▼".
   const off = clampOffset(localState.scrollOffset, total, VISIBLE_LINES_NONLIVE_CONTENT);
   const end = Math.min(off + VISIBLE_LINES_NONLIVE_CONTENT, total);
   const upArrow = off > 0 ? '▲' : ' ';
@@ -427,9 +427,79 @@ function computeContent(): string {
   const scrollIndicator = total > VISIBLE_LINES_NONLIVE_CONTENT
     ? `  ${upArrow}${off + 1}-${end}/${total}${downArrow}`
     : '';
-  const header = `${MODE_LABELS[localState.mode]} ${idx + 1}/${pages.length}${scrollIndicator}`;
+  const pageNum = pages.length > 1 ? ` p${idx + 1}/${pages.length}` : '';
+  const header = `${MODE_LABELS[localState.mode]}${pageNum}${scrollIndicator}`;
   const visible = stack.slice(off, end);
   return [header, ...visible].join('\n');
+}
+
+/**
+ * Live mode = anchor + last event + always-visible status footer with mode counts.
+ * The footer means the doctor knows what's available without cycling modes.
+ *   RM 74M HFrEF EF35 Cr 2.4↑
+ *   "Patient reports new shortness of
+ *   breath worse with exertion over
+ *   past three days, denies chest pain"
+ *
+ *   PL5  AL2  PR3  NT12  DI4
+ */
+function computeLiveContent(s: RelayState): string {
+  const anchor = s.anchor || 'Acting Intern · ready';
+  const bottom = s.bottom || '';
+  const footer = computeStatusFooter(s);
+  const footerLines = footer ? 1 : 0;
+  const anchorLines = wrapLines(anchor, G2_MAX_LINE).slice(0, 2);
+  const bottomBudget = VISIBLE_LINES - anchorLines.length - footerLines;
+  const bottomLines = bottom ? wrapLines(bottom, G2_MAX_LINE).slice(0, bottomBudget) : [];
+
+  const lines: string[] = [...anchorLines, ...bottomLines];
+  // Pad with blanks so the footer always sits at the bottom of the screen.
+  while (lines.length < VISIBLE_LINES - footerLines) lines.push('');
+  if (footer) lines.push(footer);
+  return lines.slice(0, VISIBLE_LINES).join('\n') || ' ';
+}
+
+/**
+ * Always-visible status footer with per-mode item counts. Doctor can see
+ * "5 plan items, 2 alerts available" without cycling. Empty modes are omitted.
+ * Format chosen for density: 2-letter mode codes + count, space-separated.
+ */
+function computeStatusFooter(s: RelayState): string {
+  if (!s.views) return '';
+  const parts: string[] = [];
+  const planLen = (s.views.plan?.[0]?.bullets?.length) || 0;
+  const alertLen = (s.views.alerts?.[0]?.bullets?.length) || 0;
+  const probLen = (s.views.problems?.length) || 0;
+  const noteLen = (s.views.notes?.length) || 0;
+  const dictLen = (s.views.dictation?.length) || 0;
+  const aiLen = (s.views.ai?.length) || 0;
+  if (planLen) parts.push(`PL${planLen}`);
+  if (alertLen) parts.push(`AL${alertLen}`);
+  if (probLen) parts.push(`PR${probLen}`);
+  if (noteLen) parts.push(`NT${noteLen}`);
+  if (dictLen) parts.push(`DI${dictLen}`);
+  if (aiLen) parts.push(`AI${aiLen}`);
+  return parts.join(' ');
+}
+
+/**
+ * Empty-state messaging: tell the doctor WHY there's nothing, and what to do
+ * to populate it. Keeps the screen useful even before AI runs.
+ */
+function computeEmptyState(s: RelayState): string {
+  const mode = localState.mode;
+  const tips: Record<string, string[]> = {
+    plan: ['No plan yet.', '', 'Run AI analysis or', 'speak: "order furosemide..."'],
+    alerts: ['No alerts.', '', 'Allergies + critical labs', 'will appear here.'],
+    problems: ['No problems analyzed yet.', '', 'Run AI analysis on the EHR', 'to populate this list.'],
+    notes: ['No notes loaded.', '', 'Visit /notes in the EHR', 'to index them.'],
+    ai: ['No AI synthesis yet.', '', 'Run AI analysis on the EHR.'],
+    dictation: ['No dictations yet.', '', 'Speak with G2 mic on, or', 'use the EHR mic widget.'],
+  };
+  const lines = [`${MODE_LABELS[mode]} — empty`, '', ...(tips[mode] || ['No content.'])];
+  while (lines.length < VISIBLE_LINES - 1) lines.push('');
+  lines.push(s.anchor || '');
+  return lines.slice(0, VISIBLE_LINES).join('\n');
 }
 
 function clampOffset(off: number, total: number, visible: number): number {
@@ -440,7 +510,7 @@ function clampOffset(off: number, total: number, visible: number): number {
 async function applyRender() {
   if (!bridge) return;
   const content = computeContent();
-  if (content === localState.lastTop) return; // reuse lastTop as the de-dup key
+  if (content === localState.lastTop) return;
   await bridge.textContainerUpgrade(new TextContainerUpgrade({
     containerID: MAIN_CONTAINER_ID,
     content: content || ' ',

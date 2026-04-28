@@ -200,11 +200,30 @@
             var initials = this._patientInitials();
             var ageSex = this._ageSex();
             if (initials || ageSex) pieces.push((initials + ' ' + ageSex).trim());
+            // Code status — only show when NOT Full Code (DNR/DNI is decision-changing).
+            var code = this._codeStatusBadge();
+            if (code) pieces.push(code);
             var dx = this._dominantDx();
             if (dx) pieces.push(dx);
             var renal = this._renalSnapshot();
             if (renal) pieces.push(renal);
             return pieces.length ? pieces.join(' \u00B7 ') : '';
+        },
+
+        _codeStatusBadge: function () {
+            try {
+                var pt = this._patient();
+                if (!pt) return '';
+                var ad = pt.advanceDirectives;
+                if (!ad) return '';
+                if (ad.dnr === true && ad.dni === true) return 'DNR/DNI';
+                if (ad.dnr === true) return 'DNR';
+                if (ad.dni === true) return 'DNI';
+                if (ad.codeStatus && ad.codeStatus !== 'Full Code') {
+                    return String(ad.codeStatus).slice(0, 12);
+                }
+                return '';
+            } catch (_) { return ''; }
         },
 
         buildDictationEvent: function (text, glyph) {
@@ -408,7 +427,9 @@
                 bullets = bullets.slice(0, t.maxItems).map(function (b) {
                     return GlassesBridge._compress(b, t.textChars);
                 });
-                return [{ title: 'Alerts (' + bullets.length + ')', bullets: bullets }];
+                // No title — the plugin's header already says "ALERTS"; count
+                // is shown in the scroll indicator (▼1-N/total).
+                return [{ bullets: bullets }];
             } catch (_) { return []; }
         },
 
@@ -444,8 +465,22 @@
                     });
                 });
                 if (!bullets.length) return [];
+                // Sort: STAT first, then by category prefix (RX → LAB → IMG →
+                // CONSULT → ASK → other). Doctor scans the most urgent items
+                // first without scrolling.
+                var prefixOrder = { 'RX': 1, 'LAB': 2, 'IMG': 3, 'CONSULT': 4, 'ASK': 5, '→': 6, '': 7 };
+                bullets.sort(function (a, b) {
+                    var aStat = /\bSTAT\b/i.test(a) ? 0 : 1;
+                    var bStat = /\bSTAT\b/i.test(b) ? 0 : 1;
+                    if (aStat !== bStat) return aStat - bStat;
+                    var aPfx = (a.match(/^(RX|LAB|IMG|CONSULT|ASK|→|→)/) || [''])[0];
+                    var bPfx = (b.match(/^(RX|LAB|IMG|CONSULT|ASK|→|→)/) || [''])[0];
+                    var ao = prefixOrder[aPfx] || 99;
+                    var bo = prefixOrder[bPfx] || 99;
+                    return ao - bo;
+                });
                 bullets = bullets.slice(0, t.maxItems);
-                return [{ title: 'Plan (' + bullets.length + ')', bullets: bullets }];
+                return [{ bullets: bullets }];
             } catch (_) { return []; }
         },
 
