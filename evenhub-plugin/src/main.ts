@@ -76,9 +76,12 @@ type RelayState = {
 
 const STORAGE_KEY = 'acting-intern-glasses-config-v1';
 const POLL_INTERVAL_MS = 500;
-const ANCHOR_CONTAINER_ID = 1;
-const BOTTOM_CONTAINER_ID = 2;
-const G2_MAX_LINE = 40;
+const PRESENCE_POST_DEBOUNCE_MS = 200;
+// Single full-screen container instead of two halves — eliminates the blank
+// gap between top + bottom that appeared when content was shorter than
+// either container's fixed height.
+const MAIN_CONTAINER_ID = 1;
+const G2_MAX_LINE = 42; // a touch wider since we now use full width minus padding
 // Pre-filled in the setup form so the user only ever types the secret + Deepgram key.
 const RELAY_DEFAULT = 'https://acting-intern-relay.kevinkeet.workers.dev';
 
@@ -92,17 +95,12 @@ const localState = {
   lastBottom: '',
 };
 
-// Lines that physically fit inside each container. Conservative counts based
-// on real-device feedback: the default font is bigger than docs imply.
-// Top container: 1 header line + 1 content line.
-// Bottom container: 3 content lines.
-// Total content viewport: 4 lines per render in non-dictation modes.
-const VISIBLE_LINES_TOP_CONTENT = 1;
-const VISIBLE_LINES_BOTTOM = 3;
-const VISIBLE_LINES_TOTAL_NONLIVE = VISIBLE_LINES_TOP_CONTENT + VISIBLE_LINES_BOTTOM;
-// Dictation mode has no fixed header — top container can carry 2 content lines.
-const VISIBLE_LINES_TOP_DICTATION = 2;
-const VISIBLE_LINES_TOTAL_DICTATION = VISIBLE_LINES_TOP_DICTATION + VISIBLE_LINES_BOTTOM;
+// Lines that physically fit inside the single full-screen container at
+// default G2 font + zero padding. Calibrated on real device — 5–6 lines
+// is realistic at 288 px container height.
+const VISIBLE_LINES = 5;
+// Non-live modes spend one of those on the header, leaving 4 for content.
+const VISIBLE_LINES_NONLIVE_CONTENT = VISIBLE_LINES - 1;
 
 // Short, all-caps mode labels for the header so the user always knows which
 // section they're in even when content scrolls.
@@ -320,27 +318,17 @@ async function postTranscript(text: string, isFinal: boolean) {
 
 // ---------- Render ----------
 
-function buildPage(top: string, bottom: string): TextContainerProperty[] {
+function buildPage(content: string): TextContainerProperty[] {
   return [
     new TextContainerProperty({
       xPosition: 0, yPosition: 0,
-      width: 576, height: 144,
+      width: 576, height: 288,
       borderWidth: 0, borderColor: 0,
-      paddingLength: 8,
-      containerID: ANCHOR_CONTAINER_ID,
-      containerName: 'top',
-      content: fit(top) || ' ',
+      paddingLength: 0,           // zero padding → max usable space, denser display
+      containerID: MAIN_CONTAINER_ID,
+      containerName: 'main',
+      content: content || ' ',
       isEventCapture: 1,
-    }),
-    new TextContainerProperty({
-      xPosition: 0, yPosition: 144,
-      width: 576, height: 144,
-      borderWidth: 0, borderColor: 0,
-      paddingLength: 8,
-      containerID: BOTTOM_CONTAINER_ID,
-      containerName: 'bottom',
-      content: fit(bottom) || ' ',
-      isEventCapture: 0,
     }),
   ];
 }
@@ -372,52 +360,53 @@ function pageToLines(page: ViewPage, maxChars: number): string[] {
   return wrapLines(text || '', maxChars);
 }
 
-function computeLines(): { top: string; bottom: string } {
+/**
+ * Compute the full content string for the single G2 container.
+ * Returns one string with '\n' line breaks — flows top-to-bottom naturally,
+ * no fixed split, no blank gaps from container boundaries.
+ */
+function computeContent(): string {
   const s = localState.relay;
-  if (!s) return { top: 'Acting Intern · waiting for chart', bottom: ' ' };
+  if (!s) return 'Acting Intern · waiting for chart';
   if (localState.mode === 'live') {
-    return { top: s.anchor || 'Acting Intern · ready', bottom: s.bottom || ' ' };
+    const anchor = s.anchor || 'Acting Intern · ready';
+    const bottom = s.bottom || '';
+    // Wrap each separately so the visual feels like "anchor up top, latest event below"
+    const anchorLines = wrapLines(anchor, G2_MAX_LINE);
+    const bottomLines = bottom ? wrapLines(bottom, G2_MAX_LINE) : [];
+    const all = [...anchorLines.slice(0, 2), ...bottomLines.slice(0, VISIBLE_LINES - anchorLines.slice(0, 2).length)];
+    return all.join('\n') || ' ';
   }
   const pages = (s.views && s.views[localState.mode]) || [];
   if (!pages.length) {
-    return { top: `${MODE_LABELS[localState.mode]} — no items`, bottom: s.anchor || ' ' };
+    return `${MODE_LABELS[localState.mode]} — no items\n${s.anchor || ''}`;
   }
   const idx = Math.min(Math.max(0, localState.page), pages.length - 1);
   const page = pages[idx];
 
-  // Build the full scrollable stack for this page:
-  //   - For pages with a title (e.g. problems): title comes first as a wrapped
-  //     sub-header, then the content (text or bullets). The user sees the title
-  //     by default and can scroll past it for more detail.
-  //   - For consolidated pages (plan, alerts, notes summary): no separate
-  //     title — the content stack starts immediately.
-  const titleLines = page.title ? wrapLines(page.title, G2_MAX_LINE - 2) : [];
-  const contentLines = pageToLines(page, G2_MAX_LINE - 2);
+  // Build full scrollable stack: optional title first, then content lines.
+  const titleLines = page.title ? wrapLines(page.title, G2_MAX_LINE) : [];
+  const contentLines = pageToLines(page, G2_MAX_LINE);
   const stack = [...titleLines, ...contentLines];
   const total = stack.length;
 
-  // Dictation mode: no fixed header. Use both containers (5 content lines).
+  // Dictation mode: no header — give all VISIBLE_LINES to content.
   if (localState.mode === 'dictation') {
-    const off = clampOffset(localState.scrollOffset, total, VISIBLE_LINES_TOTAL_DICTATION);
-    const topLines = stack.slice(off, off + VISIBLE_LINES_TOP_DICTATION);
-    const botLines = stack.slice(off + VISIBLE_LINES_TOP_DICTATION, off + VISIBLE_LINES_TOTAL_DICTATION);
-    return { top: topLines.join('\n') || ' ', bottom: botLines.join('\n') || ' ' };
+    const off = clampOffset(localState.scrollOffset, total, VISIBLE_LINES);
+    return stack.slice(off, off + VISIBLE_LINES).join('\n') || ' ';
   }
 
-  // Non-live modes: top container = header line + 1 content line; bottom = 3 content lines.
-  // Total content viewport = 4 lines, header is fixed and always visible.
-  const off = clampOffset(localState.scrollOffset, total, VISIBLE_LINES_TOTAL_NONLIVE);
-  const end = Math.min(off + VISIBLE_LINES_TOTAL_NONLIVE, total);
+  // Non-live modes: 1-line header + (VISIBLE_LINES - 1) content lines.
+  const off = clampOffset(localState.scrollOffset, total, VISIBLE_LINES_NONLIVE_CONTENT);
+  const end = Math.min(off + VISIBLE_LINES_NONLIVE_CONTENT, total);
   const upArrow = off > 0 ? '▲' : ' ';
   const downArrow = end < total ? '▼' : ' ';
-  const scrollIndicator = total > VISIBLE_LINES_TOTAL_NONLIVE
+  const scrollIndicator = total > VISIBLE_LINES_NONLIVE_CONTENT
     ? `  ${upArrow}${off + 1}-${end}/${total}${downArrow}`
     : '';
   const header = `${MODE_LABELS[localState.mode]} ${idx + 1}/${pages.length}${scrollIndicator}`;
   const visible = stack.slice(off, end);
-  const topContent = [header, ...visible.slice(0, VISIBLE_LINES_TOP_CONTENT)].join('\n');
-  const botContent = visible.slice(VISIBLE_LINES_TOP_CONTENT).join('\n') || ' ';
-  return { top: topContent, bottom: botContent };
+  return [header, ...visible].join('\n');
 }
 
 function clampOffset(off: number, total: number, visible: number): number {
@@ -427,34 +416,37 @@ function clampOffset(off: number, total: number, visible: number): number {
 
 async function applyRender() {
   if (!bridge) return;
-  const lines = computeLines();
-  // For live mode, top is single-line anchor and bottom may need wrapping.
-  // For non-live modes, computeLines already laid out multi-line \n content
-  // for both containers — pass through as-is.
-  let top = lines.top;
-  let bottom = lines.bottom;
-  if (localState.mode === 'live') {
-    top = fit(lines.top, G2_MAX_LINE);
-    // Bottom in live mode is the most recent dictation/order — wrap to 3 lines.
-    bottom = wrapLines(lines.bottom, G2_MAX_LINE).slice(0, 3).join('\n') || ' ';
-  }
-  if (top === localState.lastTop && bottom === localState.lastBottom) return;
-
-  if (top !== localState.lastTop) {
-    await bridge.textContainerUpgrade(new TextContainerUpgrade({
-      containerID: ANCHOR_CONTAINER_ID,
-      content: top || ' ',
-    }));
-    localState.lastTop = top;
-  }
-  if (bottom !== localState.lastBottom) {
-    await bridge.textContainerUpgrade(new TextContainerUpgrade({
-      containerID: BOTTOM_CONTAINER_ID,
-      content: bottom || ' ',
-    }));
-    localState.lastBottom = bottom;
-  }
+  const content = computeContent();
+  if (content === localState.lastTop) return; // reuse lastTop as the de-dup key
+  await bridge.textContainerUpgrade(new TextContainerUpgrade({
+    containerID: MAIN_CONTAINER_ID,
+    content: content || ' ',
+  }));
+  localState.lastTop = content;
+  localState.lastBottom = '';
+  postPresenceDebounced(content);
   updateDebugUi();
+}
+
+// ---------- Plugin → relay presence (so the EHR's Live HUD Mirror reflects
+// what's actually on G2 right now, not just live-mode anchor + bottom) ----------
+let presenceTimer: ReturnType<typeof setTimeout> | null = null;
+function postPresenceDebounced(content: string) {
+  if (!cfg) return;
+  if (presenceTimer) clearTimeout(presenceTimer);
+  presenceTimer = setTimeout(() => {
+    const body = {
+      mode: localState.mode,
+      page: localState.page,
+      scrollOffset: localState.scrollOffset,
+      content,
+    };
+    fetch(`${cfg!.relay}/presence`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Glasses-Secret': cfg!.secret },
+      body: JSON.stringify(body),
+    }).catch(() => { /* silent — best-effort */ });
+  }, PRESENCE_POST_DEBOUNCE_MS);
 }
 
 function updateDebugUi() {
@@ -508,7 +500,7 @@ function currentPageLineCount(): number {
 }
 
 function visibleLinesForCurrentMode(): number {
-  return localState.mode === 'dictation' ? VISIBLE_LINES_TOTAL_DICTATION : VISIBLE_LINES_TOTAL_NONLIVE;
+  return localState.mode === 'dictation' ? VISIBLE_LINES : VISIBLE_LINES_NONLIVE_CONTENT;
 }
 
 /**
@@ -721,12 +713,13 @@ async function startPlugin(config: Config) {
   localState.relay = initial;
   localState.lastSeenModeVersion = initial.modeVersion;
 
-  const containers = buildPage(initial.anchor || ' ', initial.bottom || ' ');
+  const initialContent = computeContent();
+  const containers = buildPage(initialContent);
   await bridge.createStartUpPageContainer(
     new CreateStartUpPageContainer({ containerTotalNum: containers.length, textObject: containers })
   );
-  localState.lastTop = fit(initial.anchor || ' ');
-  localState.lastBottom = fit(initial.bottom || ' ');
+  localState.lastTop = initialContent;
+  localState.lastBottom = '';
   updateDebugUi();
 
   // Wire input + audio events

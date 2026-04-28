@@ -127,13 +127,24 @@
             var subtitleEl = document.getElementById('lhud-subtitle');
             if (!topEl) return; // overlay closed
 
-            var top = s.anchor || 'Acting Intern · ready';
-            var bottom = s.bottom || ' ';
-            topEl.textContent = this._wrap(top, 40, 1);
-            botEl.textContent = this._wrap(bottom, 40, 3);
+            // Prefer plugin-reported presence (the actual G2 content right now).
+            // Fall back to live-mode anchor + bottom if presence isn't reported yet.
+            var presenceFresh = s.presence && s.presence.content && s.presence.updatedAt &&
+                (Date.now() - s.presence.updatedAt < 30000);
+            if (presenceFresh) {
+                var lines = String(s.presence.content).split('\n');
+                topEl.textContent = lines.slice(0, 2).join('\n');
+                botEl.textContent = lines.slice(2).join('\n');
+            } else {
+                var top = s.anchor || 'Acting Intern · ready';
+                var bottom = s.bottom || ' ';
+                topEl.textContent = this._wrap(top, 42, 2);
+                botEl.textContent = this._wrap(bottom, 42, 3);
+            }
 
             var ago = s.updatedAt ? Math.max(0, Math.floor((Date.now() - s.updatedAt) / 1000)) : 0;
-            statusEl.textContent = '● connected · v' + s.version + ' · last write ' + ago + 's ago';
+            var presenceTag = presenceFresh ? ' · plugin: ' + s.presence.mode + ' p' + (s.presence.page + 1) : ' · plugin offline';
+            statusEl.textContent = '● connected · v' + s.version + ' · last write ' + ago + 's ago' + presenceTag;
 
             var counts = [];
             if (s.views) {
@@ -144,11 +155,13 @@
             }
             metaEl.textContent = counts.length ? 'views: ' + counts.join('  ') : 'views: (none yet)';
 
-            // Note when EHR has asked plugin to switch modes
-            if (s.desiredMode && s.desiredMode !== 'live') {
-                subtitleEl.innerHTML = 'Mirroring relay — EHR last asked plugin to switch to <strong style="color:#fbbf24;">' + s.desiredMode + '</strong> mode (modeVersion ' + s.modeVersion + ')';
+            // Subtitle reflects what we're actually mirroring
+            if (presenceFresh) {
+                subtitleEl.innerHTML = 'Mirroring G2 directly — plugin in <strong style="color:#6EFF6E;">' + s.presence.mode + '</strong> mode, page ' + (s.presence.page + 1) + (s.presence.scrollOffset > 0 ? ' (scroll ' + s.presence.scrollOffset + ')' : '');
+            } else if (s.desiredMode && s.desiredMode !== 'live') {
+                subtitleEl.innerHTML = 'Plugin not reporting yet — EHR asked it to switch to <strong style="color:#fbbf24;">' + s.desiredMode + '</strong>';
             } else {
-                subtitleEl.innerHTML = 'Mirroring relay — assumes plugin is in <strong style="color:#aaa;">live</strong> mode';
+                subtitleEl.innerHTML = 'Plugin not reporting yet — showing relay state (live mode)';
             }
 
             // Optional: show the per-mode page lists below the screen

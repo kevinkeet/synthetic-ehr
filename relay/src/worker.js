@@ -69,6 +69,9 @@ function emptyState() {
     version: 0,
     transcripts: [],
     transcriptHead: 0,
+    // Plugin-reported presence (what's actually on G2 right now). The EHR's
+    // Live HUD Mirror reads this so it shows the same content as the glasses.
+    presence: { mode: 'live', page: 0, scrollOffset: 0, content: '', updatedAt: 0 },
     updatedAt: 0,
   };
 }
@@ -122,8 +125,26 @@ export default {
         modeVersion: s.modeVersion,
         version: s.version,
         transcriptHead: s.transcriptHead,
+        presence: s.presence,
         updatedAt: s.updatedAt,
       });
+    }
+
+    if (p === '/presence' && m === 'POST') {
+      const body = await safeJson(request);
+      const s = await readState(env, secret);
+      s.presence = {
+        mode: typeof body.mode === 'string' ? body.mode : 'live',
+        page: typeof body.page === 'number' ? body.page : 0,
+        scrollOffset: typeof body.scrollOffset === 'number' ? body.scrollOffset : 0,
+        content: typeof body.content === 'string' ? body.content.slice(0, 1000) : '',
+        updatedAt: Date.now(),
+      };
+      // Bump version so any /state poller sees the change without bloating storage.
+      s.version++;
+      s.updatedAt = Date.now();
+      await writeState(env, secret, s);
+      return json({ ok: true });
     }
 
     if (p === '/anchor' && m === 'POST') {
