@@ -29,8 +29,34 @@
         endpoint: 'https://acting-intern-relay.kevinkeet.workers.dev',
         secret: '59e10ba81146f1ad82b254e590f2734ae6bc92d9561ea23b244dc667386ffd16',
         enabled: true,      // baked secret → safe to auto-enable on first load
-        useG2Mic: false     // user opts in via the G2 settings toggle
+        useG2Mic: false,    // user opts in via the G2 settings toggle
+        // ---- Display tuning (glasses-side, independent of EHR's AIPreferences) ----
+        // Verbosity: how much text per item. 1=minimal, 2=moderate (default), 3=detailed
+        verbosity: 2,
+        // Assertiveness: what kinds of content reach the glasses.
+        //   1 = facts only (chart data: problems, alerts, notes — no AI suggestions)
+        //   2 = suggestions (default — adds AI plan + key considerations)
+        //   3 = proactive (adds AI thinking, trajectory, ddx challenges, teaching)
+        assertiveness: 2
     };
+
+    // Per-mode caps based on display tuning. Returns { textChars, maxItems }.
+    function tuningFor(mode, verbosity) {
+        var v = Math.max(1, Math.min(3, verbosity || 2));
+        // Char limits per bullet/paragraph
+        var chars = { 1: 60, 2: 200, 3: 400 }[v];
+        // Max items per page (or pages for non-list modes)
+        var maxItemsByMode = {
+            plan:       { 1: 5,  2: 10, 3: 20 },
+            alerts:     { 1: 5,  2: 10, 3: 20 },
+            problems:   { 1: 5,  2: 10, 3: 15 },
+            notes:      { 1: 5,  2: 12, 3: 20 },
+            ai:         { 1: 2,  2: 4,  3: 8 },
+            dictation:  { 1: 5,  2: 10, 3: 20 }
+        };
+        var max = (maxItemsByMode[mode] || maxItemsByMode.plan)[v];
+        return { textChars: chars, maxItems: max };
+    }
 
     function escAttr(s) {
         return String(s == null ? '' : s)
@@ -68,6 +94,9 @@
                     var saved = JSON.parse(raw);
                     // User-saved values win over baked, but baked fills any blanks.
                     this._config = Object.assign(base, saved);
+                    // Backfill new tuning fields if user has an older saved config.
+                    if (this._config.verbosity == null) this._config.verbosity = BAKED_DEFAULTS.verbosity;
+                    if (this._config.assertiveness == null) this._config.assertiveness = BAKED_DEFAULTS.assertiveness;
                     // If the user wiped settings (or Supabase did) and baked has both
                     // endpoint and secret, auto-enable so the HUD just works again.
                     if (BAKED_DEFAULTS.endpoint && BAKED_DEFAULTS.secret &&
@@ -210,40 +239,33 @@
          */
         _buildDictationPages: function () {
             try {
-                // Prefer our own log (populated on every mic-final), fall back to
-                // AICoworker.state.dictationHistory which only fills when the doctor
-                // submits via the AI panel input.
+                var c = this._loadConfig();
+                var t = tuningFor('dictation', c.verbosity);
                 var hist = this._dictationLog && this._dictationLog.length
                     ? this._dictationLog
                     : ((typeof AICoworker !== 'undefined' && AICoworker.state && AICoworker.state.dictationHistory) || []);
                 if (!hist.length) return [];
-                // Newest first.
-                return hist.slice().reverse().slice(0, 10).map(function (entry) {
+                return hist.slice().reverse().slice(0, t.maxItems).map(function (entry) {
                     var text = (typeof entry === 'string') ? entry : (entry.text || entry.dictation || '');
-                    var t = String(text).replace(/\s+/g, ' ').trim();
-                    if (!t) return { line1: '', line2: '' };
-                    // Short enough to fit one container — leave the other empty.
-                    if (t.length < 60) return { line1: t, line2: '' };
-                    // Split near the middle on a word boundary.
-                    var mid = Math.ceil(t.length / 2);
-                    var split = t.lastIndexOf(' ', mid);
-                    if (split < t.length / 3 || split < 0) split = mid;
-                    return { line1: t.slice(0, split).trim(), line2: t.slice(split).trim() };
+                    return { text: GlassesBridge._compress(text, t.textChars) };
                 });
             } catch (_) { return []; }
         },
 
         _buildNotesPages: function () {
             try {
+                var c = this._loadConfig();
+                var t = tuningFor('notes', c.verbosity);
                 var src = (typeof NotesList !== 'undefined' && NotesList.notes) ? NotesList.notes : [];
                 if (!src.length) return [];
-                return src.slice(0, 20).map(function (n, i) {
+                return src.slice(0, t.maxItems).map(function (n, i) {
                     var date = n.date || n.noteDate || '';
                     var title = (n.type || n.title || 'Note').toString();
-                    var author = n.author ? ' \u00B7 ' + n.author : '';
+                    var author = n.author ? ' · ' + n.author : '';
+                    var snippet = (n.summary || n.body || n.text || '').toString();
                     return {
-                        line1: 'Note ' + (i + 1) + '/' + Math.min(src.length, 20) + ' \u00B7 ' + GlassesBridge._compress(title + author, 30),
-                        line2: GlassesBridge._compress(snippet, 200)
+                        title: 'Note ' + (i + 1) + '/' + Math.min(src.length, t.maxItems) + ' · ' + GlassesBridge._compress(title + author + ' · ' + date, 80),
+                        text: GlassesBridge._compress(snippet, t.textChars)
                     };
                 });
             } catch (_) { return []; }
@@ -252,102 +274,165 @@
         _buildAIPages: function () {
             try {
                 if (typeof AICoworker === 'undefined' || !AICoworker.state) return [];
+                var c = this._loadConfig();
+                // Assertiveness=1 hides AI synthesis entirely (facts only)
+                if (c.assertiveness < 2) return [];
+                var t = tuningFor('ai', c.verbosity);
                 var s = AICoworker.state;
                 var pages = [];
-                if (s.aiOneLiner) pages.push({ line1: 'AI Gestalt', line2: this._compress(s.aiOneLiner, 220) });
-                if (s.summary) pages.push({ line1: 'Summary', line2: this._compress(this._stripMarkdown(s.summary), 220) });
-                if (s.thinking) pages.push({ line1: 'Trajectory', line2: this._compress(s.thinking, 220) });
-                if (s.trajectoryAssessment) pages.push({ line1: 'Trajectory+', line2: this._compress(s.trajectoryAssessment, 220) });
-                if (s.clinicalSummary && s.clinicalSummary.demographics) {
-                    pages.push({ line1: 'Demographics', line2: this._compress(s.clinicalSummary.demographics, 220) });
-                }
+                if (s.aiOneLiner) pages.push({ title: 'AI Gestalt', text: this._compress(s.aiOneLiner, t.textChars) });
+                if (s.summary) pages.push({ title: 'Summary', text: this._compress(this._stripMarkdown(s.summary), t.textChars) });
                 if (s.clinicalSummary && s.clinicalSummary.presentation) {
-                    pages.push({ line1: 'Presentation', line2: this._compress(s.clinicalSummary.presentation, 220) });
+                    pages.push({ title: 'Presentation', text: this._compress(s.clinicalSummary.presentation, t.textChars) });
                 }
-                return pages;
+                if (s.clinicalSummary && s.clinicalSummary.demographics) {
+                    pages.push({ title: 'Demographics', text: this._compress(s.clinicalSummary.demographics, t.textChars) });
+                }
+                // Proactive content only at assertiveness=3
+                if (c.assertiveness >= 3) {
+                    if (s.thinking) pages.push({ title: 'Trajectory', text: this._compress(s.thinking, t.textChars) });
+                    if (s.trajectoryAssessment) pages.push({ title: 'Trajectory+', text: this._compress(s.trajectoryAssessment, t.textChars) });
+                    if (s.ddxChallenge) pages.push({ title: 'DDx Challenge', text: this._compress(s.ddxChallenge, t.textChars) });
+                    if (Array.isArray(s.teachingPoints)) {
+                        s.teachingPoints.forEach(function (tp, i) {
+                            var text = typeof tp === 'string' ? tp : (tp.text || '');
+                            if (text) pages.push({ title: 'Teaching ' + (i + 1), text: GlassesBridge._compress(text, t.textChars) });
+                        });
+                    }
+                }
+                return pages.slice(0, t.maxItems);
             } catch (_) { return []; }
         },
 
         _buildProblemsPages: function () {
             try {
                 if (typeof AICoworker === 'undefined' || !AICoworker.state) return [];
+                var c = this._loadConfig();
+                var t = tuningFor('problems', c.verbosity);
                 var probs = AICoworker.state.problemList || [];
                 var self = this;
-                return probs.slice(0, 12).map(function (p) {
+                return probs.slice(0, t.maxItems).map(function (p) {
                     var icon = p.urgency === 'urgent' ? '! ' : (p.urgency === 'monitoring' ? '~ ' : '  ');
-                    return {
-                        line1: icon + self._compress(p.name || '', 80),
-                        line2: self._compress(p.plan || p.ddx || '', 220)
-                    };
+                    var page = { title: icon + self._compress(p.name || '', 80) };
+                    var plan = p.plan || p.ddx || '';
+                    if (!plan) return page;
+                    // If plan has clear list separators, render as bullets — much
+                    // easier to scan ("Continue X, Y, Z" → 3 bullets).
+                    var bullets = self._splitToBullets(plan);
+                    if (bullets.length >= 2 && c.verbosity >= 2) {
+                        page.bullets = bullets.map(function (b) { return self._compress(b, t.textChars); });
+                    } else {
+                        page.text = self._compress(plan, t.textChars);
+                    }
+                    return page;
                 });
             } catch (_) { return []; }
         },
 
+        /**
+         * Heuristic: split a plan/order string into list items.
+         * Separators we trust: "; " (clearest), ". " (sentence-final),
+         * ", " when surrounding tokens look list-shaped (drug + dose).
+         * Falls back to a single-item array if no good split.
+         */
+        _splitToBullets: function (text) {
+            if (!text) return [];
+            var t = String(text).trim();
+            if (!t) return [];
+            // Strong separators first.
+            if (t.indexOf(';') >= 0) return t.split(/\s*;\s*/).filter(Boolean);
+            // Sentence-final periods (avoid "e.g." etc by requiring uppercase next).
+            var sents = t.split(/\.\s+(?=[A-Z])/).filter(Boolean);
+            if (sents.length >= 2) return sents.map(function (s) { return s.replace(/\.+$/, ''); });
+            // Comma-only fallback: only split if 3+ commas (signals list).
+            var commaParts = t.split(/,\s+/);
+            if (commaParts.length >= 3) return commaParts;
+            return [t];
+        },
+
         _buildAlertsPages: function () {
             try {
-                var pages = [];
-                if (typeof AICoworker !== 'undefined' && AICoworker.state) {
-                    var flags = AICoworker.state.flags || [];
-                    flags.slice(0, 8).forEach(function (f) {
-                        var text = typeof f === 'string' ? f : (f.text || '');
-                        if (text) pages.push({ line1: '\u26A0 Safety flag', line2: GlassesBridge._compress(text, 220) });
-                    });
-                    var key = AICoworker.state.keyConsiderations || [];
-                    key.slice(0, 5).forEach(function (k) {
-                        var text = typeof k === 'string' ? k : (k.text || '');
-                        if (text) pages.push({ line1: '\u26A0 Consideration', line2: GlassesBridge._compress(text, 220) });
-                    });
-                }
-                // Critical labs from longitudinal doc
+                var c = this._loadConfig();
+                var t = tuningFor('alerts', c.verbosity);
+                var bullets = [];
+                // Critical labs (always show — pure facts)
                 try {
                     var labs = AICoworker.longitudinalDoc && AICoworker.longitudinalDoc.longitudinalData && AICoworker.longitudinalDoc.longitudinalData.labs;
                     if (labs && labs.forEach) {
                         labs.forEach(function (trend, name) {
                             if (trend && trend.latestValue && trend.latestValue.flag === 'CRITICAL') {
                                 var v = trend.latestValue;
-                                pages.push({
-                                    line1: '\u26A0 Critical lab',
-                                    line2: GlassesBridge._compress(name + ' ' + v.value + (v.unit || ''), 80)
-                                });
+                                bullets.push('⚠ ' + name + ' ' + v.value + (v.unit || '') + ' CRITICAL');
                             }
                         });
                     }
                 } catch (_) {}
-                // Allergies
+                // Allergies (always — safety facts)
                 var pt = this._patient();
                 if (pt && Array.isArray(pt.allergies)) {
-                    pt.allergies.slice(0, 4).forEach(function (a) {
+                    pt.allergies.slice(0, 6).forEach(function (a) {
                         var sub = a.substance || a.name || '';
                         var rx = a.reaction || '';
-                        if (sub) pages.push({ line1: '\u26A0 Allergy', line2: GlassesBridge._compress(sub + (rx ? ' \u2192 ' + rx : ''), 220) });
+                        if (sub) bullets.push('⚠ ' + sub + (rx ? ' → ' + rx : ''));
                     });
                 }
-                return pages;
+                // AI safety flags (assertiveness >= 2)
+                if (c.assertiveness >= 2 && typeof AICoworker !== 'undefined' && AICoworker.state) {
+                    var flags = AICoworker.state.flags || [];
+                    flags.slice(0, 6).forEach(function (f) {
+                        var text = typeof f === 'string' ? f : (f.text || '');
+                        if (text) bullets.push('⚠ ' + text);
+                    });
+                    if (c.assertiveness >= 3) {
+                        var key = AICoworker.state.keyConsiderations || [];
+                        key.slice(0, 5).forEach(function (k) {
+                            var text = typeof k === 'string' ? k : (k.text || '');
+                            if (text) bullets.push('⚠ ' + text);
+                        });
+                    }
+                }
+                if (!bullets.length) return [];
+                bullets = bullets.slice(0, t.maxItems).map(function (b) {
+                    return GlassesBridge._compress(b, t.textChars);
+                });
+                return [{ title: 'Alerts (' + bullets.length + ')', bullets: bullets }];
             } catch (_) { return []; }
         },
 
         _buildPlanPages: function () {
             try {
                 if (typeof AICoworker === 'undefined' || !AICoworker.state) return [];
+                var c = this._loadConfig();
+                // Assertiveness=1 hides plan suggestions entirely.
+                if (c.assertiveness < 2) return [];
+                var t = tuningFor('plan', c.verbosity);
                 var s = AICoworker.state;
-                var pages = [];
-                var actions = s.suggestedActions || [];
-                actions.slice(0, 12).forEach(function (a) {
-                    var text = typeof a === 'string' ? a : (a.text || '');
-                    if (text) pages.push({ line1: '\u2192 Plan', line2: GlassesBridge._compress(text, 220) });
+                // Build a deduped list of all plan items with category prefixes.
+                var seen = {};
+                var bullets = [];
+                function add(prefix, text) {
+                    if (!text) return;
+                    var key = String(text).slice(0, 30).toLowerCase();
+                    if (seen[key]) return;
+                    seen[key] = 1;
+                    bullets.push((prefix ? prefix + ' ' : '') + GlassesBridge._compress(text, t.textChars));
+                }
+                // Suggested actions are AI's top picks \u2014 show first.
+                (s.suggestedActions || []).forEach(function (a) {
+                    add('', typeof a === 'string' ? a : (a.text || ''));
                 });
-                // Categorized actions if present and not already captured
+                // Categorized actions add detail per category.
                 var cat = s.categorizedActions || {};
+                var prefixes = { medications: 'RX', labs: 'LAB', imaging: 'IMG', communication: 'ASK', other: '\u2192' };
                 ['medications', 'labs', 'imaging', 'communication', 'other'].forEach(function (key) {
                     var arr = cat[key] || [];
-                    arr.slice(0, 5).forEach(function (a) {
-                        var text = a.text || '';
-                        if (text && !pages.some(function (p) { return p.line2.indexOf(text.slice(0, 20)) >= 0; })) {
-                            pages.push({ line1: '\u2192 ' + key, line2: GlassesBridge._compress(text, 220) });
-                        }
+                    arr.forEach(function (a) {
+                        add(prefixes[key] || '\u2192', a.text || '');
                     });
                 });
-                return pages;
+                if (!bullets.length) return [];
+                bullets = bullets.slice(0, t.maxItems);
+                return [{ title: 'Plan (' + bullets.length + ')', bullets: bullets }];
             } catch (_) { return []; }
         },
 
@@ -634,12 +719,40 @@
                     endpoint: document.getElementById('gb-endpoint').value.trim(),
                     secret: document.getElementById('gb-secret').value.trim(),
                     enabled: document.getElementById('gb-enabled').checked,
-                    useG2Mic: document.getElementById('gb-mic').checked
+                    useG2Mic: document.getElementById('gb-mic').checked,
+                    verbosity: parseInt(document.getElementById('gb-verb').value, 10) || 2,
+                    assertiveness: parseInt(document.getElementById('gb-assert').value, 10) || 2
                 };
             };
 
+            // Live update tuning labels + helper text
+            var VERB_LABELS = { 1: 'minimal — short, glanceable', 2: 'moderate — balanced', 3: 'detailed — full text per item' };
+            var ASSERT_LABELS = {
+                1: 'facts only — no AI suggestions, just chart data',
+                2: 'suggestions — AI plan + key considerations',
+                3: 'proactive — AI thinking, ddx challenges, teaching'
+            };
+            var verbInput = document.getElementById('gb-verb');
+            var assertInput = document.getElementById('gb-assert');
+            var verbLabel = document.getElementById('gb-verb-label');
+            var assertLabel = document.getElementById('gb-assert-label');
+            var helpEl = document.getElementById('gb-tuning-help');
+            var updateTuningLabels = function () {
+                var v = parseInt(verbInput.value, 10);
+                var a = parseInt(assertInput.value, 10);
+                verbLabel.textContent = VERB_LABELS[v] || '';
+                assertLabel.textContent = ASSERT_LABELS[a] || '';
+                helpEl.textContent = 'Plan ' + (a < 2 ? 'hidden' : (a >= 3 ? 'expanded' : 'shown')) +
+                    ' · AI mode ' + (a < 2 ? 'hidden' : (a >= 3 ? 'expanded' : 'shown')) +
+                    ' · ' + (v === 1 ? 'fewer items, shorter text' : v === 3 ? 'more items, longer text' : 'balanced item count');
+            };
+            verbInput.addEventListener('input', updateTuningLabels);
+            assertInput.addEventListener('input', updateTuningLabels);
+            updateTuningLabels();
+
             document.getElementById('gb-save').onclick = function () {
                 self.configure(readForm());
+                self._lastViewsJson = ''; // force views push with new settings
                 setStatus('Saved.', true);
                 setTimeout(close, 600);
             };

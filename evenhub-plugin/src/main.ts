@@ -54,7 +54,15 @@ type Mode = 'live' | 'dictation' | 'notes' | 'ai' | 'problems' | 'alerts' | 'pla
 // Single tap from live → dictation (most-used after live), then through the rest.
 const MODE_CYCLE: Mode[] = ['live', 'dictation', 'notes', 'ai', 'problems', 'alerts', 'plan'];
 
-type ViewPage = { line1: string; line2: string };
+type ViewPage = {
+  // Old shape (still supported for back-compat with older EHR builds)
+  line1?: string;
+  line2?: string;
+  // New shape
+  title?: string;
+  text?: string;
+  bullets?: string[];
+};
 type RelayState = {
   anchor: string;
   bottom: string;
@@ -319,6 +327,33 @@ function buildPage(top: string, bottom: string): TextContainerProperty[] {
   ];
 }
 
+/**
+ * Convert a page (text OR bullets, plus optional title) into a flat list of
+ * display lines that all use the same width budget. The plugin then takes a
+ * scrollable window of N lines from this stack.
+ *
+ * - bullets: each '• item' is wrapped onto continuation lines indented with 2
+ *   spaces so the bullet hierarchy is preserved across line breaks.
+ * - text: word-wrapped paragraph.
+ */
+function pageToLines(page: ViewPage, maxChars: number): string[] {
+  // Back-compat: old {line1, line2} → joined paragraph
+  if (page.bullets && page.bullets.length) {
+    const out: string[] = [];
+    for (const b of page.bullets) {
+      const wrapped = wrapLines('• ' + b, maxChars);
+      for (let i = 0; i < wrapped.length; i++) {
+        out.push(i === 0 ? wrapped[i] : '  ' + wrapped[i]);
+      }
+    }
+    return out;
+  }
+  const text = page.text != null
+    ? page.text
+    : [page.line1, page.line2].filter(Boolean).join(' ');
+  return wrapLines(text || '', maxChars);
+}
+
 function computeLines(): { top: string; bottom: string } {
   const s = localState.relay;
   if (!s) return { top: 'Acting Intern · waiting for chart', bottom: ' ' };
@@ -331,24 +366,19 @@ function computeLines(): { top: string; bottom: string } {
   }
   const idx = Math.min(Math.max(0, localState.page), pages.length - 1);
   const page = pages[idx];
+  const stack = pageToLines(page, G2_MAX_LINE - 2);
+  const total = stack.length;
 
-  // Combine line1 + line2 into one paragraph, then wrap to a stack of
-  // ~38-char lines. Ring scroll moves a window through this stack.
-  const fullText = [page.line1, page.line2].filter(Boolean).join(' ');
-  const wrapped = wrapLines(fullText, G2_MAX_LINE - 2);
-  const total = wrapped.length;
-
-  // Dictation mode: no [MODE p/n] header. Use both top + bottom containers
-  // as one continuous scroll viewport (~7 visible lines).
+  // Dictation mode: no header. Use both containers as one ~7-line viewport.
   if (localState.mode === 'dictation') {
     const off = clampOffset(localState.scrollOffset, total, VISIBLE_LINES_TOTAL_DICTATION);
-    const topLines = wrapped.slice(off, off + VISIBLE_LINES_TOP);
-    const botLines = wrapped.slice(off + VISIBLE_LINES_TOP, off + VISIBLE_LINES_TOTAL_DICTATION);
+    const topLines = stack.slice(off, off + VISIBLE_LINES_TOP);
+    const botLines = stack.slice(off + VISIBLE_LINES_TOP, off + VISIBLE_LINES_TOTAL_DICTATION);
     return { top: topLines.join('\n') || ' ', bottom: botLines.join('\n') || ' ' };
   }
 
-  // Other modes: top container has the header + scroll indicator; bottom
-  // container shows up to VISIBLE_LINES_BOTTOM wrapped lines.
+  // Other modes: tight header on top with scroll indicator; bottom shows
+  // VISIBLE_LINES_BOTTOM scroll-window of the stack.
   const off = clampOffset(localState.scrollOffset, total, VISIBLE_LINES_BOTTOM);
   const end = Math.min(off + VISIBLE_LINES_BOTTOM, total);
   const upArrow = off > 0 ? '▲' : ' ';
@@ -356,8 +386,10 @@ function computeLines(): { top: string; bottom: string } {
   const scrollIndicator = total > VISIBLE_LINES_BOTTOM
     ? ` ${upArrow}${off + 1}-${end}/${total}${downArrow}`
     : '';
-  const header = `[${localState.mode.toUpperCase()} ${idx + 1}/${pages.length}]${scrollIndicator}`;
-  const visible = wrapped.slice(off, end).join('\n');
+  const titleStr = page.title || '';
+  // Compact header: page numbers + (optional) title + scroll indicator.
+  const header = `[${idx + 1}/${pages.length}]${titleStr ? ' ' + titleStr : ''}${scrollIndicator}`;
+  const visible = stack.slice(off, end).join('\n');
   return { top: header, bottom: visible || ' ' };
 }
 
@@ -444,8 +476,7 @@ function currentPageLineCount(): number {
   const pages = (localState.relay?.views[localState.mode]) || [];
   if (!pages.length) return 0;
   const page = pages[Math.min(localState.page, pages.length - 1)];
-  const fullText = [page.line1, page.line2].filter(Boolean).join(' ');
-  return wrapLines(fullText, G2_MAX_LINE - 2).length;
+  return pageToLines(page, G2_MAX_LINE - 2).length;
 }
 
 function visibleLinesForCurrentMode(): number {
