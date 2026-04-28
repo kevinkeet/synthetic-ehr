@@ -63,7 +63,7 @@ async function safeJson(request) {
   try { return await request.json(); } catch { return {}; }
 }
 
-const VALID_MODES = ['live', 'notes', 'ai', 'problems', 'alerts', 'plan'];
+const VALID_MODES = ['live', 'dictation', 'notes', 'ai', 'problems', 'alerts', 'plan'];
 const TRANSCRIPT_BUFFER = 100;        // keep last N transcripts
 const TRANSCRIPT_TTL_MS = 5 * 60_000; // drop transcripts older than 5 min
 
@@ -71,7 +71,7 @@ function emptyState() {
   return {
     anchor: '',
     bottom: '',
-    views: { live: [], notes: [], ai: [], problems: [], alerts: [], plan: [] },
+    views: { live: [], dictation: [], notes: [], ai: [], problems: [], alerts: [], plan: [] },
     desiredMode: null,
     modeVersion: 0,
     version: 0,

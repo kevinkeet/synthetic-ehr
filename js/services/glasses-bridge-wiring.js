@@ -45,12 +45,14 @@
 
     // ---------- Voice command → mode switch ----------
     var MODE_PATTERNS = [
-        { mode: 'notes',    re: /\b(show|review|open|switch to|go to|display)\s+(the\s+)?notes?\b/i },
-        { mode: 'ai',       re: /\b(show|review|open|switch to|go to|display)\s+(the\s+)?(ai|analysis|assessment)\b/i },
-        { mode: 'problems', re: /\b(show|review|open|switch to|go to|display)\s+(the\s+)?problem(\s+list)?s?\b/i },
-        { mode: 'alerts',   re: /\b(show|review|open|switch to|go to|display)\s+(the\s+)?(alert|warning|safety)s?\b/i },
-        { mode: 'plan',     re: /\b(show|review|open|switch to|go to|display)\s+(the\s+)?(plan|orders?|recommendations?)\b/i },
-        { mode: 'live',     re: /\b(back to live|go live|live mode|exit menu|home|main)\b/i }
+        { mode: 'dictation', re: /\b(show|switch to|go to|display|enter|open)\s+(the\s+)?dictation(\s+mode)?\b/i },
+        { mode: 'dictation', re: /\bdictation mode\b/i },
+        { mode: 'notes',     re: /\b(show|review|open|switch to|go to|display)\s+(the\s+)?notes?\b/i },
+        { mode: 'ai',        re: /\b(show|review|open|switch to|go to|display)\s+(the\s+)?(ai|analysis|assessment)\b/i },
+        { mode: 'problems',  re: /\b(show|review|open|switch to|go to|display)\s+(the\s+)?problem(\s+list)?s?\b/i },
+        { mode: 'alerts',    re: /\b(show|review|open|switch to|go to|display)\s+(the\s+)?(alert|warning|safety)s?\b/i },
+        { mode: 'plan',      re: /\b(show|review|open|switch to|go to|display)\s+(the\s+)?(plan|orders?|recommendations?)\b/i },
+        { mode: 'live',      re: /\b(back to live|go live|live mode|exit menu|home|main)\b/i }
     ];
 
     function detectModeCommand(text) {
@@ -91,11 +93,13 @@
         if (typeof DictationWidget === 'undefined' || !DictationWidget._processFinalText) return;
         var orig = DictationWidget._processFinalText;
         DictationWidget._processFinalText = function (text) {
+            var isModeCmd = false;
             try {
                 if (window.GlassesBridge && GlassesBridge.isEnabled() && text) {
                     refreshAnchor();
                     var mode = detectModeCommand(text);
                     if (mode) {
+                        isModeCmd = true;
                         GlassesBridge.setDesiredMode(mode);
                         // Brief feedback on the bottom line so the doctor sees their command landed.
                         GlassesBridge.pushEvent({ kind: 'dictation', text: '\u2192 ' + mode, glyph: '\u2713' });
@@ -104,7 +108,17 @@
                     }
                 }
             } catch (e) { console.warn('[GlassesBridgeWiring] dictation hook failed:', e); }
-            return orig.apply(this, arguments);
+
+            var result = orig.apply(this, arguments);
+
+            // After original runs, dictationHistory is populated → refresh views
+            // so the dictation-mode page list reflects this utterance immediately.
+            if (!isModeCmd) {
+                try {
+                    if (window.GlassesBridge && GlassesBridge.isEnabled()) refreshViews();
+                } catch (e) { console.warn('[GlassesBridgeWiring] post-dictation views refresh failed:', e); }
+            }
+            return result;
         };
     }
 

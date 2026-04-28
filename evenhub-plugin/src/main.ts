@@ -30,8 +30,9 @@ import {
 
 type Config = { relay: string; secret: string; deepgramKey: string };
 
-type Mode = 'live' | 'notes' | 'ai' | 'problems' | 'alerts' | 'plan';
-const MODE_CYCLE: Mode[] = ['live', 'notes', 'ai', 'problems', 'alerts', 'plan'];
+type Mode = 'live' | 'dictation' | 'notes' | 'ai' | 'problems' | 'alerts' | 'plan';
+// Single tap from live → dictation (most-used after live), then through the rest.
+const MODE_CYCLE: Mode[] = ['live', 'dictation', 'notes', 'ai', 'problems', 'alerts', 'plan'];
 
 type ViewPage = { line1: string; line2: string };
 type RelayState = {
@@ -200,8 +201,8 @@ function renderSetupForm(initial: Partial<Config>) {
       <hr style="margin:24px 0;border:none;border-top:1px solid #eee;">
       <h3 style="margin:0 0 8px;font-size:14px;color:#333;">Controls on G2</h3>
       <ul style="margin:0;padding-left:18px;font-size:13px;color:#555;line-height:1.6;">
-        <li><strong>Single tap</strong> (ring or temple) — cycle mode (live → notes → AI → problems → alerts → plan)</li>
-        <li><strong>Scroll up/down</strong> — page within current mode</li>
+        <li><strong>Single tap</strong> (ring or temple) — cycle mode (live → dictation → notes → AI → problems → alerts → plan)</li>
+        <li><strong>Scroll up/down</strong> — page within current mode (e.g. older / newer dictations)</li>
         <li><strong>Double tap</strong> — back to live mode</li>
       </ul>
     </div>
@@ -289,6 +290,11 @@ function computeLines(): { top: string; bottom: string } {
   }
   const idx = Math.min(Math.max(0, localState.page), pages.length - 1);
   const page = pages[idx];
+  // Dictation mode: clean scratchpad — both lines used for the dictation,
+  // no [MODE p/n] header. Newest is page 0; scroll for history.
+  if (localState.mode === 'dictation') {
+    return { top: page.line1 || ' ', bottom: page.line2 || ' ' };
+  }
   const header = `[${localState.mode.toUpperCase()} ${idx + 1}/${pages.length}] ${page.line1 || ''}`;
   return { top: header, bottom: page.line2 || ' ' };
 }
@@ -529,7 +535,7 @@ async function startPlugin(config: Config) {
 
   // Initial state + page container
   const initial = (await fetchRelayState()) || {
-    anchor: '', bottom: '', views: { live: [], notes: [], ai: [], problems: [], alerts: [], plan: [] },
+    anchor: '', bottom: '', views: { live: [], dictation: [], notes: [], ai: [], problems: [], alerts: [], plan: [] },
     desiredMode: null, modeVersion: 0, version: 0, transcriptHead: 0, updatedAt: 0,
   };
   localState.relay = initial;

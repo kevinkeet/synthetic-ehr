@@ -21,6 +21,17 @@
     var COALESCE_MS = 120;
     var MIC_POLL_MS = 250;
 
+    // Build-time defaults — used when localStorage is empty (first visit, or
+    // after Supabase sync wipes it). The URL is safe to hardcode; the secret
+    // will be filled in once you paste it. Anyone visiting actingintern.com
+    // can read these from the JS bundle, so don't bake anything more sensitive.
+    var BAKED_DEFAULTS = {
+        endpoint: 'https://acting-intern-relay.kevinkeet.workers.dev',
+        secret: '',         // <-- paste your shared secret here to skip retyping
+        enabled: false,     // off by default until secret is set
+        useG2Mic: false
+    };
+
     function escAttr(s) {
         return String(s == null ? '' : s)
             .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
@@ -36,17 +47,35 @@
         _inFlight: 0,
         _micPollTimer: null,
         _micLastSeenId: 0,
+        _dictationLog: [], // ring buffer of recent dictations for the dictation-mode page list
 
         // ==================== Config ====================
 
         _loadConfig: function () {
             if (this._config) return this._config;
-            var defaults = { endpoint: '', secret: '', enabled: false, useG2Mic: false };
+            // Start from baked defaults so first-visit + post-wipe both pick up the URL/secret.
+            var base = Object.assign({}, BAKED_DEFAULTS);
             try {
                 var raw = localStorage.getItem(STORAGE_KEY);
-                this._config = raw ? Object.assign(defaults, JSON.parse(raw)) : defaults;
+                if (raw) {
+                    var saved = JSON.parse(raw);
+                    // User-saved values win over baked, but baked fills any blanks.
+                    this._config = Object.assign(base, saved);
+                    // If the user wiped settings (or Supabase did) and baked has both
+                    // endpoint and secret, auto-enable so the HUD just works again.
+                    if (BAKED_DEFAULTS.endpoint && BAKED_DEFAULTS.secret &&
+                        (!saved.endpoint || !saved.secret)) {
+                        this._config.endpoint = this._config.endpoint || BAKED_DEFAULTS.endpoint;
+                        this._config.secret = this._config.secret || BAKED_DEFAULTS.secret;
+                        if (saved.enabled === undefined) this._config.enabled = true;
+                    }
+                } else {
+                    this._config = base;
+                    // Fresh install with baked secret → enable by default.
+                    if (BAKED_DEFAULTS.endpoint && BAKED_DEFAULTS.secret) this._config.enabled = true;
+                }
             } catch (_) {
-                this._config = defaults;
+                this._config = base;
             }
             return this._config;
         },
@@ -130,6 +159,12 @@
         },
 
         buildDictationEvent: function (text, glyph) {
+            // Append to local log so dictation-mode pages can show history.
+            // Only real dictations, not mode-switch feedback (those use a different code path).
+            if (text && typeof text === 'string') {
+                this._dictationLog.push({ text: text, ts: Date.now() });
+                if (this._dictationLog.length > 20) this._dictationLog = this._dictationLog.slice(-20);
+            }
             return { kind: 'dictation', text: this._compress(text, 140), glyph: glyph || '\u2713' };
         },
 
@@ -150,6 +185,7 @@
         buildViews: function () {
             return {
                 live: [],
+                dictation: this._buildDictationPages(),
                 notes: this._buildNotesPages(),
                 ai: this._buildAIPages(),
                 problems: this._buildProblemsPages(),
@@ -159,6 +195,36 @@
         },
 
         // ==================== Page builders ====================
+
+        /**
+         * Live dictation scratchpad: each recent dictation utterance becomes
+         * one page. The plugin renders it full-screen (both top + bottom
+         * containers used for the same dictation).
+         */
+        _buildDictationPages: function () {
+            try {
+                // Prefer our own log (populated on every mic-final), fall back to
+                // AICoworker.state.dictationHistory which only fills when the doctor
+                // submits via the AI panel input.
+                var hist = this._dictationLog && this._dictationLog.length
+                    ? this._dictationLog
+                    : ((typeof AICoworker !== 'undefined' && AICoworker.state && AICoworker.state.dictationHistory) || []);
+                if (!hist.length) return [];
+                // Newest first.
+                return hist.slice().reverse().slice(0, 10).map(function (entry) {
+                    var text = (typeof entry === 'string') ? entry : (entry.text || entry.dictation || '');
+                    var t = String(text).replace(/\s+/g, ' ').trim();
+                    if (!t) return { line1: '', line2: '' };
+                    // Short enough to fit one container — leave the other empty.
+                    if (t.length < 60) return { line1: t, line2: '' };
+                    // Split near the middle on a word boundary.
+                    var mid = Math.ceil(t.length / 2);
+                    var split = t.lastIndexOf(' ', mid);
+                    if (split < t.length / 3 || split < 0) split = mid;
+                    return { line1: t.slice(0, split).trim(), line2: t.slice(split).trim() };
+                });
+            } catch (_) { return []; }
+        },
 
         _buildNotesPages: function () {
             try {
