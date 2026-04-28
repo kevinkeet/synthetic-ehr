@@ -84,6 +84,16 @@
                     '<span id="lhud-status">Connecting…</span>' +
                     '<span id="lhud-meta"></span>' +
                   '</div>' +
+                  // Pending action panel — appears when EHR has a confirmation awaiting
+                  '<div id="lhud-pending" style="margin-top:14px;padding:14px 16px;background:#3a2a08;border:2px solid #fbbf24;border-radius:8px;color:#fde68a;font-family:\'Menlo\',monospace;display:none;">' +
+                    '<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:#fbbf24;margin-bottom:6px;">⚠ Pending action</div>' +
+                    '<div id="lhud-pending-summary" style="font-size:14px;color:#fff;margin-bottom:12px;line-height:1.4;"></div>' +
+                    '<div style="display:flex;gap:8px;">' +
+                      '<button id="lhud-confirm" style="padding:8px 18px;background:#16a34a;color:#fff;border:none;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;font-family:system-ui;">✓ Confirm</button>' +
+                      '<button id="lhud-cancel" style="padding:8px 18px;background:#7f1d1d;color:#fff;border:none;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;font-family:system-ui;">✗ Cancel</button>' +
+                      '<span style="margin-left:auto;font-size:11px;color:#aaa;align-self:center;">or click ring on G2</span>' +
+                    '</div>' +
+                  '</div>' +
                   '<div id="lhud-views" style="margin-top:14px;border-top:1px solid #333;padding-top:14px;color:#bbb;font-size:11px;font-family:\'Menlo\',monospace;line-height:1.5;max-height:200px;overflow-y:auto;display:none;"></div>' +
                 '</div>';
 
@@ -91,6 +101,19 @@
             var self = this;
             document.getElementById('lhud-close').onclick = function () { self.close(); };
             overlay.addEventListener('click', function (e) { if (e.target === overlay) self.close(); });
+
+            // Confirm/Cancel route through the EHR's existing dictation pipeline —
+            // identical to ring CLICK on the glasses, identical to voice "confirm".
+            document.getElementById('lhud-confirm').onclick = function () {
+                if (typeof DictationWidget !== 'undefined' && DictationWidget._confirmCurrentOrder) {
+                    DictationWidget._confirmCurrentOrder();
+                }
+            };
+            document.getElementById('lhud-cancel').onclick = function () {
+                if (typeof DictationWidget !== 'undefined' && DictationWidget._cancelCurrentOrder) {
+                    DictationWidget._cancelCurrentOrder();
+                }
+            };
         },
 
         _poll: function () {
@@ -162,6 +185,18 @@
                 subtitleEl.innerHTML = 'Plugin not reporting yet — EHR asked it to switch to <strong style="color:#fbbf24;">' + s.desiredMode + '</strong>';
             } else {
                 subtitleEl.innerHTML = 'Plugin not reporting yet — showing relay state (live mode)';
+            }
+
+            // Pending action panel
+            var pendingEl = document.getElementById('lhud-pending');
+            if (s.pendingAction && s.pendingAction.summary) {
+                pendingEl.style.display = 'block';
+                document.getElementById('lhud-pending-summary').textContent =
+                    (s.pendingAction.glyph ? s.pendingAction.glyph + ' ' : '') +
+                    (s.pendingAction.kind ? s.pendingAction.kind.toUpperCase() + ': ' : '') +
+                    s.pendingAction.summary;
+            } else {
+                pendingEl.style.display = 'none';
             }
 
             // Optional: show the per-mode page lists below the screen

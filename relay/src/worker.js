@@ -72,6 +72,10 @@ function emptyState() {
     // Plugin-reported presence (what's actually on G2 right now). The EHR's
     // Live HUD Mirror reads this so it shows the same content as the glasses.
     presence: { mode: 'live', page: 0, scrollOffset: 0, content: '', updatedAt: 0 },
+    // EHR-set "there's a pending action awaiting clinician decision" beacon.
+    // Plugin reads this and renders prominently; ring CLICK confirms via
+    // POST /transcript "confirm" → EHR's _processFinalText → _confirmCurrentOrder.
+    pendingAction: null,   // { kind: 'order', summary: 'Furosemide 40 IV', glyph: '⚠' } | null
     updatedAt: 0,
   };
 }
@@ -126,8 +130,20 @@ export default {
         version: s.version,
         transcriptHead: s.transcriptHead,
         presence: s.presence,
+        pendingAction: s.pendingAction,
         updatedAt: s.updatedAt,
       });
+    }
+
+    if (p === '/pending' && m === 'POST') {
+      const body = await safeJson(request);
+      const s = await readState(env, secret);
+      // body.pendingAction = null clears it; otherwise replaces.
+      s.pendingAction = (body && body.pendingAction) || null;
+      s.version++;
+      s.updatedAt = Date.now();
+      await writeState(env, secret, s);
+      return json({ ok: true });
     }
 
     if (p === '/presence' && m === 'POST') {

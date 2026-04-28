@@ -176,6 +176,19 @@
             this._post(c, '/mode', { mode: mode });
         },
 
+        /**
+         * Tell the plugin "there's an action awaiting your accept/cancel".
+         * Plugin renders this prominently and ring CLICK = confirm,
+         * DOUBLE_CLICK = cancel.
+         *   pendingAction: { kind: 'order', summary: '...', glyph: '⚠'|'✓' } | null
+         */
+        setPendingAction: function (action) {
+            if (!this.isEnabled()) return;
+            var c = this._loadConfig();
+            console.log('[GlassesBridge] pendingAction →', action);
+            this._post(c, '/pending', { pendingAction: action });
+        },
+
         clear: function () {
             this._enqueue({ event: { kind: 'clear', text: '' } });
         },

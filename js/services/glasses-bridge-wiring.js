@@ -143,6 +143,12 @@
                             text: GlassesBridge._compress('CONFIRM? ' + summary, 100),
                             glyph: glyph
                         });
+                        // Set the pendingAction beacon so plugin's ring CLICK confirms it
+                        GlassesBridge.setPendingAction({
+                            kind: 'order',
+                            summary: summary,
+                            glyph: glyph
+                        });
                     }
                 } catch (e) { console.warn('[GlassesBridgeWiring] _showOrderConfirmation hook failed:', e); }
                 return origShowOrder.apply(this, arguments);
@@ -163,6 +169,7 @@
                             text: GlassesBridge._compress('PLACED ' + summary, 100),
                             glyph: '✓'
                         });
+                        GlassesBridge.setPendingAction(null); // clear beacon
                         // Refresh views so plan mode reflects the new order
                         refreshViews();
                     }
@@ -185,6 +192,7 @@
                             text: GlassesBridge._compress('CANCELLED ' + summary, 100),
                             glyph: '✗'
                         });
+                        GlassesBridge.setPendingAction(null); // clear beacon
                     }
                 } catch (e) { console.warn('[GlassesBridgeWiring] _cancelCurrentOrder hook failed:', e); }
                 return result;

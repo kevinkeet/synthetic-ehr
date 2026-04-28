@@ -63,6 +63,8 @@ type ViewPage = {
   text?: string;
   bullets?: string[];
 };
+type PendingAction = { kind: string; summary: string; glyph?: string } | null;
+
 type RelayState = {
   anchor: string;
   bottom: string;
@@ -71,6 +73,7 @@ type RelayState = {
   modeVersion: number;
   version: number;
   transcriptHead: number;
+  pendingAction: PendingAction;
   updatedAt: number;
 };
 
@@ -95,11 +98,10 @@ const localState = {
   lastBottom: '',
 };
 
-// Lines that physically fit inside the single full-screen container at
-// default G2 font + zero padding. Calibrated on real device — 5–6 lines
-// is realistic at 288 px container height.
-const VISIBLE_LINES = 5;
-// Non-live modes spend one of those on the header, leaving 4 for content.
+// Calibrated on real device — only ~3 lines fit at the G2's default font
+// even with single container + zero padding. Was over-estimating.
+const VISIBLE_LINES = 3;
+// Non-live modes spend one line on the header, leaving 2 for content.
 const VISIBLE_LINES_NONLIVE_CONTENT = VISIBLE_LINES - 1;
 
 // Short, all-caps mode labels for the header so the user always knows which
@@ -368,6 +370,20 @@ function pageToLines(page: ViewPage, maxChars: number): string[] {
 function computeContent(): string {
   const s = localState.relay;
   if (!s) return 'Acting Intern · waiting for chart';
+
+  // Pending action ALWAYS takes precedence — the doctor needs to see + decide
+  // before navigating to anything else. Renders a small modal-style block.
+  if (s.pendingAction && s.pendingAction.summary) {
+    const a = s.pendingAction;
+    const lines = [
+      `>> CONFIRM ${a.kind.toUpperCase()}? ${a.glyph || ''}`,
+      ...wrapLines(a.summary, G2_MAX_LINE),
+      '',
+      '[CLICK]=confirm  [DBL]=cancel',
+    ];
+    return lines.slice(0, VISIBLE_LINES).join('\n');
+  }
+
   if (localState.mode === 'live') {
     const anchor = s.anchor || 'Acting Intern · ready';
     const bottom = s.bottom || '';
@@ -553,6 +569,23 @@ function onEvent(event: EvenHubEvent) {
   const type = eventTypeFrom(event);
   if (type === null) return;
   console.log('[plugin] event', type, 'mode=' + localState.mode);
+
+  // Context-aware accept/cancel: if there's a pending action, ring CLICK = confirm,
+  // DOUBLE_CLICK = cancel. We send "confirm"/"cancel" through /transcript so the
+  // EHR's existing _processFinalText routes them through the same code path as
+  // voice — no new EHR endpoints, no duplicated logic.
+  const pending = localState.relay?.pendingAction;
+  if (pending && pending.summary) {
+    if (type === OsEventTypeList.CLICK_EVENT) {
+      postTranscript('confirm', true);
+      return;
+    }
+    if (type === OsEventTypeList.DOUBLE_CLICK_EVENT) {
+      postTranscript('cancel', true);
+      return;
+    }
+  }
+
   switch (type) {
     case OsEventTypeList.DOUBLE_CLICK_EVENT:
       setMode('live');
@@ -564,6 +597,14 @@ function onEvent(event: EvenHubEvent) {
       scrollDown();
       return;
     case OsEventTypeList.CLICK_EVENT:
+      // In bullet pages with a focused item, CLICK = "accept this suggestion"
+      // by routing the bullet text through the EHR's order pipeline.
+      // Otherwise, CLICK cycles mode (current behavior).
+      const focused = focusedBullet();
+      if (focused) {
+        postTranscript('order ' + focused, true);
+        return;
+      }
       cycleMode();
       return;
     case OsEventTypeList.FOREGROUND_EXIT_EVENT:
@@ -574,6 +615,31 @@ function onEvent(event: EvenHubEvent) {
     default:
       return;
   }
+}
+
+/**
+ * Returns the bullet text that's currently at the top of the visible scroll
+ * window — the "focused" item the user is looking at. Returns null if the
+ * current page has no bullets (paragraph mode) or no items at all.
+ */
+function focusedBullet(): string | null {
+  if (localState.mode === 'live') return null;
+  const pages = (localState.relay?.views[localState.mode]) || [];
+  if (!pages.length) return null;
+  const page = pages[Math.min(localState.page, pages.length - 1)];
+  if (!page.bullets || !page.bullets.length) return null;
+  // Account for title lines + walk through bullet wrapped-line counts to find
+  // which bullet contains the line at scrollOffset.
+  const titleLen = page.title ? wrapLines(page.title, G2_MAX_LINE).length : 0;
+  let lineCount = titleLen;
+  for (let i = 0; i < page.bullets.length; i++) {
+    const wrapped = wrapLines('• ' + page.bullets[i], G2_MAX_LINE);
+    if (lineCount + wrapped.length > localState.scrollOffset) {
+      return page.bullets[i].replace(/^[•⚠→✎]+\s*/, ''); // strip leading marker
+    }
+    lineCount += wrapped.length;
+  }
+  return page.bullets[page.bullets.length - 1].replace(/^[•⚠→✎]+\s*/, '');
 }
 
 // ---------- G2 mic capture → Deepgram → relay ----------
@@ -708,7 +774,7 @@ async function startPlugin(config: Config) {
   // Initial state + page container
   const initial = (await fetchRelayState()) || {
     anchor: '', bottom: '', views: { live: [], dictation: [], notes: [], ai: [], problems: [], alerts: [], plan: [] },
-    desiredMode: null, modeVersion: 0, version: 0, transcriptHead: 0, updatedAt: 0,
+    desiredMode: null, modeVersion: 0, version: 0, transcriptHead: 0, pendingAction: null, updatedAt: 0,
   };
   localState.relay = initial;
   localState.lastSeenModeVersion = initial.modeVersion;
