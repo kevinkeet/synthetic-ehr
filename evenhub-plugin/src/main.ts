@@ -92,11 +92,29 @@ const localState = {
   lastBottom: '',
 };
 
-// Lines that fit inside the bottom container at the default G2 font.
-// 144 px / ~28 px per line ≈ 5 lines with breathing room.
-const VISIBLE_LINES_BOTTOM = 5;
-const VISIBLE_LINES_TOP = 2;
-const VISIBLE_LINES_TOTAL_DICTATION = VISIBLE_LINES_TOP + VISIBLE_LINES_BOTTOM;
+// Lines that physically fit inside each container. Conservative counts based
+// on real-device feedback: the default font is bigger than docs imply.
+// Top container: 1 header line + 1 content line.
+// Bottom container: 3 content lines.
+// Total content viewport: 4 lines per render in non-dictation modes.
+const VISIBLE_LINES_TOP_CONTENT = 1;
+const VISIBLE_LINES_BOTTOM = 3;
+const VISIBLE_LINES_TOTAL_NONLIVE = VISIBLE_LINES_TOP_CONTENT + VISIBLE_LINES_BOTTOM;
+// Dictation mode has no fixed header — top container can carry 2 content lines.
+const VISIBLE_LINES_TOP_DICTATION = 2;
+const VISIBLE_LINES_TOTAL_DICTATION = VISIBLE_LINES_TOP_DICTATION + VISIBLE_LINES_BOTTOM;
+
+// Short, all-caps mode labels for the header so the user always knows which
+// section they're in even when content scrolls.
+const MODE_LABELS: Record<Mode, string> = {
+  live: 'LIVE',
+  dictation: 'DICTATION',
+  notes: 'NOTES',
+  ai: 'AI',
+  problems: 'PROBLEMS',
+  alerts: 'ALERTS',
+  plan: 'PLAN',
+};
 
 let bridge: EvenAppBridge | null = null;
 let cfg: Config | null = null;
@@ -362,35 +380,44 @@ function computeLines(): { top: string; bottom: string } {
   }
   const pages = (s.views && s.views[localState.mode]) || [];
   if (!pages.length) {
-    return { top: `[${localState.mode.toUpperCase()}] no items`, bottom: s.anchor || ' ' };
+    return { top: `${MODE_LABELS[localState.mode]} — no items`, bottom: s.anchor || ' ' };
   }
   const idx = Math.min(Math.max(0, localState.page), pages.length - 1);
   const page = pages[idx];
-  const stack = pageToLines(page, G2_MAX_LINE - 2);
+
+  // Build the full scrollable stack for this page:
+  //   - For pages with a title (e.g. problems): title comes first as a wrapped
+  //     sub-header, then the content (text or bullets). The user sees the title
+  //     by default and can scroll past it for more detail.
+  //   - For consolidated pages (plan, alerts, notes summary): no separate
+  //     title — the content stack starts immediately.
+  const titleLines = page.title ? wrapLines(page.title, G2_MAX_LINE - 2) : [];
+  const contentLines = pageToLines(page, G2_MAX_LINE - 2);
+  const stack = [...titleLines, ...contentLines];
   const total = stack.length;
 
-  // Dictation mode: no header. Use both containers as one ~7-line viewport.
+  // Dictation mode: no fixed header. Use both containers (5 content lines).
   if (localState.mode === 'dictation') {
     const off = clampOffset(localState.scrollOffset, total, VISIBLE_LINES_TOTAL_DICTATION);
-    const topLines = stack.slice(off, off + VISIBLE_LINES_TOP);
-    const botLines = stack.slice(off + VISIBLE_LINES_TOP, off + VISIBLE_LINES_TOTAL_DICTATION);
+    const topLines = stack.slice(off, off + VISIBLE_LINES_TOP_DICTATION);
+    const botLines = stack.slice(off + VISIBLE_LINES_TOP_DICTATION, off + VISIBLE_LINES_TOTAL_DICTATION);
     return { top: topLines.join('\n') || ' ', bottom: botLines.join('\n') || ' ' };
   }
 
-  // Other modes: tight header on top with scroll indicator; bottom shows
-  // VISIBLE_LINES_BOTTOM scroll-window of the stack.
-  const off = clampOffset(localState.scrollOffset, total, VISIBLE_LINES_BOTTOM);
-  const end = Math.min(off + VISIBLE_LINES_BOTTOM, total);
+  // Non-live modes: top container = header line + 1 content line; bottom = 3 content lines.
+  // Total content viewport = 4 lines, header is fixed and always visible.
+  const off = clampOffset(localState.scrollOffset, total, VISIBLE_LINES_TOTAL_NONLIVE);
+  const end = Math.min(off + VISIBLE_LINES_TOTAL_NONLIVE, total);
   const upArrow = off > 0 ? '▲' : ' ';
   const downArrow = end < total ? '▼' : ' ';
-  const scrollIndicator = total > VISIBLE_LINES_BOTTOM
-    ? ` ${upArrow}${off + 1}-${end}/${total}${downArrow}`
+  const scrollIndicator = total > VISIBLE_LINES_TOTAL_NONLIVE
+    ? `  ${upArrow}${off + 1}-${end}/${total}${downArrow}`
     : '';
-  const titleStr = page.title || '';
-  // Compact header: page numbers + (optional) title + scroll indicator.
-  const header = `[${idx + 1}/${pages.length}]${titleStr ? ' ' + titleStr : ''}${scrollIndicator}`;
-  const visible = stack.slice(off, end).join('\n');
-  return { top: header, bottom: visible || ' ' };
+  const header = `${MODE_LABELS[localState.mode]} ${idx + 1}/${pages.length}${scrollIndicator}`;
+  const visible = stack.slice(off, end);
+  const topContent = [header, ...visible.slice(0, VISIBLE_LINES_TOP_CONTENT)].join('\n');
+  const botContent = visible.slice(VISIBLE_LINES_TOP_CONTENT).join('\n') || ' ';
+  return { top: topContent, bottom: botContent };
 }
 
 function clampOffset(off: number, total: number, visible: number): number {
@@ -471,16 +498,17 @@ function pagePrev() {
   applyRender();
 }
 
-/** Total wrapped lines for the current page (used to decide when to advance pages). */
+/** Total wrapped lines (title + content) for the current page. */
 function currentPageLineCount(): number {
   const pages = (localState.relay?.views[localState.mode]) || [];
   if (!pages.length) return 0;
   const page = pages[Math.min(localState.page, pages.length - 1)];
-  return pageToLines(page, G2_MAX_LINE - 2).length;
+  const titleLen = page.title ? wrapLines(page.title, G2_MAX_LINE - 2).length : 0;
+  return titleLen + pageToLines(page, G2_MAX_LINE - 2).length;
 }
 
 function visibleLinesForCurrentMode(): number {
-  return localState.mode === 'dictation' ? VISIBLE_LINES_TOTAL_DICTATION : VISIBLE_LINES_BOTTOM;
+  return localState.mode === 'dictation' ? VISIBLE_LINES_TOTAL_DICTATION : VISIBLE_LINES_TOTAL_NONLIVE;
 }
 
 /**
