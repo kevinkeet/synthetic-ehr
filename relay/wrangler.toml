@@ -2,11 +2,9 @@ name = "acting-intern-relay"
 main = "src/worker.js"
 compatibility_date = "2026-01-15"
 
-# Per-secret state lives in a Durable Object with SQLite storage (free tier).
-[[durable_objects.bindings]]
-name = "HUD_STATE"
-class_name = "HudState"
-
-[[migrations]]
-tag = "v1"
-new_sqlite_classes = ["HudState"]
+# v4: Workers KV for state persistence. Included in Workers Paid plan,
+# no Durable Objects quota concerns. Read-after-write within a region
+# is typically <100ms; global eventual consistency within seconds.
+[[kv_namespaces]]
+binding = "HUD_STATE"
+id = "616ee221bebf46b5a6a126aaa67c9f22"

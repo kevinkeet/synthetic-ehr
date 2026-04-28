@@ -1,24 +1,18 @@
 /**
- * Acting Intern → G2 HUD relay (v2: views + voice control + G2 mic).
+ * Acting Intern → G2 HUD relay (v4: Workers KV).
  *
- * EHR (browser) ↔ Cloudflare Worker ↔ Even Hub plugin (phone WebView) ↔ G2.
+ * EHR (browser) ↔ Cloudflare Worker (this) ↔ Even Hub plugin (phone WebView) ↔ G2.
  *
- * State model (per shared secret, in a Durable Object):
- *   anchor         - persistent top line on G2
- *   bottom         - transient bottom line on G2 (live mode only)
- *   views          - { live, notes[], ai[], problems[], alerts[], plan[] }
- *                    multi-page content the plugin can navigate locally
- *                    via ring/temple inputs
- *   desiredMode    - EHR can set "notes"|"ai"|"problems"|"alerts"|"plan"|"live"
- *                    (e.g. via voice "show notes"); plugin honors on next poll
- *   modeVersion    - increments when desiredMode changes; plugin tracks last seen
- *   version        - increments on any anchor/bottom/views change
- *   transcripts    - ring buffer of {id, text, isFinal, ts} from G2 mic
- *   transcriptHead - id of newest transcript
- *   updatedAt      - ms timestamp of last write
+ * State lives in Workers KV, keyed by shared secret. KV is included in
+ * the Workers Paid plan with generous limits (10M reads/day, 1M writes/day),
+ * and unlike Durable Objects has no separate quota tier. Read-after-write
+ * within the same region is typically <100ms, fast enough for our
+ * 500ms plugin poll cadence.
  *
- * Auth: every request carries the shared secret in `X-Glasses-Secret`
- *       header OR `?secret=` query param. Secret is the namespace key.
+ * Caveat: KV writes are rate-limited to ~1/sec per key. We coalesce all
+ * fields into one JSON blob per key, so very rapid POSTs (multiple
+ * dictation events in <1s) may have a write dropped. The next write
+ * (≥1s later) reflects the latest state — not loss, slight lag.
  */
 
 const CORS_HEADERS = {
@@ -40,8 +34,6 @@ function json(body, status = 200) {
   }));
 }
 
-// Loose cap for storage; the plugin word-wraps inside the G2's 144-px-tall
-// container, so we don't need to truncate aggressively here.
 function fit(s, max = 200) {
   if (!s) return '';
   s = String(s);
@@ -64,8 +56,8 @@ async function safeJson(request) {
 }
 
 const VALID_MODES = ['live', 'dictation', 'notes', 'ai', 'problems', 'alerts', 'plan'];
-const TRANSCRIPT_BUFFER = 100;        // keep last N transcripts
-const TRANSCRIPT_TTL_MS = 5 * 60_000; // drop transcripts older than 5 min
+const TRANSCRIPT_BUFFER = 100;
+const TRANSCRIPT_TTL_MS = 5 * 60_000;
 
 function emptyState() {
   return {
@@ -81,40 +73,47 @@ function emptyState() {
   };
 }
 
-/**
- * Durable Object: one instance per shared secret.
- */
-export class HudState {
-  constructor(state) {
-    this.state = state;
-  }
-
-  async _read() {
-    const stored = await this.state.storage.get('hud');
-    if (!stored) return emptyState();
-    // Backfill missing fields from older state shapes.
+async function readState(env, secret) {
+  const raw = await env.HUD_STATE.get(secret);
+  if (!raw) return emptyState();
+  try {
+    const stored = JSON.parse(raw);
     const base = emptyState();
     return { ...base, ...stored, views: { ...base.views, ...(stored.views || {}) } };
+  } catch {
+    return emptyState();
   }
+}
 
-  async _write(data) {
-    await this.state.storage.put('hud', data);
-    return data;
+async function writeState(env, secret, s) {
+  // KV is rate-limited to ~1 write/sec per key; if it rejects, we silently
+  // continue — the next write picks up the latest state.
+  try {
+    await env.HUD_STATE.put(secret, JSON.stringify(s));
+  } catch (e) {
+    console.warn('KV write failed (rate limit?):', e.message);
   }
+}
 
-  _gcTranscripts(s) {
-    const cutoff = Date.now() - TRANSCRIPT_TTL_MS;
-    s.transcripts = s.transcripts.filter(t => t.ts >= cutoff).slice(-TRANSCRIPT_BUFFER);
-  }
+function gcTranscripts(s) {
+  const cutoff = Date.now() - TRANSCRIPT_TTL_MS;
+  s.transcripts = s.transcripts.filter(t => t.ts >= cutoff).slice(-TRANSCRIPT_BUFFER);
+}
 
-  async fetch(request) {
+export default {
+  async fetch(request, env) {
     const url = new URL(request.url);
     const m = request.method;
     const p = url.pathname;
 
+    if (m === 'OPTIONS') return withCors(new Response(null, { status: 204 }));
+    if (p === '/health') return json({ ok: true, version: 'v4-kv' });
+
+    const secret = request.headers.get('X-Glasses-Secret') || url.searchParams.get('secret') || '';
+    if (!secret) return json({ error: 'missing secret' }, 401);
+
     if (p === '/state' && m === 'GET') {
-      const s = await this._read();
-      // Don't return the full transcript buffer here — separate endpoint.
+      const s = await readState(env, secret);
       return json({
         anchor: s.anchor,
         bottom: s.bottom,
@@ -129,37 +128,36 @@ export class HudState {
 
     if (p === '/anchor' && m === 'POST') {
       const body = await safeJson(request);
-      const s = await this._read();
+      const s = await readState(env, secret);
       s.anchor = fit(body.anchor || '');
       s.version++;
       s.updatedAt = Date.now();
-      await this._write(s);
+      await writeState(env, secret, s);
       return json({ ok: true, version: s.version });
     }
 
     if (p === '/event' && m === 'POST') {
       const body = await safeJson(request);
-      const s = await this._read();
+      const s = await readState(env, secret);
       if (typeof body.anchor === 'string') s.anchor = fit(body.anchor);
       if (body.event) s.bottom = formatBottom(body.event);
       s.version++;
       s.updatedAt = Date.now();
-      await this._write(s);
+      await writeState(env, secret, s);
       return json({ ok: true, version: s.version });
     }
 
     if (p === '/views' && m === 'POST') {
       const body = await safeJson(request);
-      const s = await this._read();
+      const s = await readState(env, secret);
       if (body.views && typeof body.views === 'object') {
-        // Merge per-mode arrays, accept only known modes.
         for (const mode of VALID_MODES) {
           if (Array.isArray(body.views[mode])) s.views[mode] = body.views[mode];
         }
       }
       s.version++;
       s.updatedAt = Date.now();
-      await this._write(s);
+      await writeState(env, secret, s);
       return json({ ok: true, version: s.version });
     }
 
@@ -167,12 +165,12 @@ export class HudState {
       const body = await safeJson(request);
       const mode = body.mode;
       if (!VALID_MODES.includes(mode)) return json({ error: 'invalid mode' }, 400);
-      const s = await this._read();
+      const s = await readState(env, secret);
       s.desiredMode = mode;
       s.modeVersion++;
       s.version++;
       s.updatedAt = Date.now();
-      await this._write(s);
+      await writeState(env, secret, s);
       return json({ ok: true, modeVersion: s.modeVersion });
     }
 
@@ -181,7 +179,7 @@ export class HudState {
       if (typeof body.text !== 'string' || !body.text.trim()) {
         return json({ error: 'text required' }, 400);
       }
-      const s = await this._read();
+      const s = await readState(env, secret);
       s.transcriptHead++;
       s.transcripts.push({
         id: s.transcriptHead,
@@ -189,41 +187,20 @@ export class HudState {
         isFinal: body.isFinal !== false,
         ts: Date.now(),
       });
-      this._gcTranscripts(s);
+      gcTranscripts(s);
       s.version++;
       s.updatedAt = Date.now();
-      await this._write(s);
+      await writeState(env, secret, s);
       return json({ ok: true, id: s.transcriptHead });
     }
 
     if (p === '/transcripts' && m === 'GET') {
       const since = parseInt(url.searchParams.get('since') || '0', 10) || 0;
-      const s = await this._read();
+      const s = await readState(env, secret);
       const items = s.transcripts.filter(t => t.id > since);
       return json({ items, head: s.transcriptHead });
     }
 
     return json({ error: 'not found' }, 404);
-  }
-}
-
-export default {
-  async fetch(request, env) {
-    const url = new URL(request.url);
-
-    if (request.method === 'OPTIONS') {
-      return withCors(new Response(null, { status: 204 }));
-    }
-
-    if (url.pathname === '/health') {
-      return json({ ok: true, version: 'v2' });
-    }
-
-    const secret = request.headers.get('X-Glasses-Secret') || url.searchParams.get('secret') || '';
-    if (!secret) return json({ error: 'missing secret' }, 401);
-
-    const id = env.HUD_STATE.idFromName(secret);
-    const stub = env.HUD_STATE.get(id);
-    return stub.fetch(request);
   },
 };
