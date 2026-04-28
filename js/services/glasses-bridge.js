@@ -38,6 +38,13 @@
             .replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
+    function secretFingerprint(s) {
+        if (!s) return 'no secret set';
+        var n = s.length;
+        if (n <= 8) return 'len ' + n + ' (too short to fingerprint)';
+        return 'len ' + n + ' · ends in …' + escAttr(s.slice(-8));
+    }
+
     var GlassesBridge = {
         _config: null,
         _lastAnchor: '',
@@ -570,8 +577,12 @@
                   '</label>' +
                   '<label style="display:block;margin-bottom:14px;font-size:13px;font-weight:500;">' +
                     'Shared Secret' +
-                    '<input id="gb-secret" type="password" autocomplete="off" placeholder="X-Glasses-Secret header value" value="' + escAttr(c.secret) + '" ' +
-                    'style="display:block;width:100%;padding:8px 10px;margin-top:4px;border:1px solid #ccc;border-radius:4px;font-size:14px;box-sizing:border-box;font-family:monospace;">' +
+                    '<div style="position:relative;margin-top:4px;">' +
+                      '<input id="gb-secret" type="password" autocomplete="off" placeholder="X-Glasses-Secret header value" value="' + escAttr(c.secret) + '" ' +
+                      'style="display:block;width:100%;padding:8px 60px 8px 10px;border:1px solid #ccc;border-radius:4px;font-size:14px;box-sizing:border-box;font-family:monospace;">' +
+                      '<button type="button" id="gb-secret-toggle" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:#f5f5f5;border:1px solid #ddd;border-radius:3px;padding:4px 8px;font-size:11px;cursor:pointer;color:#555;font-family:system-ui;">Show</button>' +
+                    '</div>' +
+                    '<div id="gb-secret-fp" style="font-family:monospace;font-size:11px;color:#666;margin-top:4px;">' + secretFingerprint(c.secret) + '</div>' +
                   '</label>' +
                   '<label style="display:flex;align-items:center;gap:8px;margin:18px 0 6px;font-size:14px;cursor:pointer;">' +
                     '<input id="gb-enabled" type="checkbox" ' + (c.enabled ? 'checked' : '') + ' style="width:16px;height:16px;cursor:pointer;">' +
@@ -600,6 +611,23 @@
                 statusEl.style.color = ok === false ? '#c2410c' : (ok === true ? '#15803d' : '#888');
                 statusEl.textContent = msg || '';
             };
+
+            // Show/Hide toggle for the secret + live fingerprint update
+            var secretInput = document.getElementById('gb-secret');
+            var toggleBtn = document.getElementById('gb-secret-toggle');
+            var fpEl = document.getElementById('gb-secret-fp');
+            toggleBtn.onclick = function () {
+                if (secretInput.type === 'password') {
+                    secretInput.type = 'text';
+                    toggleBtn.textContent = 'Hide';
+                } else {
+                    secretInput.type = 'password';
+                    toggleBtn.textContent = 'Show';
+                }
+            };
+            secretInput.addEventListener('input', function () {
+                fpEl.innerHTML = secretFingerprint(secretInput.value);
+            });
 
             var readForm = function () {
                 return {

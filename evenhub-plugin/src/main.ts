@@ -139,6 +139,13 @@ function escAttr(s: string): string {
     .replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+function secretFingerprint(s: string): string {
+  if (!s) return 'no secret set';
+  const n = s.length;
+  if (n <= 8) return 'len ' + n + ' (too short to fingerprint)';
+  return 'len ' + n + ' · ends in …' + escAttr(s.slice(-8));
+}
+
 function fit(s: string, max = G2_MAX_LINE): string {
   if (!s) return '';
   s = String(s);
@@ -206,8 +213,12 @@ function renderSetupForm(initial: Partial<Config>) {
       </label>
       <label style="display:block;margin-bottom:12px;font-size:13px;">
         Shared secret
-        <input id="cfg-secret" type="password" autocomplete="off" value="${escAttr(initial.secret || '')}"
-          style="display:block;width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px;font-size:14px;box-sizing:border-box;font-family:monospace;">
+        <div style="position:relative;margin-top:4px;">
+          <input id="cfg-secret" type="password" autocomplete="off" value="${escAttr(initial.secret || '')}"
+            style="display:block;width:100%;padding:8px 60px 8px 10px;border:1px solid #ccc;border-radius:4px;font-size:14px;box-sizing:border-box;font-family:monospace;">
+          <button type="button" id="cfg-secret-toggle" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:#f5f5f5;border:1px solid #ddd;border-radius:3px;padding:4px 8px;font-size:11px;cursor:pointer;color:#555;font-family:system-ui;">Show</button>
+        </div>
+        <div id="cfg-secret-fp" style="font-family:monospace;font-size:11px;color:#666;margin-top:4px;">${secretFingerprint(initial.secret || '')}</div>
       </label>
       <label style="display:block;margin-bottom:16px;font-size:13px;">
         Deepgram API key <span style="color:#888;font-weight:400;">(optional — for G2 mic)</span>
@@ -230,6 +241,20 @@ function renderSetupForm(initial: Partial<Config>) {
   `);
   const save = document.getElementById('cfg-save');
   if (save) (save as HTMLButtonElement).onclick = onSaveClicked;
+
+  // Show/Hide toggle for the secret + live fingerprint update
+  const secretInput = document.getElementById('cfg-secret') as HTMLInputElement | null;
+  const toggleBtn = document.getElementById('cfg-secret-toggle') as HTMLButtonElement | null;
+  const fpEl = document.getElementById('cfg-secret-fp');
+  if (secretInput && toggleBtn) {
+    toggleBtn.onclick = () => {
+      if (secretInput.type === 'password') { secretInput.type = 'text'; toggleBtn.textContent = 'Hide'; }
+      else { secretInput.type = 'password'; toggleBtn.textContent = 'Show'; }
+    };
+    secretInput.addEventListener('input', () => {
+      if (fpEl) fpEl.innerHTML = secretFingerprint(secretInput.value);
+    });
+  }
 }
 
 async function onSaveClicked() {
@@ -531,6 +556,9 @@ async function startPlugin(config: Config) {
     ${buildBadgeHtml()}
     <div style="max-width:520px;margin:0 auto;font-family:system-ui;padding:16px;color:#444;">
       <p style="margin:0 0 8px;">Acting Intern HUD active.</p>
+      <p style="margin:0 0 4px;font-size:11px;font-family:monospace;color:#888;">
+        secret: ${secretFingerprint(config.secret)}
+      </p>
       <p style="margin:0 0 8px;font-size:13px;color:#666;" id="plugin-state">Waiting for first push…</p>
       <p style="margin:0 0 8px;font-size:12px;color:${config.deepgramKey ? '#15803d' : '#888'};">
         G2 mic dictation: ${config.deepgramKey ? 'ENABLED' : 'disabled (no Deepgram key)'}

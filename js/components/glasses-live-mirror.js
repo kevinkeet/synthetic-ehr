@@ -65,6 +65,7 @@
                     '<div>' +
                       '<h3 style="margin:0;font-size:16px;font-weight:600;">G2 Live HUD</h3>' +
                       '<div id="lhud-subtitle" style="color:#888;font-size:12px;margin-top:4px;">Mirroring relay — assumes plugin is in <strong style="color:#aaa;">live</strong> mode</div>' +
+                      '<div id="lhud-secret-fp" style="color:#666;font-size:11px;font-family:monospace;margin-top:2px;"></div>' +
                     '</div>' +
                     '<button id="lhud-close" style="background:none;border:none;font-size:26px;color:#aaa;cursor:pointer;line-height:1;padding:0 8px;">×</button>' +
                   '</div>' +
@@ -98,6 +99,9 @@
                 return;
             }
             var c = GlassesBridge.getConfig();
+            // Always show secret fingerprint so you can compare to plugin without opening settings.
+            var fpEl = document.getElementById('lhud-secret-fp');
+            if (fpEl) fpEl.textContent = 'EHR secret: ' + this._secretFingerprint(c.secret);
             var url = c.endpoint.replace(/\/+$/, '') + '/state';
             var self = this;
             fetch(url, { headers: { 'X-Glasses-Secret': c.secret }, cache: 'no-store' })
@@ -174,6 +178,13 @@
                 statusEl.style.color = '#fbbf24';
                 statusEl.textContent = '⚠ ' + msg;
             }
+        },
+
+        _secretFingerprint: function (s) {
+            if (!s) return 'no secret set';
+            var n = s.length;
+            if (n <= 8) return 'len ' + n + ' (too short)';
+            return 'len ' + n + ' · ends in …' + s.slice(-8);
         },
 
         _wrap: function (text, maxChars, maxLines) {
