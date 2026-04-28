@@ -63,6 +63,21 @@
         };
     }
 
+    // ---------- 1b. Dictation widget final text → dictation event ----------
+    function hookDictationWidget() {
+        if (typeof DictationWidget === 'undefined' || !DictationWidget._processFinalText) return;
+        var orig = DictationWidget._processFinalText;
+        DictationWidget._processFinalText = function (text) {
+            try {
+                if (window.GlassesBridge && GlassesBridge.isEnabled() && text) {
+                    refreshAnchor();
+                    GlassesBridge.pushEvent(GlassesBridge.buildDictationEvent(text, '\u2713'));
+                }
+            } catch (e) { console.warn('[GlassesBridgeWiring] dictation hook failed:', e); }
+            return orig.apply(this, arguments);
+        };
+    }
+
     // ---------- 2. Order confirmation → order event ----------
     function hookOrderConfirmation() {
         if (typeof SmartGlasses === 'undefined') return;
@@ -109,6 +124,7 @@
 
     function init() {
         whenReady(function () { return typeof AmbientScribe !== 'undefined'; }, hookAmbientScribe);
+        whenReady(function () { return typeof DictationWidget !== 'undefined' && DictationWidget._processFinalText; }, hookDictationWidget);
         whenReady(function () { return typeof SmartGlasses !== 'undefined' && SmartGlasses.showOrderConfirmation; }, hookOrderConfirmation);
         whenReady(function () { return typeof AICoworker !== 'undefined'; }, startAnchorRefresh);
     }
