@@ -122,6 +122,140 @@
         };
     }
 
+    // ---------- 1c. Agentic action triggers from DictationWidget → G2 feedback ----------
+    // The dictation widget routes voice commands to actions (place order, draft
+    // note, message nurse/patient). Each action talks to OTHER subsystems
+    // (OrderEntry, AICoworker, FloatingChat) — hooking them here means the
+    // doctor sees on-G2 feedback whether or not the laptop UI is in view.
+    function hookDictationActions() {
+        if (typeof DictationWidget === 'undefined') return;
+
+        // Order parsing → confirmation pending
+        var origShowOrder = DictationWidget._showOrderConfirmation;
+        if (typeof origShowOrder === 'function') {
+            DictationWidget._showOrderConfirmation = function (order) {
+                try {
+                    if (window.GlassesBridge && GlassesBridge.isEnabled() && order) {
+                        var summary = order.summary || (order.details && order.details.name) || order.type || 'order';
+                        var glyph = (order._safety && order._safety.safe === false) ? '⚠' : '?';
+                        GlassesBridge.pushEvent({
+                            kind: 'order',
+                            text: GlassesBridge._compress('CONFIRM? ' + summary, 100),
+                            glyph: glyph
+                        });
+                    }
+                } catch (e) { console.warn('[GlassesBridgeWiring] _showOrderConfirmation hook failed:', e); }
+                return origShowOrder.apply(this, arguments);
+            };
+        }
+
+        // Voice "confirm" → order placed
+        var origConfirmOrder = DictationWidget._confirmCurrentOrder;
+        if (typeof origConfirmOrder === 'function') {
+            DictationWidget._confirmCurrentOrder = function () {
+                var pending = DictationWidget._activeConfirmation;
+                var result = origConfirmOrder.apply(this, arguments);
+                try {
+                    if (window.GlassesBridge && GlassesBridge.isEnabled() && pending) {
+                        var summary = pending.summary || (pending.details && pending.details.name) || pending.type || 'order';
+                        GlassesBridge.pushEvent({
+                            kind: 'order',
+                            text: GlassesBridge._compress('PLACED ' + summary, 100),
+                            glyph: '✓'
+                        });
+                        // Refresh views so plan mode reflects the new order
+                        refreshViews();
+                    }
+                } catch (e) { console.warn('[GlassesBridgeWiring] _confirmCurrentOrder hook failed:', e); }
+                return result;
+            };
+        }
+
+        // Voice "cancel" → order cancelled
+        var origCancelOrder = DictationWidget._cancelCurrentOrder;
+        if (typeof origCancelOrder === 'function') {
+            DictationWidget._cancelCurrentOrder = function () {
+                var pending = DictationWidget._activeConfirmation;
+                var result = origCancelOrder.apply(this, arguments);
+                try {
+                    if (window.GlassesBridge && GlassesBridge.isEnabled() && pending) {
+                        var summary = pending.summary || (pending.details && pending.details.name) || pending.type || 'order';
+                        GlassesBridge.pushEvent({
+                            kind: 'alert',
+                            text: GlassesBridge._compress('CANCELLED ' + summary, 100),
+                            glyph: '✗'
+                        });
+                    }
+                } catch (e) { console.warn('[GlassesBridgeWiring] _cancelCurrentOrder hook failed:', e); }
+                return result;
+            };
+        }
+
+        // "Write a note" → drafting feedback
+        var origWriteNote = DictationWidget._triggerWriteNote;
+        if (typeof origWriteNote === 'function') {
+            DictationWidget._triggerWriteNote = function (text) {
+                try {
+                    if (window.GlassesBridge && GlassesBridge.isEnabled()) {
+                        var noteType = 'progress';
+                        if (/instruction/i.test(text)) noteType = 'patient instructions';
+                        else if (/letter/i.test(text)) noteType = 'patient letter';
+                        else if (/h\s*(?:and|&)\s*p|(?:^|\s)hp\b/i.test(text)) noteType = 'H&P';
+                        else if (/discharge/i.test(text)) noteType = 'discharge';
+                        else if (/consult/i.test(text)) noteType = 'consult';
+                        GlassesBridge.pushEvent({
+                            kind: 'order',
+                            text: '✎ Drafting ' + noteType + ' note',
+                            glyph: '✓'
+                        });
+                    }
+                } catch (e) { console.warn('[GlassesBridgeWiring] _triggerWriteNote hook failed:', e); }
+                return origWriteNote.apply(this, arguments);
+            };
+        }
+
+        // "Message the nurse / patient" → chat feedback
+        ['_triggerMessageNurse', '_triggerMessagePatient'].forEach(function (fn) {
+            var orig = DictationWidget[fn];
+            if (typeof orig !== 'function') return;
+            var who = fn === '_triggerMessageNurse' ? 'nurse' : 'patient';
+            DictationWidget[fn] = function (context) {
+                try {
+                    if (window.GlassesBridge && GlassesBridge.isEnabled()) {
+                        var preview = (context || '').toString().trim().slice(0, 60);
+                        GlassesBridge.pushEvent({
+                            kind: 'order',
+                            text: '💬 ' + who + (preview ? ': ' + preview : ' chat opened'),
+                            glyph: '✓'
+                        });
+                    }
+                } catch (e) { console.warn('[GlassesBridgeWiring] ' + fn + ' hook failed:', e); }
+                return orig.apply(this, arguments);
+            };
+        });
+
+        // AICoworker.draftSpecificNote / draftContextualNote completion (if exposed)
+        if (typeof AICoworker !== 'undefined') {
+            ['draftSpecificNote', 'draftContextualNote'].forEach(function (fn) {
+                var orig = AICoworker[fn];
+                if (typeof orig !== 'function') return;
+                AICoworker[fn] = function () {
+                    try {
+                        if (window.GlassesBridge && GlassesBridge.isEnabled()) {
+                            var noteType = arguments[0] || 'note';
+                            GlassesBridge.pushEvent({
+                                kind: 'order',
+                                text: '✎ Note draft ready: ' + noteType,
+                                glyph: '✓'
+                            });
+                        }
+                    } catch (e) { console.warn('[GlassesBridgeWiring] ' + fn + ' hook failed:', e); }
+                    return orig.apply(this, arguments);
+                };
+            });
+        }
+    }
+
     // ---------- 2. Order confirmation → order event ----------
     function hookOrderConfirmation() {
         if (typeof SmartGlasses === 'undefined') return;
@@ -168,6 +302,7 @@
     function init() {
         whenReady(function () { return typeof AmbientScribe !== 'undefined'; }, hookAmbientScribe);
         whenReady(function () { return typeof DictationWidget !== 'undefined' && DictationWidget._processFinalText; }, hookDictationWidget);
+        whenReady(function () { return typeof DictationWidget !== 'undefined' && DictationWidget._showOrderConfirmation; }, hookDictationActions);
         whenReady(function () { return typeof SmartGlasses !== 'undefined' && SmartGlasses.showOrderConfirmation; }, hookOrderConfirmation);
         whenReady(function () { return typeof AICoworker !== 'undefined'; }, startBackgroundRefresh);
     }
