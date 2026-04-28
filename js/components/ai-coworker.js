@@ -28,9 +28,9 @@ const AICoworker = {
     apiKey: null,
     apiEndpoint: '/api/claude',
     backendAvailable: false,
-    model: 'claude-opus-4-7',
-    analysisModel: 'claude-opus-4-7', // Opus 4.7 for highest-quality analysis
-    dictationModel: 'claude-opus-4-7', // Opus 4.7 for dictation synthesis
+    model: 'claude-sonnet-4-6',
+    analysisModel: 'claude-sonnet-4-6', // Sonnet 4.6 — fast + high quality (default)
+    dictationModel: 'claude-sonnet-4-6', // Sonnet 4.6 for dictation synthesis
 
     // Current mode config (synced from AIModeConfig)
     get mode_config() {
@@ -41,9 +41,9 @@ const AICoworker = {
     availableModels: [
         { id: 'claude-haiku-4-5-20251001', label: 'Haiku 4.5', description: 'Fastest, good for structured tasks' },
         { id: 'claude-sonnet-4-5-20250929', label: 'Sonnet 4.5', description: 'Balanced quality and speed' },
-        { id: 'claude-sonnet-4-6', label: 'Sonnet 4.6', description: 'Latest balanced Sonnet' },
-        { id: 'claude-opus-4-6', label: 'Opus 4.6', description: 'Previous flagship' },
-        { id: 'claude-opus-4-7', label: 'Opus 4.7', description: 'Highest quality — latest flagship (default)' }
+        { id: 'claude-sonnet-4-6', label: 'Sonnet 4.6', description: 'Fast + high quality (default)' },
+        { id: 'claude-opus-4-6', label: 'Opus 4.6', description: 'Slower, highest quality' },
+        { id: 'claude-opus-4-7', label: 'Opus 4.7', description: 'Slowest, latest flagship' }
     ],
 
     // Longitudinal Clinical Document
