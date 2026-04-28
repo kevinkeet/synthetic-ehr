@@ -50,6 +50,8 @@ const POLL_INTERVAL_MS = 500;
 const ANCHOR_CONTAINER_ID = 1;
 const BOTTOM_CONTAINER_ID = 2;
 const G2_MAX_LINE = 40;
+// Pre-filled in the setup form so the user only ever types the secret + Deepgram key.
+const RELAY_DEFAULT = 'https://acting-intern-relay.kevinkeet.workers.dev';
 
 const localState = {
   mode: 'live' as Mode,
@@ -65,10 +67,30 @@ let cfg: Config | null = null;
 let dgWs: WebSocket | null = null;
 let dgConnecting = false;
 
-function readConfig(): Config | null {
+/**
+ * Persistent storage uses the Even app's `bridge.setLocalStorage` /
+ * `bridge.getLocalStorage` rather than the WebView's native localStorage.
+ * The WebView clears its own localStorage when the .ehpk is reinstalled;
+ * the SDK-managed store survives reinstalls so the user only configures once.
+ *
+ * On first load we also try the browser localStorage as a one-time fallback
+ * so users who set up under the old plugin version don't have to re-enter.
+ */
+async function readConfig(): Promise<Config | null> {
+  if (!bridge) return null;
+  let raw = '';
+  try { raw = (await bridge.getLocalStorage(STORAGE_KEY)) || ''; }
+  catch (e) { console.warn('[plugin] bridge.getLocalStorage failed:', e); }
+
+  if (!raw) {
+    // One-time migration from old WebView-localStorage config.
+    try {
+      const legacy = localStorage.getItem(STORAGE_KEY);
+      if (legacy) { raw = legacy; await writeConfigRaw(legacy); console.log('[plugin] migrated config from WebView localStorage'); }
+    } catch { /* ignore */ }
+  }
+  if (!raw) return null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
     const c = JSON.parse(raw);
     if (!c.relay || !c.secret) return null;
     return {
@@ -79,8 +101,16 @@ function readConfig(): Config | null {
   } catch { return null; }
 }
 
-function writeConfig(c: Config) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(c));
+async function writeConfig(c: Config) {
+  await writeConfigRaw(JSON.stringify(c));
+}
+
+async function writeConfigRaw(raw: string) {
+  if (!bridge) return;
+  try { await bridge.setLocalStorage(STORAGE_KEY, raw); }
+  catch (e) { console.warn('[plugin] bridge.setLocalStorage failed:', e); }
+  // Mirror to WebView localStorage too — defense in depth.
+  try { localStorage.setItem(STORAGE_KEY, raw); } catch { /* ignore */ }
 }
 
 function escAttr(s: string): string {
@@ -110,9 +140,8 @@ function renderSetupForm(initial: Partial<Config>) {
         The Deepgram key powers G2-mic dictation; leave blank to disable that feature.
       </p>
       <label style="display:block;margin-bottom:12px;font-size:13px;">
-        Relay URL
-        <input id="cfg-relay" type="url" value="${escAttr(initial.relay || '')}"
-          placeholder="https://acting-intern-relay.workers.dev"
+        Relay URL <span style="color:#888;font-weight:400;">(prefilled — change only if you redeployed)</span>
+        <input id="cfg-relay" type="url" value="${escAttr(initial.relay || RELAY_DEFAULT)}"
           style="display:block;width:100%;padding:8px;margin-top:4px;border:1px solid #ccc;border-radius:4px;font-size:14px;box-sizing:border-box;">
       </label>
       <label style="display:block;margin-bottom:12px;font-size:13px;">
@@ -153,7 +182,7 @@ async function onSaveClicked() {
     return;
   }
   const c: Config = { relay: relay.replace(/\/+$/, ''), secret, deepgramKey };
-  writeConfig(c);
+  await writeConfig(c);
   if (statusEl) { statusEl.style.color = '#15803d'; statusEl.textContent = 'Saved. Connecting…'; }
   await startPlugin(c);
 }
@@ -449,11 +478,13 @@ async function startPlugin(config: Config) {
     renderSetupForm(config);
   };
 
-  try {
-    bridge = await waitForEvenAppBridge();
-  } catch {
-    setStatus(`<p style="color:#c2410c;font-family:system-ui;padding:24px;">Even app bridge not available. Open this from inside the Even Realities app on your phone.</p>`);
-    return;
+  if (!bridge) {
+    try {
+      bridge = await waitForEvenAppBridge();
+    } catch {
+      setStatus(`<p style="color:#c2410c;font-family:system-ui;padding:24px;">Even app bridge not available. Open this from inside the Even Realities app on your phone.</p>`);
+      return;
+    }
   }
 
   // Initial state + page container
@@ -492,7 +523,15 @@ async function startPlugin(config: Config) {
 }
 
 async function main() {
-  const c = readConfig();
+  // Acquire the bridge BEFORE reading config — config now lives in
+  // bridge.getLocalStorage (survives .ehpk reinstalls).
+  try {
+    bridge = await waitForEvenAppBridge();
+  } catch {
+    setStatus(`<p style="color:#c2410c;font-family:system-ui;padding:24px;">Even app bridge not available. Open this from inside the Even Realities app on your phone.</p>`);
+    return;
+  }
+  const c = await readConfig();
   if (!c) { renderSetupForm({}); return; }
   await startPlugin(c);
 }
