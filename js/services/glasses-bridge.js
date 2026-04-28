@@ -243,7 +243,7 @@
                     var author = n.author ? ' \u00B7 ' + n.author : '';
                     return {
                         line1: 'Note ' + (i + 1) + '/' + Math.min(src.length, 20) + ' \u00B7 ' + GlassesBridge._compress(title + author, 30),
-                        line2: GlassesBridge._compress(date, 38)
+                        line2: GlassesBridge._compress(snippet, 200)
                     };
                 });
             } catch (_) { return []; }
@@ -254,15 +254,15 @@
                 if (typeof AICoworker === 'undefined' || !AICoworker.state) return [];
                 var s = AICoworker.state;
                 var pages = [];
-                if (s.aiOneLiner) pages.push({ line1: 'AI Gestalt', line2: this._compress(s.aiOneLiner, 38) });
-                if (s.summary) pages.push({ line1: 'Summary', line2: this._compress(this._stripMarkdown(s.summary), 38) });
-                if (s.thinking) pages.push({ line1: 'Trajectory', line2: this._compress(s.thinking, 38) });
-                if (s.trajectoryAssessment) pages.push({ line1: 'Trajectory+', line2: this._compress(s.trajectoryAssessment, 38) });
+                if (s.aiOneLiner) pages.push({ line1: 'AI Gestalt', line2: this._compress(s.aiOneLiner, 220) });
+                if (s.summary) pages.push({ line1: 'Summary', line2: this._compress(this._stripMarkdown(s.summary), 220) });
+                if (s.thinking) pages.push({ line1: 'Trajectory', line2: this._compress(s.thinking, 220) });
+                if (s.trajectoryAssessment) pages.push({ line1: 'Trajectory+', line2: this._compress(s.trajectoryAssessment, 220) });
                 if (s.clinicalSummary && s.clinicalSummary.demographics) {
-                    pages.push({ line1: 'Demographics', line2: this._compress(s.clinicalSummary.demographics, 38) });
+                    pages.push({ line1: 'Demographics', line2: this._compress(s.clinicalSummary.demographics, 220) });
                 }
                 if (s.clinicalSummary && s.clinicalSummary.presentation) {
-                    pages.push({ line1: 'Presentation', line2: this._compress(s.clinicalSummary.presentation, 38) });
+                    pages.push({ line1: 'Presentation', line2: this._compress(s.clinicalSummary.presentation, 220) });
                 }
                 return pages;
             } catch (_) { return []; }
@@ -276,8 +276,8 @@
                 return probs.slice(0, 12).map(function (p) {
                     var icon = p.urgency === 'urgent' ? '! ' : (p.urgency === 'monitoring' ? '~ ' : '  ');
                     return {
-                        line1: icon + self._compress(p.name || '', 36),
-                        line2: self._compress(p.plan || p.ddx || '', 38)
+                        line1: icon + self._compress(p.name || '', 80),
+                        line2: self._compress(p.plan || p.ddx || '', 220)
                     };
                 });
             } catch (_) { return []; }
@@ -290,12 +290,12 @@
                     var flags = AICoworker.state.flags || [];
                     flags.slice(0, 8).forEach(function (f) {
                         var text = typeof f === 'string' ? f : (f.text || '');
-                        if (text) pages.push({ line1: '\u26A0 Safety flag', line2: GlassesBridge._compress(text, 38) });
+                        if (text) pages.push({ line1: '\u26A0 Safety flag', line2: GlassesBridge._compress(text, 220) });
                     });
                     var key = AICoworker.state.keyConsiderations || [];
                     key.slice(0, 5).forEach(function (k) {
                         var text = typeof k === 'string' ? k : (k.text || '');
-                        if (text) pages.push({ line1: '\u26A0 Consideration', line2: GlassesBridge._compress(text, 38) });
+                        if (text) pages.push({ line1: '\u26A0 Consideration', line2: GlassesBridge._compress(text, 220) });
                     });
                 }
                 // Critical labs from longitudinal doc
@@ -307,7 +307,7 @@
                                 var v = trend.latestValue;
                                 pages.push({
                                     line1: '\u26A0 Critical lab',
-                                    line2: GlassesBridge._compress(name + ' ' + v.value + (v.unit || ''), 38)
+                                    line2: GlassesBridge._compress(name + ' ' + v.value + (v.unit || ''), 80)
                                 });
                             }
                         });
@@ -319,7 +319,7 @@
                     pt.allergies.slice(0, 4).forEach(function (a) {
                         var sub = a.substance || a.name || '';
                         var rx = a.reaction || '';
-                        if (sub) pages.push({ line1: '\u26A0 Allergy', line2: GlassesBridge._compress(sub + (rx ? ' \u2192 ' + rx : ''), 38) });
+                        if (sub) pages.push({ line1: '\u26A0 Allergy', line2: GlassesBridge._compress(sub + (rx ? ' \u2192 ' + rx : ''), 220) });
                     });
                 }
                 return pages;
@@ -334,7 +334,7 @@
                 var actions = s.suggestedActions || [];
                 actions.slice(0, 12).forEach(function (a) {
                     var text = typeof a === 'string' ? a : (a.text || '');
-                    if (text) pages.push({ line1: '\u2192 Plan', line2: GlassesBridge._compress(text, 38) });
+                    if (text) pages.push({ line1: '\u2192 Plan', line2: GlassesBridge._compress(text, 220) });
                 });
                 // Categorized actions if present and not already captured
                 var cat = s.categorizedActions || {};
@@ -343,7 +343,7 @@
                     arr.slice(0, 5).forEach(function (a) {
                         var text = a.text || '';
                         if (text && !pages.some(function (p) { return p.line2.indexOf(text.slice(0, 20)) >= 0; })) {
-                            pages.push({ line1: '\u2192 ' + key, line2: GlassesBridge._compress(text, 38) });
+                            pages.push({ line1: '\u2192 ' + key, line2: GlassesBridge._compress(text, 220) });
                         }
                     });
                 });

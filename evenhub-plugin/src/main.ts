@@ -77,11 +77,18 @@ const RELAY_DEFAULT = 'https://acting-intern-relay.kevinkeet.workers.dev';
 const localState = {
   mode: 'live' as Mode,
   page: 0,
+  scrollOffset: 0,        // line offset within current page's wrapped content
   lastSeenModeVersion: -1,
   relay: null as RelayState | null,
   lastTop: '',
   lastBottom: '',
 };
+
+// Lines that fit inside the bottom container at the default G2 font.
+// 144 px / ~28 px per line ≈ 5 lines with breathing room.
+const VISIBLE_LINES_BOTTOM = 5;
+const VISIBLE_LINES_TOP = 2;
+const VISIBLE_LINES_TOTAL_DICTATION = VISIBLE_LINES_TOP + VISIBLE_LINES_BOTTOM;
 
 let bridge: EvenAppBridge | null = null;
 let cfg: Config | null = null;
@@ -153,16 +160,15 @@ function fit(s: string, max = G2_MAX_LINE): string {
 }
 
 /**
- * Wrap text at word boundaries to <= maxCharsPerLine chars per line, joined
- * with '\n'. The G2 SDK accepts '\n' inside a TextContainerProperty's content.
- * Caps at maxLines lines and adds an ellipsis if more would overflow.
- * Prefer this over fit() for the bottom container (144 px tall ≈ 3–4 lines).
+ * Split text into word-wrapped lines (no truncation, returns full array).
+ * Caller decides how many lines to render; ring scroll moves the visible window.
  */
-function wrap(text: string, maxCharsPerLine = G2_MAX_LINE, maxLines = 3): string {
-  if (!text) return '';
-  text = String(text).replace(/\s+/g, ' ').trim();
-  if (text.length <= maxCharsPerLine) return text;
-  const words = text.split(' ');
+function wrapLines(text: string, maxCharsPerLine = G2_MAX_LINE): string[] {
+  if (!text) return [];
+  const t = String(text).replace(/\s+/g, ' ').trim();
+  if (!t) return [];
+  if (t.length <= maxCharsPerLine) return [t];
+  const words = t.split(' ');
   const lines: string[] = [];
   let cur = '';
   for (const w of words) {
@@ -171,23 +177,12 @@ function wrap(text: string, maxCharsPerLine = G2_MAX_LINE, maxLines = 3): string
       cur = candidate;
     } else {
       if (cur) lines.push(cur);
-      if (lines.length >= maxLines) { cur = ''; break; }
-      // Single word longer than the line — hard-break it.
+      // Single word longer than a line — hard-break it.
       cur = w.length > maxCharsPerLine ? w.slice(0, maxCharsPerLine - 1) + '…' : w;
     }
   }
-  if (cur && lines.length < maxLines) lines.push(cur);
-  if (lines.length === maxLines) {
-    // If there were leftover words, mark truncation on the last line.
-    const consumedLen = lines.reduce((a, l) => a + l.length + 1, 0);
-    if (consumedLen < text.length) {
-      const last = lines[maxLines - 1];
-      lines[maxLines - 1] = last.length >= maxCharsPerLine
-        ? last.slice(0, maxCharsPerLine - 1) + '…'
-        : last + '…';
-    }
-  }
-  return lines.join('\n');
+  if (cur) lines.push(cur);
+  return lines;
 }
 
 function setStatus(html: string) {
@@ -234,7 +229,7 @@ function renderSetupForm(initial: Partial<Config>) {
       <h3 style="margin:0 0 8px;font-size:14px;color:#333;">Controls on G2</h3>
       <ul style="margin:0;padding-left:18px;font-size:13px;color:#555;line-height:1.6;">
         <li><strong>Single tap</strong> (ring or temple) — cycle mode (live → dictation → notes → AI → problems → alerts → plan)</li>
-        <li><strong>Scroll up/down</strong> — page within current mode (e.g. older / newer dictations)</li>
+        <li><strong>Scroll down/up</strong> — scroll the paragraph one line within the current item; at the end, advance to the next item; at the top, jump to the previous item</li>
         <li><strong>Double tap</strong> — back to live mode</li>
       </ul>
     </div>
@@ -336,22 +331,54 @@ function computeLines(): { top: string; bottom: string } {
   }
   const idx = Math.min(Math.max(0, localState.page), pages.length - 1);
   const page = pages[idx];
-  // Dictation mode: clean scratchpad — both lines used for the dictation,
-  // no [MODE p/n] header. Newest is page 0; scroll for history.
+
+  // Combine line1 + line2 into one paragraph, then wrap to a stack of
+  // ~38-char lines. Ring scroll moves a window through this stack.
+  const fullText = [page.line1, page.line2].filter(Boolean).join(' ');
+  const wrapped = wrapLines(fullText, G2_MAX_LINE - 2);
+  const total = wrapped.length;
+
+  // Dictation mode: no [MODE p/n] header. Use both top + bottom containers
+  // as one continuous scroll viewport (~7 visible lines).
   if (localState.mode === 'dictation') {
-    return { top: page.line1 || ' ', bottom: page.line2 || ' ' };
+    const off = clampOffset(localState.scrollOffset, total, VISIBLE_LINES_TOTAL_DICTATION);
+    const topLines = wrapped.slice(off, off + VISIBLE_LINES_TOP);
+    const botLines = wrapped.slice(off + VISIBLE_LINES_TOP, off + VISIBLE_LINES_TOTAL_DICTATION);
+    return { top: topLines.join('\n') || ' ', bottom: botLines.join('\n') || ' ' };
   }
-  const header = `[${localState.mode.toUpperCase()} ${idx + 1}/${pages.length}] ${page.line1 || ''}`;
-  return { top: header, bottom: page.line2 || ' ' };
+
+  // Other modes: top container has the header + scroll indicator; bottom
+  // container shows up to VISIBLE_LINES_BOTTOM wrapped lines.
+  const off = clampOffset(localState.scrollOffset, total, VISIBLE_LINES_BOTTOM);
+  const end = Math.min(off + VISIBLE_LINES_BOTTOM, total);
+  const upArrow = off > 0 ? '▲' : ' ';
+  const downArrow = end < total ? '▼' : ' ';
+  const scrollIndicator = total > VISIBLE_LINES_BOTTOM
+    ? ` ${upArrow}${off + 1}-${end}/${total}${downArrow}`
+    : '';
+  const header = `[${localState.mode.toUpperCase()} ${idx + 1}/${pages.length}]${scrollIndicator}`;
+  const visible = wrapped.slice(off, end).join('\n');
+  return { top: header, bottom: visible || ' ' };
+}
+
+function clampOffset(off: number, total: number, visible: number): number {
+  if (total <= visible) return 0;
+  return Math.max(0, Math.min(off, total - visible));
 }
 
 async function applyRender() {
   if (!bridge) return;
   const lines = computeLines();
-  // Anchor (top): one line max, fits cleanly. Truncate hard if too long.
-  const top = fit(lines.top, G2_MAX_LINE);
-  // Event/page content (bottom): wrap to up to 3 lines using \n inside the container.
-  const bottom = wrap(lines.bottom, G2_MAX_LINE, 3);
+  // For live mode, top is single-line anchor and bottom may need wrapping.
+  // For non-live modes, computeLines already laid out multi-line \n content
+  // for both containers — pass through as-is.
+  let top = lines.top;
+  let bottom = lines.bottom;
+  if (localState.mode === 'live') {
+    top = fit(lines.top, G2_MAX_LINE);
+    // Bottom in live mode is the most recent dictation/order — wrap to 3 lines.
+    bottom = wrapLines(lines.bottom, G2_MAX_LINE).slice(0, 3).join('\n') || ' ';
+  }
   if (top === localState.lastTop && bottom === localState.lastBottom) return;
 
   if (top !== localState.lastTop) {
@@ -375,7 +402,7 @@ function updateDebugUi() {
   const el = document.getElementById('plugin-state');
   if (!el) return;
   const s = localState.relay;
-  el.textContent = `mode=${localState.mode} page=${localState.page} v=${s?.version ?? 0} top="${localState.lastTop.slice(0, 30)}" bot="${localState.lastBottom.slice(0, 30)}"`;
+  el.textContent = `mode=${localState.mode} page=${localState.page} scroll=${localState.scrollOffset} v=${s?.version ?? 0}`;
 }
 
 // ---------- Navigation ----------
@@ -384,6 +411,7 @@ function setMode(mode: Mode) {
   if (localState.mode === mode) return;
   localState.mode = mode;
   localState.page = 0;
+  localState.scrollOffset = 0;
   applyRender();
 }
 
@@ -398,6 +426,7 @@ function pageNext() {
   const pages = (localState.relay?.views[localState.mode]) || [];
   if (!pages.length) return;
   localState.page = (localState.page + 1) % pages.length;
+  localState.scrollOffset = 0;
   applyRender();
 }
 
@@ -406,7 +435,49 @@ function pagePrev() {
   const pages = (localState.relay?.views[localState.mode]) || [];
   if (!pages.length) return;
   localState.page = (localState.page - 1 + pages.length) % pages.length;
+  localState.scrollOffset = 0;
   applyRender();
+}
+
+/** Total wrapped lines for the current page (used to decide when to advance pages). */
+function currentPageLineCount(): number {
+  const pages = (localState.relay?.views[localState.mode]) || [];
+  if (!pages.length) return 0;
+  const page = pages[Math.min(localState.page, pages.length - 1)];
+  const fullText = [page.line1, page.line2].filter(Boolean).join(' ');
+  return wrapLines(fullText, G2_MAX_LINE - 2).length;
+}
+
+function visibleLinesForCurrentMode(): number {
+  return localState.mode === 'dictation' ? VISIBLE_LINES_TOTAL_DICTATION : VISIBLE_LINES_BOTTOM;
+}
+
+/**
+ * Scroll DOWN one line within the current page. If already at the bottom of
+ * the visible window AND content fits or is past the end, advance to the
+ * next page (resetting scrollOffset).
+ */
+function scrollDown() {
+  if (localState.mode === 'live') return;
+  const total = currentPageLineCount();
+  const visible = visibleLinesForCurrentMode();
+  if (localState.scrollOffset + visible < total) {
+    localState.scrollOffset++;
+    applyRender();
+  } else {
+    pageNext();
+  }
+}
+
+/** Scroll UP one line. If already at the top, jump to the previous page. */
+function scrollUp() {
+  if (localState.mode === 'live') return;
+  if (localState.scrollOffset > 0) {
+    localState.scrollOffset--;
+    applyRender();
+  } else {
+    pagePrev();
+  }
 }
 
 // ---------- Event handler (ring + temple) ----------
@@ -436,10 +507,10 @@ function onEvent(event: EvenHubEvent) {
       setMode('live');
       return;
     case OsEventTypeList.SCROLL_TOP_EVENT:
-      pagePrev();
+      scrollUp();
       return;
     case OsEventTypeList.SCROLL_BOTTOM_EVENT:
-      pageNext();
+      scrollDown();
       return;
     case OsEventTypeList.CLICK_EVENT:
       cycleMode();
