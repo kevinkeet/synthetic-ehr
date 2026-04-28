@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "pack": "npm run build && evenhub pack app.json dist -o acting-intern.ehpk",
-    "qr": "evenhub qr --url http://localhost:5173"
+    "qr": "evenhub qr --url http://localhost:5173",
+    "sim": "evenhub-simulator http://localhost:5173 --automation-port 9898"
   },
   "dependencies": {
     "@evenrealities/even_hub_sdk": "^0.0.10"
