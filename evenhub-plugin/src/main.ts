@@ -87,6 +87,11 @@ const MAIN_CONTAINER_ID = 1;
 const G2_MAX_LINE = 42; // a touch wider since we now use full width minus padding
 // Pre-filled in the setup form so the user only ever types the secret + Deepgram key.
 const RELAY_DEFAULT = 'https://acting-intern-relay.kevinkeet.workers.dev';
+// Build-time baked secret matching the EHR's BAKED_DEFAULTS — auto-starts the
+// plugin without a setup form on first launch (simulator + .ehpk reinstall).
+// Anyone who installs this .ehpk gets the same auth as the EHR; rotate the
+// secret on the relay to revoke.
+const SECRET_DEFAULT = '59e10ba81146f1ad82b254e590f2734ae6bc92d9561ea23b244dc667386ffd16';
 
 const localState = {
   mode: 'live' as Mode,
@@ -98,10 +103,12 @@ const localState = {
   lastBottom: '',
 };
 
-// Calibrated on real device — only ~3 lines fit at the G2's default font
-// even with single container + zero padding. Was over-estimating.
-const VISIBLE_LINES = 3;
-// Non-live modes spend one line on the header, leaving 2 for content.
+// Calibrated against the official Even Hub simulator screenshot: at default
+// font + zero padding, the 576x288 container fits ~7 lines comfortably.
+// (Was over-corrected to 3 after misinterpreting earlier two-container
+// behavior — single container + this count is the right balance.)
+const VISIBLE_LINES = 7;
+// Non-live modes spend one line on the header, leaving 6 for content.
 const VISIBLE_LINES_NONLIVE_CONTENT = VISIBLE_LINES - 1;
 
 // Short, all-caps mode labels for the header so the user always knows which
@@ -816,7 +823,13 @@ async function main() {
     setStatus(`<p style="color:#c2410c;font-family:system-ui;padding:24px;">Even app bridge not available. Open this from inside the Even Realities app on your phone.</p>`);
     return;
   }
-  const c = await readConfig();
+  let c = await readConfig();
+  // Fall back to baked defaults so simulator + fresh installs auto-start.
+  // User can still change secret/Deepgram via the Reconfigure button.
+  if (!c && RELAY_DEFAULT && SECRET_DEFAULT) {
+    c = { relay: RELAY_DEFAULT, secret: SECRET_DEFAULT, deepgramKey: '' };
+    console.log('[plugin] no saved config — using baked defaults');
+  }
   if (!c) { renderSetupForm({}); return; }
   await startPlugin(c);
 }
