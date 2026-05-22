@@ -1,0 +1,74 @@
+{
+  "id": "AP1",
+  "order": 1,
+  "title": "Initial urgent care presentation",
+  "anchorDate": "2026-01-12T23:59:59Z",
+  "timeLimitMinutes": 15,
+  "scenarioBrief": "Maria Sandoval, a 22-year-old Spanish-speaking woman, was seen at urgent care today (2026-01-12) for 6 months of progressive joint pain and hair loss. You receive her urgent care records and a request to follow up. Review the chart and respond to the prompts below. You may use the AI assistant freely.",
+  "chartGate": {
+    "includeBeforeOrEqualDate": "2026-01-12T23:59:59Z",
+    "_notes": "AP1 visibility: pre-immigration history, 2018-2019 community health visits, 2026-01-12 urgent care visit + its labs. No further encounters yet."
+  },
+  "prompts": [
+    {
+      "id": "AP1-Q1",
+      "order": 1,
+      "type": "differential",
+      "question": "TODO — Phase 2 content session: write the prompt asking for a top differential diagnosis. Should encourage use of AI assistant.",
+      "expectedResponseFormat": "free_text",
+      "minLength": 100,
+      "rubric": {
+        "essential": [
+          "TODO: list ~5 essential DDx items the resident should generate (e.g., SLE, viral arthropathy, RA, UCTD, reactive arthritis)"
+        ],
+        "bonus": [
+          "TODO: list 3-5 bonus items showing broader thinking (e.g., autoimmune thyroiditis, disseminated TB given epidemiology, Behcet's, Sjogren's)"
+        ],
+        "redFlags": [
+          "TODO: list reasoning errors that should be penalized (e.g., anchoring on SLE based on 1:80 ANA alone, ignoring the empiric HCQ-before-specialist-eval problem)"
+        ]
+      },
+      "weight": 1.0
+    },
+    {
+      "id": "AP1-Q2",
+      "order": 2,
+      "type": "context-curation",
+      "question": "TODO — Phase 2: write the prompt asking the resident to describe which chart sections they fed the AI and why.",
+      "expectedResponseFormat": "free_text",
+      "minLength": 60,
+      "rubric": {
+        "essential": [
+          "TODO: essential chart elements the resident should include (HPI, FHx, social Hx with immigration context)"
+        ],
+        "bonus": [
+          "TODO: bonus context choices showing nuance (explicit ANA titer with reference range, recognition that med list does not bias DDx)"
+        ],
+        "redFlags": [
+          "TODO: red flags (dumping entire chart, including PAT001 data accidentally)"
+        ]
+      },
+      "weight": 0.7
+    },
+    {
+      "id": "AP1-Q3",
+      "order": 3,
+      "type": "ai-output-evaluation",
+      "_aiPromptToGenerate": "TODO — Phase 2: write the system prompt that the assessment engine will use to generate a deliberately-flawed AI sample output for the resident to critique. Should anchor on SLE, miss viral arthropathy and the disseminated TB consideration, be confidently worded.",
+      "question": "TODO — Phase 2: write the prompt asking the resident to evaluate the AI response shown above.",
+      "expectedResponseFormat": "free_text",
+      "minLength": 80,
+      "rubric": {
+        "shouldIdentify": [
+          "TODO: items the resident should flag (missing viral arthropathy, over-confident in SLE, not addressing thyroid finding, not considering TB)"
+        ],
+        "shouldNotEcho": [
+          "TODO: things the resident should NOT just parrot back (the AI's exact wording, false certainty)"
+        ]
+      },
+      "weight": 1.0
+    }
+  ],
+  "totalWeight": 2.7,
+  "passingScorePct": 60
+}

@@ -1,0 +1,14 @@
+{
+  "caseId": "PAT002",
+  "caseTitle": "Maria Sandoval — Polyarthritis with hair loss",
+  "patientId": "PAT002",
+  "version": "0.1.0-scaffold",
+  "status": "scaffold",
+  "_status_notes": "Skeleton only. Questions, rubrics, AI-generation prompts, and grader prompts are placeholders. Fill in rubric content during Phase 2 chart-building sessions.",
+  "totalTimeLimitMinutes": 85,
+  "assessments": ["AP1", "AP2", "AP3", "AP4", "AP5"],
+  "passingOverallScorePct": 70,
+  "description": "5-assessment diagnostic and management simulation testing resident-AI collaboration on a complex multi-system case adapted from NEJM Clinical Problem-Solving 'Peeling and Plummeting' (2024). The case spans 2 years and is designed to expose how residents select context, frame questions to AI, and recognize AI errors under realistic chart overwhelm.",
+  "warning": "Allow at least 90 minutes uninterrupted. Pausing is permitted but stops the timer.",
+  "instructions": "You are evaluating a real patient. Use the chart and the AI assistant as you normally would. Each prompt asks you to either answer a clinical question, describe your AI usage, or critique an AI-generated response. Your responses are graded by an AI grader; AI usage patterns are recorded for review. The diagnosis is revealed only at the end."
+}

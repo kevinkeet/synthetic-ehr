@@ -1,0 +1,74 @@
+{
+  "id": "AP2",
+  "order": 2,
+  "title": "ED bounce — missed opportunity",
+  "anchorDate": "2026-11-04T23:59:59Z",
+  "timeLimitMinutes": 10,
+  "scenarioBrief": "Ten months later, Maria presents to the ED (2026-11-04) with new symptoms. The intervening chart now includes a rheum referral that never happened (insurance lapse), a brief urgent care revisit, and pharmacy refill gaps for HCQ. You are covering night float and asked to triage. Review the chart and respond. AI assistant available.",
+  "chartGate": {
+    "includeBeforeOrEqualDate": "2026-11-04T23:59:59Z",
+    "_notes": "AP2 visibility: everything in AP1 + 2026 spring-fall data (refill gaps, urgent care revisit, social work note about insurance loss, weight trend showing early loss). No 2027 data yet."
+  },
+  "prompts": [
+    {
+      "id": "AP2-Q1",
+      "order": 1,
+      "type": "context-curation",
+      "question": "TODO — Phase 2: write the prompt asking which longitudinal trends from the chart the resident chose to surface to the AI, given the volume of intervening data.",
+      "expectedResponseFormat": "free_text",
+      "minLength": 80,
+      "rubric": {
+        "essential": [
+          "TODO: essential trends (HCQ refill gaps, weight loss trajectory, missed rheum referral, persistent alopecia)"
+        ],
+        "bonus": [
+          "TODO: bonus context (insurance loss timing, language-barrier notes, subclinical hypothyroid still untreated trend)"
+        ],
+        "redFlags": [
+          "TODO: red flags (pasting raw chart, missing the social determinants thread, ignoring adherence data)"
+        ]
+      },
+      "weight": 1.0
+    },
+    {
+      "id": "AP2-Q2",
+      "order": 2,
+      "type": "management",
+      "question": "TODO — Phase 2: write the prompt asking what the resident's immediate disposition + workup plan is and how AI shaped it.",
+      "expectedResponseFormat": "free_text",
+      "minLength": 100,
+      "rubric": {
+        "essential": [
+          "TODO: essential moves (restart HCQ, re-engage rheum, address weight loss workup, social work consult)"
+        ],
+        "bonus": [
+          "TODO: bonus (recognizing missed opportunity from AP1, proactive nutrition screen, dysphagia screen)"
+        ],
+        "redFlags": [
+          "TODO: red flags (discharge without follow-up, anchoring only on flare, ignoring weight loss)"
+        ]
+      },
+      "weight": 1.0
+    },
+    {
+      "id": "AP2-Q3",
+      "order": 3,
+      "type": "ai-output-evaluation",
+      "_aiPromptToGenerate": "TODO — Phase 2: write the system prompt to generate a flawed AI response that confidently calls this a 'simple SLE flare needing steroid burst' and misses the weight loss / adherence thread.",
+      "question": "TODO — Phase 2: write the prompt asking the resident to critique the AI's suggested plan.",
+      "expectedResponseFormat": "free_text",
+      "minLength": 80,
+      "rubric": {
+        "shouldIdentify": [
+          "TODO: items resident should flag (AI ignored weight loss, ignored adherence question, jumped to steroids without confirming dx)"
+        ],
+        "shouldNotEcho": [
+          "TODO: things resident should not parrot (AI's steroid-first plan, false dx confidence)"
+        ]
+      },
+      "weight": 1.0
+    }
+  ],
+  "totalWeight": 3.0,
+  "passingScorePct": 60
+}

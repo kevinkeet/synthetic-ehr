@@ -1,0 +1,94 @@
+{
+  "id": "AP3",
+  "order": 3,
+  "title": "Catastrophic admission — multi-system data dump",
+  "anchorDate": "2027-03-15T23:59:59Z",
+  "timeLimitMinutes": 25,
+  "scenarioBrief": "Four months later (2027-03-15), Maria is admitted from clinic with severe weight loss, scaling rash, edema, weakness, and dysphagia. The chart is now flooded: multiple ED visits over the prior 6 weeks, dozens of labs, two outpatient notes, imaging, and consult requests. You are the admitting hospitalist intern. Build a working differential and prioritize the workup. AI assistant available.",
+  "chartGate": {
+    "includeBeforeOrEqualDate": "2027-03-15T23:59:59Z",
+    "_notes": "AP3 visibility: everything through 2027-03-15 admission day — heavy data dump. Inpatient daily progress notes from this admission are NOT yet visible (those land in AP4)."
+  },
+  "prompts": [
+    {
+      "id": "AP3-Q1",
+      "order": 1,
+      "type": "differential",
+      "question": "TODO — Phase 2: prompt asking for a prioritized differential given the multi-system picture, with explicit reasoning about what unifies vs splits the findings.",
+      "expectedResponseFormat": "free_text",
+      "minLength": 150,
+      "rubric": {
+        "essential": [
+          "TODO: essential DDx (active SLE flare with myositis, kwashiorkor/severe malnutrition, dysphagia workup needed, infectious considerations given immunosuppression risk)"
+        ],
+        "bonus": [
+          "TODO: bonus (linking dysphagia → starvation → kwashiorkor causal chain, considering refeeding risk pre-emptively, dermatomyositis vs SLE overlap)"
+        ],
+        "redFlags": [
+          "TODO: red flags (splitting findings into unrelated buckets, missing nutrition entirely, premature closure on 'SLE flare')"
+        ]
+      },
+      "weight": 1.5
+    },
+    {
+      "id": "AP3-Q2",
+      "order": 2,
+      "type": "context-curation",
+      "question": "TODO — Phase 2: prompt asking how the resident filtered/summarized the chart for AI given the volume — what they included, excluded, and why.",
+      "expectedResponseFormat": "free_text",
+      "minLength": 100,
+      "rubric": {
+        "essential": [
+          "TODO: essential (weight trajectory, albumin/protein trend, CK if available, recent labs, current meds, dysphagia onset timing)"
+        ],
+        "bonus": [
+          "TODO: bonus (structured summary rather than raw paste, explicit signal/noise reasoning, anchoring the AI on the time course)"
+        ],
+        "redFlags": [
+          "TODO: red flags (dumping whole chart, omitting nutritional labs, ignoring social context relevant to access barriers)"
+        ]
+      },
+      "weight": 0.8
+    },
+    {
+      "id": "AP3-Q3",
+      "order": 3,
+      "type": "management",
+      "question": "TODO — Phase 2: prompt asking for the first 24-hour workup + management plan, including what to order and what to hold.",
+      "expectedResponseFormat": "free_text",
+      "minLength": 120,
+      "rubric": {
+        "essential": [
+          "TODO: essential (CK, aldolase, EMG/muscle biopsy plan, dysphagia eval/swallow study, nutrition consult, electrolytes for refeeding, ID screen before steroids)"
+        ],
+        "bonus": [
+          "TODO: bonus (cautious feeding initiation, phos/mag/K monitoring schedule, TB reactivation check before immunosuppression)"
+        ],
+        "redFlags": [
+          "TODO: red flags (high-dose feeding without refeeding precautions, pulse steroids without infection workup, ignoring dysphagia aspiration risk)"
+        ]
+      },
+      "weight": 1.5
+    },
+    {
+      "id": "AP3-Q4",
+      "order": 4,
+      "type": "ai-output-evaluation",
+      "_aiPromptToGenerate": "TODO — Phase 2: write the system prompt to generate an AI response that produces a plausible but overcomplicated 15-item DDx with no prioritization, misses the kwashiorkor/refeeding angle, and recommends starting feeds aggressively.",
+      "question": "TODO — Phase 2: prompt asking the resident to critique the AI output and identify what's actionable vs noise.",
+      "expectedResponseFormat": "free_text",
+      "minLength": 100,
+      "rubric": {
+        "shouldIdentify": [
+          "TODO: items to flag (no prioritization, missing refeeding risk, dangerous feeding plan, no triage of what to order first)"
+        ],
+        "shouldNotEcho": [
+          "TODO: things not to parrot (the unprioritized DDx, the unsafe feeding plan)"
+        ]
+      },
+      "weight": 1.0
+    }
+  ],
+  "totalWeight": 4.8,
+  "passingScorePct": 65
+}

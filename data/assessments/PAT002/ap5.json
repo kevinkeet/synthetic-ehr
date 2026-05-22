@@ -1,0 +1,94 @@
+{
+  "id": "AP5",
+  "order": 5,
+  "title": "Management plan including refeeding",
+  "anchorDate": "2027-03-25T23:59:59Z",
+  "timeLimitMinutes": 20,
+  "scenarioBrief": "Hospital day 11 (2027-03-25). The team has aligned on the unifying diagnosis. You are now responsible for the multi-pronged management plan: SLE/myositis immunosuppression, dysphagia management, refeeding protocol, and outpatient transition with attention to her insurance/language barriers. AI assistant available.",
+  "chartGate": {
+    "includeBeforeOrEqualDate": "2027-03-25T23:59:59Z",
+    "_notes": "AP5 visibility: full chart through hospital day 11, including the diagnostic synthesis from AP4. Discharge planning notes and outpatient follow-up are visible; longitudinal recovery data may extend beyond if added."
+  },
+  "prompts": [
+    {
+      "id": "AP5-Q1",
+      "order": 1,
+      "type": "management",
+      "question": "TODO — Phase 2: prompt asking for the immunosuppression plan for SLE + myositis (induction, taper, steroid-sparing) with rationale.",
+      "expectedResponseFormat": "free_text",
+      "minLength": 120,
+      "rubric": {
+        "essential": [
+          "TODO: essential (steroid induction dose, steroid-sparing agent choice, pre-treatment infection screen including TB, vaccination status check)"
+        ],
+        "bonus": [
+          "TODO: bonus (specific dosing rationale, monitoring plan for SE, contraception/teratogenicity counseling)"
+        ],
+        "redFlags": [
+          "TODO: red flags (skipping TB/HBV screen pre-immunosuppression, inappropriate dosing, ignoring drug interactions)"
+        ]
+      },
+      "weight": 1.0
+    },
+    {
+      "id": "AP5-Q2",
+      "order": 2,
+      "type": "management",
+      "question": "TODO — Phase 2: prompt asking for the refeeding plan — caloric goals, electrolyte monitoring schedule, and how to coordinate with dysphagia precautions.",
+      "expectedResponseFormat": "free_text",
+      "minLength": 120,
+      "rubric": {
+        "essential": [
+          "TODO: essential (slow caloric escalation, thiamine before glucose, daily phos/mag/K, modified-consistency diet or NG/PEG plan tied to swallow study)"
+        ],
+        "bonus": [
+          "TODO: bonus (specific calorie ramp, micronutrient repletion, multidisciplinary nutrition follow-up)"
+        ],
+        "redFlags": [
+          "TODO: red flags (aggressive feeding, no electrolyte schedule, ignoring dysphagia aspiration risk)"
+        ]
+      },
+      "weight": 1.2
+    },
+    {
+      "id": "AP5-Q3",
+      "order": 3,
+      "type": "management",
+      "question": "TODO — Phase 2: prompt asking for the outpatient transition plan — addressing her insurance/language/food-access barriers explicitly.",
+      "expectedResponseFormat": "free_text",
+      "minLength": 100,
+      "rubric": {
+        "essential": [
+          "TODO: essential (case-management/social work, medication access plan for steroids+steroid-sparing+supplements, language-concordant follow-up, nutrition follow-up, rheum follow-up)"
+        ],
+        "bonus": [
+          "TODO: bonus (warm handoff to community resources, specific patient-assistance programs, mental health screen)"
+        ],
+        "redFlags": [
+          "TODO: red flags (generic discharge plan ignoring barriers, no plan for med access, no language-concordant follow-up)"
+        ]
+      },
+      "weight": 0.8
+    },
+    {
+      "id": "AP5-Q4",
+      "order": 4,
+      "type": "ai-output-evaluation",
+      "_aiPromptToGenerate": "TODO — Phase 2: write the system prompt to generate an AI plan that is clinically reasonable on the SLE side but proposes aggressive feeding without refeeding precautions and a generic discharge plan that ignores her social context.",
+      "question": "TODO — Phase 2: prompt asking the resident to evaluate the AI's full management plan, flagging unsafe elements and gaps.",
+      "expectedResponseFormat": "free_text",
+      "minLength": 120,
+      "rubric": {
+        "shouldIdentify": [
+          "TODO: items to flag (unsafe refeeding, generic discharge plan, no language/insurance handling, missing pre-immunosuppression screens)"
+        ],
+        "shouldNotEcho": [
+          "TODO: not to parrot (aggressive feeding orders, generic d/c instructions)"
+        ]
+      },
+      "weight": 1.0
+    }
+  ],
+  "totalWeight": 4.0,
+  "passingScorePct": 65
+}

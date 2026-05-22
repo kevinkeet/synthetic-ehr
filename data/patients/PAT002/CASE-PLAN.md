@@ -322,12 +322,16 @@ Each assessment has 3-5 prompts. Each prompt is scored 0-2 against the rubric. R
 
 ---
 
-## Open questions for the next session
+## Phase 3 design decisions (locked in)
 
-1. **Test admin / proctor view?** Should there be a separate admin URL where someone (training director) can see all attempts + their scores, or is this self-administered only?
-2. **Single-session vs persistent?** Is the resident expected to complete all 5 assessments in one sitting (~60-90 min), or pause and resume?
-3. **AI sample outputs in rubric questions** — should we pre-generate these (curated, deterministic) or generate live (cheaper but variable)?
-4. **Chart access during test** — does the resident have full chart navigation, or constrained to current assessment's data?
-5. **Time limits per assessment?** Adds pressure that simulates real practice.
+1. **Admin / proctor view: YES.** A separate dashboard route (`#/admin/...`) shows all attempts, scores, AI usage patterns, and lets a training director drill into individual responses. Requires an `admin_roles` table + Supabase Row Level Security.
 
-These decisions affect the assessment framework architecture and should be answered before Phase 3 begins.
+2. **Testing login: REQUIRED.** Each resident logs in via the existing Supabase Auth before starting an assessment. Attempts are owned by `user_id`. Persistent across sessions — a resident can pause partway through and resume. `test_attempts.status` tracks `in_progress / completed / abandoned`.
+
+3. **AI sample outputs: LIVE.** For the "evaluate this AI response" prompts, we call Claude at test time with a deliberately mediocre / anchoring prompt so the resident sees a realistic flawed AI response. This is more realistic than pre-curated outputs and exposes residents to the variability they'll see in practice. (Trade-off: scoring needs to be flexible enough to handle different exact AI outputs — the rubric must judge the *resident's critique*, not check for a specific keyword.)
+
+4. **Chart access: FULL.** Resident has unrestricted chart navigation at all times. They can flip back to earlier notes during a later assessment. The "time gating" lives in the patient timeline itself — chart content that doesn't exist yet at the assessment's anchor date simply isn't in the chart yet. This means we build the chart such that Assessment 1's chart state is `≤ 2026-01-12`, Assessment 2's is `≤ 2026-11-04`, etc. The framework reveals each era as the resident advances to the next assessment, but everything already revealed stays visible.
+
+5. **Time limits per assessment: YES.** Each assessment has a `timeLimitMinutes` field (e.g., AP1=15, AP2=10, AP3=25, AP4=15, AP5=20 — to be tuned). Timer is visible. Submission auto-locks when time expires. Pausing is allowed but stops the timer (this is a *test*, not a take-home).
+
+These decisions are now the architectural baseline for Phase 3 implementation — see `PHASE-3-PLAN.md` in this directory for the full build spec.

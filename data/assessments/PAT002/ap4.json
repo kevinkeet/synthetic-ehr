@@ -1,0 +1,74 @@
+{
+  "id": "AP4",
+  "order": 4,
+  "title": "Diagnostic synthesis after biopsies",
+  "anchorDate": "2027-03-22T23:59:59Z",
+  "timeLimitMinutes": 15,
+  "scenarioBrief": "Hospital day 8 (2027-03-22). Muscle biopsy, skin biopsy, swallow study, and additional serologies are back. The chart now includes 7 days of progress notes, consult notes from rheum, GI, nutrition, derm, and ID. You're being asked to commit to a unifying diagnosis and explain the causal chain. AI assistant available.",
+  "chartGate": {
+    "includeBeforeOrEqualDate": "2027-03-22T23:59:59Z",
+    "_notes": "AP4 visibility: everything through hospital day 8 — includes biopsy results, consult notes, daily labs trending. The final discharge note + 2027-03-25+ longitudinal data is NOT yet visible."
+  },
+  "prompts": [
+    {
+      "id": "AP4-Q1",
+      "order": 1,
+      "type": "differential",
+      "question": "TODO — Phase 2: prompt asking the resident to commit to a unifying diagnosis and lay out the causal chain explicitly (e.g., SLE → myositis → dysphagia → starvation → kwashiorkor).",
+      "expectedResponseFormat": "free_text",
+      "minLength": 150,
+      "rubric": {
+        "essential": [
+          "TODO: essential elements (active SLE, inflammatory myositis component, oropharyngeal dysphagia mechanism, kwashiorkor from starvation, explicit causal chain)"
+        ],
+        "bonus": [
+          "TODO: bonus (recognizing why earlier presentations were missed, social-determinant amplifiers, prognosis framing)"
+        ],
+        "redFlags": [
+          "TODO: red flags (still splitting into unrelated diagnoses, missing the malnutrition link, attributing rash purely to SLE without considering kwashiorkor dermatosis)"
+        ]
+      },
+      "weight": 1.5
+    },
+    {
+      "id": "AP4-Q2",
+      "order": 2,
+      "type": "ai-output-evaluation",
+      "_aiPromptToGenerate": "TODO — Phase 2: write the system prompt to generate an AI response that gets SLE + myositis right but completely misses the kwashiorkor/starvation chain, treating malnutrition as 'secondary' rather than causal.",
+      "question": "TODO — Phase 2: prompt asking the resident to evaluate whether the AI's unifying explanation actually unifies — and what it misses.",
+      "expectedResponseFormat": "free_text",
+      "minLength": 100,
+      "rubric": {
+        "shouldIdentify": [
+          "TODO: items to flag (AI missed causal direction, treats malnutrition as bystander, doesn't explain skin findings as kwashiorkor dermatosis)"
+        ],
+        "shouldNotEcho": [
+          "TODO: not to parrot (the incomplete causal model, the framing of malnutrition as secondary)"
+        ]
+      },
+      "weight": 1.0
+    },
+    {
+      "id": "AP4-Q3",
+      "order": 3,
+      "type": "context-curation",
+      "question": "TODO — Phase 2: prompt asking what specific chart elements (biopsy text, swallow study, lab trends) the resident chose to give the AI to build the unifying diagnosis, and what they deliberately withheld.",
+      "expectedResponseFormat": "free_text",
+      "minLength": 80,
+      "rubric": {
+        "essential": [
+          "TODO: essential (biopsy text, swallow study finding, albumin/prealbumin trend, weight trajectory)"
+        ],
+        "bonus": [
+          "TODO: bonus (deliberate withholding of distractors, structured framing of the question to the AI)"
+        ],
+        "redFlags": [
+          "TODO: red flags (raw consult-note dumping, no curation of competing diagnoses, leading the AI to the answer rather than letting it reason)"
+        ]
+      },
+      "weight": 0.7
+    }
+  ],
+  "totalWeight": 3.2,
+  "passingScorePct": 65
+}
