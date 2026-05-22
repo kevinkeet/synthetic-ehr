@@ -135,7 +135,71 @@ const App = {
             .on('/immunizations', () => Immunizations.render())
             .on('/procedures', () => Procedures.render())
             .on('/orders', () => Orders.render())
-            .on('/about', () => About.render());
+            .on('/about', () => About.render())
+            // Assessment Framework (Phase 3)
+            .on('/assessment/start', () => AssessmentStart.render())
+            .on('/assessment/run', () => AssessmentPanel.renderActive())
+            .on('/assessment/results/:id', (params) => AssessmentResults.render(params.id))
+            .on('/admin/attempts', () => AdminDashboard.renderList())
+            .on('/admin/attempts/:id', (params) => AdminDashboard.renderDetail(params.id));
+
+        // Refresh sidebar entries when auth state changes (Assessment + Admin links).
+        window.addEventListener('supabase:auth-state-change', () => this._refreshAssessmentNav());
+        window.addEventListener('supabase:auth-ready', () => this._refreshAssessmentNav());
+        // Initial render once nav exists.
+        setTimeout(() => this._refreshAssessmentNav(), 100);
+    },
+
+    /**
+     * Inject (or refresh) the "Take Assessment" and "Admin" links in the sidebar.
+     * - Assessment link is always visible (auth gate handled in the page).
+     * - Admin link only appears for users with admin/proctor role.
+     */
+    async _refreshAssessmentNav() {
+        const sidebar = document.getElementById('sidebar');
+        if (!sidebar) return;
+
+        // Remove any prior assessment section so we can rebuild deterministically.
+        const prior = sidebar.querySelector('.nav-section.assessment-nav-section');
+        if (prior) prior.remove();
+
+        const section = document.createElement('div');
+        section.className = 'nav-section assessment-nav-section';
+        section.innerHTML = `
+            <div class="nav-section-title">Assessment</div>
+            <a href="#/assessment/start" class="nav-item assessment-mode-link" data-section="assessment-start">
+                <span class="nav-icon"><i data-lucide="graduation-cap"></i></span>
+                Take Assessment
+            </a>
+            <a href="#/admin/attempts" class="nav-item assessment-admin-link" data-section="admin"
+               id="assessment-admin-link" style="display:none;">
+                <span class="nav-icon"><i data-lucide="shield"></i></span>
+                Admin
+            </a>
+        `;
+        sidebar.appendChild(section);
+        this.refreshIcons();
+
+        // Show the admin link if user is an admin / proctor.
+        if (typeof SupabaseSync !== 'undefined' && SupabaseSync.isAuthenticated()) {
+            try {
+                const sb = SupabaseSync.getClient();
+                const user = SupabaseSync.getUser();
+                if (sb && user) {
+                    const { data, error } = await sb
+                        .from('admin_roles')
+                        .select('role')
+                        .eq('user_id', user.id)
+                        .maybeSingle();
+                    if (!error && data && (data.role === 'admin' || data.role === 'proctor')) {
+                        const link = document.getElementById('assessment-admin-link');
+                        if (link) link.style.display = '';
+                    }
+                }
+            } catch (e) {
+                /* non-fatal */
+            }
+        }
     },
 
     /**

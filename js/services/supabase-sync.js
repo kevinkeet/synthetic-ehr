@@ -466,7 +466,9 @@ const SupabaseSync = (() => {
     debouncedSave,
     patchLocalStorage,
     renderAuthUI,
+    getClient() { return _client; },
     get _user() { return _user; },
+    get client() { return _client; },
   };
 })();
 
