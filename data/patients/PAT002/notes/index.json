@@ -1,13 +1,31 @@
 {
   "notes": [
     {
+      "id": "NOTE021",
+      "type": "Outpatient Follow-up",
+      "date": "2027-04-22T10:00:00.000Z",
+      "author": "Dr. Jessica Tanaka",
+      "department": "Rheumatology",
+      "encounter": "ENC013",
+      "preview": "4-week post-discharge follow-up. Excellent early response: NG tube removed 4/15 with normalized swallow, weight up 9.4 kg from admission nadir (44.8 kg today), albumin 3.4, prealbumin 28 (normal), CK 218 (near-normal), dsDNA 16 (down), complements near-normal, UPC 0.15 (normal — renal involvement resolved), pancytopenia resolved. Patient walking with cane. PHQ-9 6 (mild). Medicaid approved 4/8/2027. Continue MMF 1.5g BID, prednisone taper, HCQ."
+    },
+    {
+      "id": "NOTE020",
+      "type": "Discharge Summary",
+      "date": "2027-03-25T16:00:00.000Z",
+      "author": "Dr. Sarah Beckman / Dr. Maria Castro / Dr. David Park / co-signed by Dr. Tanaka",
+      "department": "Internal Medicine",
+      "encounter": "ENC012",
+      "preview": "11-day admission discharge summary. Final dx: SLE with inflammatory myositis (overlap PM/DM features, MSA-negative) + severe oropharyngeal dysphagia + kwashiorkor-pattern PEM + early lupus nephritis (resolving) + pancytopenia + Hashimoto's. Treatment: pulse methylpred 1g x 3 (HD8-10) → prednisone 40 mg with planned taper; MMF advanced to 1.5g BID; HCQ continued; nutritional rehabilitation with NG tube ramped to 75 mL/hr by HD10; swallow studies improving. Discharge weight 39.4 kg (+4 from admission). Comprehensive outpatient follow-up arranged with Medicaid coverage."
+    },
+    {
       "id": "NOTE019",
       "type": "Daily Progress Note / Multidisciplinary Synthesis",
       "date": "2027-03-22T08:30:00.000Z",
       "author": "Dr. David Park / Dr. Maria Castro / Dr. Sarah Beckman",
       "department": "Internal Medicine",
       "encounter": "ENC012",
-      "preview": "HD8 synthesis note integrating muscle biopsy (active inflammatory myopathy with overlap PM/DM features), MSA panel (all negative), skin biopsy (mixed kwashiorkor + SLE pattern), echo (normal LV, trace pericardial effusion), MBSS (severe oropharyngeal dysphagia with silent aspiration), EMG (active inflammatory myopathy). UNIFYING DIAGNOSIS: SLE → myositis → dysphagia → starvation → kwashiorkor. Treatment response evident (CK 2580→1820, albumin 1.6→1.9, prealbumin 6→9, dsDNA 48→38). Plan: initiate pulse methylprednisolone today + continue MMF + nutrition advance."
+      "preview": "HD8 synthesis note integrating muscle biopsy (active inflammatory myopathy with overlap PM/DM features), MSA panel (all negative), skin biopsy (mixed kwashiorkor + SLE pattern), echo (normal LV, trace pericardial effusion), MBSS (severe oropharyngeal dysphagia with silent aspiration), EMG (active inflammatory myopathy). UNIFYING DIAGNOSIS: SLE → myositis → dysphagia → starvation → kwashiorkor. Treatment response evident. Plan: initiate pulse methylprednisolone today + continue MMF + nutrition advance."
     },
     {
       "id": "NOTE018",
@@ -43,7 +61,7 @@
       "author": "Eun-Ji Lee, RD, CSP, CNSC",
       "department": "Clinical Nutrition",
       "encounter": "ENC012",
-      "preview": "HD4. Comprehensive nutrition assessment confirming SEVERE PROTEIN-CALORIE MALNUTRITION (kwashiorkor pattern): albumin 1.6, prealbumin 6, anasarca, flaky-paint dermatosis, flag-sign hair, Beau's lines, severe muscle wasting on CT, 30.3% weight loss. HIGH REFEEDING-SYNDROME RISK (BMI 15.7, weight loss >15%, intake <400 kcal/d for 10+ days, low pre-feeding K/Mg/Phos). Detailed refeeding plan: NG Nutren 1.0 starting 360 kcal/d (10 kcal/kg) with 5 kcal/kg daily advance, thiamine before each carb load, q6h electrolytes."
+      "preview": "HD4. Comprehensive nutrition assessment confirming SEVERE PROTEIN-CALORIE MALNUTRITION (kwashiorkor pattern): albumin 1.6, prealbumin 6, anasarca, flaky-paint dermatosis, flag-sign hair, Beau's lines, severe muscle wasting on CT, 30.3% weight loss. HIGH REFEEDING-SYNDROME RISK per NICE criteria. Detailed refeeding plan: NG Nutren 1.0 starting 360 kcal/d (10 kcal/kg) with 5 kcal/kg daily advance, thiamine before each carb load, q6h electrolytes."
     },
     {
       "id": "NOTE014",
@@ -61,7 +79,7 @@
       "author": "Carolyn Wu, MS, CCC-SLP / Dr. Jordan Tate",
       "department": "Speech-Language Pathology / Radiology",
       "encounter": "ENC012",
-      "preview": "HD3 repeat MBSS. SEVERE oropharyngeal dysphagia with aspiration of thin liquids (silent aspiration on 1 of 3 swallows), aspiration with chewing of soft solid, mild nasal regurgitation. Reduced lingual function, delayed swallow trigger, reduced laryngeal elevation, reduced pharyngeal constriction. MARKED progression from MBSS 2/9. NPO with NG tube recommended. Pattern is neuromuscular/myopathic."
+      "preview": "HD3 repeat MBSS. SEVERE oropharyngeal dysphagia with aspiration of thin liquids (silent aspiration on 1 of 3 swallows), aspiration with chewing of soft solid, mild nasal regurgitation. NPO with NG tube recommended. Pattern is neuromuscular/myopathic."
     },
     {
       "id": "NOTE012",
@@ -79,7 +97,7 @@
       "author": "Dr. Sarah Beckman / Dr. Maria Castro",
       "department": "Internal Medicine (Hopkins inpatient)",
       "encounter": "ENC011",
-      "preview": "4-day admission for myositis/dysphagia workup ending in AMA discharge. MBSS 2/9 showed mild oropharyngeal dysphagia with laryngeal penetration of thin liquids; nectar-thick/pureed diet with chin-tuck. Skin biopsy taken 2/10 (pending). Multidisciplinary consults: rheum, neuro, GI, ID, derm, nutrition. EMG and muscle biopsy scheduled but NOT done due to AMA discharge. Strong outpatient bridge planned; patient agreed to keep follow-ups."
+      "preview": "4-day admission for myositis/dysphagia workup ending in AMA discharge. MBSS 2/9 showed mild oropharyngeal dysphagia with laryngeal penetration of thin liquids; nectar-thick/pureed diet with chin-tuck. Skin biopsy taken 2/10 (pending). Multidisciplinary consults: rheum, neuro, GI, ID, derm, nutrition. EMG and muscle biopsy scheduled but NOT done due to AMA discharge."
     },
     {
       "id": "NOTE010",
@@ -88,7 +106,7 @@
       "author": "Dr. James Tran",
       "department": "Emergency Department",
       "encounter": "ENC010",
-      "preview": "23F with active SLE on HCQ/MMF/prednisone presenting with new oropharyngeal dysphagia + proximal weakness + voice change + 18.9% weight loss (now 41.2 kg). CK 1840, aldolase 22, anti-dsDNA 38, low complements, mild proteinuria, oral ulcer. Diagnosis: SLE flare with new inflammatory myositis. Admitted (became NOTE011)."
+      "preview": "23F with active SLE on HCQ/MMF/prednisone presenting with new oropharyngeal dysphagia + proximal weakness + voice change + 18.9% weight loss (now 41.2 kg). CK 1840, aldolase 22, anti-dsDNA 38, low complements, mild proteinuria, oral ulcer. Diagnosis: SLE flare with new inflammatory myositis."
     },
     {
       "id": "NOTE009",
@@ -97,7 +115,7 @@
       "author": "Dr. Andre Williams",
       "department": "Primary Care (Esperanza Health FQHC)",
       "encounter": "ENC009",
-      "preview": "6-week PCP follow-up. SLE responding well to MMF + HCQ + prednisone taper. Joint pain much better, rash mostly resolved, weight up to 47.2 kg, mood improved (PHQ-9 7). NEW SYMPTOM: occasional bolus dysphagia with dry foods x 2-3 weeks. Bedside swallow screen equivocal. Ordered CK / aldolase / LDH to screen for occult myositis."
+      "preview": "6-week PCP follow-up. SLE responding well to MMF + HCQ + prednisone taper. Joint pain much better, rash mostly resolved, weight up to 47.2 kg, mood improved. NEW SYMPTOM: occasional bolus dysphagia with dry foods x 2-3 weeks. Bedside swallow screen equivocal. Ordered CK / aldolase / LDH."
     },
     {
       "id": "NOTE008",
@@ -106,7 +124,7 @@
       "author": "Dr. Jessica Tanaka",
       "department": "Rheumatology",
       "encounter": "ENC008",
-      "preview": "5-day post-ED urgent re-evaluation. Modest clinical improvement on prednisone 30 mg + restarted HCQ. Added mycophenolate 500 mg BID (planning to escalate to 1 g BID). Pre-immunosuppression infection screen ordered. Contraception counseling with mother. Strong adherence and access plan with social work."
+      "preview": "5-day post-ED urgent re-evaluation. Modest clinical improvement on prednisone 30 mg + restarted HCQ. Added mycophenolate 500 mg BID. Contraception counseling. Strong adherence and access plan with social work."
     },
     {
       "id": "NOTE007",
@@ -115,7 +133,7 @@
       "author": "Dr. Priya Shah",
       "department": "Emergency Department",
       "encounter": "ENC007",
-      "preview": "23-year-old woman with UCTD/probable early SLE and Hashimoto's thyroiditis presenting with worsening fatigue, joint pain, weight loss, intermittent rash after running out of HCQ for 3 weeks. Weight 43.8 kg (down 7 kg / 13.8% from baseline). Anti-dsDNA now positive, complements low, mild proteinuria, tri-lineage cytopenia. Recommended admission; patient declined. Strong outpatient plan and return precautions."
+      "preview": "23-year-old woman with UCTD/probable early SLE and Hashimoto's thyroiditis presenting with worsening fatigue, joint pain, weight loss, intermittent rash. Weight 43.8 kg (down 7 kg / 13.8% from baseline). Anti-dsDNA now positive, complements low, mild proteinuria, tri-lineage cytopenia. Recommended admission; patient declined."
     },
     {
       "id": "NOTE006",
@@ -124,7 +142,7 @@
       "author": "Dr. Andre Williams",
       "department": "Primary Care (Esperanza Health FQHC)",
       "encounter": "ENC006",
-      "preview": "Just-turned-23-year-old woman with UCTD off HCQ for 5 weeks (PAP denied). Joint pain markedly worse, new photosensitive rash on V-area chest, 4.4 kg weight loss (~8.7%), new mild cytopenia (Hgb 11.1, WBC 3.85), low albumin (3.4), elevated ESR/CRP, PHQ-9 11. Bridged HCQ via low-cost cash pay; restarted with social work re-engagement and urgent rheum re-evaluation requested."
+      "preview": "23-year-old woman with UCTD off HCQ for 5 weeks. Joint pain markedly worse, new photosensitive rash, 4.4 kg weight loss, new mild cytopenia, low albumin, elevated ESR/CRP, PHQ-9 11. Bridged HCQ via low-cost cash pay."
     },
     {
       "id": "NOTE005",
@@ -133,7 +151,7 @@
       "author": "Walgreens Patterson Park / Esperanza Health staff",
       "department": "Pharmacy / Care Coordination",
       "encounter": "ENC005",
-      "preview": "HCQ refill could not be filled — manufacturer PAP renewal denied. Patient out of HCQ since ~8/12/2026. Reports worsening joint pain, fatigue, possible new rash, hair shedding, loose pants. Urgent care coordination and PCP follow-up arranged."
+      "preview": "HCQ refill could not be filled — manufacturer PAP renewal denied. Patient out of HCQ since ~8/12/2026."
     },
     {
       "id": "NOTE004",
@@ -142,7 +160,7 @@
       "author": "Diana Mercado, LCSW",
       "department": "Social Work",
       "encounter": "ENC004",
-      "preview": "Medicaid application DENIED 5/29/2026 due to incomplete income documentation; appeal filed today. PAP applications for HCQ submitted. Food insecurity worsening — family stretching food, patient skipping breakfast. Mental health concerns emerging. Comprehensive social support plan activated."
+      "preview": "Medicaid application DENIED 5/29/2026; appeal filed today. PAP applications submitted. Food insecurity worsening. Mental health concerns emerging."
     },
     {
       "id": "NOTE003",
@@ -151,7 +169,7 @@
       "author": "Dr. Jessica Tanaka",
       "department": "Rheumatology",
       "encounter": "ENC003",
-      "preview": "First specialist evaluation 3 months after symptom onset. Assessment: undifferentiated CTD, possible early SLE; co-existing Hashimoto's. Continue HCQ, add low-dose prednisone 10 mg taper x ~7 weeks for symptomatic control. Hand X-rays show non-erosive synovitis. Social work re-engagement. Follow-up in 3 months pending access."
+      "preview": "First specialist evaluation. Assessment: undifferentiated CTD, possible early SLE; co-existing Hashimoto's. Continue HCQ, add low-dose prednisone taper. Hand X-rays show non-erosive synovitis."
     },
     {
       "id": "NOTE002",
@@ -160,7 +178,7 @@
       "author": "Dr. Manuel Reyes",
       "department": "Urgent Care",
       "encounter": "ENC002",
-      "preview": "2-week follow-up. Tolerating HCQ and levothyroxine. Persistent symmetric synovitis. Send-out labs from 1/12 returned: anti-Sm, anti-dsDNA, anti-Ro/La, anti-CCP all negative; hep B/C/HIV negative; parvovirus IgM negative (IgG positive — past); TPO antibody positive (Hashimoto's confirmed); UA bland. Continue current treatment pending rheum."
+      "preview": "2-week follow-up. Send-out labs returned: anti-Sm, anti-dsDNA, anti-Ro/La, anti-CCP all negative; hep B/C/HIV negative; parvovirus IgM negative; TPO antibody positive (Hashimoto's confirmed)."
     },
     {
       "id": "NOTE001",
@@ -169,8 +187,8 @@
       "author": "Dr. Manuel Reyes",
       "department": "Urgent Care",
       "encounter": "ENC001",
-      "preview": "22-year-old Spanish-speaking woman presenting with 6-month history of progressive joint pain, fatigue, and hair loss. Interpreter used. Symmetric polyarthritis of hands, wrists, ankles. ANA positive 1:80. Started empirically on hydroxychloroquine and levothyroxine pending rheumatology referral."
+      "preview": "22-year-old Spanish-speaking woman presenting with 6-month history of progressive joint pain, fatigue, and hair loss. ANA positive 1:80. Started empirically on hydroxychloroquine and levothyroxine pending rheumatology referral."
     }
   ],
-  "lastUpdated": "2027-03-22"
+  "lastUpdated": "2027-04-22"
 }

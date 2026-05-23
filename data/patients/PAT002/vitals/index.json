@@ -1,6 +1,60 @@
 {
   "vitals": [
     {
+      "date": "2027-04-22T10:00:00.000Z",
+      "encounter": "ENC013",
+      "systolic": 116,
+      "diastolic": 72,
+      "heartRate": 76,
+      "respiratoryRate": 14,
+      "temperature": 98.2,
+      "spO2": 99,
+      "weight": 44.8,
+      "weightUnit": "kg",
+      "height": 150,
+      "heightUnit": "cm",
+      "bmi": 19.9,
+      "painScore": 1,
+      "recordedBy": "Med Asst — Hopkins Rheum",
+      "notes": "4-week post-discharge follow-up. WT UP 9.4 kg from admission nadir 35.4 kg; no longer underweight (BMI 19.9). Vitals fully normalized."
+    },
+    {
+      "date": "2027-03-25T08:00:00.000Z",
+      "encounter": "ENC012",
+      "systolic": 110,
+      "diastolic": 68,
+      "heartRate": 84,
+      "respiratoryRate": 14,
+      "temperature": 98.4,
+      "spO2": 99,
+      "weight": 39.4,
+      "weightUnit": "kg",
+      "height": 150,
+      "heightUnit": "cm",
+      "bmi": 17.5,
+      "painScore": 2,
+      "recordedBy": "Inpatient RN — Hopkins",
+      "notes": "Discharge day. Weight up 4.0 kg from admission. Vitals stable. Cane-assisted ambulation."
+    },
+    {
+      "date": "2027-03-22T07:00:00.000Z",
+      "encounter": "ENC012",
+      "systolic": 104,
+      "diastolic": 64,
+      "heartRate": 92,
+      "respiratoryRate": 16,
+      "temperature": 98.0,
+      "spO2": 98,
+      "weight": 37.8,
+      "weightUnit": "kg",
+      "height": 150,
+      "heightUnit": "cm",
+      "bmi": 16.8,
+      "painScore": 3,
+      "recordedBy": "Inpatient RN — Hopkins",
+      "notes": "HD8 morning — pre-pulse-steroid initiation. Stable for advance."
+    },
+    {
       "date": "2027-03-15T16:15:00.000Z",
       "encounter": "ENC012",
       "systolic": 96,
@@ -16,7 +70,7 @@
       "bmi": 15.7,
       "painScore": 4,
       "recordedBy": "ED RN — Hopkins",
-      "notes": "Admission to medicine. CRITICAL DROP — total loss 15.4 kg / 30.3% from January 2026 baseline. On 2L NC after initial RA 94%."
+      "notes": "Admission. CRITICAL — total loss 15.4 kg / 30.3% from January 2026 baseline. On 2L NC after initial RA 94%."
     },
     {
       "date": "2027-02-11T12:15:00.000Z",
@@ -195,5 +249,5 @@
       "notes": "Immigration entry visit, age 15."
     }
   ],
-  "notes": "Weight trajectory: 50.8 (1/12/26 baseline) -> 50.6 (1/26/26) -> 48.8 (4/10/26) -> 46.4 (9/15/26) -> 43.8 (11/4/26 ED) -> 44.4 (11/9/26 rheum) -> 47.2 (12/22/26 — recovered on MMF!) -> 41.2 (2/8/27 ED — myositis with dysphagia) -> 41.8 (2/11/27 AMA dc) -> 35.4 (3/15/27 catastrophic admission). Total loss from baseline = 15.4 kg / 30.3%."
+  "notes": "Full weight trajectory: 50.8 (1/12/26 baseline) -> 50.6 (1/26/26) -> 48.8 (4/10/26) -> 46.4 (9/15/26) -> 43.8 (11/4/26 ED) -> 44.4 (11/9/26 rheum) -> 47.2 (12/22/26 — recovered on MMF) -> 41.2 (2/8/27 ED — myositis with dysphagia) -> 41.8 (2/11/27 AMA dc) -> 35.4 (3/15/27 catastrophic admission - NADIR) -> 37.8 (HD8) -> 39.4 (HD11 discharge) -> 44.8 (4/22/27 4 weeks post-discharge). Total recovery from nadir = +9.4 kg over 5 weeks; recovery still ongoing (~25% of way back to baseline 50.8)."
 }

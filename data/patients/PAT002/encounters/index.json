@@ -1,6 +1,23 @@
 {
   "encounters": [
     {
+      "id": "ENC013",
+      "date": "2027-04-22T10:00:00.000Z",
+      "type": "Rheumatology Outpatient Follow-up",
+      "department": "Rheumatology",
+      "provider": "Dr. Jessica Tanaka",
+      "chiefComplaint": "4-week post-discharge follow-up",
+      "diagnoses": [
+        "Active SLE with inflammatory myositis — excellent treatment response",
+        "Severe protein-calorie malnutrition — substantial recovery",
+        "Lupus nephritis — resolved (UPC normalized)",
+        "Hashimoto's thyroiditis — controlled",
+        "Pancytopenia — resolved"
+      ],
+      "status": "Completed",
+      "interpreterUsed": "In-person Spanish-speaking interpreter"
+    },
+    {
       "id": "ENC012",
       "date": "2027-03-15T16:30:00.000Z",
       "type": "Inpatient Admission",
@@ -8,18 +25,18 @@
       "provider": "Dr. Sarah Beckman (attending), Dr. Maria Castro (PGY-3), Dr. David Park (PGY-1)",
       "chiefComplaint": "Cannot move, cannot eat — multi-system deterioration",
       "diagnoses": [
-        "Active SLE flare with inflammatory myositis (presumed)",
+        "Active SLE flare with inflammatory myositis (overlap PM/DM features)",
         "Severe oropharyngeal dysphagia with aspiration risk",
         "Severe protein-calorie malnutrition / kwashiorkor pattern",
         "Anasarca with hypoalbuminemia (1.6)",
         "Pancytopenia (tri-lineage)",
         "Electrolyte derangements with refeeding-syndrome risk",
-        "Hepatocellular pattern enzyme elevation",
         "Lupus nephritis (early; UPC 0.58)",
-        "Hashimoto's thyroiditis with overlapping non-thyroidal illness"
+        "Hashimoto's thyroiditis with overlapping non-thyroidal illness",
+        "Adjustment-related moderate depression"
       ],
-      "status": "Admitted (active)",
-      "interpreterUsed": "Spanish (Language Line)"
+      "status": "Discharged home 3/25/2027 (HD11)",
+      "interpreterUsed": "Spanish (Language Line + in-person)"
     },
     {
       "id": "ENC011",
@@ -91,12 +108,10 @@
       "chiefComplaint": "Worsening fatigue, joint pain, intermittent rash, weight loss",
       "diagnoses": [
         "Active systemic lupus erythematosus flare (newly meeting more criteria)",
-        "Cytopenia (leukopenia, anemia, mild thrombocytopenia)",
-        "Mild proteinuria — concern for renal involvement",
-        "Photosensitive rash, V-area distribution",
-        "Unintentional weight loss (~14% over 10 months)",
-        "Hydroxychloroquine non-adherence — financial barriers",
-        "Subclinical hypothyroidism on levothyroxine"
+        "Cytopenia",
+        "Mild proteinuria",
+        "Photosensitive rash",
+        "Unintentional weight loss"
       ],
       "status": "Completed — discharged against rec for admission",
       "interpreterUsed": "Spanish (Language Line)"
@@ -112,7 +127,7 @@
         "Undifferentiated CTD / probable early SLE — disease worsening",
         "Photosensitive rash",
         "Unintentional weight loss",
-        "Moderate depression (PHQ-9 11)"
+        "Moderate depression"
       ],
       "status": "Completed",
       "interpreterUsed": "In-person Spanish-speaking MA"
@@ -137,8 +152,7 @@
       "chiefComplaint": "Medicaid denial / coverage appeal",
       "diagnoses": [
         "Loss of health insurance coverage",
-        "Food insecurity",
-        "Adjustment-related distress"
+        "Food insecurity"
       ],
       "status": "Completed",
       "interpreterUsed": "In-person Spanish-speaking MA"
@@ -152,8 +166,7 @@
       "chiefComplaint": "New patient evaluation for inflammatory polyarthritis with positive ANA",
       "diagnoses": [
         "Undifferentiated connective tissue disease (UCTD), probable early SLE",
-        "Hashimoto's thyroiditis (TPO Ab positive)",
-        "Vitamin D insufficiency"
+        "Hashimoto's thyroiditis"
       ],
       "status": "Completed",
       "interpreterUsed": "Spanish (Language Line)"
@@ -167,8 +180,7 @@
       "chiefComplaint": "2-week follow-up on empiric HCQ and levothyroxine",
       "diagnoses": [
         "Polyarthritis, undifferentiated",
-        "Autoimmune thyroiditis (Hashimoto's) — newly confirmed (TPO Ab positive)",
-        "Alopecia, diffuse"
+        "Hashimoto's thyroiditis (TPO Ab positive)"
       ],
       "status": "Completed",
       "interpreterUsed": "Spanish (Language Line)"
@@ -190,5 +202,5 @@
       "interpreterUsed": "Spanish (Language Line)"
     }
   ],
-  "lastUpdated": "2027-03-15"
+  "lastUpdated": "2027-04-22"
 }

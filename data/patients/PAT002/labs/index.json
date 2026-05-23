@@ -1,6 +1,11 @@
 {
   "panels": [
     {
+      "id": "LAB015",
+      "name": "4-Week Post-Discharge Outpatient Labs — Recovery Trajectory",
+      "date": "2027-04-22"
+    },
+    {
       "id": "LAB014",
       "name": "Hospital Day 8 Pre-Synthesis Labs — Treatment Response Markers",
       "date": "2027-03-22"
@@ -71,5 +76,5 @@
       "date": "2026-01-12"
     }
   ],
-  "notes": "Labs grow as Maria's case progresses. LAB014 = HD8 pre-synthesis labs (treatment response evident: CK 1820 down, albumin 1.9 up, dsDNA 38 down). LAB013 = HD5 post-feeding initiation labs + MSA panel (all NEGATIVE — argues against primary DM, supports SLE-myositis). LAB012 = AP3 admission comprehensive panel."
+  "notes": "LAB015 = 4-week post-discharge outpatient labs (4/22/2027) documenting excellent recovery: pancytopenia resolved, albumin 3.4, prealbumin 28 (normal), CK 218 (near-normal), dsDNA 16, UPC 0.15 (normal), thyroid controlled, micronutrients repleted."
 }
