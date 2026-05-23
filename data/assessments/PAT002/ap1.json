@@ -1,43 +1,47 @@
 {
   "id": "AP1",
   "order": 1,
-  "title": "Initial urgent care presentation",
+  "title": "Timepoint 1 — Initial presentation",
   "anchorDate": "2026-01-12T23:59:59Z",
-  "timeLimitMinutes": 15,
+  "timeLimitMinutes": 5,
   "scenarioBrief": "Maria Sandoval is a 22-year-old Spanish-speaking woman who was seen at urgent care today (2026-01-12). The urgent care provider has asked you to follow up as her hypothetical PCP. Review the chart and respond.",
   "chartGate": {
     "includeBeforeOrEqualDate": "2026-01-12T23:59:59Z",
-    "_notes": "AP1 visibility: pre-immigration history, 2018-2019 community health visits, 2026-01-12 urgent care visit + its labs. No further encounters yet."
+    "_notes": "TP1 visibility: historical encounters (2018-2023, minor ailments + immigration intake) + today's urgent care visit + its labs."
   },
   "prompts": [
     {
       "id": "AP1-Q1",
       "order": 1,
       "type": "differential",
-      "question": "Based on the chart, what is your prioritized differential diagnosis for Maria's current symptoms? List 4-6 conditions, briefly justify each with chart data, and indicate which is most likely.",
+      "question": "What is your prioritized differential diagnosis for Maria's current symptoms, and what would you do next?",
       "expectedResponseFormat": "free_text",
-      "minLength": 200,
+      "minLength": 250,
       "rubric": {
         "essential": [
-          "Systemic lupus erythematosus (SLE) — considered but appropriately weighted given low-titer (1:80) ANA and limited specific criteria",
-          "Viral arthropathy (parvovirus B19, hepatitis B/C) — appropriate to consider in a young woman with new symmetric polyarthritis",
-          "Rheumatoid arthritis or other inflammatory arthropathy — symmetric polyarthritis pattern warrants consideration despite negative RF",
-          "Undifferentiated or early connective tissue disease (UCTD / early MCTD / Sjogren's overlap) — accounts for low-titer ANA with non-specific multi-system features",
-          "Autoimmune thyroiditis (Hashimoto's) — explicitly addresses the elevated TSH finding and may co-occur with other autoimmunity"
+          "Systemic lupus erythematosus considered but appropriately weighted given low-titer (1:80) ANA and limited specific criteria",
+          "Viral arthropathy (parvovirus B19, hepatitis B/C) appropriate in a young woman with new symmetric polyarthritis",
+          "Rheumatoid arthritis or other inflammatory arthropathy considered despite negative RF",
+          "Undifferentiated or early connective tissue disease accounts for low-titer ANA with non-specific multi-system features",
+          "Autoimmune thyroiditis (Hashimoto's) explicitly addresses the elevated TSH",
+          "Specifies a concrete next-step workup (additional autoantibodies such as anti-dsDNA / anti-Sm / anti-Ro/La / anti-CCP, complements, viral serologies, free T4 and TPO Ab) rather than just listing diagnoses",
+          "Specialist referral plan (rheumatology) with acknowledgment of access barriers"
         ],
         "bonus": [
-          "Disseminated or extrapulmonary tuberculosis — appropriate epidemiologic consideration given Guatemalan origin and prior LTBI screening",
-          "Hypothyroid arthropathy / myxedematous changes — single mechanism that could account for arthralgia, fatigue, and hair loss together",
+          "Disseminated or extrapulmonary tuberculosis considered given Guatemalan origin and prior IGRA indeterminate",
+          "Hypothyroid arthropathy / myxedematous changes as a single mechanism for arthralgia + fatigue + hair loss",
           "Reactive or post-infectious arthritis given subacute onset",
-          "Behcet's disease, Sjogren's, or other less-common CTD given demographic and presentation",
-          "Heavy metal or environmental exposure given immigration and food/water access uncertainty"
+          "Behcet's, Sjogren's, or other less-common CTD given demographic",
+          "Heavy metal or environmental exposure given immigration and food/water access uncertainty",
+          "Counseling about diagnostic uncertainty and clear return precautions",
+          "Awareness that empiric HCQ started before specialist evaluation has trade-offs"
         ],
         "redFlags": [
-          "Anchoring confidently on SLE based on the 1:80 ANA alone (1:80 is a low/borderline titer with poor specificity)",
-          "Failing to acknowledge that empiric hydroxychloroquine before specialist evaluation is suboptimal practice",
-          "Omitting infectious considerations entirely given the patient's immigration and access history",
+          "Anchoring confidently on SLE based on the 1:80 ANA alone (low/borderline titer with poor specificity)",
+          "Omitting infectious considerations entirely given the patient's immigration history",
           "Treating the elevated TSH as incidental and unrelated to the presenting symptoms",
-          "Producing a confident single diagnosis without explicitly addressing diagnostic uncertainty"
+          "Producing a confident single diagnosis without explicitly addressing diagnostic uncertainty",
+          "No follow-up or workup plan articulated"
         ]
       },
       "weight": 1.0

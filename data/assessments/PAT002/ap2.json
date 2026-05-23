@@ -1,48 +1,57 @@
 {
   "id": "AP2",
   "order": 2,
-  "title": "ED bounce — missed opportunity",
-  "anchorDate": "2026-11-04T23:59:59Z",
-  "timeLimitMinutes": 10,
-  "scenarioBrief": "Ten months later, Maria presents to the ED (2026-11-04). You are covering night float and asked to triage and decide on disposition. Review the chart and respond.",
+  "title": "Timepoint 2 — Severe re-presentation",
+  "anchorDate": "2027-03-15T23:59:59Z",
+  "timeLimitMinutes": 12,
+  "scenarioBrief": "Fourteen months have passed since you first saw Maria. She is admitted from clinic today (2027-03-15). You are the admitting hospitalist intern. Review the chart, then build your working differential AND your first 24-hour workup and management plan.",
   "chartGate": {
-    "includeBeforeOrEqualDate": "2026-11-04T23:59:59Z",
-    "_notes": "AP2 visibility: everything in AP1 + 2026 spring-fall data (refill gaps, urgent-care revisit, social-work note about insurance loss, weight trend showing early loss). No 2027 data yet."
+    "includeBeforeOrEqualDate": "2027-03-15T23:59:59Z",
+    "_notes": "TP2 visibility: everything in TP1 + intercurrent 14 months (rheum consults, ED bounce, AMA admission Feb 2027, pharmacy gaps, social-work notes, PCP visits) + today's admission H&P + admission labs + admission CXR/CT."
   },
   "prompts": [
     {
       "id": "AP2-Q1",
       "order": 1,
-      "type": "management",
-      "question": "What is your immediate disposition and workup plan?",
+      "type": "differential-and-management",
+      "question": "Build your working differential for Maria's current presentation, then write your first 24-hour workup and management plan. What do you order, what do you hold, and in what order? Be explicit about safety.",
       "expectedResponseFormat": "free_text",
-      "minLength": 150,
+      "minLength": 400,
       "rubric": {
         "essential": [
-          "Restart hydroxychloroquine and address the adherence barrier (medication access, refill plan)",
-          "Re-engage rheumatology — concrete plan to get the referral honored despite insurance barriers",
-          "Workup for weight loss separately from the rheum picture (CMP, prealbumin/albumin, infection screen, thyroid recheck)",
-          "Social work consult for insurance navigation and food access",
-          "Language-concordant follow-up scheduling and clear return precautions"
+          "Identifies active SLE flare with inflammatory myositis as a unifying autoimmune driver",
+          "Identifies severe protein-calorie malnutrition / kwashiorkor as a major, defining contributor (not 'just' a complication)",
+          "Recognizes oropharyngeal dysphagia as the mechanism for the weight loss and orders formal swallow evaluation before any oral intake",
+          "Pre-immunosuppression infection screen ordered (TB testing, hepatitis B/C, HIV, baseline CMV) before any steroid escalation",
+          "Holds further immunosuppression escalation until biopsy direction and infection screen results return",
+          "Nutrition consult ordered with explicit refeeding-syndrome precautions: slow caloric initiation, daily phos/Mg/K monitoring, thiamine before any glucose-containing fluid or feed",
+          "Orders muscle-specific workup: CK, aldolase, EMG plan, muscle biopsy plan (neurology / rheum consult)"
         ],
         "bonus": [
-          "Explicitly identifies the AP1 visit as a missed opportunity that contributed to this state",
-          "Proactive dysphagia or swallow screen given the constitutional picture",
-          "Nutrition referral / dietary recall",
-          "Depression / mental-health screen given chronic illness + social stress",
-          "TB consideration revisited given progressive constitutional symptoms"
+          "Explicit causal chain linking SLE -> myositis -> dysphagia -> starvation -> kwashiorkor",
+          "Dermatomyositis or SLE/DM overlap considered given the rash + proximal weakness",
+          "Specific cautious feeding initiation plan (10-20 kcal/kg/day with daily ramp)",
+          "Specific daily phos/Mg/K monitoring schedule for first 5-7 days",
+          "TB-IGRA or sputum studies as appropriate prior to steroids",
+          "Aspiration precautions explicitly documented (HOB up, suction at bedside)",
+          "Skin biopsy of the scaling rash for tissue diagnosis",
+          "Selenium / zinc / vitamin D and other micronutrient repletion",
+          "Recognizes the intercurrent missed-opportunity timeline (refill gaps, AMA admission) as contributing to current state"
         ],
         "redFlags": [
-          "Discharge home without scheduled follow-up or a plan to address adherence",
-          "Anchoring only on 'SLE flare' and giving a steroid burst without firm diagnosis",
-          "Ignoring the weight loss as 'expected with chronic illness'",
-          "Starting new immunosuppression without a TB / infection screen",
-          "Not involving social work despite obvious social drivers"
+          "Splitting findings into unrelated buckets without attempting unification",
+          "Missing nutrition / kwashiorkor entirely",
+          "Recommending pulse steroids before infection screening",
+          "Initiating high-calorie feeding without refeeding precautions",
+          "Allowing oral intake before the swallow evaluation",
+          "Premature closure on 'SLE flare alone' without explaining the dermatosis, dysphagia, and weight loss",
+          "Failing to involve nutrition / SLP / rheumatology consults",
+          "Ignoring fluid/electrolyte management while patient is edematous"
         ]
       },
-      "weight": 1.0
+      "weight": 2.0
     }
   ],
-  "totalWeight": 1.0,
-  "passingScorePct": 60
+  "totalWeight": 2.0,
+  "passingScorePct": 65
 }

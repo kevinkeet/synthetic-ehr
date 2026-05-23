@@ -1,43 +1,43 @@
 {
   "id": "AP3",
   "order": 3,
-  "title": "Catastrophic admission — multi-system data dump",
-  "anchorDate": "2027-03-15T23:59:59Z",
-  "timeLimitMinutes": 25,
-  "scenarioBrief": "Four months later, Maria is admitted from clinic (2027-03-15). You are the admitting hospitalist intern. Build a working differential, decide what to order in the first 24 hours, and decide what to hold.",
+  "title": "Timepoint 3 — Synthesis and management",
+  "anchorDate": "2027-03-25T23:59:59Z",
+  "timeLimitMinutes": 13,
+  "scenarioBrief": "Hospital day 11 (2027-03-25). The inpatient workup is back: muscle biopsy, skin biopsy, MBSS, EMG, serologies, consults. Maria is being discharged today. You are responsible for committing to a unifying diagnosis and writing her discharge plan.",
   "chartGate": {
-    "includeBeforeOrEqualDate": "2027-03-15T23:59:59Z",
-    "_notes": "AP3 visibility: everything through 2027-03-15 admission day — heavy data dump. Inpatient daily progress notes from this admission are NOT yet visible (those land in AP4)."
+    "includeBeforeOrEqualDate": "2027-03-25T23:59:59Z",
+    "_notes": "TP3 visibility: full chart through hospital day 11 — admission H&P, MBSS, EMG, muscle biopsy, skin biopsy, consult notes, trending labs, daily progress notes, discharge summary."
   },
   "prompts": [
     {
       "id": "AP3-Q1",
       "order": 1,
       "type": "differential",
-      "question": "Build a prioritized working differential for Maria's current presentation. What are your top 2-3 priorities?",
+      "question": "Commit to a unifying diagnosis (or dyad/triad) for Maria. Lay out your reasoning.",
       "expectedResponseFormat": "free_text",
-      "minLength": 250,
+      "minLength": 200,
       "rubric": {
         "essential": [
-          "Active SLE flare with inflammatory myositis as a unifying autoimmune driver",
-          "Severe protein-calorie malnutrition / kwashiorkor as a major and possibly causal contributor",
-          "Oropharyngeal dysphagia requiring evaluation as a mechanism for the weight loss",
-          "Infection ruled-out / screened (TB reactivation, HIV, hepatitis) before any immunosuppression",
-          "Explicit consideration of refeeding-syndrome risk before any nutritional intervention"
+          "Active systemic lupus erythematosus is the underlying autoimmune diagnosis",
+          "Inflammatory myositis is present as part of the SLE picture (or as overlap with dermatomyositis)",
+          "Oropharyngeal dysphagia is mechanistically attributed to myositis affecting pharyngeal muscles",
+          "Severe protein-calorie malnutrition / kwashiorkor is recognized as a major and consequential co-diagnosis, not a downstream side issue",
+          "Explicit causal chain: SLE -> myositis -> dysphagia -> starvation -> kwashiorkor"
         ],
         "bonus": [
-          "Explicit causal chain linking SLE/myositis to dysphagia to starvation to kwashiorkor",
-          "Dermatomyositis or SLE/DM overlap given the rash and proximal weakness",
-          "Selenium, zinc, or other micronutrient deficiency as kwashiorkor co-morbidity",
-          "HIV explicitly considered given immunosuppression-naive status with multi-system illness",
-          "Underlying thyroid contribution revisited (now possibly thyrotoxic vs hypothyroid myopathy)"
+          "Recognizes that earlier presentations (TP1, intercurrent ED visits) were missed opportunities to break this chain",
+          "Identifies social-determinant amplifiers (insurance lapse, food access, language) that accelerated the malnutrition",
+          "Acknowledges the prognosis is driven as much by nutritional recovery as by SLE control",
+          "Recognizes the scaling rash as potentially kwashiorkor-related dermatosis as well as / instead of pure SLE skin",
+          "Considers thyroid involvement of the autoimmune process given the long-standing Hashimoto's"
         ],
         "redFlags": [
-          "Splitting findings into unrelated buckets without attempting unification",
-          "Missing nutrition / kwashiorkor entirely",
-          "Premature closure on 'SLE flare' without explaining the dermatosis and weight loss",
-          "Recommending pulse steroids before infection screening",
-          "Recommending aggressive feeding without addressing refeeding risk"
+          "Treating SLE and malnutrition as two unrelated diagnoses",
+          "Missing the malnutrition / kwashiorkor link entirely",
+          "Attributing the skin findings purely to SLE without considering kwashiorkor dermatosis",
+          "Failing to articulate any causal chain",
+          "Suggesting that nutrition is 'secondary' or 'less important than SLE control'"
         ]
       },
       "weight": 1.5
@@ -46,37 +46,48 @@
       "id": "AP3-Q2",
       "order": 2,
       "type": "management",
-      "question": "Write your first 24-hour workup and management plan. What do you order, what do you hold, and in what order?",
+      "question": "Write Maria's discharge management plan. Address immunosuppression, nutrition, and the outpatient transition.",
       "expectedResponseFormat": "free_text",
-      "minLength": 200,
+      "minLength": 350,
       "rubric": {
         "essential": [
-          "CK, aldolase, and inflammatory markers ordered as part of myositis workup",
-          "EMG and / or muscle biopsy planned (consult neurology / rheum)",
-          "Dysphagia / swallow evaluation (modified barium swallow or speech-language pathology consult) before any oral intake plan",
-          "Nutrition consult with explicit refeeding-syndrome precautions and electrolyte monitoring schedule (phos / Mg / K)",
-          "Infection screen before immunosuppression (TB testing, hepatitis B/C, HIV, baseline CMV)",
-          "Hold further immunosuppression escalation until infection screen results return"
+          "Specific corticosteroid plan with stated dose and taper (e.g., prednisone 1 mg/kg with slow taper schedule)",
+          "Steroid-sparing agent named (mycophenolate or azathioprine) with confirmed pre-treatment infection screen",
+          "Slow caloric initiation with explicit refeeding precautions: daily phos/Mg/K monitoring, thiamine repletion",
+          "Enteral access OR modified-consistency diet plan tied explicitly to the swallow-study finding",
+          "Concrete medication-access plan addressing the insurance barriers (patient-assistance programs, low-cost options)",
+          "Language-concordant outpatient follow-up scheduling (Spanish-speaking PCP, rheum, dietitian, or qualified interpreter)",
+          "Specific outpatient follow-up plan: PCP, rheumatology, nutrition, SLP, with intervals"
         ],
         "bonus": [
-          "Specific cautious feeding initiation plan (e.g., 10-20 kcal/kg/day with daily ramp)",
-          "Thiamine and B-vitamin repletion before glucose-containing IV",
-          "Specific daily phos / Mg / K monitoring schedule for first 5-7 days",
-          "TB-IGRA or sputum studies as appropriate prior to steroids",
-          "Aspiration precautions explicitly documented",
-          "Skin biopsy of the scaling rash for tissue diagnosis"
+          "Specific dose rationale tied to severity (e.g., why 1 mg/kg vs pulse)",
+          "Contraception counseling for a young woman on mycophenolate (teratogenicity)",
+          "Hydroxychloroquine continuation with eye-exam plan",
+          "Bone health considerations (calcium, vitamin D, bisphosphonate)",
+          "Specific calorie ramp (e.g., 10 -> 15 -> 20 -> 25 kcal/kg/day)",
+          "Micronutrient repletion (zinc, selenium, vitamin D, B-vitamins)",
+          "Warm handoff to community resources (food bank, FQHC, lupus foundation)",
+          "Mental-health screen and referral",
+          "Return-precaution / safety-net teaching tied to specific symptoms",
+          "Patient education materials in Spanish",
+          "PCP prophylaxis with TMP/SMX while on combined immunosuppression"
         ],
         "redFlags": [
-          "Initiating high-calorie feeding without refeeding precautions",
-          "Pulse steroids on day 1 without an infection workup",
-          "Allowing oral intake before the swallow evaluation",
-          "Failing to involve nutrition / SLP / rheumatology consults",
-          "Ignoring fluid/electrolyte management while patient is edematous"
+          "Skipping infection screen check prior to confirming immunosuppression escalation",
+          "Aggressive caloric initiation (>20 kcal/kg/day from day 1) without refeeding precautions",
+          "No electrolyte monitoring schedule",
+          "Oral feeding without addressing dysphagia / aspiration risk",
+          "Omitting thiamine",
+          "Generic discharge instructions ignoring social-determinant barriers",
+          "No medication-access plan despite known insurance issues",
+          "No language-concordant follow-up",
+          "Starting mycophenolate without addressing teratogenicity in a young woman",
+          "Treating malnutrition as 'will fix itself' once SLE is controlled"
         ]
       },
-      "weight": 1.5
+      "weight": 2.0
     }
   ],
-  "totalWeight": 3.0,
+  "totalWeight": 3.5,
   "passingScorePct": 65
 }
