@@ -176,7 +176,7 @@ const AdminDashboard = {
                 <div class="admin-detail-grid">
                     <div class="admin-detail-col">
                         <h2>Responses</h2>
-                        ${this._renderResponses(caseDef, responses)}
+                        ${this._renderResponses(caseDef, responses, aiLog)}
                     </div>
                     <div class="admin-detail-col">
                         <h2>AI usage log (${aiLog.length})</h2>
@@ -188,7 +188,9 @@ const AdminDashboard = {
         App.refreshIcons();
     },
 
-    _renderResponses(caseDef, responses) {
+    _renderResponses(caseDef, responses, aiLog) {
+        // Stash for per-prompt transcript rendering below.
+        this._aiLog = aiLog || [];
         if (!caseDef) {
             return responses.map((r) => this._renderRawResponse(r)).join('') || '<div class="empty-state-text">No responses yet.</div>';
         }
@@ -205,6 +207,7 @@ const AdminDashboard = {
 
     _renderPromptResponseCard(prompt, r) {
         const scoreStr = (r && typeof r.score === 'number') ? Math.round(r.score * 100) + '%' : '—';
+        const transcript = this._renderPromptTranscript(prompt.id);
         return `
             <div class="admin-prompt-card">
                 <div class="admin-prompt-card-head">
@@ -212,12 +215,62 @@ const AdminDashboard = {
                     <span>${scoreStr}</span>
                 </div>
                 <div class="admin-prompt-card-q">${this._escape(prompt.question || '')}</div>
-                ${r && r.ai_sample_output ? `<details><summary>AI sample</summary><pre>${this._escape(r.ai_sample_output)}</pre></details>` : ''}
+                ${r && r.ai_sample_output ? `<details><summary>Chatbot sample</summary><pre>${this._escape(r.ai_sample_output)}</pre></details>` : ''}
                 <details><summary>Response</summary><pre>${this._escape((r && r.response_text) || '(none)')}</pre></details>
+                ${transcript}
                 ${r && r.score_breakdown ? `<details><summary>Score breakdown</summary><pre>${this._escape(JSON.stringify(r.score_breakdown, null, 2))}</pre></details>` : ''}
                 ${r && r.grader_notes ? `<div class="admin-grader-notes">${this._escape(r.grader_notes)}</div>` : ''}
             </div>
         `;
+    },
+
+    _renderPromptTranscript(promptId) {
+        const log = this._aiLog || [];
+        const rows = log
+            .filter((r) => r.prompt_id === promptId && (r.interaction_type === 'ask' || r.interaction_type === 'ask_error'))
+            .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        if (rows.length === 0) {
+            return '<div class="admin-prompt-transcript-empty">No chatbot use for this prompt.</div>';
+        }
+        const windowLabel = {
+            'today': 'Today only', '7d': 'Last 7d', '30d': 'Last 30d',
+            '90d': 'Last 90d', '6mo': 'Last 6mo', '1y': 'Last 1y', 'all': 'All',
+        };
+        const turns = rows.map((row) => {
+            const setup = row.metadata && row.metadata.chatbot_setup;
+            const setupLine = setup
+                ? `<div class="admin-transcript-setup">${this._escape(windowLabel[setup.windowKey] || setup.windowKey)} · ${this._escape((setup.dataTypes || []).join(' · '))}</div>`
+                : '';
+            const userText = this._extractUserText(row.query_text || '');
+            return `
+                <div class="admin-transcript-turn">
+                    ${setupLine}
+                    <div class="admin-transcript-msg admin-transcript-user">
+                        <strong>You:</strong> ${this._escape(userText)}
+                    </div>
+                    <div class="admin-transcript-msg admin-transcript-bot">
+                        <strong>Bot:</strong> ${this._escape(row.response_text || '(no response)')}
+                    </div>
+                </div>
+            `;
+        }).join('');
+        return `
+            <details class="admin-prompt-transcript">
+                <summary>Chatbot transcript (${rows.length} turn${rows.length === 1 ? '' : 's'})</summary>
+                <div class="admin-transcript-body">${turns}</div>
+            </details>
+        `;
+    },
+
+    _extractUserText(serialized) {
+        if (!serialized) return '';
+        const lastUserIdx = serialized.lastIndexOf('[user]');
+        if (lastUserIdx === -1) return serialized.slice(-500);
+        const chunk = serialized.slice(lastUserIdx + '[user]'.length).trim();
+        const sep = '— END OF CHART CONTEXT —';
+        const sepIdx = chunk.indexOf(sep);
+        if (sepIdx !== -1) return chunk.slice(sepIdx + sep.length).trim();
+        return chunk;
     },
 
     _renderRawResponse(r) {

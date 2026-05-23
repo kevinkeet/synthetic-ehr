@@ -28,8 +28,10 @@ const AssessmentChatbot = (() => {
 
     let _phase = 'setup';       // 'setup' | 'chat'
     let _config = null;         // { windowKey, dataTypes: [] } once configured
-    let _messages = [];         // [{role:'user'|'assistant', content}]
+    let _messages = [];         // [{role:'user'|'assistant'|'divider', content, promptId?}]
     let _isWaiting = false;
+    let _currentPromptId = null;  // tracks the prompt the resident is on
+    let _engineUnsub = null;
 
     // ── Constants ──────────────────────────────────────────────────────
 
@@ -77,6 +79,21 @@ const AssessmentChatbot = (() => {
         // Hide AI Coworker panel + assistant FAB via body class
         document.body.classList.add('in-assessment');
 
+        // Track which prompt the resident is on; inject a divider into the
+        // chat history every time the cursor moves so the conversation has
+        // visible per-prompt boundaries.
+        if (typeof AssessmentEngine !== 'undefined' && AssessmentEngine.getCurrent) {
+            const cur = AssessmentEngine.getCurrent();
+            _currentPromptId = cur?.prompt?.id || null;
+        }
+        if (typeof AssessmentEngine !== 'undefined' && AssessmentEngine.on) {
+            _engineUnsub = AssessmentEngine.on((event /*, payload */) => {
+                if (event === 'cursor-moved' || event === 'assessment-advanced') {
+                    _handlePromptCursorMove();
+                }
+            });
+        }
+
         _mountRoot();
         _renderSetup();
         _active = true;
@@ -90,12 +107,32 @@ const AssessmentChatbot = (() => {
             _root = null;
         }
         document.body.classList.remove('in-assessment');
+        if (_engineUnsub) { try { _engineUnsub(); } catch (e) {} }
+        _engineUnsub = null;
         _active = false;
         _attemptId = null;
         _phase = 'setup';
         _config = null;
         _messages = [];
+        _currentPromptId = null;
         LOG('Deactivated');
+    }
+
+    function _handlePromptCursorMove() {
+        if (!AssessmentEngine.getCurrent) return;
+        const cur = AssessmentEngine.getCurrent();
+        const newPromptId = cur?.prompt?.id || null;
+        if (newPromptId === _currentPromptId) return;
+        _currentPromptId = newPromptId;
+        // Only inject divider if there's an existing conversation worth marking
+        if (_messages.length === 0) return;
+        const apId = cur?.assessment?.id || '';
+        const title = cur?.assessment?.title || '';
+        _messages.push({
+            role: 'divider',
+            content: `Now on ${newPromptId}` + (title ? ` — ${apId}: ${title}` : ''),
+        });
+        if (_phase === 'chat') _renderMessages();
     }
 
     function isActive() { return _active; }
@@ -261,12 +298,23 @@ const AssessmentChatbot = (() => {
                 </div>
             `;
         } else {
-            container.innerHTML = _messages.map((m) => `
-                <div class="acb-msg acb-msg-${m.role}">
-                    <div class="acb-msg-role">${m.role === 'user' ? 'You' : 'Chatbot'}</div>
-                    <div class="acb-msg-body">${_renderMessageBody(m.content)}</div>
-                </div>
-            `).join('');
+            container.innerHTML = _messages.map((m) => {
+                if (m.role === 'divider') {
+                    return `
+                        <div class="acb-divider">
+                            <span class="acb-divider-line"></span>
+                            <span class="acb-divider-label">${_escape(m.content)}</span>
+                            <span class="acb-divider-line"></span>
+                        </div>
+                    `;
+                }
+                return `
+                    <div class="acb-msg acb-msg-${m.role}">
+                        <div class="acb-msg-role">${m.role === 'user' ? 'You' : 'Chatbot'}</div>
+                        <div class="acb-msg-body">${_renderMessageBody(m.content)}</div>
+                    </div>
+                `;
+            }).join('');
         }
         if (_isWaiting) {
             container.insertAdjacentHTML('beforeend', `
@@ -314,7 +362,11 @@ const AssessmentChatbot = (() => {
             // sent as-typed. If the resident changes context mid-session,
             // the prefix on the first user message is rebuilt on the next
             // API call so the latest chart is what the model sees.
-            const apiMessages = _messages.map((m, i) => {
+            //
+            // Divider entries are UI-only markers — strip them before
+            // sending to the model.
+            const realMessages = _messages.filter((m) => m.role === 'user' || m.role === 'assistant');
+            const apiMessages = realMessages.map((m, i) => {
                 if (i === 0 && m.role === 'user') {
                     return {
                         role: 'user',

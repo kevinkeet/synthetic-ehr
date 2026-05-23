@@ -62,6 +62,8 @@ const AssessmentResults = {
     },
 
     _renderReport(root, { attempt, responses, aiLog, caseDef, diagnosis }) {
+        // Stash for per-prompt transcript lookup later in the render tree.
+        this._aiLog = aiLog;
         const overallPct = Math.round(((attempt.total_score || 0) * 100));
         const passingPct = caseDef.meta.passingOverallScorePct || 70;
         const passed = overallPct >= passingPct;
@@ -193,6 +195,7 @@ const AssessmentResults = {
         const r = responses.find((rr) => rr.prompt_id === prompt.id);
         const scoreStr = (r && typeof r.score === 'number') ? Math.round(r.score * 100) + '%' : '—';
         const breakdown = (r && r.score_breakdown) || {};
+        const transcript = this._renderTranscriptForPrompt(prompt.id);
 
         return `
             <div class="assessment-prompt-result">
@@ -205,7 +208,7 @@ const AssessmentResults = {
 
                 ${r && r.ai_sample_output ? `
                     <details class="assessment-prompt-result-aisample">
-                        <summary>AI sample evaluated</summary>
+                        <summary>Chatbot sample evaluated</summary>
                         <pre>${this._escape(r.ai_sample_output)}</pre>
                     </details>
                 ` : ''}
@@ -214,6 +217,8 @@ const AssessmentResults = {
                     <summary>Your response</summary>
                     <pre>${this._escape((r && r.response_text) || '(no response)')}</pre>
                 </details>
+
+                ${transcript}
 
                 ${this._renderBreakdown(breakdown)}
 
@@ -226,6 +231,78 @@ const AssessmentResults = {
                 ${this._renderRubric(prompt.rubric)}
             </div>
         `;
+    },
+
+    _renderTranscriptForPrompt(promptId) {
+        // _aiLog stash on the renderer instance — set during _renderReport
+        const log = this._aiLog || [];
+        const rows = log
+            .filter((r) => r.prompt_id === promptId && (r.interaction_type === 'ask' || r.interaction_type === 'ask_error'))
+            .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        if (rows.length === 0) {
+            return `<details class="assessment-prompt-result-transcript">
+                <summary>Chatbot conversation (0 messages)</summary>
+                <div class="assessment-transcript-empty">You did not chat with the chatbot for this prompt.</div>
+            </details>`;
+        }
+
+        const windowLabel = {
+            'today': 'Today only', '7d': 'Last 7d', '30d': 'Last 30d',
+            '90d': 'Last 90d', '6mo': 'Last 6mo', '1y': 'Last 1y', 'all': 'All',
+        };
+
+        const turns = rows.map((row) => {
+            const setup = row.metadata && row.metadata.chatbot_setup;
+            const setupBadge = setup ? `
+                <div class="assessment-transcript-setup">
+                    <span class="assessment-transcript-window">${this._escape(windowLabel[setup.windowKey] || setup.windowKey)}</span>
+                    <span class="assessment-transcript-types">${(setup.dataTypes || []).join(' · ')}</span>
+                </div>
+            ` : '';
+            const userText = this._extractUserText(row.query_text || '');
+            return `
+                <div class="assessment-transcript-turn">
+                    ${setupBadge}
+                    <div class="assessment-transcript-msg user">
+                        <div class="assessment-transcript-role">You asked:</div>
+                        <div class="assessment-transcript-body">${this._escape(userText)}</div>
+                    </div>
+                    <div class="assessment-transcript-msg bot">
+                        <div class="assessment-transcript-role">Chatbot:</div>
+                        <div class="assessment-transcript-body">${this._escape(row.response_text || '(no response)')}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <details class="assessment-prompt-result-transcript">
+                <summary>Chatbot conversation (${rows.length} message${rows.length === 1 ? '' : 's'})</summary>
+                <div class="assessment-transcript-body-wrap">${turns}</div>
+            </details>
+        `;
+    },
+
+    /**
+     * The serialized query_text in the AI log is the full conversation
+     * history including the chart-context prefix on the first message.
+     * For the transcript view we want just the resident's LAST user
+     * message (the question they actually asked on this turn).
+     */
+    _extractUserText(serialized) {
+        if (!serialized) return '';
+        // Messages are joined by "\n\n" and prefixed with "[user]\n" or "[assistant]\n"
+        // Find the last "[user]" block.
+        const lastUserIdx = serialized.lastIndexOf('[user]');
+        if (lastUserIdx === -1) return serialized.slice(-500);
+        const chunk = serialized.slice(lastUserIdx + '[user]'.length).trim();
+        // If this user message contains the chart prefix marker, strip it.
+        const sep = '— END OF CHART CONTEXT —';
+        const sepIdx = chunk.indexOf(sep);
+        if (sepIdx !== -1) {
+            return chunk.slice(sepIdx + sep.length).trim();
+        }
+        return chunk;
     },
 
     _renderBreakdown(b) {

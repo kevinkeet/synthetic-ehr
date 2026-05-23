@@ -14545,3 +14545,154 @@ body.in-assessment .main-container {
     border-radius: 3px;
 }
 
+/* Chatbot per-prompt divider in chat history */
+.acb-divider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 14px 4px 6px;
+    font-size: 10px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+.acb-divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #cbd5e0, transparent);
+}
+.acb-divider-label {
+    white-space: nowrap;
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+/* Per-prompt chatbot transcript on the results page (resident's view) */
+.assessment-prompt-result-transcript {
+    margin: 8px 0;
+}
+.assessment-prompt-result-transcript > summary {
+    cursor: pointer;
+    font-size: 12px;
+    color: #2c5282;
+    font-weight: 600;
+}
+.assessment-transcript-empty {
+    background: #f7fafc;
+    padding: 8px 10px;
+    color: #64748b;
+    font-size: 12px;
+    border-radius: 4px;
+    font-style: italic;
+}
+.assessment-transcript-body-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 8px 0;
+}
+.assessment-transcript-turn {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 10px 12px;
+}
+.assessment-transcript-setup {
+    display: flex;
+    gap: 8px;
+    font-size: 10px;
+    color: #4a5568;
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed #e2e8f0;
+}
+.assessment-transcript-window {
+    background: #ebf8ff;
+    color: #1e40af;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.assessment-transcript-types {
+    color: #64748b;
+    font-family: 'SF Mono', Monaco, monospace;
+}
+.assessment-transcript-msg {
+    margin: 4px 0;
+}
+.assessment-transcript-role {
+    font-size: 10px;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 2px;
+}
+.assessment-transcript-body {
+    font-size: 12px;
+    color: #1a202c;
+    line-height: 1.5;
+    background: #f7fafc;
+    padding: 6px 10px;
+    border-radius: 4px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+.assessment-transcript-msg.bot .assessment-transcript-body {
+    background: #f0f9ff;
+    border-left: 2px solid #93c5fd;
+}
+
+/* Per-prompt chatbot transcript on admin dashboard */
+.admin-prompt-transcript-empty {
+    color: #94a3b8;
+    font-size: 11px;
+    font-style: italic;
+    margin: 4px 0;
+}
+.admin-prompt-transcript {
+    margin: 6px 0;
+}
+.admin-prompt-transcript > summary {
+    cursor: pointer;
+    color: #2c5282;
+    font-size: 11px;
+    font-weight: 600;
+}
+.admin-transcript-body {
+    margin: 6px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.admin-transcript-turn {
+    background: #fafafa;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 6px 8px;
+}
+.admin-transcript-setup {
+    font-size: 10px;
+    color: #1e40af;
+    background: #ebf8ff;
+    padding: 2px 6px;
+    margin-bottom: 4px;
+    border-radius: 3px;
+}
+.admin-transcript-msg {
+    font-size: 11px;
+    line-height: 1.5;
+    margin: 3px 0;
+    color: #1a202c;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+.admin-transcript-user strong { color: #1a5276; }
+.admin-transcript-bot { color: #2d3748; }
+.admin-transcript-bot strong { color: #2b6cb0; }
+
