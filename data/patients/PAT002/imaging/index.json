@@ -41,6 +41,16 @@
       "indication": "Symmetric inflammatory polyarthritis to evaluate for erosive change"
     },
     {
+      "id": "IMG_HX_001",
+      "date": "2023-03-08T19:40:00.000Z",
+      "modality": "X-Ray",
+      "description": "Left Ankle X-Ray, 3 views",
+      "facility": "Johns Hopkins Emergency Department",
+      "status": "Final",
+      "radiologist": "Dr. Marcus Patel",
+      "indication": "Acute left ankle inversion injury, unable to bear weight"
+    },
+    {
       "id": "IMG001",
       "date": "2018-09-04T14:00:00.000Z",
       "modality": "X-Ray",

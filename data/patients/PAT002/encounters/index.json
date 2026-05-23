@@ -200,6 +200,64 @@
       ],
       "status": "Completed",
       "interpreterUsed": "Spanish (Language Line)"
+    },
+    {
+      "id": "ENC_HX_005",
+      "date": "2023-03-08T19:20:00.000Z",
+      "type": "ED Visit",
+      "department": "Emergency Department — Johns Hopkins",
+      "provider": "Dr. James Tran",
+      "chiefComplaint": "Left ankle pain after workplace fall",
+      "diagnoses": ["Left ankle sprain, grade II (lateral ligament complex)"],
+      "status": "Completed",
+      "interpreterUsed": "Spanish (Language Line)"
+    },
+    {
+      "id": "ENC_HX_004",
+      "date": "2021-10-22T18:45:00.000Z",
+      "type": "Urgent Care",
+      "department": "Patterson Park Urgent Care",
+      "provider": "Dr. Rachel Kim",
+      "chiefComplaint": "Dysuria",
+      "diagnoses": ["Uncomplicated lower urinary tract infection"],
+      "status": "Completed",
+      "interpreterUsed": "Spanish (Language Line)"
+    },
+    {
+      "id": "ENC_HX_003",
+      "date": "2019-11-12T11:00:00.000Z",
+      "type": "Follow-up Visit",
+      "department": "Family Medicine — Johns Hopkins Community Health Partnership",
+      "provider": "Dr. Linda Wong",
+      "chiefComplaint": "Iron-deficiency anemia follow-up",
+      "diagnoses": ["Iron-deficiency anemia, resolved"],
+      "status": "Completed",
+      "interpreterUsed": "Spanish (Language Line)"
+    },
+    {
+      "id": "ENC_HX_002",
+      "date": "2019-04-15T16:30:00.000Z",
+      "type": "Urgent Care",
+      "department": "Patterson Park Urgent Care",
+      "provider": "Dr. Andrew Park",
+      "chiefComplaint": "Sore throat",
+      "diagnoses": ["Viral pharyngitis"],
+      "status": "Completed",
+      "interpreterUsed": "Spanish (Language Line)"
+    },
+    {
+      "id": "ENC_HX_001",
+      "date": "2018-08-22T10:00:00.000Z",
+      "type": "New Patient Visit",
+      "department": "Family Medicine — Johns Hopkins Community Health Partnership",
+      "provider": "Dr. Linda Wong",
+      "chiefComplaint": "Establish PCP / immigration physical / immunization catch-up",
+      "diagnoses": [
+        "Iron-deficiency anemia (newly diagnosed)",
+        "TB screening — IGRA indeterminate"
+      ],
+      "status": "Completed",
+      "interpreterUsed": "Spanish (in-person MA)"
     }
   ],
   "lastUpdated": "2027-04-22"

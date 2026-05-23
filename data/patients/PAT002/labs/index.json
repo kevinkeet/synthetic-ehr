@@ -74,7 +74,17 @@
       "id": "LAB001",
       "name": "CBC with Differential",
       "date": "2026-01-12"
+    },
+    {
+      "id": "LAB_HX_002",
+      "name": "Iron-Deficiency Anemia Follow-up CBC",
+      "date": "2019-11-12"
+    },
+    {
+      "id": "LAB_HX_001",
+      "name": "Immigration Intake Panel",
+      "date": "2018-08-22"
     }
   ],
-  "notes": "LAB015 = 4-week post-discharge outpatient labs (4/22/2027) documenting excellent recovery: pancytopenia resolved, albumin 3.4, prealbumin 28 (normal), CK 218 (near-normal), dsDNA 16, UPC 0.15 (normal), thyroid controlled, micronutrients repleted."
+  "notes": "Historical labs (LAB_HX_001 from 2018 immigration intake, LAB_HX_002 from 2019 anemia f/u) establish background. Case-related labs LAB001-LAB015 begin with the 2026-01-12 urgent care visit."
 }

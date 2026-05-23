@@ -1,0 +1,18 @@
+{
+  "id": "LAB_HX_002",
+  "name": "Iron-Deficiency Anemia Follow-up CBC",
+  "collectedDate": "2019-11-12T11:00:00.000Z",
+  "resultedDate": "2019-11-12T15:00:00.000Z",
+  "orderedBy": "Dr. Linda Wong",
+  "facility": "Johns Hopkins Community Health Partnership",
+  "specimen": "Whole blood + serum",
+  "status": "Final",
+  "results": [
+    { "name": "WBC", "value": "5.6", "unit": "K/uL", "referenceRange": "4.5-11.0", "flag": "normal" },
+    { "name": "Hemoglobin", "value": "13.4", "unit": "g/dL", "referenceRange": "12.0-15.5", "flag": "normal" },
+    { "name": "MCV", "value": "88", "unit": "fL", "referenceRange": "80-100", "flag": "normal" },
+    { "name": "Platelets", "value": "286", "unit": "K/uL", "referenceRange": "150-400", "flag": "normal" },
+    { "name": "Ferritin", "value": "38", "unit": "ng/mL", "referenceRange": "13-150", "flag": "normal" }
+  ],
+  "interpretation": "Iron-deficiency anemia RESOLVED. Discontinued iron supplementation."
+}

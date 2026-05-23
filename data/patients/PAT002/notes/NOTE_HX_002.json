@@ -1,0 +1,10 @@
+{
+  "id": "NOTE_HX_002",
+  "type": "Urgent Care",
+  "date": "2019-04-15T16:30:00.000Z",
+  "author": "Dr. Andrew Park",
+  "department": "Patterson Park Urgent Care",
+  "encounter": "ENC_HX_002",
+  "content": "URGENT CARE VISIT — 4/15/2019, 4:30 PM\nPatient: Sandoval, Maria Isabel (Age 15)\nInsurance: Maryland Medicaid\nInterpreter: Spanish phone interpreter\n\nCHIEF COMPLAINT:\nSore throat x 2 days.\n\nHPI:\n15-year-old female with 2 days of sore throat. No fever at home (no thermometer). No cough. No rash. Two classmates have had \"strep\" recently. Eating and drinking, swallowing painful but tolerable. No URI symptoms. Sister also sick with similar symptoms last week.\n\nROS: Constitutional — mild malaise. ENT — sore throat, no cough/congestion. Otherwise negative.\n\nVITALS: T 99.1 F, HR 92, BP 108/64, RR 16, SpO2 99% RA.\n\nEXAM:\nGeneral: Tired but in no distress.\nHEENT: Pharynx mildly erythematous, tonsils 2+ without exudate. Mild tender anterior cervical lymphadenopathy bilaterally. Tympanic membranes normal. Nasal mucosa pink.\nLungs: Clear.\nNo rash.\n\nTESTING:\nRapid strep test: NEGATIVE.\nThroat culture: not sent (Centor score 2).\n\nIMPRESSION / PLAN:\nLikely viral pharyngitis.\n1. Supportive care: warm liquids, ibuprofen 400 mg q6h PRN, salt-water gargles.\n2. RTC if symptoms worsen, fever develops, or no improvement in 7-10 days.\n3. Spanish written instructions provided.\n\nVisit time: 20 min.",
+  "attestation": "Electronically signed by: Dr. Andrew Park, MD\nDate: 4/15/2019"
+}

@@ -1,0 +1,29 @@
+{
+  "id": "LAB_HX_001",
+  "name": "Immigration Intake Panel (CBC, iron studies, infection screen)",
+  "collectedDate": "2018-08-22T10:00:00.000Z",
+  "resultedDate": "2018-08-25T08:00:00.000Z",
+  "orderedBy": "Dr. Linda Wong",
+  "facility": "Johns Hopkins Community Health Partnership",
+  "specimen": "Serum + plasma + urine",
+  "status": "Final",
+  "results": [
+    { "name": "WBC", "value": "5.2", "unit": "K/uL", "referenceRange": "4.5-11.0", "flag": "normal" },
+    { "name": "Hemoglobin", "value": "10.8", "unit": "g/dL", "referenceRange": "12.0-15.5", "flag": "low" },
+    { "name": "MCV", "value": "76", "unit": "fL", "referenceRange": "80-100", "flag": "low" },
+    { "name": "MCH", "value": "24", "unit": "pg", "referenceRange": "27-33", "flag": "low" },
+    { "name": "Platelets", "value": "280", "unit": "K/uL", "referenceRange": "150-400", "flag": "normal" },
+    { "name": "Iron", "value": "32", "unit": "ug/dL", "referenceRange": "60-170", "flag": "low" },
+    { "name": "TIBC", "value": "410", "unit": "ug/dL", "referenceRange": "250-450", "flag": "high" },
+    { "name": "Ferritin", "value": "6", "unit": "ng/mL", "referenceRange": "13-150", "flag": "low" },
+    { "name": "Hepatitis B sAg", "value": "Negative", "unit": "", "referenceRange": "Negative", "flag": "normal" },
+    { "name": "Hepatitis B sAb (vaccination)", "value": "Positive", "unit": "", "referenceRange": "Positive (vaccinated)", "flag": "normal" },
+    { "name": "Hepatitis C antibody", "value": "Negative", "unit": "", "referenceRange": "Negative", "flag": "normal" },
+    { "name": "HIV 1/2 Ag/Ab", "value": "Non-reactive", "unit": "", "referenceRange": "Non-reactive", "flag": "normal" },
+    { "name": "QuantiFERON-TB Gold", "value": "Indeterminate", "unit": "", "referenceRange": "Negative", "flag": "abnormal", "interpretation": "Indeterminate result — recommend repeat or PPD." },
+    { "name": "UA — protein", "value": "Negative", "unit": "", "referenceRange": "Negative", "flag": "normal" },
+    { "name": "UA — blood", "value": "Negative", "unit": "", "referenceRange": "Negative", "flag": "normal" },
+    { "name": "Urine HCG", "value": "Negative", "unit": "", "referenceRange": "Negative", "flag": "normal" }
+  ],
+  "interpretation": "Microcytic hypochromic anemia consistent with iron deficiency (low ferritin 6, low Hgb 10.8). Started on ferrous sulfate. Hep B/C and HIV negative. Vaccinated against Hep B. TB IGRA indeterminate — CXR ordered."
+}
