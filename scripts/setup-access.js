@@ -1,0 +1,150 @@
+#!/usr/bin/env node
+/**
+ * setup-access.js — One-time setup for the password-gated embedded API key.
+ *
+ * Usage:
+ *   node scripts/setup-access.js
+ *
+ * Prompts for:
+ *   - Anthropic API key
+ *   - Access password (entered twice for confirmation)
+ *
+ * Writes js/access-config.js with:
+ *   - salt   (random per build, base64)
+ *   - iv     (random per build, base64)
+ *   - cipher (the API key encrypted with AES-GCM, using a PBKDF2-derived key from
+ *            your password; base64)
+ *
+ * The browser gate (js/services/access-gate.js) reads this config, asks the user
+ * for the password, derives the same AES key with PBKDF2, and decrypts. A wrong
+ * password fails the AES-GCM auth check — no separate password hash is stored,
+ * so an attacker can't validate guesses without paying the PBKDF2 cost on each
+ * attempt.
+ *
+ * Re-run this script any time to rotate the password or the API key. It will
+ * overwrite js/access-config.js.
+ */
+
+'use strict';
+
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+const readline = require('readline');
+
+const CONFIG_PATH = path.join(__dirname, '..', 'js', 'access-config.js');
+const PBKDF2_ITERATIONS = 250000;
+const PBKDF2_HASH = 'sha256';
+const KEY_LENGTH_BYTES = 32; // AES-256
+const SALT_LENGTH_BYTES = 16;
+const IV_LENGTH_BYTES = 12;  // recommended for AES-GCM
+
+/* ── prompt helpers ──────────────────────────────────────────────────── */
+
+function ask(question, { hidden = false } = {}) {
+    return new Promise((resolve) => {
+        const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+        if (!hidden) {
+            rl.question(question, (answer) => { rl.close(); resolve(answer); });
+            return;
+        }
+        // Hidden input — suppress terminal echo
+        process.stdout.write(question);
+        const stdin = process.stdin;
+        const wasRaw = stdin.isRaw;
+        if (stdin.setRawMode) stdin.setRawMode(true);
+        let buf = '';
+        const onData = (ch) => {
+            const s = ch.toString('utf8');
+            if (s === '') { // Ctrl-C
+                process.stdout.write('\n');
+                process.exit(130);
+            }
+            if (s === '\r' || s === '\n') {
+                process.stdout.write('\n');
+                stdin.removeListener('data', onData);
+                if (stdin.setRawMode) stdin.setRawMode(wasRaw || false);
+                stdin.pause();
+                rl.close();
+                resolve(buf);
+                return;
+            }
+            if (s === '' || s === '\b') {
+                if (buf.length > 0) { buf = buf.slice(0, -1); process.stdout.write('\b \b'); }
+                return;
+            }
+            buf += s;
+            process.stdout.write('*');
+        };
+        stdin.resume();
+        stdin.on('data', onData);
+    });
+}
+
+/* ── main ────────────────────────────────────────────────────────────── */
+
+(async function main() {
+    console.log('\nAcess gate setup — Acting Intern');
+    console.log('───────────────────────────────────\n');
+    console.log('This writes js/access-config.js with your API key encrypted under your password.');
+    console.log('Commit the file when done — the embedded ciphertext is safe to publish.\n');
+
+    const apiKey = (await ask('Anthropic API key (sk-ant-...): ', { hidden: true })).trim();
+    if (!apiKey) { console.error('No API key entered. Aborting.'); process.exit(1); }
+    if (!apiKey.startsWith('sk-ant-')) {
+        console.error('That does not look like an Anthropic API key (should start with "sk-ant-"). Aborting.');
+        process.exit(1);
+    }
+
+    const pw1 = await ask('Access password: ', { hidden: true });
+    if (!pw1) { console.error('No password entered. Aborting.'); process.exit(1); }
+    if (pw1.length < 6) { console.error('Password too short (min 6 chars). Aborting.'); process.exit(1); }
+    const pw2 = await ask('Confirm password: ', { hidden: true });
+    if (pw1 !== pw2) { console.error('Passwords do not match. Aborting.'); process.exit(1); }
+
+    console.log('\nGenerating salt + IV, deriving key, encrypting…');
+
+    const salt = crypto.randomBytes(SALT_LENGTH_BYTES);
+    const iv = crypto.randomBytes(IV_LENGTH_BYTES);
+    const key = crypto.pbkdf2Sync(pw1, salt, PBKDF2_ITERATIONS, KEY_LENGTH_BYTES, PBKDF2_HASH);
+
+    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+    const ct = Buffer.concat([cipher.update(apiKey, 'utf8'), cipher.final()]);
+    const authTag = cipher.getAuthTag();
+    // Concatenate ciphertext || authTag so the browser can split them
+    const blob = Buffer.concat([ct, authTag]);
+
+    const config = {
+        version: 1,
+        algorithm: 'AES-256-GCM',
+        kdf: { name: 'PBKDF2', hash: PBKDF2_HASH, iterations: PBKDF2_ITERATIONS },
+        salt: salt.toString('base64'),
+        iv: iv.toString('base64'),
+        cipher: blob.toString('base64'),
+    };
+
+    const file =
+`/**
+ * access-config.js — generated by scripts/setup-access.js
+ *
+ * Contains an Anthropic API key encrypted under a password using PBKDF2 +
+ * AES-256-GCM. Safe to commit: without the password, the ciphertext is not
+ * decryptable. Each guess requires a full PBKDF2 derivation, which is slow
+ * by design.
+ *
+ * Re-run scripts/setup-access.js to rotate the password or the API key.
+ */
+window.ACCESS_CONFIG = ${JSON.stringify(config, null, 2)};
+`;
+    fs.writeFileSync(CONFIG_PATH, file, 'utf8');
+    console.log(`\nWrote ${path.relative(process.cwd(), CONFIG_PATH)}`);
+    console.log('\nNext steps:');
+    console.log('  1. git add js/access-config.js');
+    console.log('  2. Bump the cache version in index.html and commit');
+    console.log('  3. Push — the gate goes live on the next GitHub Pages deploy.');
+    console.log('\nShare the password with your trusted group out-of-band (not in the repo).');
+    console.log('Set a monthly spending cap in console.anthropic.com as your backstop.\n');
+})().catch((err) => {
+    console.error('Setup failed:', err.message);
+    process.exit(1);
+});

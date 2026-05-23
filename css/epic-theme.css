@@ -602,6 +602,105 @@ html, body {
     font-size: 14px;
 }
 
+/* Access gate (password-protected entry) */
+body.access-gate-active { overflow: hidden; }
+#access-gate-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0f2436 0%, #154360 60%, #1a5276 100%);
+    padding: 24px;
+}
+.access-gate-card {
+    width: 100%;
+    max-width: 420px;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 36px 36px 28px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: #1a2b3c;
+}
+.access-gate-brand {
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #5d7388;
+    margin-bottom: 8px;
+}
+.access-gate-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    color: #15324e;
+}
+.access-gate-sub {
+    font-size: 13.5px;
+    color: #5d7388;
+    line-height: 1.5;
+    margin: 0 0 20px;
+}
+#access-gate-form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+#access-gate-input {
+    flex: 1;
+    min-width: 0;
+    padding: 11px 14px;
+    border: 1.5px solid #d0d9e2;
+    border-radius: 6px;
+    font-size: 15px;
+    color: #1a2b3c;
+    background: #fafcfe;
+    outline: none;
+    transition: border-color 0.12s ease;
+}
+#access-gate-input:focus {
+    border-color: #1a5276;
+    background: #ffffff;
+}
+#access-gate-input:disabled {
+    background: #eef1f4;
+    color: #94a3b3;
+}
+#access-gate-submit {
+    padding: 11px 18px;
+    background: #1a5276;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.12s ease;
+}
+#access-gate-submit:hover:not(:disabled) { background: #154360; }
+#access-gate-submit:disabled { background: #8aa0b3; cursor: not-allowed; }
+.access-gate-error {
+    min-height: 18px;
+    font-size: 13px;
+    color: #b91c1c;
+    margin-bottom: 12px;
+}
+.access-gate-foot {
+    font-size: 12px;
+    color: #7b8b9d;
+    border-top: 1px solid #eaeef2;
+    padding-top: 14px;
+    margin-top: 6px;
+    text-align: center;
+}
+.access-gate-foot a {
+    color: #1a5276;
+    text-decoration: none;
+}
+.access-gate-foot a:hover { text-decoration: underline; }
+
 /* Chart-review "Take Assessment" CTA banner */
 .assessment-cta-banner {
     display: flex;
