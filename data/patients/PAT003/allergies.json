@@ -1,0 +1,27 @@
+{
+  "allergies": [
+    {
+      "id": "ALG001",
+      "substance": "Penicillin",
+      "type": "Drug",
+      "category": "Antibiotic",
+      "reaction": "Rash (childhood, per family report — non-anaphylactic, never re-challenged)",
+      "severity": "Mild",
+      "source": "Patient + son report",
+      "notes": "Patient was treated with amoxicillin as a child in Vietnam (~1960s) and developed a rash per her mother's account. No anaphylaxis or angioedema. Has not received any penicillin-class antibiotic since immigration. Risk/benefit of re-challenge has been discussed with PCP previously; she preferred to avoid."
+    },
+    {
+      "id": "ALG002",
+      "substance": "Iodinated contrast",
+      "type": "Drug",
+      "category": "Contrast media",
+      "reaction": "Urticaria + facial flushing (during 2019 CT for knee evaluation)",
+      "severity": "Moderate",
+      "source": "Hopkins Radiology incident report 2019-08-04",
+      "notes": "Treated successfully with IV diphenhydramine and observation. Subsequent CT studies have been pre-medicated with prednisone (50 mg PO at 13, 7, and 1 hours pre-procedure) + diphenhydramine 50 mg PO 1 hour pre-procedure per Hopkins Radiology pre-medication protocol. Tolerated this premedication for cholelithiasis US-guided procedures and for 2027-02-15 admission CT A/P (pre-medicated emergently in the ED)."
+    }
+  ],
+  "nkda": false,
+  "lastReviewed": "2027-02-15",
+  "reviewedBy": "Emergency Department intake, Dr. K. Patel"
+}

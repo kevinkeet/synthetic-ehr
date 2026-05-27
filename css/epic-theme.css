@@ -602,12 +602,15 @@ html, body {
     font-size: 14px;
 }
 
-/* PAT002 (Maria) — hide AI Coworker panel and Sim controls so the
+/* Case patients — hide AI Coworker panel and Sim controls so the
    resident focuses on the chart + assessment chatbot. The chart area
    expands to fill the space the AI panel would have occupied (flex layout). */
 body.patient-pat002 #ai-panel,
 body.patient-pat002 #ai-panel-floating-btn,
-body.patient-pat002 #sim-controls {
+body.patient-pat002 #sim-controls,
+body.patient-pat003 #ai-panel,
+body.patient-pat003 #ai-panel-floating-btn,
+body.patient-pat003 #sim-controls {
     display: none !important;
 }
 

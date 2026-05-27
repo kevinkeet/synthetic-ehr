@@ -15,6 +15,7 @@ const App = {
     // default so casual browsing stays gated.
     _DEFAULT_GATE_ANCHORS: {
         PAT002: '2026-01-12T23:59:59Z',
+        PAT003: '2027-04-12T23:59:59Z',
     },
 
     /**

@@ -1,0 +1,59 @@
+{
+  "id": "PAT003",
+  "mrn": "MRN-90215888",
+  "firstName": "Lan",
+  "middleName": "Thi",
+  "lastName": "Nguyen",
+  "dateOfBirth": "1954-09-22",
+  "sex": "Female",
+  "gender": "Female",
+  "race": "Asian",
+  "ethnicity": "Not Hispanic or Latino",
+  "preferredLanguage": "Vietnamese",
+  "interpreterNeeded": true,
+  "countryOfBirth": "Vietnam (Hà Nam Province)",
+  "yearOfImmigration": 1990,
+  "maritalStatus": "Widowed (2018)",
+  "ssn": null,
+  "phone": "(410) 555-7041",
+  "email": null,
+  "address": {
+    "street": "2734 N Charles St, Apt 4B",
+    "city": "Baltimore",
+    "state": "MD",
+    "zip": "21218",
+    "country": "USA"
+  },
+  "emergencyContact": {
+    "name": "Quang Nguyen",
+    "relationship": "Son (primary caregiver, lives with patient)",
+    "phone": "(410) 555-7042",
+    "language": "English / Vietnamese (bilingual)"
+  },
+  "secondaryContact": {
+    "name": "Linh Tran",
+    "relationship": "Daughter-in-law (lives with patient)",
+    "phone": "(410) 555-7043",
+    "language": "Vietnamese (primary), conversational English"
+  },
+  "primaryCareProvider": {
+    "name": "Dr. Phong Le, MD",
+    "npi": "1689435207",
+    "phone": "(410) 555-3300",
+    "practice": "Charm City Asian Health Center (Federally Qualified Health Center)",
+    "notes": "Vietnamese-speaking PCP. Patient established care here 2010 after referral from her workplace screening; previously had episodic care only. Sees Dr. Le every 6 months or so; office uses a phone-based Vietnamese interpreter line as backup when Dr. Le not available."
+  },
+  "insurance": {
+    "name": "Medicare Part A + B (since 2019, age 65); supplemental Medicaid (dual-eligible)",
+    "memberId": "1EG4-TG7-MK35",
+    "notes": "Dual-eligible. Maryland Medicaid covers Part B copays, durable medical equipment, prescriptions not covered by Part D plan. Currently enrolled in WellCare Medicare Part D for prescriptions."
+  },
+  "advanceDirectives": {
+    "livingWill": false,
+    "healthcareProxy": "Son Quang Nguyen (verbal designation, not formally documented prior to admission)",
+    "dnr": false,
+    "lastReviewed": "2027-02-16 (during current admission, family meeting)"
+  },
+  "createdAt": "2010-04-18T10:15:00Z",
+  "lastUpdated": "2027-04-12T08:00:00Z"
+}

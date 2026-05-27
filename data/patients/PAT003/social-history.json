@@ -1,0 +1,76 @@
+{
+  "tobacco": {
+    "status": "Former smoker",
+    "type": "Cigarettes",
+    "amount": "~10 cigarettes/day from age 22 until age 50; quit in 2004 after husband's MI scare",
+    "packYears": 14,
+    "quitDate": "2004",
+    "notes": "Started smoking shortly after marriage in Vietnam, continued for ~28 years. Quit cold turkey after her husband had an MI scare in 2004. No relapse since. Lung cancer screening was discussed by Dr. Le in 2018 but patient declined low-dose CT — concerned about cost and 'they don't trust scans.' Conversation was not revisited until incidental finding on this admission."
+  },
+  "alcohol": {
+    "status": "Current — moderate, longstanding",
+    "frequency": "Daily",
+    "amount": "1–2 standard drinks/day (typically a glass of rice wine at dinner, occasional beer)",
+    "type": "Rice wine (rượu nếp) — homemade from her son's father-in-law; occasional Tsingtao or Saigon beer",
+    "lastUse": "2027-02-14 (night before admission)",
+    "notes": "Cultural pattern. Has been drinking 1–2/day since her 20s. Has not reported any binge drinking, blackouts, or attempts to cut down. AUDIT-C score at 2024 PCP visit: 3 (below alcohol-use-disorder threshold for women)."
+  },
+  "drugs": {
+    "status": "Denies",
+    "details": "No history of illicit drug use. No marijuana, cocaine, opioids outside of medically prescribed contexts."
+  },
+  "occupation": {
+    "current": "Retired since age 67 (2021)",
+    "previous": "Floor manager at Baltimore textile factory (1992–2021, ~29 years). Supervised ~15-20 sewing-machine operators on the day shift. Earlier (1990–1992): garment sewer at the same factory before promotion.",
+    "status": "Receiving Social Security retirement benefits since 2019",
+    "yearsAtCurrent": null,
+    "exposures": "Decades of indoor cotton dust exposure (factory had ventilation but never industrial-grade filtration). Occasional dye/chemical exposure. Workplace required annual PPD screening — first positive PPD documented at her 2010 annual screening (per chart note from prior PCP). Significant occupational noise exposure. No reported asbestos."
+  },
+  "education": {
+    "highestLevel": "Completed 9th grade (Vietnam, 1969). No further formal education in the US.",
+    "literacyConcerns": "Vietnamese literate. Speaks some functional English picked up at work and from her son and grandchildren, but prefers Vietnamese for any healthcare conversation. Does not read English well — written materials at appointments are not useful unless translated. Has reading glasses for fine print."
+  },
+  "housing": {
+    "status": "Stable — second-floor apartment in a converted rowhouse",
+    "livingWith": "Son Quang (age 47, IT professional, fluent English), daughter-in-law Linh (age 44, runs a small home-based hair salon), two grandchildren (ages 16 and 12, US-born, fluent English).",
+    "ownership": "Rental (extended family lease; son is on the lease)",
+    "notes": "Patient moved in with her son's family in 2019 after her husband died. Has her own bedroom on the second floor. Grandchildren help translate apps and medical paperwork. Family is supportive and engaged; daughter-in-law usually accompanies to appointments and asks detailed questions."
+  },
+  "diet": {
+    "type": "Traditional Vietnamese diet at home — daily rice, fish (occasional), vegetables (lots of leafy greens and bitter melon), small amount of meat. Occasional Chinese or American take-out with grandchildren.",
+    "restrictions": "No prescribed restrictions historically. Patient has been counseled on low-sodium for hypertension and DASH-style modifications; family attempts to honor this but cultural staples often higher in sodium (fish sauce, soy sauce).",
+    "supplements": "Multivitamin daily (Centrum Silver). Calcium 600 mg daily added 2022 after low DEXA score."
+  },
+  "exercise": {
+    "frequency": "Walks to the local grocery (~10 minutes each way) 3–4x/week. Tai chi class at the local Vietnamese community center on Tuesdays and Saturdays (90 min each) when knee allows — has been less consistent since the 2024 winter when right knee replacement hardware started hurting again.",
+    "intensity": "Mild–moderate. Has not done any structured high-intensity exercise."
+  },
+  "sexualHistory": {
+    "active": "Not currently. Widowed 2018.",
+    "partners": "Monogamous with husband from 1973 until his death in 2018.",
+    "contraception": "Post-menopausal (since ~age 49); no current need",
+    "stiScreening": "Last HIV/Hep screen at 1990 immigration intake (negative). No screening since."
+  },
+  "immigration": {
+    "countryOfOrigin": "Vietnam (Hà Nam Province, rural)",
+    "yearImmigrated": 1990,
+    "ageAtImmigration": 36,
+    "status": "Naturalized US citizen since 1998. Sponsored by a cousin already living in Baltimore.",
+    "lastReturnToCountry": "2014 — 4-week visit with extended family during Tết (Lunar New Year). No travel outside the US since (mainly due to husband's illness, then her own knee issues, then COVID)."
+  },
+  "transportation": {
+    "primary": "Relies on son Quang for most medical appointments — he works flexible hours and takes her. Daughter-in-law fills in. Patient does not drive (never learned in the US)."
+  },
+  "religion": "Buddhist (Mahayana). Maintains a small home altar; attends temple services occasionally with friends from the Vietnamese community.",
+  "safety": {
+    "intimatePartnerViolence": "Denies — last screened 2024 PCP visit, asked through interpreter.",
+    "weaponsInHome": false,
+    "feelsSafeAtHome": true
+  },
+  "mentalHealth": {
+    "depressionScreening": "PHQ-2 = 1 at 2024 PCP visit (subthreshold; some mild sadness around husband's death anniversary). Not formally re-screened during this admission, but ICU course was psychologically traumatic per nursing report (multiple panic episodes during weaning).",
+    "anxietyScreening": "GAD-2 = 0 at 2024 visit",
+    "support": "Son and daughter-in-law primary supports. Tai chi friends + Vietnamese community center social network. Patient does NOT have a strong relationship with the broader American healthcare system — sees Hopkins as 'the big hospital' and feels intimidated."
+  },
+  "notes": "Cultural context: patient is the matriarch of an extended Vietnamese-American family. Decisions are typically discussed with son and daughter-in-law before being formalized. Patient defers to her son on logistics and translation; she is alert and competent but does not want to be the one fielding complex healthcare questions in English. Vietnamese interpreter (Language Line or in-person when available) is essential for any substantive conversation, including discharge teaching. Family has experienced previous miscommunications when interpreter was not used."
+}

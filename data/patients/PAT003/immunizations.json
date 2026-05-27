@@ -1,0 +1,81 @@
+{
+  "immunizations": [
+    {
+      "id": "IMM001",
+      "vaccine": "Influenza (quadrivalent, IIV)",
+      "date": "2026-10-22",
+      "administeredBy": "Charm City Asian Health Center (Dr. Le's office)",
+      "lotNumber": "FL26-2241",
+      "notes": "Annual flu shot. Tolerated without reaction."
+    },
+    {
+      "id": "IMM002",
+      "vaccine": "Pneumococcal polysaccharide (PPSV23)",
+      "date": "2020-03-12",
+      "administeredBy": "Charm City Asian Health Center",
+      "lotNumber": "PPS-20-118",
+      "notes": "Given at age 65 per CDC schedule."
+    },
+    {
+      "id": "IMM003",
+      "vaccine": "Pneumococcal conjugate (PCV15)",
+      "date": "2023-04-19",
+      "administeredBy": "Charm City Asian Health Center",
+      "lotNumber": "PCV-23-097",
+      "notes": "Sequential dose ≥1 year after PPSV23, per 2022 ACIP recommendations for adults ≥65."
+    },
+    {
+      "id": "IMM004",
+      "vaccine": "Shingles (Shingrix, recombinant zoster — dose 1)",
+      "date": "2022-06-08",
+      "administeredBy": "Charm City Asian Health Center",
+      "lotNumber": "SH-22-045",
+      "notes": "Dose 1 of 2."
+    },
+    {
+      "id": "IMM005",
+      "vaccine": "Shingles (Shingrix — dose 2)",
+      "date": "2022-09-15",
+      "administeredBy": "Charm City Asian Health Center",
+      "lotNumber": "SH-22-088",
+      "notes": "Dose 2 completed on schedule."
+    },
+    {
+      "id": "IMM006",
+      "vaccine": "COVID-19 mRNA primary series (Pfizer/BioNTech)",
+      "date": "2021-02-10 (dose 1), 2021-03-03 (dose 2)",
+      "administeredBy": "Mass vaccination clinic, Baltimore Convention Center",
+      "notes": "Patient was eligible early as a 66-year-old with chronic conditions."
+    },
+    {
+      "id": "IMM007",
+      "vaccine": "COVID-19 booster (bivalent)",
+      "date": "2022-11-05",
+      "administeredBy": "CVS Pharmacy (Charles Village)",
+      "notes": "Bivalent booster."
+    },
+    {
+      "id": "IMM008",
+      "vaccine": "COVID-19 (updated 2024-2025 monovalent)",
+      "date": "2024-10-30",
+      "administeredBy": "Charm City Asian Health Center",
+      "notes": "Annual update."
+    },
+    {
+      "id": "IMM009",
+      "vaccine": "Tdap",
+      "date": "2018-04-04",
+      "administeredBy": "Hopkins pre-op clinic (right TKA evaluation)",
+      "notes": "Caught up booster prior to elective TKA. Td booster due ~2028."
+    },
+    {
+      "id": "IMM010",
+      "vaccine": "BCG",
+      "date": "Childhood (Vietnam, ~1956)",
+      "administeredBy": "Vietnam (rural Hà Nam, mass campaign)",
+      "notes": "Patient has visible BCG scar on left deltoid. Relevant to interpretation of past TB screening."
+    }
+  ],
+  "lastReviewed": "2026-10-22",
+  "reviewedBy": "Dr. Phong Le, MD"
+}

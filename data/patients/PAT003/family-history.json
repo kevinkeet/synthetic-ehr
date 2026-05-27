@@ -1,0 +1,93 @@
+{
+  "familyHistory": [
+    {
+      "relation": "Father",
+      "name": null,
+      "vital": "Deceased",
+      "ageAtDeath": 68,
+      "yearOfDeath": 1995,
+      "conditions": [
+        { "condition": "Myocardial infarction", "age": 68, "notes": "Cause of death. Had untreated hypertension." },
+        { "condition": "Hypertension", "ageOnset": "Unknown", "notes": "Per patient, never treated; lived in rural Vietnam, limited access to chronic care." }
+      ]
+    },
+    {
+      "relation": "Mother",
+      "name": null,
+      "vital": "Deceased",
+      "ageAtDeath": 81,
+      "yearOfDeath": 2008,
+      "conditions": [
+        { "condition": "Type 2 diabetes", "ageOnset": 70, "notes": "Diagnosed late in life. Diet-controlled, never on insulin." },
+        { "condition": "Cerebrovascular accident", "age": 81, "notes": "Cause of death. Likely related to long-standing untreated hypertension." }
+      ]
+    },
+    {
+      "relation": "Brother (oldest)",
+      "name": null,
+      "vital": "Deceased",
+      "ageAtDeath": 64,
+      "yearOfDeath": 2018,
+      "conditions": [
+        { "condition": "Lung cancer (squamous cell, primary)", "age": 63, "notes": "Heavy smoker (40+ pack years). Diagnosed advanced stage; died 11 months after diagnosis. Lived in Vietnam." }
+      ]
+    },
+    {
+      "relation": "Brother (younger)",
+      "name": null,
+      "vital": "Alive (age 67)",
+      "conditions": [
+        { "condition": "Type 2 diabetes", "ageOnset": 55, "notes": "On metformin + insulin. Lives in Hanoi." },
+        { "condition": "Hypertension", "ageOnset": 50 }
+      ]
+    },
+    {
+      "relation": "Sister",
+      "name": null,
+      "vital": "Alive (age 65)",
+      "conditions": [
+        { "condition": "Breast cancer", "ageOnset": 58, "notes": "Treated with lumpectomy + radiation. NED 7 years. Lives in Vietnam." }
+      ]
+    },
+    {
+      "relation": "Husband (deceased)",
+      "name": "Hai Nguyen",
+      "vital": "Deceased",
+      "ageAtDeath": 67,
+      "yearOfDeath": 2018,
+      "conditions": [
+        { "condition": "Coronary artery disease s/p CABG (2004)", "notes": "Triple vessel CABG at 53 after NSTEMI. Did well for ~14 years." },
+        { "condition": "End-stage congestive heart failure", "age": 67, "notes": "Cause of death. Progressive HFrEF over the last 3 years of life. Hospice at home for final 6 weeks." }
+      ]
+    },
+    {
+      "relation": "Son (Quang)",
+      "name": "Quang Nguyen",
+      "vital": "Alive (age 47)",
+      "conditions": [
+        { "condition": "Hyperlipidemia", "ageOnset": 42, "notes": "On atorvastatin." }
+      ]
+    },
+    {
+      "relation": "Daughter-in-law (Linh)",
+      "name": "Linh Tran",
+      "vital": "Alive (age 44)",
+      "conditions": [
+        { "condition": "Hypothyroidism", "notes": "On levothyroxine. Note: not a blood relative — included for caregiver context only." }
+      ]
+    },
+    {
+      "relation": "Grandchildren (2)",
+      "vital": "Alive (ages 16 and 12)",
+      "conditions": []
+    }
+  ],
+  "summary": "Notable for: paternal early CHD (father's MI at 68), maternal CVA, one brother's lung cancer (heavy smoker, Vietnam), maternal-side type 2 diabetes (mother, surviving brother). No known family history of inherited cancer syndromes; no breast/ovarian aggregation; no autoimmune disease aggregation. Husband had significant CHD.",
+  "geneticTesting": {
+    "done": false,
+    "indication": null,
+    "notes": "Patient has not undergone formal genetic counseling. Sister's breast cancer + brother's lung cancer have not prompted formal cancer genetics referral; patient has not asked about it."
+  },
+  "lastUpdated": "2027-02-15 (re-taken on admission)",
+  "reviewedBy": "Dr. K. Patel (ED) and Dr. M. Castro (admitting medicine team)"
+}

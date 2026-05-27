@@ -1,0 +1,17 @@
+{
+  "caseId": "PAT003",
+  "caseTitle": "Lan Nguyen — The lung nodule that almost left",
+  "patientId": "PAT003",
+  "version": "0.1.0",
+  "status": "single_timepoint",
+  "_status_notes": "1 timepoint (TP1 — discharge day after 57-day admission). 5 questions covering differential, additional info, keep-vs-discharge factors, outpatient process, and inpatient endpoint. 25 min total. Source rubric: 36 points; normalized to 3.6 total weight.",
+  "totalTimeLimitMinutes": 25,
+  "assessments": ["AP1"],
+  "passingOverallScorePct": 70,
+  "description": "A discharge-day clinical case featuring a 72-year-old Vietnamese-speaking woman who is being discharged after a 57-day admission for severe gallstone pancreatitis complicated by ICU-level sepsis/ARDS and DVT. During the admission a 2.5 cm right upper lobe lung nodule was discovered incidentally and confirmed on follow-up CT but has not been re-mentioned in daily progress notes since. The case tests the resident's handling of an incidental finding that has 'fallen off the radar' and the social-determinant work of safely transitioning a complex elderly patient.",
+  "warning": "Plan to dedicate about 25 minutes uninterrupted. Pausing is permitted but stops the timer.",
+  "instructions": "You are evaluating a real patient. Review the chart, then respond to each clinical question. Your responses are graded against a rubric; the case's intended teaching points are revealed at the end.",
+  "originalDiscussants": "Anil Vachani, Corinne Rhodes, Karin Ouchida",
+  "finalizedBy": "Parsons",
+  "sourceRubricPoints": 36
+}

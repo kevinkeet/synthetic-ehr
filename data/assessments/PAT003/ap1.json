@@ -1,0 +1,173 @@
+{
+  "id": "AP1",
+  "order": 1,
+  "title": "Timepoint 1 — Discharge day",
+  "anchorDate": "2027-04-12T23:59:59Z",
+  "timeLimitMinutes": 25,
+  "scenarioBrief": "Lan Nguyen is a 72-year-old Vietnamese-speaking woman who was admitted on 2/15/2027 with severe gallstone pancreatitis. Her course was complicated by septic shock, ARDS requiring intubation, DVT, and a 57-day hospital stay. She is preparing for discharge to a rehab facility today (4/12/2027). On a final review of imaging before discharge, a 2.5 cm right upper lobe lung nodule that was incidentally noted on her sepsis-workup chest X-ray (and confirmed on follow-up CT) is re-noticed — it has not appeared in her daily progress notes since hospital day 8.",
+  "chartGate": {
+    "includeBeforeOrEqualDate": "2027-04-12T23:59:59Z",
+    "_notes": "TP1 visibility: complete chart through discharge day — historical PCP visits at Charm City Asian Health Center, prior orthopedic record (R TKA 2018), prior infectious disease workup (positive PPD 2010), prior US confirming cholelithiasis (2025), admission H&P, ICU consults, daily progress notes (which dropped the lung nodule after HD 8), CXR and CT reports, pulmonary nodule consult, TB rule-out (AFB + NAAT all negative), DVT consult, rehab planning."
+  },
+  "prompts": [
+    {
+      "id": "AP1-Q1",
+      "order": 1,
+      "type": "differential",
+      "question": "Based on the information you have at this time, what is your differential diagnosis for this incidental lung nodule?",
+      "expectedResponseFormat": "free_text",
+      "minLength": 150,
+      "rubric": {
+        "essential": [
+          "Primary lung malignancy on the differential (1 source pt)",
+          "Metastasis to the lung on the differential (1 source pt)",
+          "Tuberculosis on the differential (1 source pt)",
+          "Non-TB primary lung infection on the differential, e.g., bacterial pneumonia, fungal (histoplasmosis, coccidioidomycosis), endemic mycoses (1 source pt)",
+          "Rheumatologic / autoimmune nodule on the differential, e.g., rheumatoid nodule, granulomatosis with polyangiitis (1 source pt)",
+          "Benign tumor / granuloma / calcified scar on the differential (1 source pt)"
+        ],
+        "bonus": [
+          "Risk-stratifies the differential based on the patient's specifics (former smoker, Vietnamese origin, family history of lung cancer in brother, BCG vaccination affecting PPD interpretation, history of positive PPD)",
+          "Acknowledges that the nodule's behavior across the 57-day admission (no growth on follow-up CT) is reassuring but not exclusionary",
+          "Notes that the radiologist's recommendation (biopsy or repeat imaging in 3 months) already implies an intermediate pre-test probability"
+        ],
+        "redFlags": [
+          "Naming a single diagnosis without considering alternatives",
+          "Omitting infection (TB, non-TB) given her Vietnamese origin and positive PPD history",
+          "Omitting malignancy (primary or metastatic) given her smoking history and family history",
+          "Failing to consider granulomatous / calcified benign etiologies despite her positive PPD history"
+        ]
+      },
+      "weight": 0.6,
+      "sourcePoints": 6
+    },
+    {
+      "id": "AP1-Q2",
+      "order": 2,
+      "type": "additional-info",
+      "question": "What additional information (from the patient, the chart, or non-invasive workup) could you obtain that would help further hone the differential diagnosis for this lung nodule?",
+      "expectedResponseFormat": "free_text",
+      "minLength": 200,
+      "rubric": {
+        "essential": [
+          "Detailed smoking history (pack-years, time since quit) — 1 source pt",
+          "Environmental / occupational exposure history (textile factory cotton dust, prior asbestos, radon, etc.) — 1 source pt",
+          "Personal or family cancer history (especially the brother's lung cancer, sister's breast cancer) — 1 source pt",
+          "Prior history of lung infections — 1 source pt",
+          "Prior TB testing, treatment, or BCG vaccination status — 1 source pt",
+          "Nodule features on imaging: two of three of spiculation, solid vs subsolid character, upper-lobe location — 2 source pts",
+          "One of: history of rheumatologic / autoimmune disease, OR geography of current and previous living (regions endemic for histo, cocci, blasto) — 1 source pt",
+          "One of: hemoptysis, OR lymphadenopathy — 1 source pt"
+        ],
+        "bonus": [
+          "Asks for prior imaging (any old chest CT or CXR) to look for nodule stability/growth over years",
+          "Mentions specific imaging characteristics that influence Fleischner-society follow-up recommendations",
+          "Notes that her BCG history complicates interpretation of past positive PPD and that IGRA may be more useful"
+        ],
+        "redFlags": [
+          "Recommending invasive workup (biopsy, bronchoscopy) before exhausting non-invasive options",
+          "Failing to consider the imaging characteristics that influence pre-test probability"
+        ]
+      },
+      "weight": 0.9,
+      "sourcePoints": 9
+    },
+    {
+      "id": "AP1-Q3",
+      "order": 3,
+      "type": "management-decision",
+      "question": "The patient is being planned for discharge today and is expecting to leave today to go to rehab. What factors would influence your decision about keeping her in the hospital for additional workup vs. deferring to the outpatient setting?",
+      "expectedResponseFormat": "free_text",
+      "minLength": 300,
+      "rubric": {
+        "essential": [
+          "Patient's understanding of her current condition (and the limits imposed by language barrier) — 1 source pt",
+          "Patient's understanding of the importance of follow-up — 1 source pt",
+          "Patient's ability to navigate the healthcare system (language, insurance, transportation) — 1 source pt",
+          "Family / caregiver support (specifically, the role of son and daughter-in-law) — 1 source pt",
+          "Quality / effectiveness of the health system's operations for patients with lung nodules (does the institution have a nodule clinic? Is there a tracking mechanism?) — 1 source pt",
+          "Risk and cost of additional inpatient days (deconditioning, hospital-acquired infection, financial burden) — 1 source pt",
+          "Plan for anticoagulation around any biopsy (currently on apixaban for the new DVT) — 1 source pt",
+          "Whether a biopsy plan is in place — 1 source pt",
+          "One of: risk tolerance of the patient OR risk tolerance of the clinician — 1 source pt",
+          "Two of four of: outpatient/PCP access; location/distance of rehab and ease of communication with the rehab facility; ability to attend outpatient specialist appointments while at rehab; timeliness of outpatient specialty appointments — 2 source pts"
+        ],
+        "bonus": [
+          "Explicit Vietnamese-language interpretation plan for all discharge conversations",
+          "Recognizes the asymmetry between this admission's intensity and a 3-month outpatient follow-up window (i.e., 'we have her here now, will we lose her?')",
+          "Identifies that the discharge medication list shows the nodule was missed in med-rec workup too",
+          "Engages with the cost-of-care implication of additional inpatient days for a Medicare/Medicaid dual-eligible patient"
+        ],
+        "redFlags": [
+          "Defaulting to 'discharge with outpatient plan' without engaging the social-determinant factors that make outpatient follow-up unreliable",
+          "Defaulting to 'keep her here for biopsy' without weighing deconditioning + nosocomial risk",
+          "Ignoring the anticoagulation conflict",
+          "Failing to involve the patient or family in the decision"
+        ]
+      },
+      "weight": 1.1,
+      "sourcePoints": 11
+    },
+    {
+      "id": "AP1-Q4",
+      "order": 4,
+      "type": "management-plan",
+      "question": "If you were to defer the workup to the outpatient setting, what would be your process? Be concrete.",
+      "expectedResponseFormat": "free_text",
+      "minLength": 250,
+      "rubric": {
+        "essential": [
+          "Ensure patient and family understanding of the current condition (in Vietnamese, with formal interpretation) — 1 source pt",
+          "Emphasize the importance of follow-up specifically because of concern for malignancy — 1 source pt",
+          "Schedule the outpatient biopsy (or referral to a pulmonary nodule clinic) BEFORE discharge, not as an outpatient task left to the patient — 1 source pt",
+          "Assess patient and family needs around discharge (transportation to follow-up, language, financial) — 1 source pt",
+          "Communication of the discharge recommendation to the outpatient care team — PCP, rehab facility medical director — 1 source pt",
+          "Clear communication of the plan and anticipatory guidance to the patient and family in appropriate language — 1 source pt",
+          "Establish an anticoagulation plan around the biopsy (when to hold apixaban, when to resume) — 1 source pt"
+        ],
+        "bonus": [
+          "Names a specific tracking mechanism (e.g., institutional lung-nodule registry, pulmonary nodule clinic referral with closed-loop confirmation)",
+          "Specifies which document(s) the resident will personally update so the nodule does not 'drop off' again (problem list addition; discharge summary line item; med-rec line)",
+          "Specific written + verbal Spanish... pardon, VIETNAMESE language materials and discharge teaching with teach-back",
+          "Specific contact info for son Quang Nguyen as the family communication liaison"
+        ],
+        "redFlags": [
+          "Leaving the biopsy referral as 'the PCP can arrange this' without booking it",
+          "Generic English-only discharge instructions",
+          "Failing to add the nodule to the active problem list and discharge summary",
+          "No closed-loop verification mechanism — i.e., relying on the patient to call if she doesn't hear back"
+        ]
+      },
+      "weight": 0.7,
+      "sourcePoints": 7
+    },
+    {
+      "id": "AP1-Q5",
+      "order": 5,
+      "type": "management-decision",
+      "question": "If you were to keep her in the hospital for additional investigations, at what point in those investigations would you discharge her?",
+      "expectedResponseFormat": "free_text",
+      "minLength": 100,
+      "rubric": {
+        "essential": [
+          "After the biopsy itself is completed — 1 source pt",
+          "After resumption of oral anticoagulation post-procedure (i.e., she is back on apixaban safely) — 1 source pt",
+          "After clear delineation of the outpatient care plan (results pathway, follow-up appointment booked, who's calling whom with the results) — 1 source pt"
+        ],
+        "bonus": [
+          "Explicitly states that a pending biopsy result alone is NOT a sufficient reason to stay if anticoagulation has been re-established and outpatient follow-up is solid"
+        ],
+        "redFlags": [
+          "Discharging immediately post-biopsy without re-establishing anticoagulation",
+          "Discharging without the outpatient follow-up loop closed",
+          "Keeping her hospitalized to wait for biopsy results"
+        ]
+      },
+      "weight": 0.3,
+      "sourcePoints": 3
+    }
+  ],
+  "totalWeight": 3.6,
+  "totalSourcePoints": 36,
+  "passingScorePct": 70
+}
