@@ -1,6 +1,114 @@
 {
   "notes": [
     {
+      "id": "NOTE012",
+      "type": "Discharge Summary",
+      "date": "2027-04-12T08:00:00.000Z",
+      "author": "Dr. Anna Reyes / Dr. Jennifer Beckman",
+      "department": "Internal Medicine",
+      "encounter": "ENC001",
+      "preview": "57-day admission discharge summary. 14 discharge diagnoses covering pancreatitis, ARDS, septic shock, DVT, AKI on CKD, cholelithiasis (surgery deferred), and chronic comorbidities. Discharge on apixaban + lisinopril + atorvastatin + acetaminophen + Ca/D + KCl + pantoprazole. Discharge to FutureCare Charles Village SNF for continued rehab. PCP, hematology, and surgery follow-ups arranged in Vietnamese."
+    },
+    {
+      "id": "NOTE011",
+      "type": "Medicine Floor Daily Progress Note",
+      "date": "2027-04-11T08:30:00.000Z",
+      "author": "Dr. Anna Reyes / Dr. Jennifer Beckman",
+      "department": "Internal Medicine",
+      "encounter": "ENC001",
+      "preview": "HD56. Pre-discharge progress note. PT cleared for SNF transfer functionally; ambulating 300 feet independently. Discharge tomorrow. Apixaban day 40 uneventful. Cr 1.3 (baseline). All meds reconciled. Vital signs stable."
+    },
+    {
+      "id": "NOTE010",
+      "type": "Case Management / Discharge Planning",
+      "date": "2027-04-08T13:30:00.000Z",
+      "author": "Jessica Park, RN, CCM / Diana Mercado, LCSW",
+      "department": "Care Management / Social Work",
+      "encounter": "ENC001",
+      "preview": "HD53 family meeting (Vietnamese interpreter, 60 min) to finalize discharge: FutureCare Charles Village SNF 4/12. Family caregiver education. Med rec preliminary. Outpatient follow-ups booked (PCP 5/2, heme 5/15, surgery 6/1). Healthcare proxy formalized (son)."
+    },
+    {
+      "id": "NOTE009",
+      "type": "Medicine Floor Daily Progress Note",
+      "date": "2027-04-02T10:00:00.000Z",
+      "author": "Dr. Anna Reyes / Dr. Jennifer Beckman",
+      "department": "Internal Medicine",
+      "encounter": "ENC001",
+      "preview": "HD47. SNF placement delayed — Bayview rehab bed unavailable; pursuing FutureCare Charles Village. Family prefers latter (closer + some Vietnamese-speaking staff). Patient functionally improving: 200 feet with walker, no assist. BP slightly elevated (138/80)."
+    },
+    {
+      "id": "NOTE008",
+      "type": "Medicine Floor Daily Progress Note",
+      "date": "2027-03-20T09:15:00.000Z",
+      "author": "Dr. Marcus Hong / Dr. Jennifer Beckman",
+      "department": "Internal Medicine",
+      "encounter": "ENC001",
+      "preview": "HD34. Floor day 8. PT/OT progress noted. Bayview Acute Rehab accepted, bed anticipated 4/2-4/5. General Surgery counseled: defer chole to outpatient. Hgb improving."
+    },
+    {
+      "id": "NOTE007",
+      "type": "Step-Down to Medicine Floor Transfer Summary",
+      "date": "2027-03-12T16:00:00.000Z",
+      "author": "Dr. Marcus Hong / Dr. Jennifer Beckman",
+      "department": "Internal Medicine",
+      "encounter": "ENC001",
+      "preview": "HD26 transfer from step-down to medicine floor. Summary of ICU course (sepsis/ARDS/intubation 2/17-2/27), RLE DVT 3/2 on apixaban, AKI resolved, severe deconditioning, restarting lisinopril and atorvastatin. PT/OT continuing, rehab placement planned."
+    },
+    {
+      "id": "NOTE006",
+      "type": "Hematology Consult — New DVT",
+      "date": "2027-03-02T13:00:00.000Z",
+      "author": "Dr. Allyson Pishko / Dr. Maya Singh",
+      "department": "Hematology",
+      "encounter": "ENC001",
+      "preview": "HD16. Acute proximal RLE DVT diagnosed (R common femoral through popliteal). Initiated heparin gtt, plan transition to apixaban 10 mg BID x 7d then 5 mg BID. Provoked VTE: prolonged ICU, immobility, severe pancreatitis. Goal 3 months minimum. Hematology follow-up arranged."
+    },
+    {
+      "id": "NOTE005",
+      "type": "MICU Daily Progress Note",
+      "date": "2027-02-22T07:30:00.000Z",
+      "author": "Dr. Sarah Patel / Dr. Daniel Foster",
+      "department": "Medical Intensive Care Unit",
+      "encounter": "ENC001",
+      "preview": "HD8. ARDS improving (P/F 168); vent weaning ongoing. AFB smears x 3 + NAAT all negative — active TB ruled out, airborne isolation discontinued. Pip/tazo continuing. Cr improving 1.6. Floor transfer anticipated when extubated."
+    },
+    {
+      "id": "NOTE004",
+      "type": "Infectious Disease Consult",
+      "date": "2027-02-19T11:00:00.000Z",
+      "author": "Dr. Lisa Tran / Dr. Hassan Nasser",
+      "department": "Infectious Diseases",
+      "encounter": "ENC001",
+      "preview": "HD5 ID consult. (1) Antibiotic optimization for biliary E. coli sepsis (continue pip/tazo, stop vanco — admission CoNS contaminant). (2) Rule out active TB given LTBI history + Vietnamese origin + pulmonary nodule. Airborne isolation; 3 AFB smears + 1 NAAT ordered."
+    },
+    {
+      "id": "NOTE003",
+      "type": "Pulmonary Consult",
+      "date": "2027-02-18T15:30:00.000Z",
+      "author": "Dr. Rebecca Chen / Dr. Anil Vachani",
+      "department": "Pulmonary Medicine",
+      "encounter": "ENC001",
+      "preview": "HD4. Pulm consult for moderate ARDS (P/F 140) management AND interpretation of incidental 2.5 cm RUL pulmonary nodule on serial CXRs. Differential discussed (malignancy, TB granuloma, infection, autoimmune, benign). Recommend dedicated chest CT once stable for transport; rule out active TB now; outpatient pulm nodule clinic referral planned post-discharge."
+    },
+    {
+      "id": "NOTE002",
+      "type": "ICU Transfer Note",
+      "date": "2027-02-16T16:45:00.000Z",
+      "author": "Dr. Sarah Patel / Dr. Daniel Foster",
+      "department": "Medical Intensive Care Unit",
+      "encounter": "ENC001",
+      "preview": "HD2. Transfer from medicine floor to MICU for worsening respiratory failure (HFNC 6L), hypotension despite resuscitation, presumed severe biliary sepsis. Status post emergent ERCP today: sphincterotomy + stone extraction + biliary pus drained. Norepi 0.02 mcg/kg/min. AM CXR: bilateral interstitial markings + small bilateral pleural effusions + incidental 2.5 cm RUL nodule (radiologist recommends dedicated CT chest)."
+    },
+    {
+      "id": "NOTE001",
+      "type": "ED Visit / Admission H&P",
+      "date": "2027-02-15T22:30:00.000Z",
+      "author": "Dr. Marcus Hong / Dr. Jennifer Beckman / Dr. Kavita Patel",
+      "department": "Emergency Department / Internal Medicine",
+      "encounter": "ENC001",
+      "preview": "Admission H&P. 72F Vietnamese-speaking with cholelithiasis, CKD III, HTN, HLD presents with severe RUQ/epigastric pain, fevers, hypotension after fatty Tết meal. Lipase 603; LFTs with hyperbilirubinemia (T-bili 3.2); WBC 17.3; AKI on CKD (Cr 1.8 from baseline 1.3). CT A/P: peripancreatic stranding, cholelithiasis, intrahepatic biliary ductal dilatation. Started pip/tazo, IVF resuscitation, GI for ERCP."
+    },
+    {
       "id": "NOTE_HX_007",
       "type": "Primary Care Visit (annual)",
       "date": "2026-10-22T09:00:00.000Z",
@@ -65,5 +173,5 @@
     }
   ],
   "lastUpdated": "2027-04-12",
-  "_status": "historical notes complete; admission course notes (Feb 15 - Apr 12 2027) to be added in Chunk 3"
+  "_status": "notes complete (19 total: 7 historical + 12 admission course). Labs, imaging, problems, meds, vitals indices to be added in Chunk 4."
 }
