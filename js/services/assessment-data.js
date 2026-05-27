@@ -16,7 +16,7 @@ const AssessmentData = (() => {
     const BASE = 'data/assessments';
 
     // List of cases offered. Add new caseIds here as they're scaffolded.
-    const CASE_IDS = ['PAT002'];
+    const CASE_IDS = ['PAT002', 'PAT003'];
 
     // Per-case diagnosis reveal (used on the results page only).
     // Lives in code rather than the JSON so it can't accidentally leak via
@@ -32,6 +32,18 @@ const AssessmentData = (() => {
                 'Starvation → kwashiorkor (hypoalbuminemia, edema, scaling rash, hair changes)',
             ],
             source: 'Adapted from NEJM Clinical Problem-Solving "Peeling and Plummeting" (2024).',
+        },
+        PAT003: {
+            primary: 'Incidental 2.5 cm right upper lobe pulmonary nodule, indeterminate — discovered during prolonged ICU admission for severe biliary pancreatitis',
+            secondary: 'The teaching point is NOT the final diagnosis of the nodule (which requires biopsy or 3-month interval imaging) but the safe operationalization of the workup at discharge in a complex patient.',
+            causalChain: [
+                'Nodule discovered HD3 on a CXR ordered for sepsis workup',
+                'Confirmed HD~29 on dedicated chest CT with radiologist recommendation (biopsy or 3-month repeat)',
+                'Mentioned in HD5 ID consult, HD8 MICU progress note — then dropped off all subsequent progress notes for 49 days',
+                'Re-surfaced only on imaging review at discharge — was never added to the discharge summary as a follow-up item until the resident catches it',
+                'Decision point: hospitalize for biopsy now (risks: deconditioning, nosocomial infection, anticoagulation conflict) vs defer to outpatient (risks: loss to follow-up given language barrier, cost concerns, fragmented care across multiple specialties)',
+            ],
+            source: 'Adapted from the Management Case Bank (Case 1; original discussants Anil Vachani, Corinne Rhodes, Karin Ouchida; finalized by Parsons).',
         },
     };
 

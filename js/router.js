@@ -31,7 +31,12 @@ class Router {
                 .join('&');
             url += `?${queryString}`;
         }
+        const same = window.location.hash === url;
         window.location.hash = url;
+        // If the hash didn't change, the browser won't fire `hashchange` and
+        // the route handler won't re-run. Force it so callers like
+        // App.switchPatient() reliably refresh the active view.
+        if (same) this.handleRoute();
     }
 
     /**
