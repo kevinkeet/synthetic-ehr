@@ -4,7 +4,7 @@
   "title": "Timepoint 2 — Severe re-presentation",
   "anchorDate": "2027-03-15T23:59:59Z",
   "timeLimitMinutes": 12,
-  "scenarioBrief": "Fourteen months have passed since you first saw Maria. She is admitted from clinic today (2027-03-15). You are the admitting hospitalist intern. Review the chart, then build your working differential AND your first 24-hour workup and management plan.",
+  "scenarioBrief": "Fourteen months have passed since you first saw Maria. She is admitted from clinic today (2027-03-15). You are the admitting hospitalist intern. Review the chart, commit to a working diagnosis, and write your first 24-hour management plan.",
   "chartGate": {
     "includeBeforeOrEqualDate": "2027-03-15T23:59:59Z",
     "_notes": "TP2 visibility: everything in TP1 + intercurrent 14 months (rheum consults, ED bounce, AMA admission Feb 2027, pharmacy gaps, social-work notes, PCP visits) + today's admission H&P + admission labs + admission CXR/CT."
@@ -13,43 +13,68 @@
     {
       "id": "AP2-Q1",
       "order": 1,
-      "type": "differential-and-management",
-      "question": "Build your working differential for Maria's current presentation, then write your first 24-hour workup and management plan. What do you order, what do you hold, and in what order? Be explicit about safety.",
+      "type": "differential",
+      "question": "What is your working diagnosis or unifying explanation for Maria's current presentation? Lay out your reasoning.",
       "expectedResponseFormat": "free_text",
-      "minLength": 400,
+      "minLength": 200,
       "rubric": {
         "essential": [
           "Identifies active SLE flare with inflammatory myositis as a unifying autoimmune driver",
           "Identifies severe protein-calorie malnutrition / kwashiorkor as a major, defining contributor (not 'just' a complication)",
-          "Recognizes oropharyngeal dysphagia as the mechanism for the weight loss and orders formal swallow evaluation before any oral intake",
-          "Pre-immunosuppression infection screen ordered (TB testing, hepatitis B/C, HIV, baseline CMV) before any steroid escalation",
+          "Recognizes oropharyngeal dysphagia as the mechanism for the weight loss",
+          "Avoids premature closure on 'SLE flare alone' without explaining the dermatosis, dysphagia, and weight loss"
+        ],
+        "bonus": [
+          "Explicit causal chain linking SLE -> myositis -> dysphagia -> starvation -> kwashiorkor",
+          "Dermatomyositis or SLE/DM overlap considered given the rash + proximal weakness",
+          "Recognizes the intercurrent missed-opportunity timeline (refill gaps, AMA admission, missed EMG x2) as contributing to current state",
+          "Notes that the scaling dermatosis may be a mixed picture (nutritional dermatosis layered on CTD-related skin)"
+        ],
+        "redFlags": [
+          "Splitting findings into unrelated buckets without attempting unification",
+          "Missing nutrition / kwashiorkor entirely",
+          "Premature closure on 'SLE flare alone' without explaining the dermatosis, dysphagia, and weight loss",
+          "Attributing the dysphagia to medication side effect or other non-myositis cause without justification"
+        ]
+      },
+      "weight": 0.8
+    },
+    {
+      "id": "AP2-Q2",
+      "order": 2,
+      "type": "management",
+      "question": "Write your first 24-hour management plan for Maria. What do you start, what do you hold, and in what order? Be explicit about safety.",
+      "expectedResponseFormat": "free_text",
+      "minLength": 300,
+      "rubric": {
+        "essential": [
+          "NPO with formal swallow evaluation (MBSS) before any oral intake; aspiration precautions in place",
+          "Pre-immunosuppression infection screen (TB testing, hepatitis B/C, HIV, baseline CMV) before any steroid escalation",
           "Holds further immunosuppression escalation until biopsy direction and infection screen results return",
           "Nutrition consult ordered with explicit refeeding-syndrome precautions: slow caloric initiation, daily phos/Mg/K monitoring, thiamine before any glucose-containing fluid or feed",
           "Orders muscle-specific workup: CK, aldolase, EMG plan, muscle biopsy plan (neurology / rheum consult)"
         ],
         "bonus": [
-          "Explicit causal chain linking SLE -> myositis -> dysphagia -> starvation -> kwashiorkor",
-          "Dermatomyositis or SLE/DM overlap considered given the rash + proximal weakness",
           "Specific cautious feeding initiation plan (10-20 kcal/kg/day with daily ramp)",
           "Specific daily phos/Mg/K monitoring schedule for first 5-7 days",
           "TB-IGRA or sputum studies as appropriate prior to steroids",
           "Aspiration precautions explicitly documented (HOB up, suction at bedside)",
           "Skin biopsy of the scaling rash for tissue diagnosis",
           "Selenium / zinc / vitamin D and other micronutrient repletion",
-          "Recognizes the intercurrent missed-opportunity timeline (refill gaps, AMA admission) as contributing to current state"
+          "Cautious IV fluids without dextrose until thiamine in (patient is anasarcic but intravascularly dry)",
+          "Pregnancy test on admission given reproductive-age woman on MMF (teratogenic)",
+          "DVT prophylaxis decision tied to platelet count"
         ],
         "redFlags": [
-          "Splitting findings into unrelated buckets without attempting unification",
-          "Missing nutrition / kwashiorkor entirely",
           "Recommending pulse steroids before infection screening",
           "Initiating high-calorie feeding without refeeding precautions",
           "Allowing oral intake before the swallow evaluation",
-          "Premature closure on 'SLE flare alone' without explaining the dermatosis, dysphagia, and weight loss",
+          "Omitting thiamine before any glucose load",
           "Failing to involve nutrition / SLP / rheumatology consults",
           "Ignoring fluid/electrolyte management while patient is edematous"
         ]
       },
-      "weight": 2.0
+      "weight": 1.2
     }
   ],
   "totalWeight": 2.0,

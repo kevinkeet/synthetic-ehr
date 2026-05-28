@@ -13,10 +13,10 @@
 | Stage | Anchor | Weight | Time | What's new in chart |
 |---|---|---|---|---|
 | **TP1** | 2026-01-12 | 1.0 | 5 min | Historical (2018–2023) + today's urgent care visit |
-| **TP2** | 2027-03-15 | 2.0 | 12 min | + 14 months of intercurrent visits, ED bounce, Feb 2027 AMA admission, today's admission H&P |
+| **TP2** | 2027-03-15 | 0.8 + 1.2 | 12 min | + 14 months of intercurrent visits, ED bounce, Feb 2027 AMA admission, today's admission H&P |
 | **TP3** | 2027-03-25 | 1.5 + 2.0 | 13 min | + HD3–HD11 inpatient (MBSS, EMG, muscle bx, skin bx, MSA panel, consults, daily progress) |
 
-Total: 30 min, 6.5 total weight, 70% overall pass.
+Total: 30 min, 5 questions, 6.5 total weight, 70% overall pass. (TP2 splits into a separate diagnostic question and a separate management question.)
 
 ---
 
@@ -109,71 +109,62 @@ Maria is admitted from clinic today. **Chief complaint (verbatim):** *"No me pue
 
 **Imaging:** CT C/A/P shows severe generalized muscle wasting (paraspinal, iliopsoas, gluteal, pectoralis), small bilateral effusions + small-volume ascites, trace pericardial effusion, no malignancy, no anatomic dysphagia etiology.
 
-### Question (AP2-Q1, weight 2.0)
+### Question 1 (AP2-Q1, weight 0.8, ~5 min) — Diagnostic
 
-> "Build your working differential for Maria's current presentation, then write your first 24-hour workup and management plan. What do you order, what do you hold, and in what order? Be explicit about safety."
+> "What is your working diagnosis or unifying explanation for Maria's current presentation? Lay out your reasoning."
 
-### What a rubric-passing answer looks like
+### What a rubric-passing answer looks like (Q1)
 
-A strong answer **explicitly unifies** the picture:
-- **Active SLE flare** (dsDNA up, complements down, anti-Sm newly positive, oral ulcers, cytopenia, proteinuria) **with inflammatory myositis** (CK 2360 / aldolase 28 / proximal symmetric weakness with bulbar involvement)
-- **Myositis is driving the oropharyngeal dysphagia** → which drove the protein-calorie starvation
+A strong answer **explicitly unifies** the picture as a triad with a causal chain:
+- **Active SLE flare** (dsDNA up, complements down, anti-Sm newly positive, oral ulcers, cytopenia, proteinuria) **with inflammatory myositis** (CK 2360 / aldolase 28 / proximal symmetric weakness with bulbar involvement).
+- **Myositis is driving the oropharyngeal dysphagia** → which drove the protein-calorie starvation.
 - **Severe protein-calorie malnutrition / kwashiorkor as a co-defining diagnosis** — not "just" a complication. Anasarca + albumin 1.6 + scaling "flaky-paint" dermatosis + brittle banded hair + Beau's lines + zinc/copper/vit D deficiencies + low BUN all point here.
 
-24-hour plan:
+Bonus credit for the explicit causal chain `SLE → myositis → dysphagia → starvation → kwashiorkor`, considering DM/SLE overlap, noting the rash may be a mixed (nutritional + CTD) picture, and naming the missed-opportunity timeline (HCQ gap → AMA → missed EMG → MMF gap) as a contributor.
+
+**Red flags:** splitting findings into unrelated buckets; missing kwashiorkor entirely; "SLE flare alone" without explaining the dysphagia/dermatosis/weight loss.
+
+### Lazy-prompt simulation (Q1)
+
+> Maria has multi-system worsening on a background of active SLE. Working diagnosis: SLE flare with inflammatory myositis (rising CK, dsDNA, low complements). Severe malnutrition and pancytopenia complicate the picture. Early lupus nephritis.
+
+**Score ~55% (0.44 / 0.8).** Hits SLE flare with myositis. Misses kwashiorkor as a co-defining diagnosis, the explicit causal chain, the dysphagia-from-myositis mechanism stated explicitly, and the mixed-dermatosis interpretation.
+
+### Question 2 (AP2-Q2, weight 1.2, ~7 min) — Management
+
+> "Write your first 24-hour management plan for Maria. What do you start, what do you hold, and in what order? Be explicit about safety."
+
+### What a rubric-passing answer looks like (Q2)
+
+A strong 24-hour plan:
 - **NPO + aspiration precautions + HOB up + suction at bedside + formal MBSS before any PO intake**
 - **Pre-immunosuppression infection screen** (TB-IGRA, HBV/HCV/HIV, CMV/EBV PCR, beta-glucan, galactomannan, strongyloides, blood cx) **before any steroid escalation**
 - **Hold further immunosuppression** until biopsy direction and infection screen return; **continue HCQ and current prednisone**
 - **Nutrition consult** with **explicit refeeding precautions**: thiamine 200 mg IV **before any glucose-containing fluid or feed**, **slow caloric initiation 10–20 kcal/kg/d with daily ramp**, **daily phos/Mg/K** (q6h for first 72 h), repletion to safe targets before each advance
 - **Muscle workup:** trend CK / aldolase, neurology consult for EMG, plan muscle biopsy (vastus lateralis); send myositis-specific antibody panel
-- **Skin biopsy** of an active "flaky paint" abdominal lesion (interface dermatitis vs nutritional dermatosis vs DM-overlap)
-- **Cautious IVF** (50 mL/hr NS, no dextrose until thiamine in) — pt is anasarcic but intravascularly dry
-- DVT prophylaxis mechanical only (Plt 122 trending down)
-- Echo (small effusions, trace pericardial)
-- Document the missed-care timeline (HCQ gap, AMA, missed EMG x 2, MMF out) as a contributor
+- **Skin biopsy** of an active abdominal lesion
+- **Cautious IVF** (50 mL/hr NS, no dextrose until thiamine in) — patient is anasarcic but intravascularly dry
+- DVT prophylaxis mechanical only (Plt 122)
+- Echo (trace pericardial)
+- **Pregnancy test on admission** (reproductive-age woman on teratogenic MMF; sets up TP3 contraception counseling)
 
-**Red flags:** treating SLE and malnutrition as unrelated buckets; pulsing steroids before infection screen; aggressive feeding without refeeding plan; oral intake before swallow study; missing kwashiorkor entirely.
+**Red flags:** pulsing steroids before infection screen; aggressive feeding without refeeding plan; oral intake before swallow study; omitting thiamine before any glucose load.
 
-### Lazy-prompt simulation
+### Lazy-prompt simulation (Q2)
 
-Prompt: *"Build your working differential for Maria's current presentation, then write your first 24-hour workup and management plan. What do you order, what do you hold, and in what order? Be explicit about safety."* + all-context dump.
+> 24-hour plan: NPO; aspiration precautions; speech therapy / MBSS evaluation; nutrition consult; rheumatology consult; neurology consult for EMG and muscle biopsy; infectious workup (TB, hepatitis, HIV, CMV); continue prednisone and HCQ; hold MMF; IV fluids cautiously given edema; electrolyte repletion (K, Mg, Phos); daily CBC, CMP, CK trend; DVT prophylaxis with SCDs (low platelets).
 
-Likely AI output:
+**Score ~58% (0.70 / 1.2).** Hits: orders the right consults, holds MMF, screens infection, monitors electrolytes. **Misses:** thiamine-before-glucose specifically; specific kcal/kg ramp; explicit "hold steroids until biopsy + infection screen + 72h stable electrolytes" logic; skin biopsy; micronutrient repletion; pregnancy test for MMF.
 
-> Maria has a severe multi-system presentation: BMI 15.7, anasarca, proximal weakness, dysphagia, scaling rash, cytopenia, electrolyte derangements, and active SLE serologies.
->
-> **Differential:**
-> 1. SLE flare with new inflammatory myositis (rising CK, dsDNA, low complements)
-> 2. Severe malnutrition / hypoalbuminemia
-> 3. Oropharyngeal dysphagia — etiology to clarify
-> 4. Pancytopenia — multifactorial
-> 5. Early lupus nephritis
->
-> **24-hour plan:**
-> - NPO; aspiration precautions
-> - Speech therapy / MBSS evaluation
-> - Nutrition consult
-> - Rheumatology consult
-> - Neurology consult for EMG and muscle biopsy
-> - Infectious workup (TB, hepatitis, HIV, CMV)
-> - Continue prednisone and HCQ; hold MMF
-> - IV fluids cautiously given edema
-> - Electrolyte repletion (K, Mg, Phos)
-> - Daily CBC, CMP, CK trend
-> - DVT prophylaxis with SCDs (low platelets)
+### TP2 combined lazy score
 
-**Score estimate: ~60% (1.20 / 2.0)**
+| Question | Weight | Earned |
+|---|---|---|
+| AP2-Q1 (diagnostic) | 0.8 | 0.44 (55%) |
+| AP2-Q2 (management) | 1.2 | 0.70 (58%) |
+| **TP2 total** | **2.0** | **1.14 (57%)** |
 
-Hits: SLE+myositis, dysphagia workup, holds MMF, infection screen, consults, electrolyte repletion, SCDs.
-
-**Misses:**
-- **Kwashiorkor / protein-calorie malnutrition as a co-defining diagnosis** — not named.
-- **Explicit refeeding precautions**: thiamine before glucose; specific cautious caloric ramp (10–20 kcal/kg/d); q6h phos/Mg/K monitoring schedule — vague at best.
-- **"Hold further immunosuppression escalation until biopsy direction + infection screen"** — said "hold MMF" but did not articulate why or under what condition to escalate.
-- **Bonus chain** SLE → myositis → dysphagia → starvation → kwashiorkor — absent.
-- Missed-opportunity timeline (HCQ gap, AMA, refill failures) — absent.
-
-This is the **discriminating timepoint.** A skilled resident framing targeted prompts ("what's the unifying diagnosis given the dermatosis + albumin 1.6 + flag-sign hair?", "give me specific refeeding precautions") would pull these out of the AI; a lazy resident will not.
+This is still the **discriminating timepoint.** A skilled resident with targeted prompts ("what kind of malnutrition pattern is this?", "give me a specific refeeding ramp with thiamine timing") clears the rubric easily; a lazy "dump and ask" doesn't.
 
 ---
 
@@ -288,10 +279,11 @@ For **Q2** ("discharge plan"):
 | Stage | Question | Weight | Estimated | Earned |
 |---|---|---|---|---|
 | TP1 | Differential + next steps | 1.0 | 75% | 0.75 |
-| TP2 | Differential + 24-hr plan | 2.0 | 58% | 1.16 |
+| TP2-Q1 | Working diagnosis | 0.8 | 55% | 0.44 |
+| TP2-Q2 | 24-hr management plan | 1.2 | 58% | 0.70 |
 | TP3-Q1 | Unifying diagnosis | 1.5 | 65% | 0.98 |
 | TP3-Q2 | Discharge plan | 2.0 | 50% | 1.00 |
-| **Total** | | **6.5** | | **~3.89 (60%)** |
+| **Total** | | **6.5** | | **~3.87 (60%)** |
 
 **Solidly below the 70% pass threshold.** Lazy "dump-and-ask" with Haiku now scrapes ~60%; skilled iterative use clears 85–92%. The TP1 drop comes from the removed HCQ and softer family-hx wording — the lazy AI can no longer anchor on "they started SLE treatment" or "aunt has SLE." The TP2 drop is smaller because Maria's established SLE diagnosis is still in the chart (it would be unrealistic to remove it 14 months in).
 
@@ -339,21 +331,29 @@ items. Compare the per-question deltas with the lazy-prompt pass above.
 
 **Score ~95% (0.95 / 1.0).** Hits all essentials + hypothyroid-arthropathy bonus + TB bonus + environmental bonus + HCQ trade-off bonus. Minor miss: didn't explicitly invoke reactive/post-infectious arthritis.
 
-## TP2 — skilled (weight 2.0)
+## TP2-Q1 — skilled diagnostic (weight 0.8)
 
 **Prompt chain:**
 
-1. Broad opener: *"Build a differential for Maria's current presentation."*
-2. **Force synthesis:** *"Look specifically at albumin 1.6, prealbumin 6, anasarca, the scaling 'flaky-paint' dermatosis, hair shafts with bands of lighter color, Beau's lines, low zinc/copper/vit D, low BUN. What pattern of malnutrition is this and what's the textbook term?"*
-3. **Causal chain:** *"She has profound dysphagia + proximal weakness + rising CK. What's the mechanism? Connect it backward to the SLE and forward to her nutritional state."*
-4. **Force specifics:** *"Write me an order set for the first 24 hours that's explicit about refeeding-syndrome safety: thiamine timing, kcal/kg/day initiation, electrolyte monitoring frequency, and the specific repletion thresholds before each advance."*
-5. **Force hold logic:** *"Why should I NOT pulse steroids today? List the conditions that need to be met before I escalate immunosuppression."*
-6. **Missed-opportunity:** *"What happened in February 2027 (AMA admission) and the gaps before? How does that affect today's plan and the discharge plan I'll need?"*
-7. **Sex-specific:** *"Anything I should worry about specifically because she's a young woman of reproductive age?"*
+1. *"Look specifically at albumin 1.6, prealbumin 6, anasarca, the scaling dermatosis, hair shafts with bands of lighter color, Beau's lines, low zinc/copper/vit D, low BUN. What pattern of malnutrition is this and what's the textbook term?"*
+2. *"She has profound dysphagia + proximal weakness + rising CK. What's the mechanism? Connect it backward to the SLE and forward to her nutritional state. Commit to a unifying diagnosis."*
+3. *"Is the scaling rash purely SLE skin, purely nutritional, or both? Briefly."*
 
-**Synthesized answer:** Active SLE flare with new inflammatory myositis → bulbar dysphagia → starvation → **kwashiorkor** as a co-defining diagnosis. Concrete order set: NPO + aspiration precautions, thiamine 200 mg IV before any glucose, 0.9% NaCl 50 mL/hr no dextrose, K/Mg/Phos/iCa repletion to specific thresholds before any feed advance, MBSS today, pre-immunosuppression infection screen, EMG + muscle biopsy + skin biopsy + MSA panel, hold pulse steroids until infection screen + biopsy direction + 72h stable refeeding electrolytes, NG feeds start 10 kcal/kg/d with daily +5 kcal/kg ramp, micronutrient repletion (zinc/selenium/vit D), mechanical DVT prophylaxis (Plt 122), pregnancy test on admission.
+**Synthesized answer:** Triad — active SLE flare + SLE-associated inflammatory myositis + severe protein-calorie malnutrition/kwashiorkor. Causal chain: SLE → bulbar myositis → dysphagia → starvation → kwashiorkor. Mixed dermatosis.
 
-**Score ~90% (1.80 / 2.0).** All essentials + explicit chain + specific kcal/kg ramp + thiamine-before-glucose + missed-opportunity timeline + sex-specific pregnancy test. Minor losses: didn't explicitly invoke DM-overlap on differential; didn't articulate ICU upgrade criteria.
+**Score ~90% (0.72 / 0.8).** All essentials + chain + mixed-dermatosis bonus.
+
+## TP2-Q2 — skilled management (weight 1.2)
+
+**Prompt chain:**
+
+1. *"Write a 24-hour order set with explicit refeeding-syndrome safety (thiamine before any glucose, kcal/kg/d initiation, q6h phos/Mg/K monitoring, repletion thresholds before each feed advance) and immunosuppression hold logic."*
+2. *"Why should I NOT pulse steroids today? List the conditions that need to be met before I escalate immunosuppression."*
+3. *"What patient-specific safety items am I missing — sex/reproductive, language, missed-care history?"*
+
+**Synthesized answer:** NPO + aspiration precautions + MBSS today; thiamine 200 mg IV before any glucose; 0.9% NaCl 50 mL/hr no dextrose; K/Mg/Phos/iCa repletion to thresholds before any feed advance; NG feeds start 10 kcal/kg/d with daily +5 kcal/kg ramp; q6h phos/Mg/K × 72h; pre-immunosuppression infection screen; hold pulse steroids until infection screen + biopsy + 72h stable refeeding electrolytes; EMG + muscle biopsy + skin biopsy + MSA panel; mechanical DVT only (Plt 122); pregnancy test on admission; document missed-care timeline.
+
+**Score ~92% (1.10 / 1.2).** All essentials + thiamine-before-glucose + specific kcal/kg ramp + monitoring schedule + hold logic + pregnancy test + missed-opportunity flag.
 
 ## TP3-Q1 — skilled (weight 1.5)
 
@@ -391,19 +391,21 @@ items. Compare the per-question deltas with the lazy-prompt pass above.
 
 | Stage | Weight | Lazy | Skilled | Δ |
 |---|---|---|---|---|
-| TP1 | 1.0 | 0.85 (85%) | **0.95 (95%)** | +0.10 |
-| TP2 | 2.0 | 1.20 (60%) | **1.80 (90%)** | +0.60 |
-| TP3-Q1 | 1.5 | 1.00 (67%) | **1.43 (95%)** | +0.43 |
+| TP1 | 1.0 | 0.75 (75%) | **0.95 (95%)** | +0.20 |
+| TP2-Q1 (dx) | 0.8 | 0.44 (55%) | **0.72 (90%)** | +0.28 |
+| TP2-Q2 (mgmt) | 1.2 | 0.70 (58%) | **1.10 (92%)** | +0.40 |
+| TP3-Q1 | 1.5 | 0.98 (65%) | **1.43 (95%)** | +0.45 |
 | TP3-Q2 | 2.0 | 1.00 (50%) | **1.80 (90%)** | +0.80 |
-| **Total** | **6.5** | **4.05 (62%)** | **5.98 (92%)** | **+1.93** |
+| **Total** | **6.5** | **3.87 (60%)** | **6.00 (92%)** | **+2.13** |
 
 **~30-point gap between lazy and skilled prompting.** This is what you want — the assessment is measuring "can you use AI well," not "did you remember to dump the chart in."
 
 ## Where the discriminating skill lives
 
-- **TP1 (+10 pts):** minor — most of TP1's value can be hit lazily because the question is appropriately broad.
-- **TP2 (+30 pts):** biggest single-question swing. Lazy misses kwashiorkor synthesis + specific refeeding safety. Iterative prompting forces both.
-- **TP3-Q1 (+28 pts):** synthesis question — iterative chain pulls out the triad + mixed-dermatosis interpretation.
+- **TP1 (+20 pts):** small — most of TP1's value can be hit lazily because the question is appropriately broad.
+- **TP2-Q1 (+35 pts):** biggest diagnostic swing. Lazy says "SLE flare with myositis"; skilled commits to the triad with the explicit causal chain ending in kwashiorkor.
+- **TP2-Q2 (+34 pts):** management swing. Lazy orders the right consults but misses the *specifics* — thiamine-before-glucose, exact kcal/kg ramp, "hold pulse steroids until X+Y+Z" logic, MMF-teratogenicity pregnancy test.
+- **TP3-Q1 (+30 pts):** synthesis question — chain pulls out the triad + mixed-dermatosis interpretation.
 - **TP3-Q2 (+40 pts):** largest swing. Discharge planning is where social-determinant prompting matters most. Lazy → generic; targeted → specific bridges.
 
 ## The iterative pattern, distilled
@@ -432,15 +434,22 @@ Hits: low-titer ANA appropriately weighted, hypothyroid arthropathy as a unifyin
 
 **Score ~92% (0.92 / 1.0).** Tiny loss vs the 6-prompt verbose chain (95%) — barely meaningful.
 
-## TP2 compact (weight 2.0) — 3 prompts
+## TP2-Q1 compact (weight 0.8) — 1 prompt
 
-1. *"Build a differential for Maria's current presentation, then write a first 24-hour workup and management plan with explicit refeeding safety (thiamine before glucose, kcal/kg/day, q6h electrolyte monitoring) and immunosuppression hold logic."*
-2. *"Look at the physical findings (scaling dermatosis, banded hair, anasarca despite cachexia, low albumin / prealbumin / zinc / copper, low BUN). What kind of malnutrition pattern is this, and how does it connect to her dysphagia and her SLE flare?"*
-3. *"What patient-specific safety items am I missing — sex / reproductive, language, missed-care history?"*
+> *"Look at the physical findings (scaling dermatosis, banded hair, anasarca despite cachexia) and labs (albumin 1.6, prealbumin 6, zinc 32, low BUN, CK 2360, dsDNA 48, low complements). What's the unifying diagnosis? Is the malnutrition a complication or co-defining? Trace the causal chain."*
 
-Hits: SLE flare + inflammatory myositis identified, kwashiorkor named as co-defining, causal chain articulated, specific refeeding ramp + thiamine + monitoring, hold-until-biopsy logic, pregnancy test for reproductive-age MMF candidate, missed-opportunity timeline.
+Hits: triad named (SLE + myositis + kwashiorkor), causal chain articulated, mixed-dermatosis noted.
 
-**Score ~85% (1.70 / 2.0).** 5 points lower than verbose 7-prompt chain (90%), with less than half the prompts.
+**Score ~88% (0.70 / 0.8).**
+
+## TP2-Q2 compact (weight 1.2) — 2 prompts
+
+1. *"Write a 24-hour management plan with explicit refeeding safety (thiamine before any glucose, specific kcal/kg/d initiation, q6h phos/Mg/K monitoring) and immunosuppression hold logic."*
+2. *"What patient-specific safety items am I missing — sex/reproductive, language, missed-care history?"*
+
+Hits: NPO + MBSS, infection screen, hold-until-biopsy logic, specific refeeding ramp + thiamine + monitoring, pregnancy test for MMF, missed-opportunity flag.
+
+**Score ~88% (1.05 / 1.2).**
 
 ## TP3-Q1 compact (weight 1.5) — 2 prompts
 
@@ -464,13 +473,14 @@ Hits: specific taper + MMF + HCQ + PCP prophylaxis, NG / swallow plan, contracep
 
 ## Lazy vs verbose-skilled vs compact-skilled
 
-| Stage | Weight | Lazy | Verbose skilled (6–7 prompts) | Compact skilled (2–3 prompts) |
+| Stage | Weight | Lazy | Verbose skilled (6–7 prompts) | Compact skilled (1–2 prompts) |
 |---|---|---|---|---|
 | TP1 | 1.0 | 0.75 (75%) | 0.95 (95%) | **0.92 (92%)** |
-| TP2 | 2.0 | 1.16 (58%) | 1.80 (90%) | **1.70 (85%)** |
+| TP2-Q1 (dx) | 0.8 | 0.44 (55%) | 0.72 (90%) | **0.70 (88%)** |
+| TP2-Q2 (mgmt) | 1.2 | 0.70 (58%) | 1.10 (92%) | **1.05 (88%)** |
 | TP3-Q1 | 1.5 | 0.98 (65%) | 1.43 (95%) | **1.35 (90%)** |
 | TP3-Q2 | 2.0 | 1.00 (50%) | 1.80 (90%) | **1.70 (85%)** |
-| **Total** | **6.5** | **3.89 (60%)** | **5.98 (92%)** | **5.67 (87%)** |
+| **Total** | **6.5** | **3.87 (60%)** | **6.00 (92%)** | **5.72 (88%)** |
 
 **Read:**
 - Lazy total: ~60% (down from ~62% pre-iteration). Solidly under the 70% pass.
