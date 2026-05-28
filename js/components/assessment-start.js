@@ -22,6 +22,7 @@ const AssessmentStart = {
                     <p class="assessment-start-tagline">
                         Work through a clinical case as you would in practice.
                     </p>
+                    <div id="user-code-strip" class="user-code-strip"></div>
                 </div>
 
                 <div id="assessment-resume-slot"></div>
@@ -45,6 +46,7 @@ const AssessmentStart = {
             </div>
         `;
         App.refreshIcons();
+        this._renderUserCodeStrip();
 
         // In parallel: check resume + load case list
         const [resume, cases] = await Promise.all([
@@ -77,6 +79,41 @@ const AssessmentStart = {
             }
         };
         window.addEventListener('supabase:auth-state-change', onAuth);
+    },
+
+    /**
+     * Show the resident's chosen code at the top of the assessment-start
+     * page. Lets them see who they're logged in as and switch identities
+     * if needed. Hidden if no code is set (e.g. Supabase-authed admin).
+     */
+    _renderUserCodeStrip() {
+        const slot = document.getElementById('user-code-strip');
+        if (!slot || typeof UserCode === 'undefined') return;
+        const code = UserCode.get();
+        if (!code) {
+            slot.innerHTML = '<span class="user-code-strip-empty">You will be asked to pick an identity code when you begin.</span>';
+            return;
+        }
+        slot.innerHTML = `
+            <span class="user-code-strip-label">Signed in as</span>
+            <strong class="user-code-badge">${this._escape(code)}</strong>
+            <a href="#" id="user-code-change-link" class="user-code-change-link">change</a>
+        `;
+        const link = document.getElementById('user-code-change-link');
+        if (link) {
+            link.addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    await UserCode.prompt({
+                        force: true,
+                        reason: 'Pick a new identity code. Your previous attempts (under the old code) will remain visible to the admin under the old code.',
+                    });
+                    this._renderUserCodeStrip();
+                } catch (err) {
+                    /* user cancelled */
+                }
+            });
+        }
     },
 
     async _loadCaseList() {

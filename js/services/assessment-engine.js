@@ -114,22 +114,59 @@ const AssessmentEngine = (() => {
 
         const sb = _sb();
         const userId = _userId();
-        if (!sb || !userId) {
-            // Local-only attempt — no central persistence. Generate a synthetic id;
-            // results will be readable via sessionStorage for this tab only.
+        const userCode = (typeof UserCode !== 'undefined') ? UserCode.get() : null;
+
+        // No Supabase client at all → local-only fallback.
+        if (!sb) {
             const id = (typeof crypto !== 'undefined' && crypto.randomUUID)
                 ? 'local-' + crypto.randomUUID()
                 : 'local-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
-            return { id, user_id: 'local', started_at: new Date().toISOString(), ...baseRow };
+            return { id, user_id: 'local', user_code: userCode, started_at: new Date().toISOString(), ...baseRow };
         }
 
-        const { data, error } = await sb
+        // Insert with whichever identity we have. The DB requires AT LEAST
+        // one of user_id or user_code (per 002_user_code_identity.sql).
+        if (!userId && !userCode) {
+            // Should not happen — start() guards against this by prompting
+            // for a code first. Defensive fallback to local mode.
+            const id = (typeof crypto !== 'undefined' && crypto.randomUUID)
+                ? 'local-' + crypto.randomUUID()
+                : 'local-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+            return { id, user_id: 'local', user_code: null, started_at: new Date().toISOString(), ...baseRow };
+        }
+
+        // Try the modern insert (with user_code). If the column doesn't
+        // exist yet (002_user_code_identity.sql not applied), fall back
+        // to legacy insert (user_id only) or local mode if no auth.
+        let resp = await sb
             .from('test_attempts')
-            .insert({ user_id: userId, ...baseRow })
+            .insert({
+                user_id: userId || null,
+                user_code: userCode || null,
+                ...baseRow,
+            })
             .select()
             .single();
-        if (error) throw error;
-        return data;
+
+        if (resp.error && /user_code|schema cache/i.test(resp.error.message || '')) {
+            WARN('user_code column missing — falling back. Apply supabase/migrations/002_user_code_identity.sql to enable code-based identity.');
+            if (userId) {
+                resp = await sb
+                    .from('test_attempts')
+                    .insert({ user_id: userId, ...baseRow })
+                    .select()
+                    .single();
+            } else {
+                // No Supabase identity and DB can't accept code → local-only.
+                const id = (typeof crypto !== 'undefined' && crypto.randomUUID)
+                    ? 'local-' + crypto.randomUUID()
+                    : 'local-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+                return { id, user_id: 'local', user_code: userCode, started_at: new Date().toISOString(), ...baseRow };
+            }
+        }
+
+        if (resp.error) throw resp.error;
+        return resp.data;
     }
 
     async function _flushAttempt(patch) {
@@ -206,9 +243,22 @@ const AssessmentEngine = (() => {
     }
 
     async function start(caseId) {
-        // Auth is no longer required. If signed into Supabase the attempt
-        // is persisted centrally; otherwise it lives in memory + sessionStorage
-        // for this tab session only.
+        // Identity: every attempt needs either a Supabase user_id (admin/proctor)
+        // or a self-chosen user_code. If neither is set, prompt for a code now.
+        // Cancelling the prompt aborts the start.
+        if (typeof UserCode !== 'undefined') {
+            const haveSupabaseUser = !!_userId();
+            const haveCode = !!UserCode.get();
+            if (!haveSupabaseUser && !haveCode) {
+                try {
+                    await UserCode.prompt({
+                        reason: 'Before you begin the assessment, pick a code to identify yourself. Your scores and chatbot interactions will be saved under this code so a proctor can review them later.',
+                    });
+                } catch (e) {
+                    throw new Error('Cannot start assessment without an identity (Supabase login or user code).');
+                }
+            }
+        }
 
         // Load case definition first so any error happens before we touch storage.
         _caseDef = await AssessmentData.loadCase(caseId);

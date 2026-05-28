@@ -122,6 +122,10 @@ const App = {
         });
         if (patientId) document.body.classList.add('patient-' + patientId.toLowerCase());
 
+        // Broadcast for listeners (e.g. the patient picker dropdown keeps
+        // its selected option in sync if the patient changes via another path).
+        window.dispatchEvent(new CustomEvent('patient:loaded', { detail: { patientId } }));
+
         // Build search index in background (non-blocking)
         SearchUtils.buildSearchIndex(patientId).then(() => {
             console.log('Search index ready');

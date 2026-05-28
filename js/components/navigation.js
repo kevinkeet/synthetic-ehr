@@ -26,109 +26,71 @@ const Navigation = {
     },
 
     /**
-     * Setup patient search functionality
+     * Setup patient picker (dropdown of all patients).
+     * Populates a <select id="patient-select"> from the patient index and
+     * wires its change event to App.switchPatient(). Replaces the older
+     * type-to-search input that lived here.
      */
     setupPatientSearch() {
-        const searchInput = document.getElementById('patient-search');
-        const searchResults = document.getElementById('search-results');
-
-        if (!searchInput || !searchResults) return;
-
-        let debounceTimer;
-
-        searchInput.addEventListener('input', (e) => {
-            clearTimeout(debounceTimer);
-            const query = e.target.value.trim();
-
-            if (query.length < 2) {
-                searchResults.classList.remove('active');
-                return;
-            }
-
-            debounceTimer = setTimeout(() => {
-                this.searchPatients(query);
-            }, 300);
-        });
-
-        searchInput.addEventListener('focus', () => {
-            if (searchInput.value.trim().length >= 2) {
-                searchResults.classList.add('active');
-            }
-        });
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
-                searchResults.classList.remove('active');
-            }
-        });
+        this.populatePatientSelect();
     },
 
-    /**
-     * Search patients
-     */
-    async searchPatients(query) {
-        const searchResults = document.getElementById('search-results');
-
+    async populatePatientSelect() {
+        const select = document.getElementById('patient-select');
+        if (!select) return;
         try {
             const index = await dataLoader.loadPatientIndex();
-            const queryLower = query.toLowerCase();
+            const patients = (index && index.patients) || [];
 
-            const matches = index.patients.filter(p => {
-                return p.name.toLowerCase().includes(queryLower) ||
-                       p.mrn.includes(query) ||
-                       (p.dob && p.dob.includes(query));
+            // Build options sorted alphabetically by display label, with a
+            // case-marker prefix so the assessment cases visually group at the
+            // top.
+            const rows = patients.map((p) => {
+                const ageStr = p.dob ? this._ageFromDob(p.dob) : '?';
+                const isCase = p.caseType === 'assessment';
+                return {
+                    id: p.id,
+                    label: `${isCase ? 'CASE — ' : ''}${p.name} · ${ageStr}y · MRN ${p.mrn}`,
+                    isCase,
+                };
+            });
+            rows.sort((a, b) => {
+                if (a.isCase !== b.isCase) return a.isCase ? -1 : 1;
+                return a.label.localeCompare(b.label);
             });
 
-            if (matches.length === 0) {
-                searchResults.innerHTML = `
-                    <div class="search-result-item">
-                        No patients found
-                    </div>
-                `;
-            } else {
-                searchResults.innerHTML = matches.map(p => `
-                    <div class="search-result-item" data-patient-id="${p.id}">
-                        <div><strong>${p.name}</strong></div>
-                        <div style="font-size: 11px; color: #666;">
-                            MRN: ${p.mrn} | DOB: ${p.dob}
-                        </div>
-                    </div>
-                `).join('');
+            const currentId = (typeof App !== 'undefined') ? App.defaultPatientId : null;
+            select.innerHTML = rows.map((r) => `
+                <option value="${r.id}"${r.id === currentId ? ' selected' : ''}>${r.label}</option>
+            `).join('');
 
-                // Add click handlers
-                searchResults.querySelectorAll('.search-result-item[data-patient-id]').forEach(item => {
-                    item.addEventListener('click', () => {
-                        const patientId = item.dataset.patientId;
-                        this.selectPatient(patientId);
-                        searchResults.classList.remove('active');
-                        document.getElementById('patient-search').value = '';
-                    });
-                });
-            }
+            // Wire change → switchPatient
+            select.addEventListener('change', (e) => {
+                const newId = e.target.value;
+                if (newId && typeof App !== 'undefined' && newId !== App.defaultPatientId) {
+                    App.switchPatient(newId);
+                }
+            });
 
-            searchResults.classList.add('active');
-        } catch (error) {
-            console.error('Error searching patients:', error);
-            searchResults.innerHTML = `
-                <div class="search-result-item">
-                    Error searching patients
-                </div>
-            `;
-            searchResults.classList.add('active');
+            // Keep dropdown in sync when patient changes via other paths
+            window.addEventListener('patient:loaded', (e) => {
+                const id = e.detail && e.detail.patientId;
+                if (id && select.value !== id) select.value = id;
+            });
+        } catch (err) {
+            console.error('Failed to populate patient picker:', err);
         }
     },
 
-    /**
-     * Select a patient and load their chart
-     */
-    async selectPatient(patientId) {
-        // Clear cache and load new patient
-        dataLoader.clearCache();
-        await PatientHeader.init(patientId);
-
-        // Navigate to chart review
-        router.navigate('/chart-review');
+    _ageFromDob(dob) {
+        try {
+            const d = new Date(dob);
+            const now = new Date();
+            let age = now.getFullYear() - d.getFullYear();
+            const m = now.getMonth() - d.getMonth();
+            if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age--;
+            return age;
+        } catch (e) { return '?'; }
     },
 
     /**

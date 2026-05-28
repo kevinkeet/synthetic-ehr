@@ -73,6 +73,27 @@ const AdminDashboard = {
             ? Math.round((completed.reduce((sum, a) => sum + Number(a.total_score || 0), 0) / completed.length) * 100)
             : null;
 
+        // Group by identity (user_code preferred, user_id fallback)
+        const byUser = new Map();
+        for (const a of (attempts || [])) {
+            const key = a.user_code || ('auth:' + (a.user_id || 'unknown').slice(0, 8));
+            const bucket = byUser.get(key) || { id: key, attempts: 0, completed: 0, totalScore: 0, cases: new Set() };
+            bucket.attempts += 1;
+            bucket.cases.add(a.case_id);
+            if (a.status === 'completed' && a.total_score !== null) {
+                bucket.completed += 1;
+                bucket.totalScore += Number(a.total_score || 0);
+            }
+            byUser.set(key, bucket);
+        }
+        const userRows = Array.from(byUser.values())
+            .map((u) => ({
+                ...u,
+                avgScore: u.completed ? Math.round((u.totalScore / u.completed) * 100) : null,
+                cases: Array.from(u.cases).join(', '),
+            }))
+            .sort((a, b) => b.attempts - a.attempts);
+
         root.innerHTML = `
             <div class="admin-page">
                 <div class="admin-header">
@@ -83,8 +104,27 @@ const AdminDashboard = {
                         <span>&middot; ${counts.in_progress || 0} in progress</span>
                         <span>&middot; ${counts.abandoned || 0} abandoned</span>
                         ${avgScore !== null ? `<span>&middot; Avg completed score ${avgScore}%</span>` : ''}
+                        <span>&middot; ${userRows.length} ${userRows.length === 1 ? 'user' : 'users'}</span>
                     </div>
                 </div>
+
+                ${userRows.length > 0 ? `
+                <div class="admin-user-summary">
+                    <h2 class="admin-section-title">By user</h2>
+                    <div class="admin-user-grid">
+                        ${userRows.map((u) => `
+                            <div class="admin-user-card">
+                                <div class="admin-user-id">${u.id.startsWith('auth:') ? `<code>${this._escape(u.id.slice(5))}…</code>` : `<strong class="user-code-badge">${this._escape(u.id)}</strong>`}</div>
+                                <div class="admin-user-meta">
+                                    ${u.attempts} attempt${u.attempts === 1 ? '' : 's'}
+                                    · ${u.completed} done
+                                    ${u.avgScore !== null ? `· avg ${u.avgScore}%` : ''}
+                                </div>
+                                <div class="admin-user-cases">${this._escape(u.cases)}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>` : ''}
                 <div class="admin-attempts-table-wrap">
                     <table class="admin-attempts-table">
                         <thead>
@@ -115,7 +155,7 @@ const AdminDashboard = {
             : '—';
         return `
             <tr>
-                <td><code>${this._escape((a.user_id || '').slice(0, 8))}…</code></td>
+                <td>${this._renderUserCell(a)}</td>
                 <td>${this._escape(a.case_id)}</td>
                 <td>${this._escape(this._fmtDate(a.started_at))}</td>
                 <td><span class="status-pill status-${this._escape(a.status)}">${this._escape(a.status)}</span></td>
@@ -125,6 +165,20 @@ const AdminDashboard = {
                 <td><a class="btn btn-sm" href="#/admin/attempts/${this._escape(a.id)}">View</a></td>
             </tr>
         `;
+    },
+
+    /**
+     * Render the identity cell — prefer the human-readable user_code, fall
+     * back to a truncated user_id UUID for legacy attempts.
+     */
+    _renderUserCell(a) {
+        if (a.user_code) {
+            return `<strong class="user-code-badge">${this._escape(a.user_code)}</strong>`;
+        }
+        if (a.user_id) {
+            return `<code title="Supabase user id">${this._escape(a.user_id.slice(0, 8))}…</code>`;
+        }
+        return '<span class="text-muted">—</span>';
     },
 
     async renderDetail(attemptId) {
@@ -164,7 +218,13 @@ const AdminDashboard = {
                     <a href="#/admin/attempts" class="admin-back-link">&larr; Back to all attempts</a>
                     <h1>${this._escape(attempt.case_id)} attempt — <code>${this._escape(attempt.id.slice(0, 8))}</code></h1>
                     <div class="admin-detail-meta">
-                        <span>User <code>${this._escape((attempt.user_id || '').slice(0, 8))}…</code></span>
+                        <span>User ${
+                            attempt.user_code
+                                ? `<strong class="user-code-badge">${this._escape(attempt.user_code)}</strong>`
+                                : (attempt.user_id
+                                    ? `<code>${this._escape(attempt.user_id.slice(0, 8))}…</code>`
+                                    : '<span class="text-muted">unknown</span>')
+                        }</span>
                         <span>&middot; ${this._escape(attempt.status)}</span>
                         <span>&middot; Score ${attempt.total_score === null ? '—' : Math.round(Number(attempt.total_score) * 100) + '%'}</span>
                         <span>&middot; Time ${this._fmtTime(attempt.time_used_seconds || 0)}</span>

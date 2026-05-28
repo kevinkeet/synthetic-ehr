@@ -205,6 +205,52 @@ html, body {
     color: #0288d1;
 }
 
+/* New patient picker (dropdown of all patients) — replaces the prior
+   type-to-search input. Visually similar to the header's other controls. */
+.patient-picker {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.patient-picker-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(255,255,255,0.75);
+    font-weight: 600;
+}
+.patient-picker-select {
+    min-width: 220px;
+    max-width: 320px;
+    padding: 5px 28px 5px 10px;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 4px;
+    background-color: rgba(255,255,255,0.15);
+    background-image: linear-gradient(45deg, transparent 50%, #ffffff 50%),
+                      linear-gradient(135deg, #ffffff 50%, transparent 50%);
+    background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    color: #ffffff;
+    font-size: 12px;
+    font-family: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+}
+.patient-picker-select:focus {
+    outline: none;
+    background-color: rgba(255,255,255,0.25);
+    border-color: rgba(255,255,255,0.5);
+}
+.patient-picker-select option {
+    background: #ffffff;
+    color: #1a2b3c;
+}
+
+/* Legacy patient-search rules retained for backwards-compat in case
+   anything else references them; the markup using these has been
+   replaced by .patient-picker. */
 .patient-search {
     position: relative;
 }
@@ -613,6 +659,113 @@ body.patient-pat003 #ai-panel-floating-btn,
 body.patient-pat003 #sim-controls {
     display: none !important;
 }
+
+/* User-code identity modal (self-chosen resident code for assessment tracking) */
+body.user-code-active { overflow: hidden; }
+#user-code-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 36, 54, 0.86);
+    backdrop-filter: blur(4px);
+    padding: 24px;
+}
+.user-code-card {
+    width: 100%;
+    max-width: 460px;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 32px 36px 28px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: #1a2b3c;
+}
+.user-code-brand {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #5d7388;
+    margin-bottom: 8px;
+}
+.user-code-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    color: #15324e;
+}
+.user-code-sub {
+    font-size: 14px;
+    color: #4a5b6d;
+    line-height: 1.5;
+    margin: 0 0 12px;
+}
+.user-code-rules {
+    font-size: 12.5px;
+    color: #7b8b9d;
+    margin: 0 0 18px;
+}
+.user-code-rules code {
+    background: #f0f3f6;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+    color: #1a5276;
+}
+#user-code-form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+#user-code-input {
+    flex: 1;
+    min-width: 0;
+    padding: 11px 14px;
+    border: 1.5px solid #d0d9e2;
+    border-radius: 6px;
+    font-size: 16px;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    color: #1a2b3c;
+    background: #fafcfe;
+    outline: none;
+    transition: border-color 0.12s ease;
+    letter-spacing: 0.5px;
+}
+#user-code-input:focus {
+    border-color: #1a5276;
+    background: #ffffff;
+}
+#user-code-submit {
+    padding: 11px 18px;
+    background: #1a5276;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.12s ease;
+    white-space: nowrap;
+}
+#user-code-submit:hover { background: #154360; }
+.user-code-error {
+    min-height: 18px;
+    font-size: 13px;
+    color: #b91c1c;
+    margin-bottom: 6px;
+}
+.user-code-foot {
+    font-size: 12px;
+    color: #7b8b9d;
+    border-top: 1px solid #eaeef2;
+    padding-top: 14px;
+    margin-top: 6px;
+    line-height: 1.5;
+}
+.user-code-foot a { color: #1a5276; text-decoration: none; }
+.user-code-foot a:hover { text-decoration: underline; }
 
 /* Access gate (password-protected entry) */
 body.access-gate-active { overflow: hidden; }
@@ -14143,6 +14296,86 @@ body.access-gate-active { overflow: hidden; }
     margin: 0 auto;
     padding: 24px 32px 60px;
     color: #1a202c;
+}
+.admin-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a5276;
+    margin: 24px 0 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.admin-user-summary {
+    margin-bottom: 24px;
+}
+.admin-user-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+}
+.admin-user-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 14px 16px;
+}
+.admin-user-id { margin-bottom: 6px; }
+.admin-user-meta {
+    font-size: 12.5px;
+    color: #5d7388;
+    margin-bottom: 4px;
+}
+.admin-user-cases {
+    font-size: 12px;
+    color: #94a3b3;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+}
+
+/* User-code strip on assessment-start page */
+.user-code-strip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 6px 12px;
+    background: #eff6fc;
+    border-radius: 999px;
+    font-size: 13px;
+    color: #4a5b6d;
+}
+.user-code-strip-label {
+    text-transform: uppercase;
+    font-size: 10.5px;
+    letter-spacing: 0.6px;
+    color: #6c7c8f;
+    font-weight: 600;
+}
+.user-code-strip-empty {
+    font-size: 12.5px;
+    color: #6c7c8f;
+    font-style: italic;
+    display: block;
+    margin-top: 8px;
+}
+.user-code-change-link {
+    font-size: 12px;
+    color: #1a5276;
+    text-decoration: none;
+    margin-left: 4px;
+}
+.user-code-change-link:hover { text-decoration: underline; }
+
+/* User code badge — used in admin dashboard cells and identity hints */
+.user-code-badge {
+    display: inline-block;
+    background: #e6f0fa;
+    color: #154360;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
 }
 .admin-header h1 {
     color: #1a5276;
