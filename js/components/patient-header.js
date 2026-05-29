@@ -98,6 +98,7 @@ const PatientHeader = {
                         <span class="patient-switcher-demo">${ageBit}${sexBit}</span>
                     </div>
                     ${summary ? `<div class="patient-switcher-item-summary">${summary}</div>` : ''}
+                    ${p.source ? `<div class="patient-switcher-item-source">${p.caseType === 'assessment' ? 'Test case &middot; ' : ''}${p.source}</div>` : ''}
                 </button>
             `;
         }).join('');

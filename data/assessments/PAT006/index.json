@@ -2,6 +2,7 @@
   "caseId": "PAT006",
   "caseTitle": "Dorothy Pierce — The post-op atrial fibrillation",
   "patientId": "PAT006",
+  "source": "Management Reasoning Case 4",
   "version": "0.1.0",
   "status": "two_timepoint",
   "_status_notes": "2 timepoints (TP1 — POD#1 brief AF runs; TP2 — POD#4 sustained asymptomatic AF episode the day before anticipated discharge). 4 questions total (Q1 at TP1; Q2/Q3/Q4 at TP2). ~20 minutes. Weights 0.8 / 1.2 / 0.8 / 0.8 = 3.6 total. Source: Management Case Bank, Case 4 (original discussants Nick Villano, Jason Matos, Greg Katz, Pooja Jagadish; finalized by Eric Strong).",

@@ -2,6 +2,7 @@
   "caseId": "PAT003",
   "caseTitle": "Lan Nguyen — The lung nodule that almost left",
   "patientId": "PAT003",
+  "source": "Management Reasoning Case 1",
   "version": "0.1.0",
   "status": "single_timepoint",
   "_status_notes": "1 timepoint (TP1 — discharge day after 57-day admission). 5 questions covering differential, additional info, keep-vs-discharge factors, outpatient process, and inpatient endpoint. 25 min total. Source rubric: 36 points; normalized to 3.6 total weight.",

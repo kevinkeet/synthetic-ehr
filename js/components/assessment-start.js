@@ -159,6 +159,7 @@ const AssessmentStart = {
                         <span>&middot;</span>
                         <span>Pass at ${m.passingOverallScorePct || 70}%</span>
                     </div>
+                    ${m.source ? `<div class="assessment-case-card-source">Test case &middot; ${this._escape(m.source)}</div>` : ''}
                     ${m.warning ? `<div class="assessment-case-card-warning">${this._escape(m.warning)}</div>` : ''}
                     <button class="btn btn-primary" onclick="AssessmentStart.beginCase('${m.caseId}')">
                         Begin Assessment

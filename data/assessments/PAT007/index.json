@@ -2,6 +2,7 @@
   "caseId": "PAT007",
   "caseTitle": "Janet Brooks — The drug fever that almost killed her",
   "patientId": "PAT007",
+  "source": "Management Reasoning Case 5",
   "version": "0.1.0",
   "status": "three_timepoint",
   "_status_notes": "3 timepoints (TP1 admission + variceal bleed/TIPS + post-TIPS fevers; TP2 negative infectious workup, worsening, family raises CMO; TP3 post-CMO unexpected recovery → presumed drug fever). 5 questions. Weights 0.6/0.8/1.0/0.9/0.5 = 3.8 total. Source: Management Case Bank, Case 5 (original discussants Wendy Stead, Emily Rubin; finalized by Jason Hom).",

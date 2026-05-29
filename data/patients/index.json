@@ -7,7 +7,9 @@
       "dob": "1952-03-15",
       "sex": "Male",
       "status": "Active",
-      "summary": "73 y.o. man with HFrEF (EF ~30%), T2DM on insulin, persistent AFib, CKD3b, CAD; longitudinal outpatient case."
+      "summary": "73 y.o. man with HFrEF (EF ~30%), T2DM on insulin, persistent AFib, CKD3b, CAD; longitudinal outpatient case.",
+      "caseType": "demo",
+      "source": "Synthetic teaching patient (not an assessment case)"
     },
     {
       "id": "PAT002",
@@ -18,6 +20,7 @@
       "status": "Active",
       "summary": "22 y.o. woman with 6 months of polyarthritis, alopecia, fatigue; ANA+ 1:80; uninsured. Diagnostic / management assessment case.",
       "caseType": "assessment",
+      "source": "NEJM Clinical Problem-Solving (2024)",
       "caseTitle": "Peeling and Plummeting (adapted from NEJM Clinical Problem-Solving, 2024)"
     },
     {
@@ -29,6 +32,7 @@
       "status": "Active",
       "summary": "72 y.o. Vietnamese-speaking woman s/p prolonged ICU admission for severe gallstone pancreatitis; incidental 2.5 cm RUL lung nodule discovered HD~5; preparing for discharge HD 57. Management assessment case.",
       "caseType": "assessment",
+      "source": "Management Reasoning Case 1",
       "caseTitle": "The lung nodule that almost left (adapted from management case bank)"
     },
     {
@@ -40,6 +44,7 @@
       "status": "Active",
       "summary": "43 y.o. previously healthy man with acute unprovoked PE + extensive DVT and an incidental 17 cm liver mass (with portal-vein thrombus) concerning for malignancy; later readmitted with progressed bilateral PE after a peri-procedural anticoagulation hold. Management assessment case.",
       "caseType": "assessment",
+      "source": "Management Reasoning Case 2",
       "caseTitle": "The PE and the liver mass (adapted from management case bank)"
     },
     {
@@ -51,6 +56,7 @@
       "status": "Active",
       "summary": "50 y.o. woman with decompensated alcohol-related cirrhosis (hepatic encephalopathy, diuretic-refractory ascites, right hepatic hydrothorax) referred for therapeutic drainage; harmed by prophylactic peri-procedural FFP (flash pulmonary edema/ICU); later transplanted. Management assessment case.",
       "caseType": "assessment",
+      "source": "Management Reasoning Case 3",
       "caseTitle": "The prophylactic FFP that drowned her (adapted from management case bank)"
     },
     {
@@ -62,6 +68,7 @@
       "status": "Active",
       "summary": "72 y.o. woman with poorly-controlled HTN and T2DM; new-onset perioperative atrial fibrillation after urgent open cholecystectomy for perforated cholecystitis (brief runs POD#1, 2-hour asymptomatic episode POD#4). Management assessment case.",
       "caseType": "assessment",
+      "source": "Management Reasoning Case 4",
       "caseTitle": "The post-op atrial fibrillation (adapted from management case bank)"
     },
     {
@@ -73,8 +80,9 @@
       "status": "Active",
       "summary": "55 y.o. woman with alcohol-related cirrhosis and involuntary weight loss; variceal bleed → emergent TIPS → prolonged fevers/refractory shock with a negative infectious workup, nearly transitioned to comfort measures before recovering once antibiotics were stopped (drug fever). Management assessment case.",
       "caseType": "assessment",
+      "source": "Management Reasoning Case 5",
       "caseTitle": "The drug fever that almost killed her (adapted from management case bank)"
     }
   ],
-  "lastUpdated": "2027-06-14T09:00:00Z"
+  "lastUpdated": "2026-05-29T09:00:00Z"
 }

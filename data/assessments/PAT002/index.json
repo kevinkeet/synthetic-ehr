@@ -2,6 +2,7 @@
   "caseId": "PAT002",
   "caseTitle": "Maria Sandoval — Polyarthritis with hair loss",
   "patientId": "PAT002",
+  "source": "NEJM Clinical Problem-Solving (2024)",
   "version": "0.4.0",
   "status": "three_timepoint",
   "_status_notes": "3 timepoints (TP1 initial presentation, TP2 catastrophic re-presentation, TP3 synthesis + discharge management). 4 questions total. 30 minutes total time budget.",

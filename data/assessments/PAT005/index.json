@@ -2,6 +2,7 @@
   "caseId": "PAT005",
   "caseTitle": "Sarah Whitlock — The prophylactic FFP that drowned her",
   "patientId": "PAT005",
+  "source": "Management Reasoning Case 3",
   "version": "0.1.0",
   "status": "three_timepoint",
   "_status_notes": "3 timepoints (TP1 ED presentation for para/thora; TP2 ICU for FFP-related flash pulmonary edema + drainage-strategy decision; TP3 post-transplant). 5 questions. Weights 0.7/1.1/0.7/0.9/0.4 = 3.8 total. Source: Management Case Bank, Case 3 (finalized by Adam Rodman).",

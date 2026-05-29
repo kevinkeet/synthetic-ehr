@@ -441,6 +441,20 @@ html, body {
     line-height: 1.35;
     margin-top: 2px;
 }
+.patient-switcher-item-source {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--text-muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+}
+.assessment-case-card-source {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-top: 8px;
+}
 .patient-switcher-empty {
     padding: 12px;
     color: var(--text-muted);
