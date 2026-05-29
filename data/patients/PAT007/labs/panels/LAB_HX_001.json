@@ -1,0 +1,19 @@
+{
+  "id": "LAB_HX_001",
+  "name": "Outpatient Weight-Loss Workup Labs",
+  "collectedDate": "2027-04-10T10:00:00.000Z",
+  "resultedDate": "2027-04-11T09:00:00.000Z",
+  "orderedBy": "Dr. Rachel Imani (Hepatology)",
+  "facility": "UPMC Outpatient Lab",
+  "specimen": "Serum + whole blood",
+  "status": "Final",
+  "results": [
+    { "name": "CBC — Hemoglobin", "value": "10.8", "unit": "g/dL", "referenceRange": "12.0-15.5", "flag": "low" },
+    { "name": "CMP — Total bilirubin", "value": "2.8", "unit": "mg/dL", "referenceRange": "0.1-1.2", "flag": "high" },
+    { "name": "CMP — Albumin", "value": "2.9", "unit": "g/dL", "referenceRange": "3.5-5.0", "flag": "low" },
+    { "name": "TSH", "value": "1.8", "unit": "mIU/L", "referenceRange": "0.4-4.0", "flag": "normal" },
+    { "name": "HbA1c", "value": "5.3", "unit": "%", "referenceRange": "<5.7", "flag": "normal" },
+    { "name": "AFP (alpha-fetoprotein)", "value": "18", "unit": "ng/mL", "referenceRange": "<10", "flag": "high", "interpretation": "Mildly elevated and nonspecific in cirrhosis; prompts dedicated liver imaging (which was pending when she presented acutely)." }
+  ],
+  "interpretation": "Initial outpatient evaluation of the involuntary weight loss: anemia and worsening liver synthetic markers consistent with progressing cirrhosis; normal thyroid and glycemic screens. AFP mildly and nonspecifically elevated — dedicated HCC-surveillance imaging was being arranged at the time of her acute admission."
+}

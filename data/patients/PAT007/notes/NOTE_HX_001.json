@@ -1,0 +1,10 @@
+{
+  "id": "NOTE_HX_001",
+  "type": "Primary Care Visit",
+  "date": "2027-02-15T10:00:00.000Z",
+  "author": "Dr. Steven Lowe (PCP)",
+  "department": "Primary Care (South Hills Internal Medicine)",
+  "encounter": "ENC_HX_001",
+  "content": "PRIMARY CARE VISIT — SOUTH HILLS INTERNAL MEDICINE\nDate: 2/15/2027\n\nSUBJECTIVE: 55F with known alcohol-related cirrhosis reports fatigue, decreased appetite, and some unintentional weight loss over the past several weeks. Continues to drink alcohol. Socially isolated; limited family contact (estranged from her adult children). \n\nOBJECTIVE: Thin. Mild temporal wasting. Abdomen soft, no large ascites today.\n\nASSESSMENT/PLAN:\n#Unintentional weight loss / poor appetite in cirrhosis — early; will monitor and obtain labs; refer back to hepatology for evaluation and to address the weight trajectory.\n#Alcohol use disorder — counseled on cessation; offered resources.\n#Cirrhosis — continue hepatology follow-up; continue lactulose/rifaximin.\nFollow-up with hepatology arranged.",
+  "attestation": "Electronically signed by Dr. Steven Lowe, MD. 2/15/2027."
+}

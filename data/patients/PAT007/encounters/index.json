@@ -1,0 +1,55 @@
+{
+  "encounters": [
+    {
+      "id": "ENC001",
+      "date": "2027-05-02T15:30:00.000Z",
+      "dischargeDate": "2027-05-30T12:00:00.000Z",
+      "type": "Inpatient Admission (ED → MICU)",
+      "department": "Emergency Department / Medical ICU / Hepatology (UPMC)",
+      "provider": "Dr. Olivia Reyes (ED), Dr. Lena Park (MICU attending), Dr. Daniel Okafor (Medicine), Dr. Rachel Imani (Hepatology), Dr. Sameer Iqbal (IR), Dr. Wendy Stead (Infectious Diseases consult), Dr. Emily Rubin (Palliative Care consult)",
+      "chiefComplaint": "Three months of unintentional weight loss; abdominal distension and dyspnea — then massive hematemesis",
+      "diagnoses": [
+        "Decompensated alcohol-related cirrhosis with portal hypertension",
+        "Acute variceal hemorrhage — s/p attempted banding + emergent TIPS",
+        "New ascites (paracentesis negative for SBP) and bilateral pleural effusions",
+        "Involuntary weight loss (~20 lb/3 months) under evaluation",
+        "Refractory shock and persistent fevers of uncertain source (extensive infectious workup negative)",
+        "Persistent unresponsiveness",
+        "Ultimately: presumed drug fever and drug-associated neurotoxicity (recognized after antibiotic cessation)"
+      ],
+      "status": "Prolonged ICU course; made CMO at ~2 weeks, then unexpectedly recovered after antibiotics stopped; transferred out of ICU and discharged 5/30/2027",
+      "interpreterUsed": "None"
+    },
+    {
+      "id": "ENC_HX_002",
+      "date": "2027-04-10T10:00:00.000Z",
+      "type": "Hepatology Clinic Visit",
+      "department": "Hepatology (UPMC)",
+      "provider": "Dr. Rachel Imani",
+      "chiefComplaint": "Cirrhosis follow-up; weight loss and poor appetite",
+      "diagnoses": [
+        "Decompensated alcohol-related cirrhosis",
+        "Unintentional weight loss — workup in progress",
+        "Ongoing alcohol use"
+      ],
+      "status": "Completed — outpatient weight-loss workup initiated",
+      "interpreterUsed": "None"
+    },
+    {
+      "id": "ENC_HX_001",
+      "date": "2027-02-15T10:00:00.000Z",
+      "type": "Primary Care Visit",
+      "department": "South Hills Internal Medicine",
+      "provider": "Dr. Steven Lowe",
+      "chiefComplaint": "Fatigue; early weight loss",
+      "diagnoses": [
+        "Alcohol-related cirrhosis (known)",
+        "Reported decreased appetite / early unintentional weight loss",
+        "Counseled on alcohol cessation"
+      ],
+      "status": "Completed",
+      "interpreterUsed": "None"
+    }
+  ],
+  "lastUpdated": "2027-05-28"
+}

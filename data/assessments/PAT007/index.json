@@ -1,0 +1,16 @@
+{
+  "caseId": "PAT007",
+  "caseTitle": "Janet Brooks — The drug fever that almost killed her",
+  "patientId": "PAT007",
+  "version": "0.1.0",
+  "status": "three_timepoint",
+  "_status_notes": "3 timepoints (TP1 admission + variceal bleed/TIPS + post-TIPS fevers; TP2 negative infectious workup, worsening, family raises CMO; TP3 post-CMO unexpected recovery → presumed drug fever). 5 questions. Weights 0.6/0.8/1.0/0.9/0.5 = 3.8 total. Source: Management Case Bank, Case 5 (original discussants Wendy Stead, Emily Rubin; finalized by Jason Hom).",
+  "totalTimeLimitMinutes": 26,
+  "assessments": ["AP1", "AP2", "AP3"],
+  "passingOverallScorePct": 70,
+  "description": "A 3-stage ICU case following Janet Brooks, a 55-year-old woman with alcohol-related cirrhosis who presents with involuntary weight loss, suffers a variceal hemorrhage requiring emergent TIPS, and then develops persistent fevers and refractory shock. An exhaustive infectious workup is negative, yet the team — anchored on occult infection — keeps escalating antibiotics as she deteriorates toward a comfort-measures decision. After antibiotics are stopped she unexpectedly recovers: the cause was a drug fever and drug-associated neurotoxicity that was never fully considered. The case tests cognitive humility and anti-anchoring: keeping a broad (non-infectious) differential, being willing to stop a presumed-necessary therapy, and avoiding irreversible decisions while a reversible, unconsidered diagnosis remains.",
+  "warning": "Plan to dedicate about 26 minutes uninterrupted. Pausing is permitted but stops the timer.",
+  "instructions": "You are caring for a real patient across three timepoints. Review the chart, then respond to each clinical question. Your responses are graded against a rubric; the case's intended teaching points are revealed at the end.",
+  "originalDiscussants": "Wendy Stead, Emily Rubin",
+  "finalizedBy": "Jason Hom"
+}

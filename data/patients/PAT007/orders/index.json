@@ -1,0 +1,70 @@
+{
+  "active": [
+    {
+      "id": "ORD010",
+      "category": "Medication",
+      "name": "Meropenem 1 g IV q8h (renally adjusted)",
+      "details": "Empiric broad-spectrum coverage for presumed sepsis — continued through the prolonged fever course despite a negative infectious workup.",
+      "priority": "Routine",
+      "orderedBy": "MICU",
+      "status": "Active",
+      "orderDate": "2027-05-04T08:00:00.000Z"
+    },
+    {
+      "id": "ORD011",
+      "category": "Medication",
+      "name": "Vancomycin IV (level-guided)",
+      "details": "Empiric broad-spectrum coverage for presumed sepsis.",
+      "priority": "Routine",
+      "orderedBy": "MICU",
+      "status": "Active",
+      "orderDate": "2027-05-04T08:00:00.000Z"
+    },
+    {
+      "id": "ORD012",
+      "category": "Medication",
+      "name": "Norepinephrine + vasopressin infusions",
+      "details": "Vasopressor support for refractory shock (titrate to MAP >= 65).",
+      "priority": "STAT",
+      "orderedBy": "MICU",
+      "status": "Active",
+      "orderDate": "2027-05-12T06:00:00.000Z"
+    }
+  ],
+  "completed": [
+    {
+      "id": "ORD001",
+      "category": "Protocol",
+      "name": "Massive transfusion protocol",
+      "details": "Activated for massive hematemesis on admission.",
+      "priority": "STAT",
+      "orderedBy": "Dr. Olivia Reyes (ED)",
+      "status": "Completed",
+      "orderDate": "2027-05-02T17:00:00.000Z",
+      "completedDate": "2027-05-02T22:00:00.000Z"
+    },
+    {
+      "id": "ORD002",
+      "category": "Microbiology",
+      "name": "Blood cultures x2 (and serial sets)",
+      "details": "Drawn at fever onset and serially through the ICU course.",
+      "priority": "STAT",
+      "orderedBy": "MICU",
+      "status": "Completed",
+      "orderDate": "2027-05-04T06:00:00.000Z",
+      "completedDate": "2027-05-18T00:00:00.000Z"
+    },
+    {
+      "id": "ORD003",
+      "category": "Imaging",
+      "name": "CT Chest/Abdomen/Pelvis",
+      "details": "Source workup for persistent fevers — no abscess found.",
+      "priority": "Urgent",
+      "orderedBy": "MICU",
+      "status": "Completed",
+      "orderDate": "2027-05-12T08:00:00.000Z",
+      "completedDate": "2027-05-12T11:00:00.000Z"
+    }
+  ],
+  "lastUpdated": "2027-05-28"
+}

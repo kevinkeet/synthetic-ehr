@@ -1,0 +1,10 @@
+{
+  "id": "NOTE007",
+  "type": "MICU Note — Transition to Comfort Measures",
+  "date": "2027-05-20T11:00:00.000Z",
+  "author": "Dr. Lena Park (MICU) / Dr. Emily Rubin (Palliative Care)",
+  "department": "Medical Intensive Care Unit / Palliative Care",
+  "encounter": "ENC001",
+  "content": "MICU NOTE — TRANSITION TO COMFORT MEASURES — UPMC\nDate: 5/20/2027\n\nAfter further family discussion, the surrogate (sister) and the patient's children elected to transition to COMFORT MEASURES, given ~2.5 weeks of non-improvement, refractory shock on two pressors, persistent fevers without an identified source, and a MELD ~40.\n\nPlan enacted: focus on comfort. Non-comfort-directed interventions are discontinued — including the antibiotics (vancomycin, meropenem) and the vasopressors — with attention to symptom control. Family at bedside.\n\n(Note: discontinuation of antibiotics here was part of the comfort-measures transition, not a targeted diagnostic maneuver.)",
+  "attestation": "Electronically signed by Dr. Lena Park, MD (MICU) and Dr. Emily Rubin, MD (Palliative Care). 5/20/2027."
+}

@@ -1,0 +1,10 @@
+{
+  "id": "NOTE009",
+  "type": "ICU Transfer / Hospital Course Summary",
+  "date": "2027-05-28T10:00:00.000Z",
+  "author": "Dr. Lena Park (MICU) / Dr. Daniel Okafor (Medicine)",
+  "department": "Medical Intensive Care Unit",
+  "encounter": "ENC001",
+  "content": "ICU TRANSFER / HOSPITAL COURSE SUMMARY — UPMC\nDate: 5/28/2027\n\nSUMMARY OF COURSE: 55F with alcohol-related cirrhosis and 3 months of involuntary weight loss, admitted with acute variceal hemorrhage. Course: failed endoscopic banding → emergent TIPS (hemostasis achieved) → then prolonged high fevers and refractory shock requiring two vasopressors, with persistent unresponsiveness. An extensive infectious workup was UNREVEALING (serial negative blood cultures, no abscess on CT C/A/P, negative repeat paracentesis, normal CSF, non-elevated procalcitonin), yet broad-spectrum antibiotics were continued and broadened. At ~2 weeks, with no improvement and a MELD ~40, the family elected comfort measures and antibiotics/pressors were stopped — after which she unexpectedly defervesced, came off pressors, and woke up.\n\nFINAL IMPRESSION: Presumed DRUG FEVER and DRUG-ASSOCIATED NEUROTOXICITY from the antibiotics — a diagnosis not fully considered while the team remained anchored on occult infection. In hindsight, the negative workup, lack of rising leukocytosis, mild eosinophilia, and the dramatic response to drug cessation all support this.\n\nLEARNING POINT (documented for the team): persistent fever/shock on broad-spectrum antibiotics with a negative infectious workup should prompt active consideration of non-infectious causes — including drug fever — and a willingness to STOP the drugs, before irreversible decisions are made.\n\nDISPOSITION: Transferred out of the ICU, recovering; goals of care re-addressed now that she can participate. (She was ultimately discharged and lived about another year.)",
+  "attestation": "Electronically signed by Dr. Lena Park, MD (MICU) and Dr. Daniel Okafor, MD (Medicine). 5/28/2027."
+}

@@ -1,0 +1,127 @@
+{
+  "problems": [
+    {
+      "id": "PRB001",
+      "name": "Alcohol-related cirrhosis, decompensated",
+      "icd10": "K70.31",
+      "snomed": "420054005",
+      "onsetDate": "2024-03-01",
+      "date": "2024-03-01",
+      "diagnosedBy": "Dr. Rachel Imani (Hepatology)",
+      "priority": "High",
+      "notes": "Decompensated with portal hypertension, varices, ascites. Active alcohol use (not in remission). MELD rose sharply during this admission (to ~40 at the peak of her ICU illness)."
+    },
+    {
+      "id": "PRB002",
+      "name": "Involuntary weight loss (~20 lb over 3 months) — under evaluation",
+      "icd10": "R63.4",
+      "snomed": "267024001",
+      "onsetDate": "2027-02-01",
+      "date": "2027-02-01",
+      "diagnosedBy": "Dr. Steven Lowe (PCP) / Hepatology",
+      "priority": "Medium",
+      "notes": "Three months of unintentional weight loss preceding this admission. Differential remains open (progression of cirrhosis/anorexia, malignancy including HCC given cirrhosis + smoking + maternal breast cancer, malabsorption, depression/poor intake). Workup initiated; no etiology established at the time of the acute presentation."
+    },
+    {
+      "id": "PRB003",
+      "name": "Esophageal varices with acute variceal hemorrhage — s/p attempted banding + emergent TIPS",
+      "icd10": "I85.01",
+      "snomed": "722432003",
+      "onsetDate": "2027-05-02",
+      "date": "2027-05-02",
+      "diagnosedBy": "GI / Interventional Radiology",
+      "priority": "High",
+      "notes": "Massive hematemesis shortly after admission → massive transfusion protocol, intubation for airway protection, ICU. Bedside EGD showed bleeding varices; banding attempted but failed. Emergent TIPS performed with resolution of bleeding. Ceftriaxone started for variceal-bleed/SBP prophylaxis."
+    },
+    {
+      "id": "PRB004",
+      "name": "New ascites with portal hypertension",
+      "icd10": "R18.8",
+      "snomed": "1116001",
+      "onsetDate": "2027-05-02",
+      "date": "2027-05-02",
+      "diagnosedBy": "Hepatology / Radiology",
+      "priority": "High",
+      "notes": "New ascites on admission imaging; diagnostic paracentesis with 86 PMN and no organisms on Gram stain — NEGATIVE for spontaneous bacterial peritonitis."
+    },
+    {
+      "id": "PRB005",
+      "name": "Bilateral pleural effusions (hepatic hydrothorax)",
+      "icd10": "J94.8",
+      "snomed": "232679003",
+      "onsetDate": "2027-05-02",
+      "date": "2027-05-02",
+      "diagnosedBy": "Radiology",
+      "priority": "Medium",
+      "notes": "Bilateral effusions on admission chest X-ray, consistent with hepatic hydrothorax in the setting of portal hypertension."
+    },
+    {
+      "id": "PRB006",
+      "name": "Anemia and thrombocytopenia",
+      "icd10": "D69.6",
+      "snomed": "302215000",
+      "onsetDate": "2027-05-02",
+      "date": "2027-05-02",
+      "diagnosedBy": "Hematology / Hepatology",
+      "priority": "Medium",
+      "notes": "Hemoglobin 8.6 (worsened by the variceal bleed) and platelets 80 K (cirrhosis/splenic sequestration)."
+    },
+    {
+      "id": "PRB007",
+      "name": "Shock, pressor-dependent — initially presumed septic",
+      "icd10": "R65.21",
+      "snomed": "76571007",
+      "onsetDate": "2027-05-04",
+      "date": "2027-05-04",
+      "diagnosedBy": "MICU",
+      "priority": "High",
+      "notes": "Post-TIPS hypotension requiring vasopressors, presumed septic and treated empirically with broad-spectrum antibiotics. NOTE: despite an extensive infectious workup, NO source was identified (see fevers problem and the negative culture/imaging/CSF studies)."
+    },
+    {
+      "id": "PRB008",
+      "name": "Persistent fevers of uncertain source",
+      "icd10": "R50.9",
+      "snomed": "386661006",
+      "onsetDate": "2027-05-04",
+      "date": "2027-05-04",
+      "diagnosedBy": "MICU",
+      "priority": "High",
+      "notes": "High fevers beginning after the TIPS, persisting despite escalating broad-spectrum antibiotics. Blood cultures NGTD, repeat paracentesis negative for SBP, CT chest/abdomen/pelvis with no abscess, lumbar puncture with normal CSF. An infectious source has not been found."
+    },
+    {
+      "id": "PRB009",
+      "name": "Persistent altered mental status / unresponsiveness",
+      "icd10": "R41.82",
+      "snomed": "419284004",
+      "onsetDate": "2027-05-04",
+      "date": "2027-05-04",
+      "diagnosedBy": "MICU / Neurology consult",
+      "priority": "High",
+      "notes": "Somnolent/unresponsive after the procedure and not improving despite weaning sedation. Differential includes hepatic encephalopathy (which TIPS can precipitate/worsen), critical illness, and other (medication-related) causes. Normal CSF; imaging without an acute structural cause."
+    },
+    {
+      "id": "PRB010",
+      "name": "Acute kidney injury",
+      "icd10": "N17.9",
+      "snomed": "14669001",
+      "onsetDate": "2027-05-04",
+      "date": "2027-05-04",
+      "diagnosedBy": "MICU / Nephrology",
+      "priority": "High",
+      "notes": "Worsening creatinine during the ICU course, contributing to a rising MELD (peak ~40). Multifactorial (shock, hepatorenal physiology)."
+    },
+    {
+      "id": "PRB011",
+      "name": "Presumed drug fever and drug-associated neurotoxicity",
+      "icd10": "R50.2",
+      "snomed": "26177004",
+      "onsetDate": "2027-05-24",
+      "date": "2027-05-24",
+      "diagnosedBy": "MICU (recognized late, after antibiotic cessation)",
+      "priority": "High",
+      "notes": "After the patient was transitioned to comfort measures and antibiotics were stopped, her fevers and hypotension resolved and her mental status recovered — implicating the antibiotics (drug fever and drug-associated neurotoxicity) as the cause, a diagnosis not fully considered while the team remained anchored on occult infection. Added to the problem list only after this became apparent."
+    }
+  ],
+  "lastUpdated": "2027-05-28",
+  "reviewedBy": "MICU / Hepatology"
+}

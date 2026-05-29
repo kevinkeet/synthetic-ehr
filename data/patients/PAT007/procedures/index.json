@@ -1,0 +1,65 @@
+{
+  "procedures": [
+    {
+      "id": "PROC006",
+      "date": "2027-05-12T13:00:00.000Z",
+      "name": "Lumbar puncture (diagnostic)",
+      "cptCode": "62270",
+      "provider": "Dr. Daniel Okafor (Medicine) / Neurology",
+      "facility": "UPMC MICU",
+      "status": "Completed",
+      "notes": "Performed as part of the fever / altered-mental-status workup. CSF: normal cell count, normal protein/glucose, Gram stain and cultures negative; no evidence of CNS infection. Does not explain the fevers or unresponsiveness."
+    },
+    {
+      "id": "PROC005",
+      "date": "2027-05-11T10:00:00.000Z",
+      "name": "Repeat diagnostic paracentesis",
+      "cptCode": "49083",
+      "provider": "Dr. Daniel Okafor (Medicine)",
+      "facility": "UPMC MICU",
+      "status": "Completed",
+      "notes": "Repeated during the fever workup to re-evaluate for SBP. PMN <250, no organisms, cultures negative — NEGATIVE for spontaneous bacterial peritonitis."
+    },
+    {
+      "id": "PROC004",
+      "date": "2027-05-02T18:30:00.000Z",
+      "name": "Endotracheal intubation",
+      "cptCode": "31500",
+      "provider": "MICU",
+      "facility": "UPMC",
+      "status": "Completed",
+      "notes": "For airway protection in the setting of massive hematemesis."
+    },
+    {
+      "id": "PROC003",
+      "date": "2027-05-02T22:00:00.000Z",
+      "name": "Transjugular intrahepatic portosystemic shunt (TIPS), emergent",
+      "cptCode": "37182",
+      "provider": "Dr. Sameer Iqbal (Interventional Radiology)",
+      "facility": "UPMC Interventional Radiology",
+      "status": "Completed",
+      "notes": "Emergent TIPS for variceal hemorrhage refractory to endoscopic banding. Bleeding resolved. Patent shunt confirmed on post-procedure Doppler. (A functioning portosystemic shunt increases hepatic-encephalopathy risk — relevant to her subsequent altered mental status.)"
+    },
+    {
+      "id": "PROC002",
+      "date": "2027-05-02T19:30:00.000Z",
+      "name": "Upper endoscopy (EGD) with attempted variceal band ligation",
+      "cptCode": "43244",
+      "provider": "Dr. Priya Menon (GI)",
+      "facility": "UPMC (bedside, MICU)",
+      "status": "Completed",
+      "notes": "Bedside EGD showed actively bleeding esophageal varices; band ligation attempted but did not achieve hemostasis → escalated to emergent TIPS."
+    },
+    {
+      "id": "PROC001",
+      "date": "2027-05-02T16:30:00.000Z",
+      "name": "Diagnostic paracentesis (admission)",
+      "cptCode": "49083",
+      "provider": "Dr. Olivia Reyes (ED)",
+      "facility": "UPMC ED",
+      "status": "Completed",
+      "notes": "Admission diagnostic tap of new ascites: 86 PMN/uL (below the 250 threshold), no organisms on Gram stain — NEGATIVE for spontaneous bacterial peritonitis. SAAG >1.1 (portal hypertension)."
+    }
+  ],
+  "lastUpdated": "2027-05-28"
+}

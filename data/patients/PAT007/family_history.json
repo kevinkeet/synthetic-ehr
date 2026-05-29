@@ -1,0 +1,38 @@
+{
+  "familyHistory": [
+    {
+      "relation": "Mother",
+      "vital": "Deceased",
+      "ageAtDeath": 70,
+      "conditions": [
+        { "condition": "Breast cancer", "age": 66 },
+        { "condition": "Chronic obstructive pulmonary disease", "notes": "Long-term smoker." }
+      ]
+    },
+    {
+      "relation": "Father",
+      "vital": "Deceased",
+      "ageAtDeath": 68,
+      "conditions": [
+        { "condition": "Alcohol use disorder" },
+        { "condition": "Myocardial infarction", "age": 68, "notes": "Cause of death." }
+      ]
+    },
+    {
+      "relation": "Sister (Carol)",
+      "vital": "Alive (age 58)",
+      "conditions": [
+        { "condition": "Healthy", "notes": "Surrogate decision-maker during this admission." }
+      ]
+    },
+    {
+      "relation": "Children (son and daughter)",
+      "vital": "Alive",
+      "conditions": [
+        { "condition": "Healthy", "notes": "Adult children; estranged until this hospitalization, now re-engaging." }
+      ]
+    }
+  ],
+  "summary": "Maternal breast cancer (age 66) — relevant to the involuntary-weight-loss / malignancy differential. Paternal alcohol use disorder. No known inherited bleeding disorder.",
+  "lastUpdated": "2027-05-02"
+}

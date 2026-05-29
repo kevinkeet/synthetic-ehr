@@ -1,0 +1,10 @@
+{
+  "id": "NOTE004",
+  "type": "MICU Daily Progress Note (broad workup)",
+  "date": "2027-05-12T07:30:00.000Z",
+  "author": "Dr. Lena Park (MICU)",
+  "department": "Medical Intensive Care Unit",
+  "encounter": "ENC001",
+  "content": "MICU DAILY PROGRESS NOTE — UPMC\nDate: 5/12/2027 (ICU day ~10)\n\nSUBJECTIVE/EVENTS: Persistent high fevers (Tmax 102-103 F) continue despite ~8 days of vancomycin + meropenem. Hemodynamics worsening — norepinephrine up-titrated; vasopressin likely to be added. Remains unresponsive off sedation.\n\nWORKUP RESULTING:\n- Blood cultures (multiple sets since 5/4): NO GROWTH.\n- CT chest/abdomen/pelvis (IMG003): NO abscess or drainable collection; patent TIPS; no source identified.\n- Repeat paracentesis (PROC005): negative for SBP.\n- Lumbar puncture (PROC006): normal CSF.\n- Procalcitonin not elevated; WBC not rising; mild peripheral eosinophilia noted (7%).\n\nOBJECTIVE: Febrile, on pressors, intubated. No localizing exam findings. Lines exchanged/evaluated without clear source.\n\nASSESSMENT/PLAN:\n#Persistent fevers + refractory shock — presumed occult infection not yet localized. CONTINUE vancomycin + meropenem; consider adding empiric antifungal coverage; pursue further source workup (repeat imaging, consider TEE for endocarditis, ID consult). Continue pressors.\n#Worsening organ function — MELD now ~40 (rising bilirubin/INR/creatinine).\n#Mental status — persistent; attributed to hepatic encephalopathy / critical illness.\n(Working frame remains occult infection; antibiotics continued and coverage broadened.)",
+  "attestation": "Electronically signed by Dr. Lena Park, MD (MICU). 5/12/2027."
+}

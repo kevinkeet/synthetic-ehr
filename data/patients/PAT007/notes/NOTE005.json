@@ -1,0 +1,10 @@
+{
+  "id": "NOTE005",
+  "type": "Infectious Diseases Consult",
+  "date": "2027-05-14T13:00:00.000Z",
+  "author": "Dr. Wendy Stead (Infectious Diseases)",
+  "department": "Infectious Diseases",
+  "encounter": "ENC001",
+  "content": "INFECTIOUS DISEASES CONSULT — UPMC\nDate: 5/14/2027\n\nReason: Persistent fevers and refractory shock, source not identified, on vancomycin + meropenem.\n\nReview: Cirrhotic, post-variceal-bleed and TIPS, with high fevers since ~5/4. Extensive workup to date: blood cultures with no growth, CT C/A/P without abscess, repeat paracentesis negative for SBP, normal CSF. Procalcitonin not elevated; no rising leukocytosis. Mild eosinophilia noted.\n\nIMPRESSION/RECOMMENDATIONS:\n- A culprit infection has not been identified, but given her immunocompromised (cirrhotic) state and severity, we would not yet feel comfortable stopping antimicrobials. Continue vancomycin + meropenem for now.\n- Consider adding empiric antifungal coverage (e.g., micafungin) given the prolonged ICU stay and broad antibacterials.\n- Consider TEE to evaluate for endocarditis; consider repeat/expanded imaging.\n- Recheck cultures; consider fungal and atypical studies.\n(Differential as documented centers on occult or fastidious infection.)",
+  "attestation": "Electronically signed by Dr. Wendy Stead, MD (Infectious Diseases). 5/14/2027."
+}

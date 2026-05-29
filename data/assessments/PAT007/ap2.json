@@ -1,0 +1,73 @@
+{
+  "id": "AP2",
+  "order": 2,
+  "title": "Timepoint 2 — Negative workup, worsening, family raises comfort measures",
+  "anchorDate": "2027-05-18T23:59:59Z",
+  "timeLimitMinutes": 12,
+  "scenarioBrief": "It is now ~2 weeks into the ICU course. Despite vancomycin + meropenem, she has persistent high fevers and refractory shock (now on two vasopressors) and remains unresponsive. The infectious workup is comprehensively negative: serial blood cultures with no growth, CT chest/abdomen/pelvis without an abscess, a repeat paracentesis negative for SBP, normal CSF on lumbar puncture, a non-elevated procalcitonin, and no rising leukocytosis (a mild peripheral eosinophilia is noted). Her organ function has worsened (MELD ~40). The Infectious Diseases consult recommends continuing/broadening antimicrobials and seeking an occult source. At a family meeting, her sister (the surrogate) and her two recently-reconciled children raise the question of comfort measures. Review the full chart before answering.",
+  "chartGate": {
+    "includeBeforeOrEqualDate": "2027-05-18T23:59:59Z",
+    "_notes": "TP2 visibility: everything from TP1 PLUS the negative workup (CT, repeat paracentesis, LP, serial cultures), the ICU progress note continuing/broadening antibiotics, the ID consult (infection-anchored), and the palliative-care family-meeting note (CMO deliberation only). The transition-to-comfort note, the recovery, and the drug-fever recognition are NOT yet visible."
+  },
+  "prompts": [
+    {
+      "id": "AP2-Q3",
+      "order": 1,
+      "type": "management-decision",
+      "question": "What do you do with her antibiotics, and why?",
+      "expectedResponseFormat": "free_text",
+      "minLength": 250,
+      "rubric": {
+        "essential": [
+          "Recognizes the infectious workup is comprehensively NEGATIVE (cultures NGTD, no abscess, normal CSF, negative paracentesis, procalcitonin not elevated, WBC not rising) and that she is WORSENING despite escalating antibiotics — so the occult-infection hypothesis is not supported",
+          "STOPS or de-escalates the antibiotics rather than reflexively continuing/broadening them, and actively reconsiders the diagnosis",
+          "Broadens the differential to NON-INFECTIOUS causes of the fever — specifically DRUG FEVER (the antibiotics) and drug-associated effects — and notes the supporting mild eosinophilia",
+          "Frames this as breaking diagnostic ANCHORING: persistent fever on broad antibiotics with a negative workup should prompt considering the antibiotics themselves as the culprit"
+        ],
+        "bonus": [
+          "Proposes stopping the antibiotics as a combined diagnostic-and-therapeutic trial",
+          "Notes the harms of continued unnecessary antibiotics (drug fever, C. difficile, resistance, neurotoxicity, line-associated risk)",
+          "Uses the timeline (fevers started around the antibiotic broadening) as a clue",
+          "Disagrees, respectfully and with reasoning, with the infection-anchored consult recommendation"
+        ],
+        "redFlags": [
+          "Continuing or broadening antibiotics (or adding empiric antifungals) without reconsidering the diagnosis — i.e., following the anchoring",
+          "Attributing everything to occult infection despite a fully negative workup",
+          "Not considering drug fever / non-infectious causes at all"
+        ]
+      },
+      "weight": 1.0,
+      "sourceQuestion": "Question 3"
+    },
+    {
+      "id": "AP2-Q4",
+      "order": 2,
+      "type": "management-decision",
+      "question": "The family is raising comfort measures after two weeks without improvement. What factors go into your decision about transitioning this patient to comfort-focused care (CMO)?",
+      "expectedResponseFormat": "free_text",
+      "minLength": 250,
+      "rubric": {
+        "essential": [
+          "Weighs prognosis and the REVERSIBILITY of the current illness, the patient's values/goals (she cannot currently express them → rely on the surrogate), surrogate/family input, quality of life, and the burden vs benefit of continued aggressive care",
+          "Critically: before an IRREVERSIBLE decision, ensure the diagnosis is correct and that reversible/unconsidered causes have been excluded — here the fever/shock source is unexplained and the drug-fever possibility has NOT been addressed; diagnostic uncertainty should give pause",
+          "Shared decision-making with the surrogate (sister) and family; clarify goals and involve palliative care",
+          "Does not let prognostic pessimism (MELD ~40) foreclose a still-undiagnosed, potentially reversible process"
+        ],
+        "bonus": [
+          "Proposes a time-limited trial or a specific diagnostic/therapeutic maneuver (e.g., stopping the antibiotics) BEFORE deciding CMO",
+          "Addresses the surrogate hierarchy and the emotional family dynamics (recent reconciliation)",
+          "Names how she would re-address goals if her status changes"
+        ],
+        "redFlags": [
+          "Proceeding to CMO on severity/MELD alone while a reversible, unconsidered cause (drug fever) remains — an irreversible decision under diagnostic uncertainty",
+          "Ignoring the surrogate/family or the patient's values",
+          "Treating CMO as purely a prognosis calculation with no diagnostic re-examination"
+        ]
+      },
+      "weight": 0.9,
+      "sourceQuestion": "Question 4"
+    }
+  ],
+  "totalWeight": 1.9,
+  "passingScorePct": 70
+}

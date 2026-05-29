@@ -1,0 +1,43 @@
+{
+  "id": "AP3",
+  "order": 3,
+  "title": "Timepoint 3 — Unexpected recovery after antibiotics stopped",
+  "anchorDate": "2027-05-28T23:59:59Z",
+  "timeLimitMinutes": 5,
+  "scenarioBrief": "The patient was transitioned to comfort measures, and as part of that the antibiotics and vasopressors were stopped. Unexpectedly, she did not die — her fevers resolved, she weaned off pressors, and she woke up. With infection excluded and a dramatic response to drug cessation, the team now attributes her syndrome to a drug fever and drug-associated neurotoxicity from the antibiotics, a diagnosis not fully considered while she was treated for presumed occult infection. She is recovering and can now participate in her care.",
+  "chartGate": {
+    "includeBeforeOrEqualDate": "2027-05-28T23:59:59Z",
+    "_notes": "TP3 visibility: the complete record, including the transition-to-comfort note, the recovery progress note recognizing drug fever, the recovery labs (normalizing, eosinophilia resolved, cultures final no-growth), and the transfer/course summary with the learning point."
+  },
+  "prompts": [
+    {
+      "id": "AP3-Q5",
+      "order": 1,
+      "type": "communication",
+      "question": "How would you explain this diagnosis — and what happened — to the patient's family?",
+      "expectedResponseFormat": "free_text",
+      "minLength": 150,
+      "rubric": {
+        "essential": [
+          "Clear, jargon-free explanation: the fevers, low blood pressure, and unresponsiveness were ultimately caused by a reaction to her medications (the antibiotics) — a 'drug fever' with drug-related effects on the brain — not an infection, and stopping them is why she recovered",
+          "Honest, transparent acknowledgement that this was difficult to recognize and was not identified earlier (disclosure without defensiveness or blame)",
+          "Empathy for what the family experienced (they had been preparing for her death); invites their questions and rebuilds trust"
+        ],
+        "bonus": [
+          "Frames it as a learning/quality point without blaming individuals, and documents the drug reaction so it is flagged going forward",
+          "Re-addresses goals of care now that she is improving and can participate",
+          "Checks the family's understanding and emotional state rather than only delivering information"
+        ],
+        "redFlags": [
+          "Hiding, minimizing, or glossing over the missed diagnosis (lack of transparency)",
+          "Blaming language or projecting false certainty",
+          "Pure medical jargon with no empathy or check for understanding"
+        ]
+      },
+      "weight": 0.5,
+      "sourceQuestion": "Question 5"
+    }
+  ],
+  "totalWeight": 0.5,
+  "passingScorePct": 70
+}

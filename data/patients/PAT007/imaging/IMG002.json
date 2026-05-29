@@ -1,0 +1,14 @@
+{
+  "id": "IMG002",
+  "date": "2027-05-02T16:00:00.000Z",
+  "modality": "X-Ray",
+  "description": "Chest X-Ray — portable AP (admission)",
+  "facility": "UPMC — ED Radiology",
+  "status": "Final",
+  "radiologist": "Dr. Helen Cho",
+  "indication": "Dyspnea; evaluate for effusion/edema.",
+  "technique": "Single portable AP chest radiograph.",
+  "findings": "Bilateral pleural effusions, right greater than left, with associated basilar atelectasis. No focal consolidation. No pulmonary edema. Normal cardiomediastinal silhouette.",
+  "impression": "Bilateral pleural effusions consistent with hepatic hydrothorax. No infiltrate.",
+  "comparison": "None."
+}

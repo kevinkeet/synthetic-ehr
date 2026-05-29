@@ -1,0 +1,14 @@
+{
+  "id": "IMG004",
+  "date": "2027-05-03T09:00:00.000Z",
+  "modality": "Ultrasound",
+  "description": "TIPS Doppler (post-procedure)",
+  "facility": "UPMC Vascular / Interventional Radiology",
+  "status": "Final",
+  "radiologist": "Dr. Sameer Iqbal (Interventional Radiology)",
+  "indication": "Confirm shunt patency after emergent TIPS for variceal hemorrhage.",
+  "technique": "Doppler ultrasound of the TIPS.",
+  "findings": "TIPS is patent with appropriate main shunt velocities and directional flow. No evidence of shunt thrombosis or stenosis. Reduced flow in the previously bleeding varices.",
+  "impression": "Patent, functioning TIPS after emergent placement; hemorrhage controlled. (Note: a functioning portosystemic shunt can precipitate or worsen hepatic encephalopathy — relevant to her altered mental status differential.)",
+  "comparison": "Immediately post-procedure."
+}

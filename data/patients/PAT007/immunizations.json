@@ -1,0 +1,9 @@
+{
+  "immunizations": [
+    { "id": "IMM001", "vaccine": "Influenza (inactivated)", "date": "2026-11-30", "source": "Pharmacy" },
+    { "id": "IMM002", "vaccine": "Hepatitis B (series, in chronic liver disease)", "date": "2024-03-15", "source": "Hepatology" },
+    { "id": "IMM003", "vaccine": "Tdap", "date": "2020-06-10", "source": "PCP" }
+  ],
+  "lastReviewed": "2027-05-02",
+  "notes": "Partial vaccination; engagement with preventive care has been intermittent."
+}

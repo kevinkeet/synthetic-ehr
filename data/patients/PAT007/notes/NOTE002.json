@@ -1,0 +1,10 @@
+{
+  "id": "NOTE002",
+  "type": "MICU Admission + Procedures Note",
+  "date": "2027-05-02T23:30:00.000Z",
+  "author": "Dr. Lena Park (MICU) / Dr. Priya Menon (GI) / Dr. Sameer Iqbal (IR)",
+  "department": "Medical Intensive Care Unit",
+  "encounter": "ENC001",
+  "content": "MICU ADMISSION + PROCEDURES NOTE — UPMC\nDate: 5/2/2027 (evening)\n\nEVENTS: Massive hematemesis in the ED → massive transfusion protocol → endotracheal intubation for airway protection → MICU.\n\nPROCEDURES:\n- Bedside EGD (GI, Dr. Menon): actively bleeding esophageal varices; band ligation attempted but FAILED to achieve durable hemostasis.\n- Emergent TIPS (IR, Dr. Iqbal): performed for refractory variceal hemorrhage with resolution of bleeding; patent shunt (Doppler IMG004).\n\nMEDICATIONS STARTED: Ceftriaxone (variceal-bleed / SBP prophylaxis), octreotide infusion, IV pantoprazole. Sedation for intubation (propofol/fentanyl). Lactulose continued given TIPS-associated encephalopathy risk.\n\nSTATUS at end of note: Hemorrhage controlled after TIPS; hemodynamically stabilized with resuscitation. Intubated/sedated. Will monitor closely.\n\nASSESSMENT/PLAN:\n#Variceal hemorrhage — controlled s/p TIPS; continue octreotide course + ceftriaxone prophylaxis; serial Hgb.\n#Decompensated cirrhosis — lactulose for encephalopathy prophylaxis (heightened post-TIPS); monitor mental status.\n#Airway — mechanically ventilated; wean sedation as tolerated.\n#Involuntary weight loss — defer dedicated workup until stabilized.",
+  "attestation": "Electronically signed by Dr. Lena Park, MD (MICU). 5/2/2027."
+}

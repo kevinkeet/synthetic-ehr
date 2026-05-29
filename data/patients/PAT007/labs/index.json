@@ -1,0 +1,34 @@
+{
+  "panels": [
+    {
+      "id": "LAB003",
+      "name": "Recovery Labs (after antibiotic cessation)",
+      "collectedDate": "2027-05-26T06:00:00.000Z",
+      "orderedBy": "Dr. Lena Park (MICU)",
+      "preview": "Improving across the board after antibiotics stopped: WBC normalized (7.8), lactate cleared, bilirubin and INR improving, creatinine recovering, off vasopressors. Cultures (final) all no growth."
+    },
+    {
+      "id": "LAB002",
+      "name": "ICU Labs — Persistent Fevers / Worsening (Day ~16)",
+      "collectedDate": "2027-05-18T06:00:00.000Z",
+      "orderedBy": "Dr. Lena Park (MICU)",
+      "preview": "Worsening: bilirubin 9.5, INR 2.6, Cr 2.4, Na 134 → MELD ~40. WBC 11.0 (no rising leukocytosis), lactate mildly up (pressor-related). Blood cultures x multiple sets NO GROWTH; procalcitonin not elevated. No microbiologic source identified despite the fevers."
+    },
+    {
+      "id": "LAB001",
+      "name": "Admission Labs",
+      "collectedDate": "2027-05-02T15:30:00.000Z",
+      "orderedBy": "Dr. Olivia Reyes (ED)",
+      "preview": "WBC 12.0, Hgb 8.6, Plt 80. Na 132, Cr 1.4 (baseline unknown). Tbili 4.2, AST 50, ALT 60, INR 1.9. MELD-Na ~25 at admission. (Paracentesis: 86 PMN, no organisms — negative for SBP.)"
+    },
+    {
+      "id": "LAB_HX_001",
+      "name": "Outpatient Weight-Loss Workup Labs",
+      "collectedDate": "2027-04-10T10:00:00.000Z",
+      "orderedBy": "Dr. Rachel Imani (Hepatology)",
+      "preview": "Initial outpatient evaluation of weight loss: mild anemia (Hgb 10.8), normal TSH, AFP mildly elevated (18, nonspecific in cirrhosis), HbA1c normal. Liver imaging pending at the time of acute presentation."
+    }
+  ],
+  "totalResults": 4,
+  "lastUpdated": "2027-05-28"
+}

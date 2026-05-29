@@ -1,0 +1,105 @@
+{
+  "notes": [
+    {
+      "id": "NOTE009",
+      "type": "ICU Transfer / Hospital Course Summary",
+      "date": "2027-05-28T10:00:00.000Z",
+      "author": "Dr. Lena Park (MICU) / Dr. Daniel Okafor (Medicine)",
+      "department": "Medical Intensive Care Unit",
+      "encounter": "ENC001",
+      "preview": "Transfer out of the ICU. Summarizes the course: variceal bleed → TIPS → prolonged fevers/shock with a fully negative infectious workup → comfort-measures decision → unexpected recovery after antibiotics were stopped. Final impression: presumed drug fever and drug-associated neurotoxicity. Reflects on the diagnostic anchoring."
+    },
+    {
+      "id": "NOTE008",
+      "type": "MICU Progress Note — Unexpected Recovery",
+      "date": "2027-05-24T08:00:00.000Z",
+      "author": "Dr. Lena Park (MICU)",
+      "department": "Medical Intensive Care Unit",
+      "encounter": "ENC001",
+      "preview": "Several days after antibiotics (and other non-comfort meds) were stopped, her fevers resolved, she weaned off pressors, and she woke up. With infection excluded and the timeline pointing to the drugs, the team now attributes the syndrome to DRUG FEVER and drug-associated neurotoxicity — a diagnosis not fully considered earlier."
+    },
+    {
+      "id": "NOTE007",
+      "type": "MICU Note — Transition to Comfort Measures",
+      "date": "2027-05-20T11:00:00.000Z",
+      "author": "Dr. Lena Park (MICU) / Dr. Emily Rubin (Palliative Care)",
+      "department": "Medical Intensive Care Unit / Palliative Care",
+      "encounter": "ENC001",
+      "preview": "After the family meeting, the surrogate (sister) and reconciling children elect comfort measures. Non-comfort interventions — including the antibiotics and vasopressors — are discontinued as part of the comfort-focused plan."
+    },
+    {
+      "id": "NOTE006",
+      "type": "Palliative Care / Family Meeting Note",
+      "date": "2027-05-18T15:00:00.000Z",
+      "author": "Dr. Emily Rubin (Palliative Care)",
+      "department": "Palliative Care",
+      "encounter": "ENC001",
+      "preview": "Family meeting at ~2 weeks in the ICU: not improving, MELD ~40, refractory shock, unresponsive. The sister (surrogate) and the two recently-reconciled adult children raise comfort measures. Documents the family dynamics and the factors being weighed. (Deliberation; no decision enacted yet.) A&P intentionally brief on the recommendation."
+    },
+    {
+      "id": "NOTE005",
+      "type": "Infectious Diseases Consult",
+      "date": "2027-05-14T13:00:00.000Z",
+      "author": "Dr. Wendy Stead (Infectious Diseases)",
+      "department": "Infectious Diseases",
+      "encounter": "ENC001",
+      "preview": "Consulted for persistent fevers. Reviews the negative workup to date and recommends continuing broad-spectrum coverage and pursuing further occult-source evaluation. The differential as documented remains focused on infection."
+    },
+    {
+      "id": "NOTE004",
+      "type": "MICU Daily Progress Note (broad workup)",
+      "date": "2027-05-12T07:30:00.000Z",
+      "author": "Dr. Lena Park (MICU)",
+      "department": "Medical Intensive Care Unit",
+      "encounter": "ENC001",
+      "preview": "Day ~10. Persistent high fevers despite vancomycin + meropenem; now on two pressors. Broad workup resulting: CT C/A/P no abscess, repeat paracentesis negative, LP normal, blood cultures NGTD. Plan as written: continue/broaden antibiotics and keep looking for an occult infectious source."
+    },
+    {
+      "id": "NOTE003",
+      "type": "MICU Daily Progress Note (post-TIPS)",
+      "date": "2027-05-05T07:30:00.000Z",
+      "author": "Dr. Lena Park (MICU)",
+      "department": "Medical Intensive Care Unit",
+      "encounter": "ENC001",
+      "preview": "Post-TIPS. New high fevers and hypotension requiring norepinephrine; somnolent and not waking despite weaning sedation. Presumed sepsis: blood cultures drawn, antibiotics broadened to vancomycin + meropenem. Infectious workup initiated."
+    },
+    {
+      "id": "NOTE002",
+      "type": "MICU Admission + Procedures Note",
+      "date": "2027-05-02T23:30:00.000Z",
+      "author": "Dr. Lena Park (MICU) / Dr. Priya Menon (GI) / Dr. Sameer Iqbal (IR)",
+      "department": "Medical Intensive Care Unit",
+      "encounter": "ENC001",
+      "preview": "Massive hematemesis → MTP, intubation, ICU. Bedside EGD: bleeding varices, banding failed → emergent TIPS with hemostasis. Started ceftriaxone (variceal-bleed/SBP prophylaxis), octreotide, pantoprazole. Hemodynamically stabilized initially post-procedure."
+    },
+    {
+      "id": "NOTE001",
+      "type": "ED Visit / Admission H&P",
+      "date": "2027-05-02T15:30:00.000Z",
+      "author": "Dr. Olivia Reyes (Emergency Medicine)",
+      "department": "Emergency Department",
+      "encounter": "ENC001",
+      "preview": "55F with alcohol-related cirrhosis and 3 months of ~20 lb involuntary weight loss, presenting with abdominal distension and dyspnea. New ascites (paracentesis negative for SBP) and bilateral effusions. Vitals: T 36.7, BP 100/60, HR 95, RR 18. Shortly after arrival: massive hematemesis."
+    },
+    {
+      "id": "NOTE_HX_002",
+      "type": "Hepatology Clinic Note — Weight-Loss Workup",
+      "date": "2027-04-10T10:00:00.000Z",
+      "author": "Dr. Rachel Imani (Hepatology)",
+      "department": "Hepatology",
+      "encounter": "ENC_HX_002",
+      "preview": "Outpatient evaluation of the ~3-month unintentional weight loss in cirrhosis. Differential and initial workup documented (labs, mildly elevated AFP, plan for dedicated HCC-surveillance imaging). Ongoing alcohol use; counseled."
+    },
+    {
+      "id": "NOTE_HX_001",
+      "type": "Primary Care Visit",
+      "date": "2027-02-15T10:00:00.000Z",
+      "author": "Dr. Steven Lowe (PCP)",
+      "department": "Primary Care",
+      "encounter": "ENC_HX_001",
+      "preview": "Early report of fatigue and decreased appetite with some weight loss in a patient with known cirrhosis and ongoing alcohol use. Alcohol-cessation counseling; hepatology follow-up arranged."
+    }
+  ],
+  "lastUpdated": "2027-05-28",
+  "_status": "11 notes (2 historical + 9 course across 3 timepoints). The notes deliberately embody the team's INFECTION ANCHORING through TP2 (broad-spectrum escalation, ID consult focused on occult source) and NEVER name drug fever until the gated TP3 recovery note. The CMO deliberation (NOTE006, TP2) does not enact cessation; the antibiotic-stop + recovery + drug-fever recognition are gated to TP3 (NOTE007-009) so Q3/Q4 are answered without the outcome."
+}

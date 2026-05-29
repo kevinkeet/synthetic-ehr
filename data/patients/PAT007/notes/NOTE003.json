@@ -1,0 +1,10 @@
+{
+  "id": "NOTE003",
+  "type": "MICU Daily Progress Note (post-TIPS)",
+  "date": "2027-05-05T07:30:00.000Z",
+  "author": "Dr. Lena Park (MICU)",
+  "department": "Medical Intensive Care Unit",
+  "encounter": "ENC001",
+  "content": "MICU DAILY PROGRESS NOTE — UPMC\nDate: 5/5/2027 (post-TIPS day ~2)\n\nSUBJECTIVE/EVENTS: No further GI bleeding since the TIPS. However, over the past ~24-36 hours she has developed HIGH FEVERS (Tmax 39.5 C) and HYPOTENSION now requiring norepinephrine. She remains somnolent/unresponsive and is not waking despite weaning sedation.\n\nOBJECTIVE: T 39.5, on norepinephrine, intubated. Exam without an obvious localizing source of infection; lines without overt site erythema; abdomen soft.\n\nDATA: Hgb stable post-transfusion. Blood cultures drawn. (Workup in progress.)\n\nASSESSMENT/PLAN:\n#Fevers + new pressor requirement — presumed SEPSIS in a decompensated cirrhotic post-procedure. Broaden empiric antibiotics to VANCOMYCIN + MEROPENEM. Pan-culture (blood x2, urine); send repeat ascitic fluid; line evaluation. Continue norepinephrine.\n#Persistent unresponsiveness — likely hepatic encephalopathy (TIPS-precipitated) vs sedation effect vs critical illness; optimize lactulose; weaning sedation; will reassess.\n#Cirrhosis / post-variceal-bleed — continue prophylaxis course; serial labs.\n(Working frame: occult infection driving the fevers/shock.)",
+  "attestation": "Electronically signed by Dr. Lena Park, MD (MICU). 5/5/2027."
+}

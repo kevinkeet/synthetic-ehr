@@ -1,0 +1,52 @@
+{
+  "id": "PAT007",
+  "mrn": "MRN-90216077",
+  "firstName": "Janet",
+  "middleName": "Marie",
+  "lastName": "Brooks",
+  "dateOfBirth": "1971-08-27",
+  "sex": "Female",
+  "gender": "Female",
+  "race": "White",
+  "ethnicity": "Not Hispanic or Latino",
+  "preferredLanguage": "English",
+  "interpreterNeeded": false,
+  "countryOfBirth": "USA",
+  "maritalStatus": "Divorced (2016)",
+  "ssn": null,
+  "phone": "(412) 555-6630",
+  "email": "janet.brooks71@gmail.com",
+  "address": {
+    "street": "318 Maplewood St, Apt 2",
+    "city": "Pittsburgh",
+    "state": "PA",
+    "zip": "15210",
+    "country": "USA"
+  },
+  "emergencyContact": {
+    "name": "Carol Brooks-Dietrich",
+    "relationship": "Sister (became the medical decision-maker during this admission)",
+    "phone": "(412) 555-6634",
+    "language": "English"
+  },
+  "primaryCareProvider": {
+    "name": "Dr. Steven Lowe, MD",
+    "npi": "1742039586",
+    "phone": "(412) 555-4400",
+    "practice": "South Hills Internal Medicine",
+    "notes": "Intermittent engagement with care. Followed by hepatology for cirrhosis."
+  },
+  "insurance": {
+    "name": "Pennsylvania Medicaid",
+    "memberId": "PA-MA-55120388",
+    "notes": "Medicaid."
+  },
+  "advanceDirectives": {
+    "livingWill": false,
+    "healthcareProxy": "None documented at admission; sister Carol Brooks-Dietrich identified as surrogate during this hospitalization (patient unable to participate after intubation).",
+    "dnr": false,
+    "lastReviewed": "2027-05-02"
+  },
+  "createdAt": "2023-01-10T10:00:00Z",
+  "lastUpdated": "2027-05-28T09:00:00Z"
+}

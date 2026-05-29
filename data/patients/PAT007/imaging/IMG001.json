@@ -1,0 +1,14 @@
+{
+  "id": "IMG001",
+  "date": "2027-05-02T15:45:00.000Z",
+  "modality": "Ultrasound",
+  "description": "Abdominal Ultrasound with Doppler (admission)",
+  "facility": "UPMC — ED Radiology",
+  "status": "Final",
+  "radiologist": "Dr. Helen Cho",
+  "indication": "Abdominal distension and weight loss in known cirrhosis; evaluate ascites and liver.",
+  "technique": "Grayscale and Doppler ultrasound of the abdomen.",
+  "findings": "Coarse, nodular, shrunken liver consistent with cirrhosis. Splenomegaly (16 cm). NEW moderate-volume ascites. Portal vein patent with hepatopetal flow; features of portal hypertension. No discrete focal liver mass identified on this limited ED study. Gallbladder/biliary tree unremarkable.",
+  "impression": "Cirrhosis with portal hypertension and new ascites. No focal liver lesion seen on this study — dedicated multiphase liver imaging for HCC surveillance had been planned in the outpatient weight-loss workup.",
+  "comparison": "No recent cross-sectional liver imaging on file."
+}

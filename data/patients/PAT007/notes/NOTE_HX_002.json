@@ -1,0 +1,10 @@
+{
+  "id": "NOTE_HX_002",
+  "type": "Hepatology Clinic Note — Weight-Loss Workup",
+  "date": "2027-04-10T10:00:00.000Z",
+  "author": "Dr. Rachel Imani (Hepatology)",
+  "department": "Hepatology",
+  "encounter": "ENC_HX_002",
+  "content": "HEPATOLOGY CLINIC NOTE — UPMC\nDate: 4/10/2027\n\nSUBJECTIVE: Referred for ~3 months of unintentional weight loss (down from ~67 kg to ~61 kg) with poor appetite, on a background of alcohol-related cirrhosis with ongoing alcohol use. Increasing abdominal girth recently.\n\nEVALUATION OF INVOLUNTARY WEIGHT LOSS (initiated):\n- History/exam: cachexia, ongoing alcohol use, poor intake; screen for GI symptoms, no overt GI bleeding reported at this visit.\n- Labs (LAB_HX_001): worsening synthetic markers; mild anemia; normal TSH and HbA1c; AFP mildly elevated (18, nonspecific in cirrhosis).\n- Differential considered: progression of cirrhosis with anorexia/malnutrition; MALIGNANCY (hepatocellular carcinoma given cirrhosis; other given smoking and family history of breast cancer); malabsorption; depression/social factors limiting intake.\n- Plan: arrange dedicated multiphase liver imaging for HCC surveillance; nutrition referral; age-appropriate cancer screening; reinforce alcohol cessation; close follow-up.\n\nASSESSMENT/PLAN:\n#Involuntary weight loss — workup as above; imaging pending.\n#Decompensated cirrhosis — continue lactulose/rifaximin; monitor for further decompensation.\n#Alcohol use disorder — counseling; resources offered.\n(Note: she presented acutely with a variceal bleed before the planned imaging was completed.)",
+  "attestation": "Electronically signed by Dr. Rachel Imani, MD (Hepatology). 4/10/2027."
+}

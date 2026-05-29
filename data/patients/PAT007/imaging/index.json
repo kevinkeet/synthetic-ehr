@@ -1,0 +1,41 @@
+{
+  "studies": [
+    {
+      "id": "IMG003",
+      "date": "2027-05-12T11:00:00.000Z",
+      "modality": "CT",
+      "description": "CT Chest / Abdomen / Pelvis with contrast — fever workup",
+      "facility": "UPMC Radiology",
+      "radiologist": "Dr. Helen Cho",
+      "preview": "Cirrhosis, ascites, patent TIPS, bilateral pleural effusions. NO drainable abscess or fluid collection anywhere; no bowel pathology; no occult source of infection identified. No mass/lesion to explain the weight loss within the imaged field."
+    },
+    {
+      "id": "IMG004",
+      "date": "2027-05-03T09:00:00.000Z",
+      "modality": "Ultrasound",
+      "description": "TIPS Doppler (post-procedure)",
+      "facility": "UPMC Vascular/IR",
+      "radiologist": "Dr. Sameer Iqbal (IR)",
+      "preview": "Patent TIPS with appropriate shunt velocities. Confirms a functioning shunt after the emergent placement; the hemorrhage had stopped."
+    },
+    {
+      "id": "IMG002",
+      "date": "2027-05-02T16:00:00.000Z",
+      "modality": "X-Ray",
+      "description": "Chest X-Ray — portable AP (admission)",
+      "facility": "UPMC — ED",
+      "radiologist": "Dr. Helen Cho",
+      "preview": "BILATERAL pleural effusions (right greater than left), consistent with hepatic hydrothorax. No focal consolidation. Heart size normal."
+    },
+    {
+      "id": "IMG001",
+      "date": "2027-05-02T15:45:00.000Z",
+      "modality": "Ultrasound",
+      "description": "Abdominal Ultrasound with Doppler (admission)",
+      "facility": "UPMC — ED",
+      "radiologist": "Dr. Helen Cho",
+      "preview": "Coarse, nodular cirrhotic liver with splenomegaly and NEW moderate-volume ascites. Features of portal hypertension; portal vein patent. No focal liver mass identified on this study (dedicated HCC imaging had been planned outpatient)."
+    }
+  ],
+  "lastUpdated": "2027-05-28"
+}

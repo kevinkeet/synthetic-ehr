@@ -1,0 +1,10 @@
+{
+  "id": "NOTE008",
+  "type": "MICU Progress Note — Unexpected Recovery",
+  "date": "2027-05-24T08:00:00.000Z",
+  "author": "Dr. Lena Park (MICU)",
+  "department": "Medical Intensive Care Unit",
+  "encounter": "ENC001",
+  "content": "MICU DAILY PROGRESS NOTE — UPMC\nDate: 5/24/2027\n\nUNEXPECTED COURSE: After transition to comfort measures on 5/20 (antibiotics and pressors discontinued), the patient did NOT deteriorate as anticipated. Over the following days her FEVERS RESOLVED, her blood pressure normalized and she was weaned OFF vasopressors, and her MENTAL STATUS cleared — she woke up and is now interactive.\n\nOBJECTIVE: Afebrile x ~48 h. Off all vasopressors. Awake, following commands. Labs improving (LAB003): WBC normalized, lactate cleared, bilirubin/INR/creatinine down-trending, eosinophilia resolved. All cultures finalized with NO growth.\n\nASSESSMENT: The temporal pattern — relentless fevers and shock that worsened on escalating broad-spectrum antibiotics, with a completely negative infectious workup, followed by rapid resolution once the antibiotics were stopped — points to a DRUG cause. This is most consistent with DRUG FEVER and DRUG-ASSOCIATED NEUROTOXICITY from the antibiotics, a diagnosis the team did not fully consider while anchored on occult infection. The mild peripheral eosinophilia in retrospect supported a drug reaction.\n\nPLAN: Continue to hold the offending antibiotics; supportive care; she is recovering. Re-address goals of care now that she is improving and can participate. Document antibiotic adverse reaction. Transfer out of ICU when stable.",
+  "attestation": "Electronically signed by Dr. Lena Park, MD (MICU). 5/24/2027."
+}

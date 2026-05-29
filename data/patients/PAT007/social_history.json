@@ -1,0 +1,63 @@
+{
+  "tobacco": {
+    "status": "Current smoker",
+    "type": "Cigarettes",
+    "amount": "~1 pack/day for ~30 years",
+    "packYears": 30,
+    "notes": "Ongoing. Relevant to the involuntary-weight-loss differential (malignancy risk)."
+  },
+  "alcohol": {
+    "status": "Active use disorder",
+    "frequency": "Daily",
+    "amount": "Heavy daily use (wine/liquor) for ~20 years → alcoholic cirrhosis. Not in remission at presentation.",
+    "notes": "Continued drinking up to this admission. Relevant to her cirrhosis decompensation and (separately) to transplant ineligibility at this time."
+  },
+  "drugs": {
+    "status": "Denies",
+    "details": "No illicit drug use reported."
+  },
+  "occupation": {
+    "current": "Unemployed (intermittent food-service work)",
+    "previous": "Restaurant server / line cook for ~25 years.",
+    "status": "Not working; financial strain.",
+    "exposures": "None occupationally significant."
+  },
+  "education": {
+    "highestLevel": "High school diploma",
+    "literacyConcerns": "None documented."
+  },
+  "housing": {
+    "status": "Rents a small apartment in Pittsburgh.",
+    "livingWith": "Lives alone.",
+    "ownership": "Rents",
+    "notes": "Somewhat socially isolated leading into this admission."
+  },
+  "diet": {
+    "type": "Poor intake over the past several months; ~20 lb unintentional weight loss over 3 months.",
+    "restrictions": "None followed.",
+    "supplements": "None."
+  },
+  "exercise": { "frequency": "Minimal.", "intensity": "Sedentary." },
+  "functionalStatus": {
+    "adls": "Independent at baseline; declined with recent illness.",
+    "iadls": "Variable; some difficulty managing appointments and medications.",
+    "driving": "Has a car; drives locally.",
+    "falls": "None reported."
+  },
+  "family": {
+    "structure": "Two adult children (a son and a daughter) from whom she had been ESTRANGED for several years. They re-engaged during this hospitalization. Her SISTER, Carol, has remained close and became the de facto medical decision-maker once the patient could not participate.",
+    "notes": "The family dynamics are central to the later goals-of-care discussion: the sister is the surrogate; the reconciling adult children are emotionally involved. Clear, honest communication with this family is part of the case."
+  },
+  "religion": "Catholic (non-practicing).",
+  "safety": {
+    "intimatePartnerViolence": "Denies.",
+    "weaponsInHome": false,
+    "feelsSafeAtHome": true
+  },
+  "mentalHealth": {
+    "depressionScreening": "History of depression; not on treatment. Some hopelessness in the setting of isolation and illness.",
+    "anxietyScreening": "Not formally screened this admission.",
+    "support": "Sister Carol (primary); adult children re-engaging."
+  },
+  "notes": "55-year-old woman with active alcohol use disorder and decompensated cirrhosis, presenting with 3 months of involuntary weight loss. Socially isolated with recently reconciling family; her sister becomes the surrogate decision-maker. The social/family context matters most at the goals-of-care timepoint — and the case's core lesson (avoiding premature, irreversible decisions while a reversible, unconsidered diagnosis remains) plays out against that backdrop."
+}

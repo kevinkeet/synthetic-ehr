@@ -16,7 +16,7 @@ const AssessmentData = (() => {
     const BASE = 'data/assessments';
 
     // List of cases offered. Add new caseIds here as they're scaffolded.
-    const CASE_IDS = ['PAT002', 'PAT003', 'PAT004', 'PAT005', 'PAT006'];
+    const CASE_IDS = ['PAT002', 'PAT003', 'PAT004', 'PAT005', 'PAT006', 'PAT007'];
 
     // Per-case diagnosis reveal (used on the results page only).
     // Lives in code rather than the JSON so it can't accidentally leak via
@@ -83,6 +83,19 @@ const AssessmentData = (() => {
                 'Because episodes are infrequent and ASYMPTOMATIC, post-discharge monitoring must use a long-duration auto-detecting monitor (extended patch / MCT / loop recorder), not a 24-48 h Holter or a symptom-triggered recorder, with closed-loop follow-up to refine the anticoagulation decision',
             ],
             source: 'Adapted from the Management Case Bank (Case 4; original discussants Nick Villano, Jason Matos, Greg Katz, Pooja Jagadish; finalized by Eric Strong).',
+        },
+        PAT007: {
+            primary: 'Drug fever and drug-associated neurotoxicity from antibiotics, mistaken for refractory occult sepsis',
+            secondary: 'The teaching point is cognitive humility / anti-anchoring: the team fixed on occult infection and kept escalating antibiotics despite a completely negative workup, nearly proceeding to comfort measures — when the syndrome was actually caused by the antibiotics themselves and resolved once they were stopped.',
+            causalChain: [
+                'Decompensated alcohol-related cirrhosis with involuntary weight loss → admitted; variceal hemorrhage → emergent TIPS (hemostasis achieved); ceftriaxone started, then broadened to vancomycin + meropenem for post-TIPS fevers/shock',
+                'Persistent high fevers and refractory shock despite escalating broad-spectrum antibiotics, with an exhaustively NEGATIVE infectious workup (serial cultures NGTD, no abscess on CT, normal CSF, negative repeat paracentesis, normal procalcitonin, no rising leukocytosis; mild eosinophilia)',
+                'The team remained anchored on occult infection (the chart embodies this) and did not consider that the antibiotics were causing a DRUG FEVER and drug-associated neurotoxicity',
+                'At ~2 weeks, with MELD ~40 and no improvement, the family elected comfort measures — an irreversible decision made while a reversible, unconsidered diagnosis remained',
+                'Antibiotics (and pressors) were stopped as part of comfort care; she unexpectedly defervesced, came off pressors, and woke up — revealing the drugs as the cause',
+                'Lesson: persistent fever/shock on broad antibiotics with a negative workup should prompt actively considering non-infectious causes (drug fever) and a willingness to STOP the drugs before irreversible decisions',
+            ],
+            source: 'Adapted from the Management Case Bank (Case 5; original discussants Wendy Stead, Emily Rubin; finalized by Jason Hom).',
         },
     };
 

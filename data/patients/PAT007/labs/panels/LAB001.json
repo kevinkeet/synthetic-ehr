@@ -1,0 +1,27 @@
+{
+  "id": "LAB001",
+  "name": "Admission Labs",
+  "collectedDate": "2027-05-02T15:30:00.000Z",
+  "resultedDate": "2027-05-02T16:30:00.000Z",
+  "orderedBy": "Dr. Olivia Reyes (Emergency Department)",
+  "facility": "UPMC — ED Lab",
+  "specimen": "Serum + plasma + ascitic fluid",
+  "status": "Final",
+  "results": [
+    { "name": "CBC — WBC", "value": "12.0", "unit": "K/uL", "referenceRange": "4.5-11.0", "flag": "high" },
+    { "name": "CBC — Hemoglobin", "value": "8.6", "unit": "g/dL", "referenceRange": "12.0-15.5", "flag": "low" },
+    { "name": "CBC — Platelets", "value": "80", "unit": "K/uL", "referenceRange": "150-400", "flag": "low" },
+    { "name": "CMP — Sodium", "value": "132", "unit": "mmol/L", "referenceRange": "135-145", "flag": "low" },
+    { "name": "CMP — Creatinine", "value": "1.4", "unit": "mg/dL", "referenceRange": "0.5-1.1", "flag": "high", "interpretation": "Baseline unknown." },
+    { "name": "CMP — Total bilirubin", "value": "4.2", "unit": "mg/dL", "referenceRange": "0.1-1.2", "flag": "high" },
+    { "name": "CMP — AST", "value": "50", "unit": "U/L", "referenceRange": "10-40", "flag": "high" },
+    { "name": "CMP — ALT", "value": "60", "unit": "U/L", "referenceRange": "7-56", "flag": "high" },
+    { "name": "CMP — Albumin", "value": "2.5", "unit": "g/dL", "referenceRange": "3.5-5.0", "flag": "low" },
+    { "name": "Coag — INR", "value": "1.9", "unit": "", "referenceRange": "0.8-1.2", "flag": "high" },
+    { "name": "Lactate", "value": "2.2", "unit": "mmol/L", "referenceRange": "0.5-2.0", "flag": "high" },
+    { "name": "Ascitic fluid — PMN count", "value": "86", "unit": "cells/uL", "referenceRange": "<250", "flag": "normal", "interpretation": "Below the 250 threshold — NEGATIVE for spontaneous bacterial peritonitis." },
+    { "name": "Ascitic fluid — Gram stain", "value": "No organisms seen", "unit": "", "referenceRange": "No organisms", "flag": "normal" },
+    { "name": "Ascitic fluid — SAAG", "value": ">1.1", "unit": "g/dL", "referenceRange": "—", "flag": "abnormal", "interpretation": "Consistent with portal hypertension." }
+  ],
+  "interpretation": "Decompensated cirrhosis (hyperbilirubinemia, hypoalbuminemia, elevated INR, thrombocytopenia) with anemia. Estimated MELD-Na ~25 at admission. Diagnostic paracentesis NEGATIVE for SBP (86 PMN, no organisms). Mild leukocytosis and lactate in the setting of the acute illness/bleed."
+}

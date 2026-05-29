@@ -1,0 +1,14 @@
+{
+  "id": "IMG003",
+  "date": "2027-05-12T11:00:00.000Z",
+  "modality": "CT",
+  "description": "CT Chest / Abdomen / Pelvis with contrast — fever / source workup",
+  "facility": "UPMC Radiology",
+  "status": "Final",
+  "radiologist": "Dr. Helen Cho",
+  "indication": "Persistent fevers and shock of uncertain source in the ICU — search for an occult infectious focus.",
+  "technique": "Contrast-enhanced CT of the chest, abdomen, and pelvis.",
+  "findings": "CHEST: Bilateral pleural effusions with compressive atelectasis; no consolidation/empyema. No pulmonary nodule or mass.\nABDOMEN/PELVIS: Cirrhotic liver, splenomegaly, ascites. PATENT TIPS. NO drainable abscess or organized fluid collection in the abdomen or pelvis. No bowel wall thickening, perforation, or obstruction. No biliary dilation. No renal/perinephric collection. No focal hepatic lesion identified to explain the weight loss.",
+  "impression": "NO occult abscess or drainable infectious source identified anywhere in the chest, abdomen, or pelvis. Patent TIPS. Cirrhosis with ascites and bilateral effusions. No mass to explain the weight loss within the imaged field.",
+  "comparison": "Compared with admission studies — interval TIPS; effusions/ascites similar."
+}

@@ -63,6 +63,17 @@
       "summary": "72 y.o. woman with poorly-controlled HTN and T2DM; new-onset perioperative atrial fibrillation after urgent open cholecystectomy for perforated cholecystitis (brief runs POD#1, 2-hour asymptomatic episode POD#4). Management assessment case.",
       "caseType": "assessment",
       "caseTitle": "The post-op atrial fibrillation (adapted from management case bank)"
+    },
+    {
+      "id": "PAT007",
+      "name": "Brooks, Janet M",
+      "mrn": "MRN-90216077",
+      "dob": "1971-08-27",
+      "sex": "Female",
+      "status": "Active",
+      "summary": "55 y.o. woman with alcohol-related cirrhosis and involuntary weight loss; variceal bleed → emergent TIPS → prolonged fevers/refractory shock with a negative infectious workup, nearly transitioned to comfort measures before recovering once antibiotics were stopped (drug fever). Management assessment case.",
+      "caseType": "assessment",
+      "caseTitle": "The drug fever that almost killed her (adapted from management case bank)"
     }
   ],
   "lastUpdated": "2027-06-14T09:00:00Z"
