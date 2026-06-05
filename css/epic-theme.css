@@ -15437,6 +15437,50 @@ body.in-assessment .main-container {
     .tutor-controls { align-items: stretch; }
 }
 
+/* ── RAG: grounding toggle, source links, sources panel ──────────────── */
+.tutor-rag-toggle {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--border-medium); background: var(--bg-white);
+    color: var(--text-secondary); font-size: 11px; padding: 4px 10px;
+    border-radius: 999px; cursor: pointer;
+    transition: background 0.12s var(--ease-out), color 0.12s var(--ease-out), border-color 0.12s var(--ease-out);
+}
+.tutor-rag-toggle .lucide { width: 13px; height: 13px; }
+.tutor-rag-toggle:hover { background: var(--bg-hover); }
+.tutor-rag-toggle.active { background: #1f6f54; color: #fff; border-color: #1f6f54; }
+.tutor-rag-toggle.tutor-rag-empty { opacity: 0.55; }
+.tutor-rag-count {
+    font-size: 10px; font-weight: 700; min-width: 14px; text-align: center;
+    padding: 0 4px; border-radius: 999px; background: rgba(0,0,0,0.08);
+}
+.tutor-rag-toggle.active .tutor-rag-count { background: rgba(255,255,255,0.25); }
+
+/* Inline source links inside answer/teaching markdown */
+.tutor-link { color: var(--text-link); text-decoration: none; border-bottom: 1px solid rgba(0,102,204,0.35); }
+.tutor-link:hover { border-bottom-color: var(--text-link); }
+
+/* Per-turn Sources panel */
+.tutor-sources {
+    margin-top: 12px;
+    border: 1px solid #d6e6df; background: #f3f9f6; border-radius: 10px;
+    padding: 8px 12px;
+}
+.tutor-sources-summary {
+    display: flex; align-items: center; gap: 6px; cursor: pointer;
+    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    color: #1f6f54; list-style: none;
+}
+.tutor-sources-summary::-webkit-details-marker { display: none; }
+.tutor-sources-summary .lucide { width: 14px; height: 14px; }
+.tutor-source-list { list-style: none; margin: 8px 0 2px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.tutor-source-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.tutor-source-item .lucide { width: 14px; height: 14px; color: #1f6f54; flex: 0 0 auto; }
+.tutor-source-title { flex: 1; }
+.tutor-source-type {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em;
+    color: #4a7d6c; border: 1px solid #cfe3da; border-radius: 999px; padding: 1px 7px;
+}
+
 /* Hide global simulation chrome while on the Teaching Tutor route, so the
    standalone tutor isn't crowded by the AI panel or patient/nurse chat. */
 body.route-tutor #ai-panel,

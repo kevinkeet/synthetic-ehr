@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "generated": "static-tfidf-prototype",
+  "docCount": 3,
+  "chunkCount": 6,
+  "chunks": [
+    {
+      "id": "clinical-problem-solvers-schemas.md#0",
+      "docTitle": "Clinical Problem Solvers — Illness Scripts & Diagnostic Schemas",
+      "url": "https://clinicalproblemsolving.com",
+      "type": "framework",
+      "text": "The Clinical Problem Solvers framework teaches diagnostic reasoning through two reusable tools: illness scripts and diagnostic schemas. Both are designed to make expert reasoning transferable rather than case-specific. An illness script is a structured mental summary of a disease with three parts: epidemiology and risk factors (who gets it), the time course and pathophysiology (how it behaves), and the key clinical features (how it presents, including the discriminating findings). Learners compare a patient's presentation against competing illness scripts to decide which best fits, and equally to decide what does not fit."
+    },
+    {
+      "id": "clinical-problem-solvers-schemas.md#1",
+      "docTitle": "Clinical Problem Solvers — Illness Scripts & Diagnostic Schemas",
+      "url": "https://clinicalproblemsolving.com",
+      "type": "framework",
+      "text": "ings). Learners compare a patient's presentation against competing illness scripts to decide which best fits, and equally to decide what does not fit. A diagnostic schema is a branching framework for a presenting problem (for example, a schema for anemia, hyponatremia, or acute kidney injury). The schema organizes the differential into a small number of categories with a logical first split, so the reasoner narrows the space systematically instead of pattern-matching to a single answer. Good teaching points name the relevant schema and the branch point that the current case turns on. A common reasoning trap these tools guard against is premature closure: committing to the first plausible diagnosis without testing competing scripts or working the schema. Framing a teaching moment around the schema and the discriminating feature helps the learner generalize beyond the single case."
+    },
+    {
+      "id": "pioped2-ctpa.md#0",
+      "docTitle": "PIOPED II — CT pulmonary angiography for PE (NEJM 2006)",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/?term=PIOPED+II+computed+tomographic+pulmonary+angiography",
+      "type": "study",
+      "text": "PIOPED II evaluated the accuracy of multidetector CT pulmonary angiography (CTPA) for diagnosing acute pulmonary embolism, and the added value of combining CTPA with CT venography. The central lesson is that CTPA accuracy must be interpreted in light of the pretest probability rather than read as a standalone yes/no. When the clinical (pretest) probability and the CTPA result agree, the test is reliable: a negative CTPA in a low-probability patient effectively rules out PE, and a positive CTPA in a high-probability patient confirms it. The danger zone is discordance, for example a negative CTPA in a high-probability patient or a positive CTPA in a low-probability patient, where the result should not be taken at face value and further testing or clinical judgment is required."
+    },
+    {
+      "id": "pioped2-ctpa.md#1",
+      "docTitle": "PIOPED II — CT pulmonary angiography for PE (NEJM 2006)",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/?term=PIOPED+II+computed+tomographic+pulmonary+angiography",
+      "type": "study",
+      "text": "a positive CTPA in a low-probability patient, where the result should not be taken at face value and further testing or clinical judgment is required. This is a concrete instance of Bayesian reasoning: the same imaging result carries different meaning depending on the prior probability, so a structured pretest probability assessment (for example using a validated clinical decision rule) should precede and frame the imaging."
+    },
+    {
+      "id": "prepic2-ivc-filter.md#0",
+      "docTitle": "PREPIC2 — IVC filters added to anticoagulation (JAMA 2015)",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/?term=PREPIC2+vena+cava+filter",
+      "type": "study",
+      "text": "PREPIC2 was a randomized trial testing whether adding a retrievable inferior vena cava (IVC) filter to standard anticoagulation reduced recurrent pulmonary embolism in patients with acute symptomatic PE who also had additional risk factors and who could be anticoagulated. Patients were randomized to anticoagulation plus a retrievable filter versus anticoagulation alone, with the filter intended for retrieval at three months. The trial found no significant reduction in recurrent PE at three months and no mortality benefit from adding the filter on top of anticoagulation. This is the key teaching point: in a patient who can be anticoagulated, a filter does not add meaningful protection and should not be placed routinely."
+    },
+    {
+      "id": "prepic2-ivc-filter.md#1",
+      "docTitle": "PREPIC2 — IVC filters added to anticoagulation (JAMA 2015)",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/?term=PREPIC2+vena+cava+filter",
+      "type": "study",
+      "text": "his is the key teaching point: in a patient who can be anticoagulated, a filter does not add meaningful protection and should not be placed routinely. The earlier PREPIC trial had shown that permanent filters reduced early PE but increased deep vein thrombosis over long-term follow-up, with no mortality benefit. Together the PREPIC studies anchor the principle that IVC filters substitute for anticoagulation when it is contraindicated; they are not an add-on for extra protection, and an unretrieved filter is a source of long-term harm."
+    }
+  ]
+}

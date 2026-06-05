@@ -57,7 +57,10 @@ const EduTutor = (function () {
         'handles the educational layer. Just give the best clinical answer. ' +
         'If the question is ambiguous or safety-critical, say what you would clarify and flag red flags. ' +
         'This is for clinician education, not a substitute for bedside judgment on a real patient. ' +
-        'Format with short paragraphs, markdown headers (##), and bullet lists. Do NOT use markdown tables.';
+        'Format with short paragraphs, markdown headers (##), and bullet lists. Do NOT use markdown tables. ' +
+        'If SOURCE MATERIAL is provided below, ground your answer in it and you may name relevant studies inline, ' +
+        'but do NOT paste raw URLs in the answer (links belong in the teaching points and the sources list). ' +
+        'Never invent a citation.';
 
     function teachingSystem(level) {
         const cal = (LEVELS[level] || LEVELS.resident).calibration;
@@ -76,6 +79,12 @@ const EduTutor = (function () {
             'the management.\n' +
             '**Pearl** — one memorable, high-yield takeaway worth retaining.\n' +
             '**Check yourself** — one probing question back to the learner (one-minute-preceptor style). Ask it; do not answer it.\n\n' +
+            'CITATIONS & FRAMEWORKS: Where a landmark study genuinely underpins a point, name it (trial name + journal/year) ' +
+            'in the relevant section, most naturally in **Principle** or **What would change the answer**. Where a reasoning ' +
+            'framework applies (for example Clinical Problem Solvers illness scripts or diagnostic schemas), name it in **Principle**. ' +
+            'When SOURCE MATERIAL is provided below: cite the relevant studies/frameworks and include their link as a markdown ' +
+            'link [Title](url) using ONLY the URLs given in the source material. If no source is provided, you may name a study ' +
+            'or framework you are confident about but do NOT invent a URL or a citation.\n\n' +
             'Be specific to THIS question and answer. Never fabricate citations, trial names, or numbers — if you are ' +
             'not sure of a figure, speak qualitatively. Use prose and bullet lists only; do NOT use markdown tables.'
         );
@@ -88,6 +97,8 @@ const EduTutor = (function () {
     let _busy = false;
     let _root = null;
     let _displayMode = 'rail'; // rail | margin | flip | chips
+    let _useRag = true; // ground answers in the source corpus when available
+    const RAG_TOP_K = 4;
 
     // The four teaching-pane treatments being compared.
     const DISPLAY_MODES = [
@@ -117,6 +128,14 @@ const EduTutor = (function () {
     // Light markdown: escape, **bold**, `code`, bullet lines, paragraphs.
     function _md(text) {
         let s = _escape(text || '');
+        // Markdown links [text](http…) → safe anchor (http/https only).
+        s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+            '<a href="$2" target="_blank" rel="noopener noreferrer" class="tutor-link">$1</a>');
+        // Autolink any remaining bare URLs (defensive — keeps stray URLs clickable
+        // and not raw). The lookbehind on the preceding char (start/space/paren)
+        // avoids re-touching URLs already inside an href="…" or anchor text.
+        s = s.replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g,
+            '$1<a href="$2" target="_blank" rel="noopener noreferrer" class="tutor-link">$2</a>');
         s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
         s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
         // Line-by-line: markdown headers, bullet lists, numbered lists, paragraphs.
@@ -219,6 +238,13 @@ const EduTutor = (function () {
                                     )}</button>`
                             ).join('')}
                         </div>
+                        <div class="tutor-mode-group">
+                            <button id="tutor-rag-toggle" class="tutor-rag-toggle ${_useRag ? 'active' : ''}" title="Ground answers in the source library and cite landmark studies / frameworks">
+                                <i data-lucide="book-open-text"></i>
+                                <span>Ground in sources</span>
+                                <span class="tutor-rag-count" id="tutor-rag-count"></span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -239,6 +265,19 @@ const EduTutor = (function () {
         _bind();
         _renderThread();
         if (typeof App !== 'undefined' && App.refreshIcons) App.refreshIcons();
+
+        // Warm the source index (non-blocking) and reflect availability.
+        if (typeof RagStore !== 'undefined') {
+            RagStore.load().then((ok) => {
+                const countEl = _root && _root.querySelector('#tutor-rag-count');
+                const toggle = _root && _root.querySelector('#tutor-rag-toggle');
+                if (countEl) countEl.textContent = ok ? `${RagStore.count()}` : '';
+                if (toggle && !ok) {
+                    toggle.classList.add('tutor-rag-empty');
+                    toggle.title = 'No source library found (data/rag/index.json). Add sources and run tools/rag-ingest.mjs.';
+                }
+            });
+        }
 
         const input = _root.querySelector('#tutor-input');
         if (input) input.focus();
@@ -266,6 +305,15 @@ const EduTutor = (function () {
                 _renderThread();
             });
         });
+
+        // RAG grounding toggle.
+        const ragToggle = _root.querySelector('#tutor-rag-toggle');
+        if (ragToggle) {
+            ragToggle.addEventListener('click', () => {
+                _useRag = !_useRag;
+                ragToggle.classList.toggle('active', _useRag);
+            });
+        }
 
         const send = _root.querySelector('#tutor-send');
         const input = _root.querySelector('#tutor-input');
@@ -393,6 +441,44 @@ const EduTutor = (function () {
         ).join('');
     }
 
+    // Prompt-side source block (fed to the model).
+    function _sourcesBlock(hits) {
+        return (
+            'SOURCE MATERIAL (cite by title; use these exact URLs for any links; do not invent sources or URLs):\n' +
+            hits
+                .map((h, i) => `[${i + 1}] ${h.docTitle}${h.url ? ' — ' + h.url : ''}\n${h.text}`)
+                .join('\n\n')
+        );
+    }
+
+    // UI-side "Sources" panel (shown under each grounded turn).
+    const TYPE_ICON = { study: 'flask-conical', framework: 'shapes', reference: 'book-open' };
+    function _sourcesPanelHtml(turn) {
+        if (!turn.sources || !turn.sources.length) return '';
+        // de-dupe by document title, keep best score
+        const byDoc = new Map();
+        turn.sources.forEach((s) => {
+            const cur = byDoc.get(s.docTitle);
+            if (!cur || s.score > cur.score) byDoc.set(s.docTitle, s);
+        });
+        const items = [...byDoc.values()].map((s) => {
+            const icon = TYPE_ICON[s.type] || 'book-open';
+            const title = s.url
+                ? `<a href="${_escape(s.url)}" target="_blank" rel="noopener noreferrer" class="tutor-link">${_escape(s.docTitle)}</a>`
+                : _escape(s.docTitle);
+            return `<li class="tutor-source-item">
+                <i data-lucide="${icon}"></i>
+                <span class="tutor-source-title">${title}</span>
+                <span class="tutor-source-type">${_escape(s.type)}</span>
+            </li>`;
+        }).join('');
+        return `
+            <details class="tutor-sources" open>
+                <summary class="tutor-sources-summary"><i data-lucide="library"></i> Sources used (${byDoc.size})</summary>
+                <ul class="tutor-source-list">${items}</ul>
+            </details>`;
+    }
+
     // ── Turn dispatcher ────────────────────────────────────────────────
     function _renderTurn(turn, i) {
         const inner =
@@ -400,7 +486,7 @@ const EduTutor = (function () {
             _displayMode === 'flip' ? _turnFlip(turn) :
             _displayMode === 'chips' ? _turnChips(turn) :
             _turnRail(turn);
-        return `<div class="tutor-turn" data-turn="${i}">${_questionHtml(turn)}${inner}</div>`;
+        return `<div class="tutor-turn" data-turn="${i}">${_questionHtml(turn)}${inner}${_sourcesPanelHtml(turn)}</div>`;
     }
 
     // Mode: SIDE RAIL — answer + a teaching rail that slides in from the right.
@@ -542,15 +628,30 @@ const EduTutor = (function () {
         if (sendBtn) sendBtn.disabled = true;
         input.value = '';
 
-        const turn = { q, level: _level, answer: null, teaching: null, answerErr: null, teachingErr: null };
+        const turn = { q, level: _level, answer: null, teaching: null, answerErr: null, teachingErr: null, sources: null };
         _turns.push(turn);
         _renderThread();
+
+        // RETRIEVAL — ground in the source corpus (best-effort, non-blocking failure).
+        let sourcesBlock = '';
+        if (_useRag && typeof RagStore !== 'undefined') {
+            try {
+                const hits = await RagStore.search(q, RAG_TOP_K);
+                if (hits && hits.length) {
+                    turn.sources = hits;
+                    sourcesBlock = _sourcesBlock(hits);
+                    _renderThread();
+                }
+            } catch (e) {
+                /* retrieval is optional; ignore */
+            }
+        }
 
         // LANE 1 — Answer (fires immediately).
         try {
             turn.answer = await ClaudeAPI._singleChat({
                 systemPrompt: ANSWER_SYSTEM,
-                userMessage: q,
+                userMessage: sourcesBlock ? q + '\n\n' + sourcesBlock : q,
                 model: ANSWER_MODEL,
                 maxTokens: ANSWER_MAX_TOKENS,
             });
@@ -567,6 +668,7 @@ const EduTutor = (function () {
                     q +
                     '\n\nANSWER GIVEN TO THE LEARNER:\n' +
                     turn.answer +
+                    (sourcesBlock ? '\n\n' + sourcesBlock : '') +
                     '\n\nNow produce the teaching points as instructed.';
                 turn.teaching = await ClaudeAPI._singleChat({
                     systemPrompt: teachingSystem(turn.level),
