@@ -198,6 +198,8 @@ const App = {
             .on('/procedures', () => Procedures.render())
             .on('/orders', () => Orders.render())
             .on('/about', () => About.render())
+            // Teaching Tutor (standalone medical-education chatbot)
+            .on('/tutor', () => EduTutor.render())
             // Assessment Framework (Phase 3)
             .on('/assessment/start', () => AssessmentStart.render())
             .on('/assessment/run', () => AssessmentPanel.renderActive())
