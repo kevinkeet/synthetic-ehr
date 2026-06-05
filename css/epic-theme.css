@@ -15288,6 +15288,155 @@ body.in-assessment .main-container {
 .tutor-md h3.tutor-h { font-size: 15px; }
 .tutor-teach-md strong { color: #6b5310; }
 
+/* ── Teaching Tutor: shared primitives + 4 comparison layouts ──────── */
+.tutor-page { --ease-out: cubic-bezier(0.22, 1, 0.36, 1); }
+.tutor-controls { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+.tutor-mode-group { display: flex; align-items: center; gap: 6px; }
+.tutor-mode-btn {
+    border: 1px solid var(--border-light);
+    background: var(--bg-white);
+    color: var(--text-secondary);
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.12s var(--ease-out), color 0.12s var(--ease-out);
+}
+.tutor-mode-btn:hover { background: var(--bg-hover); }
+.tutor-mode-btn.active { background: var(--primary-light); color: #fff; border-color: var(--primary-light); }
+
+@keyframes tutorReveal { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+
+/* Parsed teaching section (rail + flip share this) */
+.tutor-section { margin-bottom: 13px; }
+.tutor-section:last-child { margin-bottom: 0; }
+.tutor-section-head {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 700; color: #8a6d1a; margin-bottom: 3px;
+}
+.tutor-section-head .lucide { width: 13px; height: 13px; }
+
+/* ───── Mode: SIDE RAIL ───── */
+.tutor-rail-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+    transition: grid-template-columns 0.35s var(--ease-out);
+}
+.tutor-rail-layout.rail-collapsed { grid-template-columns: minmax(0, 1fr) 46px; }
+.tutor-rail {
+    position: relative;
+    border: 1px solid #e6e0c8;
+    background: #fbfaf4;
+    border-radius: 10px;
+    padding: 12px 14px;
+    align-self: start;
+    opacity: 0;
+    transform: translateX(14px);
+}
+.tutor-rail.tutor-rail-in {
+    opacity: 1;
+    transform: none;
+    transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-out);
+}
+.rail-collapsed .tutor-rail { padding: 0; overflow: hidden; opacity: 1; transform: none; }
+.tutor-rail-head {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    color: #8a6d1a; margin-bottom: 10px; padding-right: 26px;
+}
+.tutor-rail-head .lucide { width: 14px; height: 14px; }
+.rail-collapsed .tutor-rail-head, .rail-collapsed .tutor-rail-body { display: none; }
+.tutor-rail-spine { display: none; }
+.rail-collapsed .tutor-rail-spine {
+    display: block; writing-mode: vertical-rl; transform: rotate(180deg);
+    text-align: center; padding: 12px 0; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase; color: #8a6d1a;
+}
+.tutor-rail-toggle {
+    position: absolute; top: 8px; right: 8px; width: 24px; height: 24px;
+    border: 1px solid #e6e0c8; background: #fff; border-radius: 6px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; color: #8a6d1a; z-index: 1;
+}
+.tutor-rail-toggle .lucide { width: 14px; height: 14px; }
+.rail-collapsed .tutor-rail-toggle { top: 6px; right: 11px; }
+
+/* ───── Mode: MARGIN NOTES ───── */
+.tutor-margin-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 62ch) 1fr;
+    gap: 30px;
+    align-items: start;
+}
+.tutor-margin-notes { display: flex; flex-direction: column; gap: 14px; padding-top: 26px; }
+.tutor-note {
+    position: relative; padding-left: 16px; font-size: 13px;
+    animation: tutorReveal 0.4s var(--ease-out) both;
+    animation-delay: calc(var(--note-i) * 70ms);
+}
+.tutor-note-dot { position: absolute; left: 0; top: 5px; width: 8px; height: 8px; border-radius: 50%; background: #c9a227; }
+.tutor-note-head {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+    color: #8a6d1a; margin-bottom: 3px;
+}
+.tutor-note-head .lucide { width: 12px; height: 12px; }
+.tutor-note .tutor-md { font-size: 12.5px; color: var(--text-secondary); }
+
+/* ───── Mode: FLIP CARD ───── */
+.tutor-flip { position: relative; perspective: 1800px; max-width: 760px; }
+.tutor-flip-inner {
+    position: absolute; inset: 0;
+    transform-style: preserve-3d;
+    transition: transform 0.6s var(--ease-out);
+}
+.tutor-flip.is-flipped .tutor-flip-inner { transform: rotateY(180deg); }
+.tutor-flip-face {
+    position: absolute; top: 0; left: 0; width: 100%;
+    box-sizing: border-box;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+}
+.tutor-flip-back { transform: rotateY(180deg); }
+.tutor-flip-actions { margin-top: 12px; display: flex; justify-content: flex-end; }
+.tutor-flip-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: none; background: var(--primary); color: #fff;
+    font-size: 13px; padding: 7px 14px; border-radius: 8px; cursor: pointer;
+    transition: background 0.12s var(--ease-out);
+}
+.tutor-flip-btn:hover:not(:disabled) { background: var(--primary-light); }
+.tutor-flip-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.tutor-flip-btn.ghost { background: transparent; color: #8a6d1a; border: 1px solid #e6e0c8; }
+.tutor-flip-btn.ghost:hover { background: #fbfaf4; }
+.tutor-flip-btn .lucide { width: 15px; height: 15px; }
+
+/* ───── Mode: INLINE CHIPS ───── */
+.tutor-chips-answer { max-width: 820px; }
+.tutor-chips-teach { margin-top: 14px; border-top: 1px solid var(--border-light); padding-top: 12px; }
+.tutor-chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.tutor-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    border: 1px solid #e6e0c8; background: #fbfaf4; color: #6b5310;
+    font-size: 12px; padding: 5px 12px; border-radius: 999px; cursor: pointer;
+    transition: background 0.14s var(--ease-out), color 0.14s var(--ease-out);
+}
+.tutor-chip:hover { background: #f3edd8; }
+.tutor-chip.active { background: #6b5310; color: #fff; border-color: #6b5310; }
+.tutor-chip .lucide { width: 13px; height: 13px; }
+.tutor-chip-panels { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.tutor-chip-panel {
+    background: #fbfaf4; border: 1px solid #e6e0c8; border-radius: 8px; padding: 10px 12px;
+    animation: tutorReveal 0.25s var(--ease-out) both;
+}
+
+@media (max-width: 860px) {
+    .tutor-rail-layout, .tutor-rail-layout.rail-collapsed { grid-template-columns: 1fr; }
+    .tutor-margin-layout { grid-template-columns: 1fr; gap: 14px; }
+    .tutor-margin-notes { padding-top: 0; }
+    .tutor-controls { align-items: stretch; }
+}
+
 /* Hide global simulation chrome while on the Teaching Tutor route, so the
    standalone tutor isn't crowded by the AI panel or patient/nurse chat. */
 body.route-tutor #ai-panel,

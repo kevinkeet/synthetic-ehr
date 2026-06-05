@@ -82,11 +82,30 @@ const EduTutor = (function () {
     }
 
     // ── State ──────────────────────────────────────────────────────────
-    // turns: [{ q, level, answer, teaching, answerErr, teachingErr }]
+    // turns: [{ q, level, answer, teaching, answerErr, teachingErr, _flipped, _open:Set }]
     let _turns = [];
     let _level = 'resident';
     let _busy = false;
     let _root = null;
+    let _displayMode = 'rail'; // rail | margin | flip | chips
+
+    // The four teaching-pane treatments being compared.
+    const DISPLAY_MODES = [
+        { id: 'rail', label: 'Side rail' },
+        { id: 'margin', label: 'Margin notes' },
+        { id: 'flip', label: 'Flip card' },
+        { id: 'chips', label: 'Inline chips' },
+    ];
+
+    // Canonical teaching sections (parsed out of the teaching text) + their
+    // short chip labels and icons. Order is the display order.
+    const SECTION_META = [
+        { key: 'Principle', short: 'Principle', icon: 'compass' },
+        { key: 'The trap', short: 'The trap', icon: 'triangle-alert' },
+        { key: 'What would change the answer', short: 'What changes it', icon: 'git-branch' },
+        { key: 'Pearl', short: 'Pearl', icon: 'gem' },
+        { key: 'Check yourself', short: 'Check yourself', icon: 'circle-help' },
+    ];
 
     // ── Helpers ────────────────────────────────────────────────────────
     function _escape(s) {
@@ -129,6 +148,31 @@ const EduTutor = (function () {
         return out.join('\n');
     }
 
+    // Parse the teaching text into its five canonical sections.
+    // Returns [{ key, body }] in SECTION_META order, or null if the text
+    // doesn't match the expected structure (caller falls back to raw md).
+    function _parseTeaching(text) {
+        if (!text) return null;
+        const re = /\*\*\s*(Principle|The trap|What would change the answer|Pearl|Check yourself)\s*\*\*\s*[—\-:]*\s*/g;
+        const hits = [];
+        let m;
+        while ((m = re.exec(text))) {
+            hits.push({ key: m[1], bodyStart: re.lastIndex, headStart: m.index });
+        }
+        if (hits.length < 2) return null;
+        const found = {};
+        for (let i = 0; i < hits.length; i++) {
+            const end = i + 1 < hits.length ? hits[i + 1].headStart : text.length;
+            found[hits[i].key] = text.slice(hits[i].bodyStart, end).trim();
+        }
+        return SECTION_META.filter((s) => found[s.key] != null).map((s) => ({
+            key: s.key,
+            short: s.short,
+            icon: s.icon,
+            body: found[s.key],
+        }));
+    }
+
     // ── Route isolation ────────────────────────────────────────────────
     // Toggle a body class on #/tutor so the global sim chrome (AI panel,
     // Patient/Nurse chat launchers, live-vitals banner) is hidden here.
@@ -161,13 +205,24 @@ const EduTutor = (function () {
                         <h1 class="tutor-title"><i data-lucide="graduation-cap"></i> Teaching Tutor</h1>
                         <p class="tutor-subtitle">Ask a clinical question. Get the answer <em>and</em> the teaching.</p>
                     </div>
-                    <div class="tutor-level-group" role="group" aria-label="Learner level">
-                        <span class="tutor-level-label">Teach me as a:</span>
-                        ${levelBtns}
+                    <div class="tutor-controls">
+                        <div class="tutor-level-group" role="group" aria-label="Learner level">
+                            <span class="tutor-level-label">Teach me as a:</span>
+                            ${levelBtns}
+                        </div>
+                        <div class="tutor-mode-group" role="group" aria-label="Teaching layout">
+                            <span class="tutor-level-label">Layout:</span>
+                            ${DISPLAY_MODES.map(
+                                (mo) =>
+                                    `<button class="tutor-mode-btn ${mo.id === _displayMode ? 'active' : ''}" data-mode="${mo.id}">${_escape(
+                                        mo.label
+                                    )}</button>`
+                            ).join('')}
+                        </div>
                     </div>
                 </div>
 
-                <div class="tutor-thread" id="tutor-thread"></div>
+                <div class="tutor-thread tutor-thread-${_displayMode}" id="tutor-thread"></div>
 
                 <div class="tutor-composer">
                     <textarea id="tutor-input" class="tutor-input" rows="2"
@@ -199,6 +254,19 @@ const EduTutor = (function () {
             });
         });
 
+        // Display-mode switcher — re-renders the same turns in a new layout.
+        _root.querySelectorAll('.tutor-mode-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                _displayMode = btn.getAttribute('data-mode');
+                _root.querySelectorAll('.tutor-mode-btn').forEach((b) =>
+                    b.classList.toggle('active', b === btn)
+                );
+                const thread = _root.querySelector('#tutor-thread');
+                if (thread) thread.className = 'tutor-thread tutor-thread-' + _displayMode;
+                _renderThread();
+            });
+        });
+
         const send = _root.querySelector('#tutor-send');
         const input = _root.querySelector('#tutor-input');
         if (send) send.addEventListener('click', _submit);
@@ -210,6 +278,39 @@ const EduTutor = (function () {
                 }
             });
         }
+
+        // Delegated interactions inside the thread (flip, chips, rail collapse).
+        const thread = _root.querySelector('#tutor-thread');
+        if (thread) {
+            thread.addEventListener('click', (e) => {
+                const flipBtn = e.target.closest('[data-flip]');
+                const chip = e.target.closest('[data-chip]');
+                const railToggle = e.target.closest('[data-rail-toggle]');
+                if (flipBtn) {
+                    const turn = _turnFromEl(flipBtn);
+                    if (turn) { turn._flipped = !turn._flipped; _renderThread(); }
+                } else if (chip) {
+                    const turn = _turnFromEl(chip);
+                    if (turn) {
+                        const key = chip.getAttribute('data-chip');
+                        turn._open = turn._open || new Set();
+                        if (turn._open.has(key)) turn._open.delete(key);
+                        else turn._open.add(key);
+                        _renderThread();
+                    }
+                } else if (railToggle) {
+                    const turn = _turnFromEl(railToggle);
+                    if (turn) { turn._railCollapsed = !turn._railCollapsed; _renderThread(); }
+                }
+            });
+        }
+    }
+
+    function _turnFromEl(el) {
+        const wrap = el.closest('.tutor-turn');
+        if (!wrap) return null;
+        const idx = parseInt(wrap.getAttribute('data-turn'), 10);
+        return _turns[idx] || null;
     }
 
     function _renderThread() {
@@ -240,51 +341,187 @@ const EduTutor = (function () {
 
         thread.innerHTML = _turns.map(_renderTurn).join('');
         if (typeof App !== 'undefined' && App.refreshIcons) App.refreshIcons();
+        _afterRenderThread();
         thread.scrollTop = thread.scrollHeight;
     }
 
-    function _renderTurn(turn, i) {
+    // After DOM insertion: size flip cards to their visible face (faces are
+    // absolutely positioned) and trigger the rail slide-in transition.
+    function _afterRenderThread() {
+        if (!_root) return;
+        _root.querySelectorAll('.tutor-flip').forEach((flip) => {
+            const showingBack = flip.classList.contains('is-flipped');
+            const face = flip.querySelector(showingBack ? '.tutor-flip-back' : '.tutor-flip-front');
+            if (face) flip.style.height = face.offsetHeight + 'px';
+        });
+        requestAnimationFrame(() => {
+            if (!_root) return;
+            _root.querySelectorAll('.tutor-rail[data-animate-in]').forEach((r) => {
+                r.removeAttribute('data-animate-in');
+                r.classList.add('tutor-rail-in');
+            });
+        });
+    }
+
+    // ── Shared fragments ───────────────────────────────────────────────
+    function _dots(label) {
+        return `<div class="tutor-loading"><span class="tutor-dot"></span><span class="tutor-dot"></span><span class="tutor-dot"></span> ${_escape(label)}</div>`;
+    }
+    function _answerBodyHtml(turn) {
+        if (turn.answerErr) return `<div class="tutor-error">Answer failed: ${_escape(turn.answerErr)}</div>`;
+        if (turn.answer == null) return _dots('Thinking…');
+        return `<div class="tutor-md">${_md(turn.answer)}</div>`;
+    }
+    // Returns { status: 'err'|'waiting'|'loading'|'ready', html?, sections?, raw? }
+    function _teachState(turn) {
+        if (turn.teachingErr) return { status: 'err', html: `<div class="tutor-error">Teaching failed: ${_escape(turn.teachingErr)}</div>` };
+        if (turn.answer == null) return { status: 'waiting' };
+        if (turn.teaching == null) return { status: 'loading' };
+        return { status: 'ready', sections: _parseTeaching(turn.teaching), raw: turn.teaching };
+    }
+    function _questionHtml(turn) {
         const lvl = (LEVELS[turn.level] || LEVELS.resident).label;
+        return `<div class="tutor-question"><span class="tutor-q-badge">Q</span><span class="tutor-q-text">${_escape(turn.q)}</span><span class="tutor-q-level">${_escape(lvl)}</span></div>`;
+    }
+    function _sectionsHtml(sections, raw) {
+        if (!sections) return `<div class="tutor-md tutor-teach-md">${_md(raw)}</div>`;
+        return sections.map((s) =>
+            `<div class="tutor-section">
+                <div class="tutor-section-head"><i data-lucide="${s.icon}"></i> ${_escape(s.short)}</div>
+                <div class="tutor-md tutor-teach-md">${_md(s.body)}</div>
+            </div>`
+        ).join('');
+    }
 
-        // Answer pane
-        let answerHtml;
-        if (turn.answerErr) {
-            answerHtml = `<div class="tutor-error">Answer failed: ${_escape(turn.answerErr)}</div>`;
-        } else if (turn.answer == null) {
-            answerHtml = `<div class="tutor-loading"><span class="tutor-dot"></span><span class="tutor-dot"></span><span class="tutor-dot"></span> Thinking…</div>`;
-        } else {
-            answerHtml = `<div class="tutor-md">${_md(turn.answer)}</div>`;
-        }
+    // ── Turn dispatcher ────────────────────────────────────────────────
+    function _renderTurn(turn, i) {
+        const inner =
+            _displayMode === 'margin' ? _turnMargin(turn) :
+            _displayMode === 'flip' ? _turnFlip(turn) :
+            _displayMode === 'chips' ? _turnChips(turn) :
+            _turnRail(turn);
+        return `<div class="tutor-turn" data-turn="${i}">${_questionHtml(turn)}${inner}</div>`;
+    }
 
-        // Teaching pane
-        let teachHtml;
-        if (turn.teachingErr) {
-            teachHtml = `<div class="tutor-error">Teaching failed: ${_escape(turn.teachingErr)}</div>`;
-        } else if (turn.answer == null) {
-            teachHtml = `<div class="tutor-teach-waiting">Teaching points appear once the answer is ready…</div>`;
-        } else if (turn.teaching == null) {
-            teachHtml = `<div class="tutor-loading"><span class="tutor-dot"></span><span class="tutor-dot"></span><span class="tutor-dot"></span> Preparing teaching points…</div>`;
-        } else {
-            teachHtml = `<div class="tutor-md tutor-teach-md">${_md(turn.teaching)}</div>`;
-        }
+    // Mode: SIDE RAIL — answer + a teaching rail that slides in from the right.
+    function _turnRail(turn) {
+        const t = _teachState(turn);
+        let rail;
+        if (t.status === 'err') rail = t.html;
+        else if (t.status === 'waiting') rail = `<div class="tutor-teach-waiting">Teaching appears once the answer is ready…</div>`;
+        else if (t.status === 'loading') rail = _dots('Preparing teaching…');
+        else rail = _sectionsHtml(t.sections, t.raw);
 
+        const collapsed = !!turn._railCollapsed;
+        const animate = t.status === 'ready' && !collapsed ? ' data-animate-in' : '';
         return `
-            <div class="tutor-turn">
-                <div class="tutor-question"><span class="tutor-q-badge">Q</span><span class="tutor-q-text">${_escape(
-                    turn.q
-                )}</span><span class="tutor-q-level">${_escape(lvl)}</span></div>
-                <div class="tutor-panes">
-                    <section class="tutor-pane tutor-pane-answer">
+            <div class="tutor-rail-layout ${collapsed ? 'rail-collapsed' : ''}">
+                <section class="tutor-pane tutor-pane-answer">
+                    <div class="tutor-pane-head"><i data-lucide="message-square"></i> Answer</div>
+                    ${_answerBodyHtml(turn)}
+                </section>
+                <aside class="tutor-rail"${animate}>
+                    <button class="tutor-rail-toggle" data-rail-toggle title="${collapsed ? 'Expand' : 'Collapse'} teaching">
+                        <i data-lucide="${collapsed ? 'chevron-left' : 'chevron-right'}"></i>
+                    </button>
+                    <div class="tutor-rail-head"><i data-lucide="lightbulb"></i> <span>Teaching</span></div>
+                    <div class="tutor-rail-body">${rail}</div>
+                    <div class="tutor-rail-spine">Teaching</div>
+                </aside>
+            </div>`;
+    }
+
+    // Mode: MARGIN NOTES — answer in a column, teaching sections in the gutter.
+    function _turnMargin(turn) {
+        const t = _teachState(turn);
+        let notes;
+        if (t.status === 'err') notes = t.html;
+        else if (t.status === 'waiting') notes = `<div class="tutor-teach-waiting">Notes appear once the answer is ready…</div>`;
+        else if (t.status === 'loading') notes = _dots('Annotating…');
+        else if (t.sections) notes = t.sections.map((s, idx) =>
+            `<div class="tutor-note" style="--note-i:${idx}">
+                <span class="tutor-note-dot"></span>
+                <div class="tutor-note-head"><i data-lucide="${s.icon}"></i> ${_escape(s.short)}</div>
+                <div class="tutor-md tutor-teach-md">${_md(s.body)}</div>
+            </div>`
+        ).join('');
+        else notes = `<div class="tutor-md tutor-teach-md">${_md(t.raw)}</div>`;
+        return `
+            <div class="tutor-margin-layout">
+                <section class="tutor-margin-answer">
+                    <div class="tutor-pane-head"><i data-lucide="message-square"></i> Answer</div>
+                    ${_answerBodyHtml(turn)}
+                </section>
+                <aside class="tutor-margin-notes">${notes}</aside>
+            </div>`;
+    }
+
+    // Mode: FLIP CARD — answer front, "Teach me this" flips to teaching back.
+    function _turnFlip(turn) {
+        const t = _teachState(turn);
+        const flipped = !!turn._flipped;
+        let backBody;
+        if (t.status === 'err') backBody = t.html;
+        else if (t.status === 'waiting') backBody = `<div class="tutor-teach-waiting">Teaching appears once the answer is ready…</div>`;
+        else if (t.status === 'loading') backBody = _dots('Preparing teaching…');
+        else backBody = _sectionsHtml(t.sections, t.raw);
+
+        const canFlip = t.status === 'ready' || t.status === 'err';
+        return `
+            <div class="tutor-flip ${flipped ? 'is-flipped' : ''}">
+                <div class="tutor-flip-inner">
+                    <section class="tutor-flip-face tutor-flip-front tutor-pane">
                         <div class="tutor-pane-head"><i data-lucide="message-square"></i> Answer</div>
-                        ${answerHtml}
+                        ${_answerBodyHtml(turn)}
+                        <div class="tutor-flip-actions">
+                            <button class="tutor-flip-btn" data-flip ${canFlip ? '' : 'disabled'}>
+                                <i data-lucide="rotate-cw"></i> Teach me this
+                            </button>
+                        </div>
                     </section>
-                    <section class="tutor-pane tutor-pane-teach">
+                    <section class="tutor-flip-face tutor-flip-back tutor-pane tutor-pane-teach">
                         <div class="tutor-pane-head"><i data-lucide="lightbulb"></i> Teaching points</div>
-                        ${teachHtml}
+                        ${backBody}
+                        <div class="tutor-flip-actions">
+                            <button class="tutor-flip-btn ghost" data-flip>
+                                <i data-lucide="rotate-ccw"></i> Back to answer
+                            </button>
+                        </div>
                     </section>
                 </div>
-            </div>
-        `;
+            </div>`;
+    }
+
+    // Mode: INLINE CHIPS — answer, then expandable teaching pills.
+    function _turnChips(turn) {
+        const t = _teachState(turn);
+        let strip;
+        if (t.status === 'err') strip = t.html;
+        else if (t.status === 'waiting') strip = `<div class="tutor-teach-waiting">Teaching appears once the answer is ready…</div>`;
+        else if (t.status === 'loading') strip = _dots('Preparing teaching…');
+        else if (t.sections) {
+            const open = turn._open || new Set();
+            const chips = t.sections.map((s) =>
+                `<button class="tutor-chip ${open.has(s.key) ? 'active' : ''}" data-chip="${_escape(s.key)}">
+                    <i data-lucide="${s.icon}"></i> ${_escape(s.short)}
+                </button>`
+            ).join('');
+            const panels = t.sections.filter((s) => open.has(s.key)).map((s) =>
+                `<div class="tutor-chip-panel">
+                    <div class="tutor-section-head"><i data-lucide="${s.icon}"></i> ${_escape(s.short)}</div>
+                    <div class="tutor-md tutor-teach-md">${_md(s.body)}</div>
+                </div>`
+            ).join('');
+            strip = `<div class="tutor-chip-row">${chips}</div><div class="tutor-chip-panels">${panels}</div>`;
+        } else {
+            strip = `<div class="tutor-md tutor-teach-md">${_md(t.raw)}</div>`;
+        }
+        return `
+            <section class="tutor-pane tutor-pane-answer tutor-chips-answer">
+                <div class="tutor-pane-head"><i data-lucide="message-square"></i> Answer</div>
+                ${_answerBodyHtml(turn)}
+                <div class="tutor-chips-teach">${strip}</div>
+            </section>`;
     }
 
     // ── Submit / lanes ─────────────────────────────────────────────────
