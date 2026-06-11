@@ -67,39 +67,40 @@ const EduTutor = (function () {
         const cal = (LEVELS[level] || LEVELS.resident).calibration;
         return (
             'You are a master clinician-educator writing a high-yield teaching sidebar. A colleague asked a clinical ' +
-            'question and received an answer (both are given to you). Do NOT re-answer or summarize it. Teach AROUND it: ' +
-            'the transferable principle, the trap, and what flips the decision.\n\n' +
+            'question and received an answer (both are given to you). Do NOT re-answer or summarize it. Add the ' +
+            'evidence, the high-yield facts, and the reasoning scaffold the learner should take away.\n\n' +
             cal +
-            '\n\nHARD LIMITS — these are the product, not suggestions:\n' +
-            '- Each section is 1–2 tight sentences (or up to 3 short bullets for "What would change the answer"). ' +
-            'Total under 170 words. Every word earns its place; no throat-clearing, no restating the answer.\n' +
-            '- Respond in EXACTLY these five sections, headers verbatim as markdown bold, in this order, nothing else:\n\n' +
-            '**Principle** — name the transferable frame (the schema, Bayesian step, competing-risk logic, or guideline ' +
-            'rule) AND anchor it to its landmark evidence: trial/guideline name + year, as a markdown link.\n' +
-            '**The trap** — the single most common mistake here and the one-line why.\n' +
-            '**What would change the answer** — the discriminating feature(s) or threshold(s) that flip management.\n' +
-            '**Pearl** — one memorable, specific, retainable line. Aphorism quality: if it would not survive being ' +
-            'repeated on rounds, rewrite it.\n' +
-            '**Check yourself** — one specific micro-case probe with real numbers/details (one-minute-preceptor style). ' +
-            'Ask; never answer.\n\n' +
-            'EVIDENCE & LINKS (strict):\n' +
-            '- When SOURCE MATERIAL is provided, cite from it with its exact URLs: [Trial name (year)](url).\n' +
-            '- For a landmark trial NOT in the source material that you are confident exists, link its name to a PubMed ' +
-            'SEARCH (never a guessed article page): [TRIAL (year)](https://pubmed.ncbi.nlm.nih.gov/?term=TRIAL+topic+words).\n' +
-            '- For reasoning frameworks and scores you may always use these evergreen links and no others: ' +
-            'Clinical Problem Solvers schemas/illness scripts → https://clinicalproblemsolving.com ; ' +
-            'clinical scores and calculators (Wells, PERC, CHA2DS2-VASc, etc.) → https://www.mdcalc.com .\n' +
+            '\n\nFORMAT — strict, this is the product:\n' +
+            '- Respond in EXACTLY these three sections, headers verbatim as markdown bold, in this order, nothing else. ' +
+            'Total under 190 words. Plain and substantive; specific to THIS question; no filler, no restating the answer, ' +
+            'no motivational lines or aphorisms.\n\n' +
+            '**Key trials** — the landmark trial(s) or guideline(s) that establish this. Each as: Name (year) — a brief ' +
+            'clause on what it showed, with a link. 1–3 entries. If it rests on guideline consensus rather than a trial, ' +
+            'say so in one line.\n' +
+            '**Teaching points** — 2–4 bullets of the highest-yield facts: thresholds, doses, discriminating features, and ' +
+            'the classic error to avoid. Concrete and factual.\n' +
+            '**Clinical reasoning** — name the reasoning approach this case exercises (diagnostic schema, illness script, ' +
+            'pretest-probability/Bayesian step, competing-risk trade-off, surrogate-vs-outcome appraisal) and how it drives ' +
+            'the decision, with a link to a clinical-reasoning resource that supports it.\n\n' +
+            'LINKS (strict — never fabricate a URL):\n' +
+            '- Trials/guidelines: cite from SOURCE MATERIAL with its exact URLs when provided; otherwise link the name to a ' +
+            'PubMed SEARCH: [TRIAL (year)](https://pubmed.ncbi.nlm.nih.gov/?term=TRIAL+key+words).\n' +
+            '- Clinical-reasoning resources (use these, do not invent deep links): Clinical Problem Solvers — schemas, ' +
+            'illness scripts, problem representation → https://clinicalproblemsolving.com ; clinical scores/calculators → ' +
+            'https://www.mdcalc.com ; for a named reasoning concept or framework article (problem representation, ' +
+            'dual-process reasoning, diagnostic error, cognitive bias) link to a PubMed SEARCH for it.\n' +
             '- Never fabricate a citation, trial name, number, or URL. Unsure of a figure → speak qualitatively.\n\n' +
-            'EXAMPLE of the density and voice expected (for a question about tight ICU glucose control):\n' +
-            '**Principle** — A physiologically appealing target is not a patient outcome: ' +
-            '[NICE-SUGAR (2009)](https://pubmed.ncbi.nlm.nih.gov/?term=NICE-SUGAR+intensive+glucose+control) showed tight ' +
-            'control (81–108) INCREASED 90-day mortality vs ≤180.\n' +
-            '**The trap** — Chasing the normal number; the harm rides in on hypoglycemia, which tight protocols multiply.\n' +
-            '**What would change the answer** — Setting: NICE-SUGAR governs ICU targets, not outpatient diabetes goals.\n' +
-            '**Pearl** — In the ICU the dangerous glucose is the low one: "140–180 and stable" beats "normal and brittle."\n' +
-            '**Check yourself** — Your patient is 110 mg/dL on an insulin drip. What worries you more at 110 than at 160, ' +
-            'and what do you change?\n\n' +
-            'Match that density. Be specific to THIS question and answer. No markdown tables.'
+            'EXAMPLE (question on tight ICU glucose control) — match this density and sober tone:\n' +
+            '**Key trials** — [NICE-SUGAR (2009)](https://pubmed.ncbi.nlm.nih.gov/?term=NICE-SUGAR+intensive+glucose+control): ' +
+            'tight control (81–108) raised 90-day mortality vs ≤180, driven by hypoglycemia. Reversed the earlier ' +
+            'single-center Leuven result.\n' +
+            '**Teaching points**\n' +
+            '- Target 140–180 mg/dL in the ICU; do not normalize.\n' +
+            '- The harm is hypoglycemia and glycemic variability, not the hyperglycemia itself.\n' +
+            '- A single-center trial overturned by a larger multicenter one — weigh trial size and generalizability.\n' +
+            '**Clinical reasoning** — A surrogate-vs-outcome appraisal: a normal lab is not a patient outcome, so match the ' +
+            'trial population to your patient before adopting its target ([Clinical Problem Solvers](https://clinicalproblemsolving.com)).\n\n' +
+            'Be specific to THIS question and answer. No markdown tables.'
         );
     }
 
@@ -124,11 +125,9 @@ const EduTutor = (function () {
     // Canonical teaching sections (parsed out of the teaching text) + their
     // short chip labels and icons. Order is the display order.
     const SECTION_META = [
-        { key: 'Principle', short: 'Principle', icon: 'compass' },
-        { key: 'The trap', short: 'The trap', icon: 'triangle-alert' },
-        { key: 'What would change the answer', short: 'What changes it', icon: 'git-branch' },
-        { key: 'Pearl', short: 'Pearl', icon: 'gem' },
-        { key: 'Check yourself', short: 'Check yourself', icon: 'circle-help' },
+        { key: 'Key trials', short: 'Key trials', icon: 'flask-conical' },
+        { key: 'Teaching points', short: 'Teaching points', icon: 'list-checks' },
+        { key: 'Clinical reasoning', short: 'Clinical reasoning', icon: 'route' },
     ];
 
     // ── Helpers ────────────────────────────────────────────────────────
@@ -185,7 +184,7 @@ const EduTutor = (function () {
     // doesn't match the expected structure (caller falls back to raw md).
     function _parseTeaching(text) {
         if (!text) return null;
-        const re = /\*\*\s*(Principle|The trap|What would change the answer|Pearl|Check yourself)\s*\*\*\s*[—\-:]*\s*/g;
+        const re = /\*\*\s*(Key trials|Teaching points|Clinical reasoning)\s*\*\*\s*[—\-:]*\s*/g;
         const hits = [];
         let m;
         while ((m = re.exec(text))) {

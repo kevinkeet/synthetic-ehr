@@ -1,8 +1,8 @@
 {
   "version": 1,
   "generated": "static-tfidf-prototype",
-  "docCount": 11,
-  "chunkCount": 23,
+  "docCount": 12,
+  "chunkCount": 25,
   "chunks": [
     {
       "id": "ardsnet-arma-low-tidal-volume.md#0",
@@ -45,6 +45,20 @@
       "url": "https://clinicalproblemsolving.com",
       "type": "framework",
       "text": "ings). Learners compare a patient's presentation against competing illness scripts to decide which best fits, and equally to decide what does not fit. A diagnostic schema is a branching framework for a presenting problem (for example, a schema for anemia, hyponatremia, or acute kidney injury). The schema organizes the differential into a small number of categories with a logical first split, so the reasoner narrows the space systematically instead of pattern-matching to a single answer. Good teaching points name the relevant schema and the branch point that the current case turns on. A common reasoning trap these tools guard against is premature closure: committing to the first plausible diagnosis without testing competing scripts or working the schema. Framing a teaching moment around the schema and the discriminating feature helps the learner generalize beyond the single case."
+    },
+    {
+      "id": "clinical-reasoning-frameworks.md#0",
+      "docTitle": "Clinical reasoning frameworks — problem representation, dual-process, schemas",
+      "url": "https://clinicalproblemsolving.com",
+      "type": "framework",
+      "text": "Strong diagnostic reasoning is built from a few transferable tools, taught explicitly by groups like the Clinical Problem Solvers. Problem representation is a one-sentence abstraction of the case that converts raw details into semantic qualifiers (acute vs chronic, focal vs diffuse, inflammatory vs not). A sharp one-liner (\"a previously well older adult with subacute, progressive, painless obstructive jaundice\") activates the right illness scripts and narrows the differential before any test is ordered. Illness scripts are structured disease summaries with three slots: predisposing conditions and epidemiology, the time course and pathophysiology, and the discriminating clinical features. Reasoning is the comparison of the patient's presentation against competing scripts, deciding what fits and, crucially, what does not."
+    },
+    {
+      "id": "clinical-reasoning-frameworks.md#1",
+      "docTitle": "Clinical reasoning frameworks — problem representation, dual-process, schemas",
+      "url": "https://clinicalproblemsolving.com",
+      "type": "framework",
+      "text": "nical features. Reasoning is the comparison of the patient's presentation against competing scripts, deciding what fits and, crucially, what does not. Diagnostic schemas are branching frameworks for a presenting problem (anemia, hyponatremia, acute kidney injury) with one strong first split that organizes the differential, so the reasoner narrows the space systematically rather than guessing. Dual-process theory describes two modes: fast pattern recognition (System 1) and slow analytic reasoning (System 2). Most diagnostic error comes from unchecked System 1 shortcuts (anchoring, premature closure, availability bias). The safeguard is a deliberate metacognitive pause: state the problem representation, list the competing scripts, and ask what does not fit before committing."
     },
     {
       "id": "nice-sugar-glucose-control.md#0",
