@@ -15690,6 +15690,13 @@ body.mode-tutor .tutor-side-panel {
 /* Inside the narrow panel the tutor page shouldn't impose its own viewport sizing. */
 body.mode-tutor .tutor-panel-body .tutor-page { height: auto; }
 
+/* Patient/Nurse simulation chat belongs to Assistant mode only — hide the
+   trigger dock and any open chat windows in Tutor and Assessment modes. */
+body.mode-tutor #chat-trigger-buttons,
+body.mode-assessment #chat-trigger-buttons,
+body.mode-tutor .floating-chat-window,
+body.mode-assessment .floating-chat-window { display: none !important; }
+
 /* The in-sidebar Learn (tutor) link and the redundant Assessment mode link
    are replaced by the top-bar switcher — hide them in every mode. */
 .nav-section-learn,
