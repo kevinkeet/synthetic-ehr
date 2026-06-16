@@ -139,32 +139,37 @@ const AssessmentEngine = (() => {
         // (per 002_user_code_identity.sql). start() guards this, but be safe.
         if (!userId && !userCode) return localFallback(null);
 
-        const doInsert = (row) =>
-            sb.from('test_attempts').insert(row).select().single();
+        // We generate the id (and started_at) CLIENT-SIDE and insert WITHOUT a
+        // read-back (.select()). Code-based (anonymous) rows are not SELECT-able
+        // under RLS, so insert().select() used to return no row and the whole
+        // insert was treated as a failure → silent local-only mode (data loss).
+        // Owning the id means we never need to read the row back.
+        const newId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+            ? crypto.randomUUID()
+            : (Date.now() + '-' + Math.random().toString(36).slice(2, 10));
+        const startedAt = new Date().toISOString();
+        const builtRow = (identity) => ({ id: newId, started_at: startedAt, ...identity, ...baseRow });
+        const doInsert = (row) => sb.from('test_attempts').insert(row); // no .select()
 
         // 1) Primary attempt — whichever identity we have.
-        let resp = await doInsert({
-            user_id: userId || null,
-            user_code: userCode || null,
-            ...baseRow,
-        });
+        let identity = { user_id: userId || null, user_code: userCode || null };
+        let resp = await doInsert(builtRow(identity));
 
         // 2) Missing-column fallback (migration 002 not applied yet).
         if (resp.error && /user_code|schema cache/i.test(resp.error.message || '')) {
             WARN('user_code column missing — apply supabase/migrations/002_user_code_identity.sql. Falling back.');
             if (userId) {
-                resp = await doInsert({ user_id: userId, ...baseRow });
+                identity = { user_id: userId };
+                resp = await doInsert(builtRow(identity));
             } else {
                 return localFallback(userCode);
             }
         }
 
-        // 3) RLS fallback — the (user_id) identity was rejected. This happens
-        //    when a Supabase session has expired/refreshed but a stale user
-        //    object lingered: the request goes out anonymous (auth.uid() null)
-        //    while we sent a non-null user_id, so neither RLS branch matches.
-        //    Recover by inserting a pure code-based row (prompting for a code
-        //    if the resident doesn't have one yet).
+        // 3) RLS fallback — a non-null user_id was rejected (stale/expired
+        //    Supabase session: request goes out anonymous while we sent a
+        //    user_id, so neither RLS branch matches). Retry as a pure
+        //    code-based row, prompting for a code if needed.
         if (resp.error && /row-level security|violates row-level/i.test(resp.error.message || '')) {
             WARN('RLS rejected the insert (likely a stale/expired Supabase session). Retrying as code-based.');
             if (!userCode && typeof UserCode !== 'undefined') {
@@ -175,16 +180,18 @@ const AssessmentEngine = (() => {
                 } catch (e) { userCode = null; }
             }
             if (userCode) {
-                resp = await doInsert({ user_id: null, user_code: userCode, ...baseRow });
-            }
-            if (resp.error) {
-                WARN('Code-based retry also failed; using local-only mode.', resp.error.message);
-                return localFallback(userCode);
+                identity = { user_id: null, user_code: userCode };
+                resp = await doInsert(builtRow(identity));
             }
         }
 
-        if (resp.error) throw resp.error;
-        return resp.data;
+        // Any remaining error → degrade to local-only rather than breaking start.
+        if (resp.error) {
+            WARN('Attempt insert failed; using local-only mode.', resp.error.message);
+            return localFallback(userCode);
+        }
+        // Success: the row is in the DB under our client-generated id.
+        return builtRow(identity);
     }
 
     async function _flushAttempt(patch) {
@@ -214,16 +221,17 @@ const AssessmentEngine = (() => {
             const existing = _responses.get(payload.prompt_id) || {};
             return { ...existing, ...payload };
         }
-        const { data, error } = await sb
+        // No read-back: code-based rows aren't SELECT-able under RLS, so a
+        // returning .select() would falsely look like a failure. We already
+        // hold the full payload, so return it on success.
+        const { error } = await sb
             .from('assessment_responses')
-            .upsert(payload, { onConflict: 'attempt_id,prompt_id' })
-            .select()
-            .single();
+            .upsert(payload, { onConflict: 'attempt_id,prompt_id' });
         if (error) {
             WARN('upsert response error:', error.message);
             return null;
         }
-        return data;
+        return payload;
     }
 
     async function _loadResponses(attemptId) {
