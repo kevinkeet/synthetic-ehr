@@ -15664,31 +15664,32 @@ body.mode-assessment .content { margin-right: 0 !important; }
 body.mode-assistant #ai-panel { display: flex !important; }
 body.mode-assistant #ai-panel-floating-btn.visible { display: flex !important; }
 
-/* Teaching Tutor docked panel — only in Tutor mode, beside the full chart.
-   (Tutor mode now keeps the chart + sidebar visible.) */
-.tutor-side-panel { display: none; }
-body.mode-tutor .tutor-side-panel {
+/* Teaching Tutor docked panel — only in Tutor mode, as a full-width dock at the
+   BOTTOM (below the chart), so its side-by-side layouts have horizontal room. */
+.tutor-bottom-panel { display: none; }
+body.mode-tutor .tutor-bottom-panel {
     display: flex;
     flex-direction: column;
-    width: var(--tutor-panel-width, 460px);
-    flex: 0 0 var(--tutor-panel-width, 460px);
+    height: var(--tutor-dock-height, 44vh);
+    flex: 0 0 var(--tutor-dock-height, 44vh);
     background: var(--bg-white);
-    border-left: 1px solid var(--border-light);
+    border-top: 1px solid var(--border-medium);
+    box-shadow: 0 -4px 16px rgba(13, 33, 55, 0.06);
     min-height: 0;
 }
 .tutor-panel-topbar {
     height: var(--header-height);
     flex: 0 0 auto;
     display: flex; align-items: center;
-    padding: 0 14px;
+    padding: 0 16px;
     border-bottom: 1px solid var(--border-light);
     background: var(--bg-light);
 }
 .tutor-panel-title { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; color: var(--primary); }
 .tutor-panel-title .lucide { width: 16px; height: 16px; }
-.tutor-panel-body { flex: 1 1 auto; overflow-y: auto; min-height: 0; padding: 12px 14px; }
-/* Inside the narrow panel the tutor page shouldn't impose its own viewport sizing. */
-body.mode-tutor .tutor-panel-body .tutor-page { height: auto; }
+.tutor-panel-body { flex: 1 1 auto; overflow-y: auto; min-height: 0; padding: 12px 18px; }
+/* In the dock the tutor page shouldn't impose its own viewport sizing. */
+body.mode-tutor .tutor-panel-body .tutor-page { height: auto; max-width: 1200px; margin: 0 auto; }
 
 /* Patient/Nurse simulation chat belongs to Assistant mode only — hide the
    trigger dock and any open chat windows in Tutor and Assessment modes. */
