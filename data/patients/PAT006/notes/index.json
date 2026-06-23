@@ -16,7 +16,7 @@
       "author": "Dr. Priya Anand / Dr. Alan Whitfield",
       "department": "Internal Medicine",
       "encounter": "ENC001",
-      "preview": "POD#4, day before anticipated discharge. Surgically improving; tolerating regular diet; afebrile; WBC normalized. Today: a recurrent, asymptomatic atrial fibrillation episode (see telemetry event note + ECG). Rhythm management and the anticoagulation question to be addressed before discharge. A&P intentionally brief."
+      "preview": "POD#4, day before anticipated discharge. Surgically improving; tolerating regular diet; afebrile; WBC normalized. Today: a second, asymptomatic atrial fibrillation episode (see telemetry event note + ECG)."
     },
     {
       "id": "NOTE008",
@@ -61,7 +61,7 @@
       "author": "Dr. Priya Anand / Dr. Alan Whitfield",
       "department": "Internal Medicine",
       "encounter": "ENC001",
-      "preview": "POD#1 consult for new telemetry atrial fibrillation. Documents objective data: brief self-limited runs on telemetry, normotensive, asymptomatic, electrolytes/Mg normal, troponin negative, preop + current 12-leads in sinus, no prior echocardiogram, no home anticoagulant/antiplatelet. A&P intentionally brief — continue telemetry and monitor."
+      "preview": "POD#1 consult for new telemetry atrial fibrillation. Documents objective data: brief self-limited runs on telemetry, normotensive, asymptomatic, electrolytes/Mg normal, troponin negative, preop + current 12-leads in sinus, no prior echocardiogram, no home anticoagulant/antiplatelet."
     },
     {
       "id": "NOTE004",
@@ -88,7 +88,7 @@
       "author": "Dr. Helena Vargas (Acute Care Surgery)",
       "department": "Acute Care Surgery",
       "encounter": "ENC001",
-      "preview": "Urgent open cholecystectomy with peritoneal washout for perforated gangrenous gallbladder with localized biliary peritonitis. Uncomplicated, minimal blood loss. Intraoperative bile culture sent (later: pansensitive E. coli). Recent major intra-abdominal surgery — relevant to subsequent bleeding-risk/anticoagulation timing."
+      "preview": "Urgent open cholecystectomy with peritoneal washout for perforated gangrenous gallbladder with localized biliary peritonitis. Uncomplicated, minimal blood loss. Intraoperative bile culture sent (later: pansensitive E. coli)."
     },
     {
       "id": "NOTE001",
@@ -137,5 +137,5 @@
     }
   ],
   "lastUpdated": "2027-06-14",
-  "_status": "notes complete (14 total: 4 historical + 10 admission course). AFib episode characteristics are placed in telemetry EVENT notes (NOTE004 POD#1, NOTE008 POD#4) and the ECG (IMG004), not in the daily progress notes. Management-decision notes (NOTE005, NOTE009) are deliberately sparse on the A&P so the assessment tests reasoning, not reading."
+  "_status": "notes complete (14 total: 4 historical + 10 admission course). AFib episode characteristics are documented in the telemetry EVENT notes (NOTE004 POD#1, NOTE008 POD#4) and the ECG (IMG004)."
 }

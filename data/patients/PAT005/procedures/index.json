@@ -8,7 +8,7 @@
       "provider": "Dr. Anil Mehta (Transplant Surgery)",
       "facility": "University Transplant Center",
       "status": "Completed",
-      "notes": "Deceased-donor orthotopic liver transplant after completed evaluation and sustained sobriety. Cured the portal hypertension driving her ascites/hydrothorax."
+      "notes": "Deceased-donor orthotopic liver transplant after completed evaluation and sustained sobriety."
     },
     {
       "id": "PROC009",
@@ -18,7 +18,7 @@
       "provider": "Dr. Sameer Iqbal (Interventional Radiology)",
       "facility": "University Interventional Radiology",
       "status": "Completed",
-      "notes": "Placed for recurrent symptomatic right hepatic hydrothorax after FFP was discontinued. (She subsequently improved markedly and ultimately required little drainage.)"
+      "notes": "Placed for recurrent symptomatic right hepatic hydrothorax. (She subsequently improved markedly and ultimately required little drainage.)"
     },
     {
       "id": "PROC008",
@@ -78,7 +78,7 @@
       "provider": "Dr. Sameer Iqbal (Interventional Radiology)",
       "facility": "University Interventional Radiology",
       "status": "Completed",
-      "notes": "1.3 L of serous transudative fluid removed from the right pleural space. Ultrasound-guided. NO prophylactic blood products given despite INR 2.0 / platelets 55 K. No bleeding complication. Breathing improved to baseline."
+      "notes": "1.3 L of serous transudative fluid removed from the right pleural space. Ultrasound-guided. No blood products given. No bleeding complication. Breathing improved to baseline."
     },
     {
       "id": "PROC001",
@@ -88,7 +88,7 @@
       "provider": "Dr. Sameer Iqbal (Interventional Radiology)",
       "facility": "University Interventional Radiology",
       "status": "Completed",
-      "notes": "6.5 L of ascitic fluid removed; 8 g albumin per liter given for large-volume paracentesis. Ascitic fluid: SAAG >1.1, PMN <250 (no SBP). NO prophylactic FFP/platelets given despite INR 2.0 / platelets 55 K. No bleeding complication. Abdomen returned to baseline."
+      "notes": "6.5 L of ascitic fluid removed; 8 g albumin per liter given for large-volume paracentesis. Ascitic fluid: SAAG >1.1, PMN <250 (no SBP). No FFP/platelets given. No bleeding complication. Abdomen returned to baseline."
     }
   ],
   "lastUpdated": "2027-09-15"

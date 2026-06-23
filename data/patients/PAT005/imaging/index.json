@@ -7,7 +7,7 @@
       "description": "Abdominal Ultrasound with Doppler — post-transplant",
       "facility": "University Transplant Radiology",
       "radiologist": "Dr. Helen Cho",
-      "preview": "Liver allograft with patent hepatic artery, portal and hepatic veins; normal flow. NO ascites. Marked interval resolution of the fluid that previously required recurrent drainage."
+      "preview": "Liver allograft with patent hepatic artery, portal and hepatic veins; normal flow. NO ascites. Marked interval resolution of the previously large-volume ascites."
     },
     {
       "id": "IMG004",
@@ -16,7 +16,7 @@
       "description": "Transthoracic Echocardiogram — MICU",
       "facility": "University Cardiology",
       "radiologist": "Dr. Brett Carroll",
-      "preview": "Preserved LV systolic function (EF 60%), no regional wall-motion abnormality, no significant valvular disease, normal RV. No primary cardiac explanation for the acute pulmonary edema — consistent with an acute volume/circulatory insult rather than new structural heart disease."
+      "preview": "Preserved LV systolic function (EF 60%), no regional wall-motion abnormality, no significant valvular disease, normal RV. No primary cardiac explanation for the acute pulmonary edema."
     },
     {
       "id": "IMG003",

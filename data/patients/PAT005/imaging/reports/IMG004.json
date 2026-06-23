@@ -9,6 +9,6 @@
   "indication": "Acute pulmonary edema — assess for a primary cardiac cause.",
   "technique": "Limited bedside 2D transthoracic echocardiogram with Doppler.",
   "findings": "Preserved left ventricular systolic function (EF ~60%). No regional wall-motion abnormality. No significant valvular stenosis or regurgitation. Normal right ventricular size and function. No pericardial effusion. Inferior vena cava without plethora at the time of study (post-diuresis).",
-  "impression": "No primary structural or systolic cardiac cause for the acute pulmonary edema (normal EF, no valvular or regional abnormality). The picture is most consistent with an acute volume/circulatory insult in a patient with limited capacity to handle a fluid load, rather than new heart failure.",
+  "impression": "No primary structural or systolic cardiac cause for the acute pulmonary edema (normal EF, no valvular or regional abnormality, normal RV).",
   "comparison": "No prior echocardiogram on file."
 }

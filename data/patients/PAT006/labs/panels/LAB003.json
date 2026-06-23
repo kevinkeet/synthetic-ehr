@@ -8,19 +8,99 @@
   "specimen": "Serum + plasma",
   "status": "Final",
   "results": [
-    { "name": "CBC — WBC", "value": "7.4", "unit": "K/uL", "referenceRange": "4.5-11.0", "flag": "normal", "interpretation": "Normalized." },
-    { "name": "CBC — Hemoglobin", "value": "12.6", "unit": "g/dL", "referenceRange": "12.0-15.5", "flag": "normal" },
-    { "name": "CBC — Platelets", "value": "232", "unit": "K/uL", "referenceRange": "150-400", "flag": "normal" },
-    { "name": "CMP — Sodium", "value": "139", "unit": "mmol/L", "referenceRange": "135-145", "flag": "normal" },
-    { "name": "CMP — Potassium", "value": "4.2", "unit": "mmol/L", "referenceRange": "3.5-5.0", "flag": "normal" },
-    { "name": "CMP — Creatinine", "value": "0.9", "unit": "mg/dL", "referenceRange": "0.5-1.1", "flag": "normal", "interpretation": "Baseline; eGFR ~68 — adequate for standard-dose direct oral anticoagulants." },
-    { "name": "CMP — Glucose", "value": "148", "unit": "mg/dL", "referenceRange": "70-100", "flag": "high" },
-    { "name": "Magnesium", "value": "2.1", "unit": "mg/dL", "referenceRange": "1.7-2.2", "flag": "normal" },
-    { "name": "CMP — AST", "value": "32", "unit": "U/L", "referenceRange": "10-40", "flag": "normal" },
-    { "name": "CMP — ALT", "value": "38", "unit": "U/L", "referenceRange": "7-56", "flag": "normal" },
-    { "name": "CMP — Total bilirubin", "value": "0.9", "unit": "mg/dL", "referenceRange": "0.1-1.2", "flag": "normal" },
-    { "name": "Coag — INR", "value": "1.0", "unit": "", "referenceRange": "0.8-1.2", "flag": "normal" },
-    { "name": "Coag — aPTT", "value": "30", "unit": "sec", "referenceRange": "25-35", "flag": "normal" }
+    {
+      "name": "CBC — WBC",
+      "value": "7.4",
+      "unit": "K/uL",
+      "referenceRange": "4.5-11.0",
+      "flag": "normal",
+      "interpretation": "Normalized."
+    },
+    {
+      "name": "CBC — Hemoglobin",
+      "value": "12.6",
+      "unit": "g/dL",
+      "referenceRange": "12.0-15.5",
+      "flag": "normal"
+    },
+    {
+      "name": "CBC — Platelets",
+      "value": "232",
+      "unit": "K/uL",
+      "referenceRange": "150-400",
+      "flag": "normal"
+    },
+    {
+      "name": "CMP — Sodium",
+      "value": "139",
+      "unit": "mmol/L",
+      "referenceRange": "135-145",
+      "flag": "normal"
+    },
+    {
+      "name": "CMP — Potassium",
+      "value": "4.2",
+      "unit": "mmol/L",
+      "referenceRange": "3.5-5.0",
+      "flag": "normal"
+    },
+    {
+      "name": "CMP — Creatinine",
+      "value": "0.9",
+      "unit": "mg/dL",
+      "referenceRange": "0.5-1.1",
+      "flag": "normal",
+      "interpretation": "Baseline; eGFR ~68."
+    },
+    {
+      "name": "CMP — Glucose",
+      "value": "148",
+      "unit": "mg/dL",
+      "referenceRange": "70-100",
+      "flag": "high"
+    },
+    {
+      "name": "Magnesium",
+      "value": "2.1",
+      "unit": "mg/dL",
+      "referenceRange": "1.7-2.2",
+      "flag": "normal"
+    },
+    {
+      "name": "CMP — AST",
+      "value": "32",
+      "unit": "U/L",
+      "referenceRange": "10-40",
+      "flag": "normal"
+    },
+    {
+      "name": "CMP — ALT",
+      "value": "38",
+      "unit": "U/L",
+      "referenceRange": "7-56",
+      "flag": "normal"
+    },
+    {
+      "name": "CMP — Total bilirubin",
+      "value": "0.9",
+      "unit": "mg/dL",
+      "referenceRange": "0.1-1.2",
+      "flag": "normal"
+    },
+    {
+      "name": "Coag — INR",
+      "value": "1.0",
+      "unit": "",
+      "referenceRange": "0.8-1.2",
+      "flag": "normal"
+    },
+    {
+      "name": "Coag — aPTT",
+      "value": "30",
+      "unit": "sec",
+      "referenceRange": "25-35",
+      "flag": "normal"
+    }
   ],
-  "interpretation": "Pre-discharge labs reassuring: leukocytosis resolved, LFTs normalized after source control, renal function at baseline (eGFR ~68, adequate for full-dose DOAC), and coagulation parameters normal. No laboratory contraindication to therapeutic anticoagulation; the limiting consideration is recent major surgery (bleeding risk/timing), not lab values."
+  "interpretation": "Pre-discharge labs: leukocytosis resolved, LFTs normalized after source control, renal function at baseline (eGFR ~68), and coagulation parameters (INR 1.0, aPTT 30) normal."
 }

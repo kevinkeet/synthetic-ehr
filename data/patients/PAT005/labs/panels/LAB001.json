@@ -8,23 +8,129 @@
   "specimen": "Serum + plasma",
   "status": "Final",
   "results": [
-    { "name": "CBC — WBC", "value": "4.8", "unit": "K/uL", "referenceRange": "4.5-11.0", "flag": "normal" },
-    { "name": "CBC — Hemoglobin", "value": "10.1", "unit": "g/dL", "referenceRange": "12.0-15.5", "flag": "low" },
-    { "name": "CBC — Platelets", "value": "55", "unit": "K/uL", "referenceRange": "150-400", "flag": "low", "interpretation": "Thrombocytopenia of cirrhosis (splenic sequestration + reduced thrombopoietin)." },
-    { "name": "CMP — Sodium", "value": "128", "unit": "mmol/L", "referenceRange": "135-145", "flag": "low", "interpretation": "Hyponatremia of advanced cirrhosis (worsened by diuretics)." },
-    { "name": "CMP — Potassium", "value": "4.6", "unit": "mmol/L", "referenceRange": "3.5-5.0", "flag": "normal" },
-    { "name": "CMP — Bicarbonate", "value": "24", "unit": "mmol/L", "referenceRange": "22-29", "flag": "normal" },
-    { "name": "CMP — BUN", "value": "32", "unit": "mg/dL", "referenceRange": "7-20", "flag": "high" },
-    { "name": "CMP — Creatinine", "value": "1.4", "unit": "mg/dL", "referenceRange": "0.5-1.1", "flag": "high", "interpretation": "Elevated from ~1.1 baseline — diuretic-related azotemia; watch for hepatorenal physiology." },
-    { "name": "CMP — Glucose", "value": "96", "unit": "mg/dL", "referenceRange": "70-100", "flag": "normal" },
-    { "name": "CMP — Albumin", "value": "2.6", "unit": "g/dL", "referenceRange": "3.5-5.0", "flag": "low" },
-    { "name": "CMP — Total bilirubin", "value": "4.5", "unit": "mg/dL", "referenceRange": "0.1-1.2", "flag": "high" },
-    { "name": "CMP — AST", "value": "78", "unit": "U/L", "referenceRange": "10-40", "flag": "high" },
-    { "name": "CMP — ALT", "value": "44", "unit": "U/L", "referenceRange": "7-56", "flag": "normal" },
-    { "name": "CMP — ALP", "value": "168", "unit": "U/L", "referenceRange": "44-147", "flag": "high" },
-    { "name": "Coag — INR", "value": "2.0", "unit": "", "referenceRange": "0.8-1.2", "flag": "high", "interpretation": "Elevated INR of cirrhosis (reduced synthesis of clotting factors). Off any anticoagulant." },
-    { "name": "Coag — Fibrinogen", "value": "210", "unit": "mg/dL", "referenceRange": "200-400", "flag": "normal" },
-    { "name": "Ammonia", "value": "62", "unit": "umol/L", "referenceRange": "11-35", "flag": "high" }
+    {
+      "name": "CBC — WBC",
+      "value": "4.8",
+      "unit": "K/uL",
+      "referenceRange": "4.5-11.0",
+      "flag": "normal"
+    },
+    {
+      "name": "CBC — Hemoglobin",
+      "value": "10.1",
+      "unit": "g/dL",
+      "referenceRange": "12.0-15.5",
+      "flag": "low"
+    },
+    {
+      "name": "CBC — Platelets",
+      "value": "55",
+      "unit": "K/uL",
+      "referenceRange": "150-400",
+      "flag": "low",
+      "interpretation": "Thrombocytopenia of cirrhosis (splenic sequestration + reduced thrombopoietin)."
+    },
+    {
+      "name": "CMP — Sodium",
+      "value": "128",
+      "unit": "mmol/L",
+      "referenceRange": "135-145",
+      "flag": "low",
+      "interpretation": "Hyponatremia of advanced cirrhosis (worsened by diuretics)."
+    },
+    {
+      "name": "CMP — Potassium",
+      "value": "4.6",
+      "unit": "mmol/L",
+      "referenceRange": "3.5-5.0",
+      "flag": "normal"
+    },
+    {
+      "name": "CMP — Bicarbonate",
+      "value": "24",
+      "unit": "mmol/L",
+      "referenceRange": "22-29",
+      "flag": "normal"
+    },
+    {
+      "name": "CMP — BUN",
+      "value": "32",
+      "unit": "mg/dL",
+      "referenceRange": "7-20",
+      "flag": "high"
+    },
+    {
+      "name": "CMP — Creatinine",
+      "value": "1.4",
+      "unit": "mg/dL",
+      "referenceRange": "0.5-1.1",
+      "flag": "high",
+      "interpretation": "Elevated from ~1.1 baseline — diuretic-related azotemia; watch for hepatorenal physiology."
+    },
+    {
+      "name": "CMP — Glucose",
+      "value": "96",
+      "unit": "mg/dL",
+      "referenceRange": "70-100",
+      "flag": "normal"
+    },
+    {
+      "name": "CMP — Albumin",
+      "value": "2.6",
+      "unit": "g/dL",
+      "referenceRange": "3.5-5.0",
+      "flag": "low"
+    },
+    {
+      "name": "CMP — Total bilirubin",
+      "value": "4.5",
+      "unit": "mg/dL",
+      "referenceRange": "0.1-1.2",
+      "flag": "high"
+    },
+    {
+      "name": "CMP — AST",
+      "value": "78",
+      "unit": "U/L",
+      "referenceRange": "10-40",
+      "flag": "high"
+    },
+    {
+      "name": "CMP — ALT",
+      "value": "44",
+      "unit": "U/L",
+      "referenceRange": "7-56",
+      "flag": "normal"
+    },
+    {
+      "name": "CMP — ALP",
+      "value": "168",
+      "unit": "U/L",
+      "referenceRange": "44-147",
+      "flag": "high"
+    },
+    {
+      "name": "Coag — INR",
+      "value": "2.0",
+      "unit": "",
+      "referenceRange": "0.8-1.2",
+      "flag": "high",
+      "interpretation": "Elevated INR of cirrhosis (reduced synthesis of clotting factors). Off any anticoagulant."
+    },
+    {
+      "name": "Coag — Fibrinogen",
+      "value": "210",
+      "unit": "mg/dL",
+      "referenceRange": "200-400",
+      "flag": "normal"
+    },
+    {
+      "name": "Ammonia",
+      "value": "62",
+      "unit": "umol/L",
+      "referenceRange": "11-35",
+      "flag": "high"
+    }
   ],
-  "interpretation": "Decompensated cirrhosis: hyperbilirubinemia, hypoalbuminemia, elevated INR, thrombocytopenia, hyponatremia, and azotemia. Estimated MELD-Na ~27. The elevated INR (2.0) and platelets of 55 K reflect the hemostatic profile of cirrhosis. (How these numbers should — or should not — change peri-procedural management is a clinical-judgment question, not addressed in this report.)"
+  "interpretation": "Decompensated cirrhosis: hyperbilirubinemia, hypoalbuminemia, elevated INR, thrombocytopenia, hyponatremia, and azotemia. Estimated MELD-Na ~27. The elevated INR (2.0) and platelets of 55 K reflect the hemostatic profile of cirrhosis."
 }

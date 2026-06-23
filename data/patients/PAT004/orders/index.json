@@ -112,7 +112,7 @@
       "id": "ORD007",
       "category": "Referral",
       "name": "Interventional Radiology — outpatient liver biopsy",
-      "details": "Tissue diagnosis of the liver mass; to be scheduled as an outpatient after a period of anticoagulation (planned ~1 month out).",
+      "details": "Tissue diagnosis of the liver mass; to be scheduled as an outpatient.",
       "priority": "Routine",
       "orderedBy": "Dr. Allyson Pishko",
       "status": "Scheduled (outpatient)",

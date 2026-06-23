@@ -20,7 +20,7 @@
       "date": "2024-06-15",
       "diagnosedBy": "Dr. Marcus Hale (Hepatology)",
       "priority": "High",
-      "notes": "Recurrent; managed with lactulose (titrated to 3 BMs/day) and rifaximin. Episodic flares with unsteadiness/confusion. Relevant to any TIPS decision (TIPS can precipitate or worsen encephalopathy)."
+      "notes": "Recurrent; managed with lactulose (titrated to 3 BMs/day) and rifaximin. Episodic flares with unsteadiness/confusion."
     },
     {
       "id": "PRB003",
@@ -42,7 +42,7 @@
       "date": "2026-02-10",
       "diagnosedBy": "Dr. Marcus Hale (Hepatology)",
       "priority": "High",
-      "notes": "Right-sided transudative effusion from cirrhosis. Causes dyspnea; requires recurrent therapeutic thoracentesis. Recurs quickly. Central to the PleurX-vs-TIPS discussion later."
+      "notes": "Right-sided transudative effusion from cirrhosis. Causes dyspnea; requires recurrent therapeutic thoracentesis. Recurs quickly."
     },
     {
       "id": "PRB005",
@@ -64,7 +64,7 @@
       "date": "2024-05-01",
       "diagnosedBy": "Hepatology",
       "priority": "Medium",
-      "notes": "Platelets chronically ~50-60 K/uL; INR chronically ~1.8-2.2 off any anticoagulation. Reflects synthetic dysfunction and splenic sequestration. (Documented as data; interpretation of bleeding risk for low-risk bedside procedures is a clinical judgment, not a transfusion mandate.)"
+      "notes": "Platelets chronically ~50-60 K/uL; INR chronically ~1.8-2.2 off any anticoagulation. Reflects synthetic dysfunction and splenic sequestration."
     },
     {
       "id": "PRB007",
@@ -78,14 +78,14 @@
     },
     {
       "id": "PRB008",
-      "name": "Transfusion-associated circulatory overload (peri-procedural FFP)",
-      "icd10": "E87.70",
-      "snomed": "111307005",
+      "name": "Acute hypoxemic respiratory failure with pulmonary edema (4/2027)",
+      "icd10": "J81.0",
+      "snomed": "19242006",
       "onsetDate": "2027-04-28",
       "date": "2027-04-28",
       "diagnosedBy": "Dr. Lena Park (MICU)",
       "priority": "High",
-      "notes": "Flash pulmonary edema requiring intubation, attributed to repeated prophylactic FFP (4 units per session, plus albumin) administered during weekly outpatient thora/para for an elevated INR. Extubated the next day. Added to the problem list after the 4/2027 ICU admission."
+      "notes": "Acute bilateral pulmonary edema requiring intubation; extubated the next day after IV diuresis. Occurred during the period of weekly outpatient thora/para (during which she received 4 units FFP plus albumin per session for an elevated INR). Added to the problem list after the 4/2027 ICU admission."
     },
     {
       "id": "PRB009",
@@ -96,7 +96,7 @@
       "date": "2027-07-19",
       "diagnosedBy": "Transplant Hepatology / Transplant Surgery",
       "priority": "High",
-      "notes": "Deceased-donor orthotopic liver transplant 7/19/2027 after sustained sobriety and completed evaluation. On immunosuppression. Portal hypertension resolved post-transplant — ascites and hydrothorax have essentially resolved (no longer requires recurrent drainage)."
+      "notes": "Deceased-donor orthotopic liver transplant 7/19/2027 after sustained sobriety and completed evaluation. On immunosuppression. Ascites and hydrothorax have essentially resolved (no longer requires recurrent drainage)."
     }
   ],
   "lastUpdated": "2027-09-15",

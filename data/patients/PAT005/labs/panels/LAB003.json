@@ -8,15 +8,72 @@
   "specimen": "Serum + plasma + whole blood (tacrolimus level)",
   "status": "Final",
   "results": [
-    { "name": "CMP — Total bilirubin", "value": "0.9", "unit": "mg/dL", "referenceRange": "0.1-1.2", "flag": "normal", "interpretation": "Normalized — functioning graft." },
-    { "name": "CMP — AST", "value": "26", "unit": "U/L", "referenceRange": "10-40", "flag": "normal" },
-    { "name": "CMP — ALT", "value": "30", "unit": "U/L", "referenceRange": "7-56", "flag": "normal" },
-    { "name": "CMP — Albumin", "value": "3.8", "unit": "g/dL", "referenceRange": "3.5-5.0", "flag": "normal" },
-    { "name": "Coag — INR", "value": "1.1", "unit": "", "referenceRange": "0.8-1.2", "flag": "normal", "interpretation": "Normalized synthetic function after transplant." },
-    { "name": "CMP — Sodium", "value": "139", "unit": "mmol/L", "referenceRange": "135-145", "flag": "normal" },
-    { "name": "CMP — Creatinine", "value": "1.0", "unit": "mg/dL", "referenceRange": "0.5-1.1", "flag": "normal" },
-    { "name": "CBC — Platelets", "value": "118", "unit": "K/uL", "referenceRange": "150-400", "flag": "low", "interpretation": "Recovering toward normal as splenomegaly/portal hypertension regress." },
-    { "name": "Tacrolimus trough", "value": "8.4", "unit": "ng/mL", "referenceRange": "8-10 (early post-transplant target)", "flag": "normal" }
+    {
+      "name": "CMP — Total bilirubin",
+      "value": "0.9",
+      "unit": "mg/dL",
+      "referenceRange": "0.1-1.2",
+      "flag": "normal",
+      "interpretation": "Normalized — functioning graft."
+    },
+    {
+      "name": "CMP — AST",
+      "value": "26",
+      "unit": "U/L",
+      "referenceRange": "10-40",
+      "flag": "normal"
+    },
+    {
+      "name": "CMP — ALT",
+      "value": "30",
+      "unit": "U/L",
+      "referenceRange": "7-56",
+      "flag": "normal"
+    },
+    {
+      "name": "CMP — Albumin",
+      "value": "3.8",
+      "unit": "g/dL",
+      "referenceRange": "3.5-5.0",
+      "flag": "normal"
+    },
+    {
+      "name": "Coag — INR",
+      "value": "1.1",
+      "unit": "",
+      "referenceRange": "0.8-1.2",
+      "flag": "normal",
+      "interpretation": "Normalized synthetic function after transplant."
+    },
+    {
+      "name": "CMP — Sodium",
+      "value": "139",
+      "unit": "mmol/L",
+      "referenceRange": "135-145",
+      "flag": "normal"
+    },
+    {
+      "name": "CMP — Creatinine",
+      "value": "1.0",
+      "unit": "mg/dL",
+      "referenceRange": "0.5-1.1",
+      "flag": "normal"
+    },
+    {
+      "name": "CBC — Platelets",
+      "value": "118",
+      "unit": "K/uL",
+      "referenceRange": "150-400",
+      "flag": "low",
+      "interpretation": "Recovering toward normal."
+    },
+    {
+      "name": "Tacrolimus trough",
+      "value": "8.4",
+      "unit": "ng/mL",
+      "referenceRange": "8-10 (early post-transplant target)",
+      "flag": "normal"
+    }
   ],
-  "interpretation": "Excellent graft function ~2 months post-transplant: normalized bilirubin, INR, and transaminases; improving platelets; normal sodium and renal function. The physiology driving her ascites and hydrothorax (portal hypertension) has resolved with the transplant."
+  "interpretation": "Excellent graft function ~2 months post-transplant: normalized bilirubin, INR, and transaminases; improving platelets; normal sodium and renal function."
 }

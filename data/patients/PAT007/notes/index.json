@@ -34,7 +34,7 @@
       "author": "Dr. Emily Rubin (Palliative Care)",
       "department": "Palliative Care",
       "encounter": "ENC001",
-      "preview": "Family meeting at ~2 weeks in the ICU: not improving, MELD ~40, refractory shock, unresponsive. The sister (surrogate) and the two recently-reconciled adult children raise comfort measures. Documents the family dynamics and the factors being weighed. (Deliberation; no decision enacted yet.) A&P intentionally brief on the recommendation."
+      "preview": "Family meeting at ~2 weeks in the ICU: not improving, MELD ~40, refractory shock, unresponsive. The sister (surrogate) and the two recently-reconciled adult children raise comfort measures. Documents the family dynamics and the factors being weighed. (Deliberation; no decision enacted yet.)"
     },
     {
       "id": "NOTE005",
@@ -52,7 +52,7 @@
       "author": "Dr. Lena Park (MICU)",
       "department": "Medical Intensive Care Unit",
       "encounter": "ENC001",
-      "preview": "Day ~10. Persistent high fevers despite vancomycin + meropenem; now on two pressors. Broad workup resulting: CT C/A/P no abscess, repeat paracentesis negative, LP normal, blood cultures NGTD. Plan as written: continue/broaden antibiotics and keep looking for an occult infectious source."
+      "preview": "Day ~10. Persistent high fevers despite vancomycin + meropenem; now on two pressors. Broad workup resulting: CT C/A/P no abscess, repeat paracentesis negative, LP normal, blood cultures NGTD. Plan: continue/broaden antibiotics and keep looking for an occult infectious source."
     },
     {
       "id": "NOTE003",

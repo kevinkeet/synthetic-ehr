@@ -8,17 +8,87 @@
   "specimen": "Serum + plasma + blood cultures",
   "status": "Final",
   "results": [
-    { "name": "CBC — WBC", "value": "11.0", "unit": "K/uL", "referenceRange": "4.5-11.0", "flag": "normal-high", "interpretation": "Not rising despite the persistent fevers — no escalating leukocytosis to suggest progressive infection." },
-    { "name": "CBC — Hemoglobin", "value": "9.0", "unit": "g/dL", "referenceRange": "12.0-15.5", "flag": "low" },
-    { "name": "CBC — Platelets", "value": "62", "unit": "K/uL", "referenceRange": "150-400", "flag": "low" },
-    { "name": "CMP — Total bilirubin", "value": "9.5", "unit": "mg/dL", "referenceRange": "0.1-1.2", "flag": "high" },
-    { "name": "Coag — INR", "value": "2.6", "unit": "", "referenceRange": "0.8-1.2", "flag": "high" },
-    { "name": "CMP — Creatinine", "value": "2.4", "unit": "mg/dL", "referenceRange": "0.5-1.1", "flag": "high" },
-    { "name": "CMP — Sodium", "value": "134", "unit": "mmol/L", "referenceRange": "135-145", "flag": "low" },
-    { "name": "Lactate", "value": "2.6", "unit": "mmol/L", "referenceRange": "0.5-2.0", "flag": "high", "interpretation": "Mildly elevated; on two vasopressors." },
-    { "name": "Procalcitonin", "value": "0.3", "unit": "ng/mL", "referenceRange": "<0.5", "flag": "normal", "interpretation": "NOT elevated — does not support an ongoing bacterial infection." },
-    { "name": "Blood cultures (multiple sets, 5/4-5/16)", "value": "No growth to date", "unit": "", "referenceRange": "No growth", "flag": "normal" },
-    { "name": "Eosinophils (% of WBC)", "value": "7", "unit": "%", "referenceRange": "0-4", "flag": "high", "interpretation": "Mild peripheral eosinophilia." }
+    {
+      "name": "CBC — WBC",
+      "value": "11.0",
+      "unit": "K/uL",
+      "referenceRange": "4.5-11.0",
+      "flag": "normal-high",
+      "interpretation": "Within reference range; unchanged from prior despite the persistent fevers."
+    },
+    {
+      "name": "CBC — Hemoglobin",
+      "value": "9.0",
+      "unit": "g/dL",
+      "referenceRange": "12.0-15.5",
+      "flag": "low"
+    },
+    {
+      "name": "CBC — Platelets",
+      "value": "62",
+      "unit": "K/uL",
+      "referenceRange": "150-400",
+      "flag": "low"
+    },
+    {
+      "name": "CMP — Total bilirubin",
+      "value": "9.5",
+      "unit": "mg/dL",
+      "referenceRange": "0.1-1.2",
+      "flag": "high"
+    },
+    {
+      "name": "Coag — INR",
+      "value": "2.6",
+      "unit": "",
+      "referenceRange": "0.8-1.2",
+      "flag": "high"
+    },
+    {
+      "name": "CMP — Creatinine",
+      "value": "2.4",
+      "unit": "mg/dL",
+      "referenceRange": "0.5-1.1",
+      "flag": "high"
+    },
+    {
+      "name": "CMP — Sodium",
+      "value": "134",
+      "unit": "mmol/L",
+      "referenceRange": "135-145",
+      "flag": "low"
+    },
+    {
+      "name": "Lactate",
+      "value": "2.6",
+      "unit": "mmol/L",
+      "referenceRange": "0.5-2.0",
+      "flag": "high",
+      "interpretation": "Mildly elevated; on two vasopressors."
+    },
+    {
+      "name": "Procalcitonin",
+      "value": "0.3",
+      "unit": "ng/mL",
+      "referenceRange": "<0.5",
+      "flag": "normal",
+      "interpretation": "Within the reference range (<0.5)."
+    },
+    {
+      "name": "Blood cultures (multiple sets, 5/4-5/16)",
+      "value": "No growth to date",
+      "unit": "",
+      "referenceRange": "No growth",
+      "flag": "normal"
+    },
+    {
+      "name": "Eosinophils (% of WBC)",
+      "value": "7",
+      "unit": "%",
+      "referenceRange": "0-4",
+      "flag": "high",
+      "interpretation": "Mild peripheral eosinophilia."
+    }
   ],
-  "interpretation": "After ~2 weeks, MELD ~40 (worsening bilirubin, INR, creatinine). Critically, the infectious workup is UNREVEALING: blood cultures with no growth, procalcitonin not elevated, and WBC not rising despite continued high fevers and a two-pressor requirement. A mild peripheral eosinophilia is present. The data do not support an ongoing, source-identified bacterial infection driving the fevers."
+  "interpretation": "After ~2 weeks, MELD ~40 (worsening bilirubin, INR, creatinine). Blood cultures with no growth to date; procalcitonin within reference range; WBC within reference range. A mild peripheral eosinophilia is present (7%). Fevers and a two-pressor requirement are ongoing."
 }

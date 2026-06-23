@@ -7,7 +7,7 @@
       "author": "Dr. Daniel Okafor / Dr. Marisol Vega",
       "department": "Internal Medicine",
       "encounter": "ENC002",
-      "preview": "Readmission for recurrent/progressed bilateral PE with RV strain and troponin elevation, occurring during the 3-day peri-procedural anticoagulation hold. On heparin infusion. Documents the objective data; the questions of IVC filter and revised biopsy/anticoagulation strategy are raised but the A&P is intentionally brief."
+      "preview": "Readmission for recurrent/progressed bilateral PE with RV strain and troponin elevation, after apixaban had been held 3 days for a planned biopsy. On heparin infusion."
     },
     {
       "id": "NOTE008",
@@ -25,7 +25,7 @@
       "author": "Dr. Jeff Weinstein (Interventional Radiology)",
       "department": "Interventional Radiology",
       "encounter": "ENC001",
-      "preview": "Pre-procedure planning for the outpatient CT-guided liver biopsy scheduled 8/10. Per IR protocol for this high-bleeding-risk procedure, instructs the patient to HOLD apixaban for 3 days prior; resume after hemostasis confirmed. (This is the actual instruction that preceded the recurrence.)"
+      "preview": "Pre-procedure planning for the outpatient CT-guided liver biopsy scheduled 8/10. Per IR protocol, instructs the patient to hold apixaban for 3 days prior; resume after hemostasis confirmed."
     },
     {
       "id": "NOTE006",
@@ -34,7 +34,7 @@
       "author": "Dr. Allyson Pishko (Hematology)",
       "department": "Hematology (outpatient)",
       "encounter": "ENC001",
-      "preview": "Interim outpatient visit ~2.5 weeks after discharge. Doing well on apixaban; symptoms resolved; no bleeding. Liver biopsy upcoming. Reinforced the importance of resuming anticoagulation promptly after the procedure."
+      "preview": "Interim outpatient visit ~2.5 weeks after discharge. Doing well on apixaban; symptoms resolved; no bleeding. Liver biopsy upcoming."
     },
     {
       "id": "NOTE005",
@@ -52,7 +52,7 @@
       "author": "Dr. Daniel Okafor / Dr. Marisol Vega",
       "department": "Internal Medicine",
       "encounter": "ENC001",
-      "preview": "HD5. Clinically improved, off oxygen. Triple-phase CT non-diagnostic but concerning. Plan to transition from heparin to apixaban and arrange the liver biopsy as an outpatient. A&P intentionally brief on timing specifics."
+      "preview": "HD5. Clinically improved, off oxygen. Triple-phase CT non-diagnostic but concerning. Plan to transition from heparin to apixaban and arrange the liver biopsy as an outpatient."
     },
     {
       "id": "NOTE003",
@@ -70,7 +70,7 @@
       "author": "Dr. Allyson Pishko (Hematology)",
       "department": "Hematology",
       "encounter": "ENC001",
-      "preview": "Consult for management of unprovoked PE + extensive DVT in a previously healthy 43-year-old, with a concurrent liver mass concerning for malignancy. Frames the competing-risk tension between anticoagulation needs and the recommended biopsy. A&P deliberately brief on the timing decision."
+      "preview": "Consult for management of unprovoked PE + extensive DVT in a previously healthy 43-year-old, with a concurrent liver mass concerning for malignancy."
     },
     {
       "id": "NOTE001",

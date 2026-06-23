@@ -8,20 +8,108 @@
   "specimen": "Serum + plasma",
   "status": "Final",
   "results": [
-    { "name": "CBC — WBC", "value": "11.2", "unit": "K/uL", "referenceRange": "4.5-11.0", "flag": "normal-high", "interpretation": "Downtrending from admission 17.6." },
-    { "name": "CBC — Hemoglobin", "value": "12.4", "unit": "g/dL", "referenceRange": "12.0-15.5", "flag": "normal" },
-    { "name": "CBC — Platelets", "value": "228", "unit": "K/uL", "referenceRange": "150-400", "flag": "normal" },
-    { "name": "CMP — Sodium", "value": "138", "unit": "mmol/L", "referenceRange": "135-145", "flag": "normal" },
-    { "name": "CMP — Potassium", "value": "4.1", "unit": "mmol/L", "referenceRange": "3.5-5.0", "flag": "normal" },
-    { "name": "CMP — Bicarbonate", "value": "24", "unit": "mmol/L", "referenceRange": "22-29", "flag": "normal" },
-    { "name": "CMP — BUN", "value": "16", "unit": "mg/dL", "referenceRange": "7-20", "flag": "normal" },
-    { "name": "CMP — Creatinine", "value": "0.9", "unit": "mg/dL", "referenceRange": "0.5-1.1", "flag": "normal", "interpretation": "Back to baseline (eGFR ~68)." },
-    { "name": "CMP — Glucose", "value": "156", "unit": "mg/dL", "referenceRange": "70-100", "flag": "high", "interpretation": "On sliding-scale insulin; metformin held." },
-    { "name": "CMP — Calcium", "value": "8.8", "unit": "mg/dL", "referenceRange": "8.5-10.2", "flag": "normal" },
-    { "name": "Magnesium", "value": "2.0", "unit": "mg/dL", "referenceRange": "1.7-2.2", "flag": "normal" },
-    { "name": "Phosphorus", "value": "3.4", "unit": "mg/dL", "referenceRange": "2.5-4.5", "flag": "normal" },
-    { "name": "Troponin I", "value": "<0.02", "unit": "ng/mL", "referenceRange": "<0.04", "flag": "normal", "interpretation": "Negative; no evidence of ischemic trigger." },
-    { "name": "Thyroid panel (TSH)", "value": "Not ordered", "unit": "", "referenceRange": "0.4-4.0 mIU/L", "flag": "not-performed" }
+    {
+      "name": "CBC — WBC",
+      "value": "11.2",
+      "unit": "K/uL",
+      "referenceRange": "4.5-11.0",
+      "flag": "normal-high",
+      "interpretation": "Downtrending from admission 17.6."
+    },
+    {
+      "name": "CBC — Hemoglobin",
+      "value": "12.4",
+      "unit": "g/dL",
+      "referenceRange": "12.0-15.5",
+      "flag": "normal"
+    },
+    {
+      "name": "CBC — Platelets",
+      "value": "228",
+      "unit": "K/uL",
+      "referenceRange": "150-400",
+      "flag": "normal"
+    },
+    {
+      "name": "CMP — Sodium",
+      "value": "138",
+      "unit": "mmol/L",
+      "referenceRange": "135-145",
+      "flag": "normal"
+    },
+    {
+      "name": "CMP — Potassium",
+      "value": "4.1",
+      "unit": "mmol/L",
+      "referenceRange": "3.5-5.0",
+      "flag": "normal"
+    },
+    {
+      "name": "CMP — Bicarbonate",
+      "value": "24",
+      "unit": "mmol/L",
+      "referenceRange": "22-29",
+      "flag": "normal"
+    },
+    {
+      "name": "CMP — BUN",
+      "value": "16",
+      "unit": "mg/dL",
+      "referenceRange": "7-20",
+      "flag": "normal"
+    },
+    {
+      "name": "CMP — Creatinine",
+      "value": "0.9",
+      "unit": "mg/dL",
+      "referenceRange": "0.5-1.1",
+      "flag": "normal",
+      "interpretation": "Back to baseline (eGFR ~68)."
+    },
+    {
+      "name": "CMP — Glucose",
+      "value": "156",
+      "unit": "mg/dL",
+      "referenceRange": "70-100",
+      "flag": "high",
+      "interpretation": "On sliding-scale insulin; metformin held."
+    },
+    {
+      "name": "CMP — Calcium",
+      "value": "8.8",
+      "unit": "mg/dL",
+      "referenceRange": "8.5-10.2",
+      "flag": "normal"
+    },
+    {
+      "name": "Magnesium",
+      "value": "2.0",
+      "unit": "mg/dL",
+      "referenceRange": "1.7-2.2",
+      "flag": "normal"
+    },
+    {
+      "name": "Phosphorus",
+      "value": "3.4",
+      "unit": "mg/dL",
+      "referenceRange": "2.5-4.5",
+      "flag": "normal"
+    },
+    {
+      "name": "Troponin I",
+      "value": "<0.02",
+      "unit": "ng/mL",
+      "referenceRange": "<0.04",
+      "flag": "normal",
+      "interpretation": "Negative."
+    },
+    {
+      "name": "Thyroid panel (TSH)",
+      "value": "Not ordered",
+      "unit": "",
+      "referenceRange": "0.4-4.0 mIU/L",
+      "flag": "not-performed"
+    }
   ],
-  "interpretation": "Post-operative labs improving. Leukocytosis downtrending. Electrolytes — including potassium, magnesium, and calcium — are all within normal limits, so no readily reversible electrolyte trigger for the atrial fibrillation is identified. Renal function returned to baseline. Troponin negative. No thyroid studies have been obtained this admission or recently in the outpatient record."
+  "interpretation": "Post-operative labs improving. Leukocytosis downtrending. Electrolytes — including potassium, magnesium, and calcium — within normal limits. Renal function at baseline. Troponin negative. No thyroid studies on file this admission or in the recent outpatient record."
 }

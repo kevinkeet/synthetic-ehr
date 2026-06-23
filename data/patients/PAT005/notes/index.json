@@ -16,7 +16,7 @@
       "author": "Dr. Anil Mehta (Transplant Surgery) / Transplant Hepatology",
       "department": "Transplant Surgery",
       "encounter": "ENC003",
-      "preview": "Deceased-donor orthotopic liver transplant. Uncomplicated. Immunosuppression initiated. Pre-transplant ascites/hydrothorax expected to resolve with restoration of normal portal pressures."
+      "preview": "Deceased-donor orthotopic liver transplant. Uncomplicated. Immunosuppression initiated."
     },
     {
       "id": "NOTE007",
@@ -43,7 +43,7 @@
       "author": "Dr. Lena Park (MICU) / Dr. Daniel Okafor (Medicine)",
       "department": "Medical Intensive Care Unit",
       "encounter": "ENC002",
-      "preview": "Acute hypoxemic respiratory failure → intubation. CXR bilateral pulmonary edema; BNP markedly elevated; troponin negative; afebrile, no leukocytosis; echo with preserved EF. Treated with IV furosemide, extubated POD#1, discharged 4/30. Team's assessment: volume overload from the repeated peri-procedural FFP transfusions during her weekly outpatient drainage."
+      "preview": "Acute hypoxemic respiratory failure → intubation. CXR bilateral pulmonary edema; BNP markedly elevated; troponin negative; afebrile, no leukocytosis; echo with preserved EF. Treated with IV furosemide, extubated POD#1, discharged 4/30. Records note she had been receiving 4 units FFP plus albumin at each weekly outpatient drainage session."
     },
     {
       "id": "NOTE004",
@@ -70,7 +70,7 @@
       "author": "Dr. Sameer Iqbal (Interventional Radiology)",
       "department": "Interventional Radiology",
       "encounter": "ENC001",
-      "preview": "Academic-center therapeutic paracentesis (6.5 L) + right thoracentesis (1.3 L). Albumin given for large-volume paracentesis. NO prophylactic FFP/platelets given despite INR 2.0 / platelets 55 K; no bleeding. Symptoms returned to baseline."
+      "preview": "Academic-center therapeutic paracentesis (6.5 L) + right thoracentesis (1.3 L). Albumin given for large-volume paracentesis. No FFP/platelets given; no bleeding. Symptoms returned to baseline."
     },
     {
       "id": "NOTE001",

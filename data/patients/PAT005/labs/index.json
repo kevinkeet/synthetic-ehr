@@ -5,14 +5,14 @@
       "name": "Post-transplant Labs (~2 months)",
       "collectedDate": "2027-09-15T09:00:00.000Z",
       "orderedBy": "Dr. Marcus Hale (Transplant Hepatology)",
-      "preview": "Recovered graft function: bilirubin 0.9, INR 1.1, albumin 3.8, AST/ALT normal. Na 139, Cr 1.0. Platelets recovering (118 K). Tacrolimus trough therapeutic. Portal-hypertension physiology resolved."
+      "preview": "Recovered graft function: bilirubin 0.9, INR 1.1, albumin 3.8, AST/ALT normal. Na 139, Cr 1.0. Platelets recovering (118 K). Tacrolimus trough therapeutic."
     },
     {
       "id": "LAB002",
       "name": "MICU Labs — Flash Pulmonary Edema",
       "collectedDate": "2027-04-28T19:00:00.000Z",
       "orderedBy": "Dr. Lena Park (MICU)",
-      "preview": "Respiratory failure picture. BNP elevated (high), consistent with volume overload. Liver numbers near her baseline (bili 4.8, INR 2.1, Plt 52). Na 130, Cr 1.5. Troponin negative. No leukocytosis / afebrile — argues against infection/TRALI, favoring circulatory overload."
+      "preview": "Respiratory failure picture. BNP markedly elevated (high). Liver numbers near her baseline (bili 4.8, INR 2.1, Plt 52). Na 130, Cr 1.5. Troponin negative. No leukocytosis / afebrile."
     },
     {
       "id": "LAB001",

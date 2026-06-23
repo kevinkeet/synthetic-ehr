@@ -8,15 +8,72 @@
   "specimen": "Serum + plasma + ABG",
   "status": "Final",
   "results": [
-    { "name": "BNP", "value": "920", "unit": "pg/mL", "referenceRange": "<100", "flag": "high", "interpretation": "Markedly elevated — consistent with acute volume overload / cardiogenic-type pulmonary edema." },
-    { "name": "Troponin I", "value": "<0.02", "unit": "ng/mL", "referenceRange": "<0.04", "flag": "normal", "interpretation": "Negative — argues against ischemia as the cause." },
-    { "name": "CBC — WBC", "value": "5.2", "unit": "K/uL", "referenceRange": "4.5-11.0", "flag": "normal", "interpretation": "No leukocytosis; afebrile — argues against pneumonia/sepsis." },
-    { "name": "CBC — Platelets", "value": "52", "unit": "K/uL", "referenceRange": "150-400", "flag": "low" },
-    { "name": "CMP — Sodium", "value": "130", "unit": "mmol/L", "referenceRange": "135-145", "flag": "low" },
-    { "name": "CMP — Creatinine", "value": "1.5", "unit": "mg/dL", "referenceRange": "0.5-1.1", "flag": "high" },
-    { "name": "CMP — Total bilirubin", "value": "4.8", "unit": "mg/dL", "referenceRange": "0.1-1.2", "flag": "high" },
-    { "name": "Coag — INR", "value": "2.1", "unit": "", "referenceRange": "0.8-1.2", "flag": "high" },
-    { "name": "ABG — pO2 (on FiO2 1.0, intubated)", "value": "68", "unit": "mmHg", "referenceRange": "80-100", "flag": "low" }
+    {
+      "name": "BNP",
+      "value": "920",
+      "unit": "pg/mL",
+      "referenceRange": "<100",
+      "flag": "high",
+      "interpretation": "Markedly elevated — consistent with acute volume overload / cardiogenic-type pulmonary edema."
+    },
+    {
+      "name": "Troponin I",
+      "value": "<0.02",
+      "unit": "ng/mL",
+      "referenceRange": "<0.04",
+      "flag": "normal",
+      "interpretation": "Negative — argues against ischemia as the cause."
+    },
+    {
+      "name": "CBC — WBC",
+      "value": "5.2",
+      "unit": "K/uL",
+      "referenceRange": "4.5-11.0",
+      "flag": "normal",
+      "interpretation": "No leukocytosis; afebrile — argues against pneumonia/sepsis."
+    },
+    {
+      "name": "CBC — Platelets",
+      "value": "52",
+      "unit": "K/uL",
+      "referenceRange": "150-400",
+      "flag": "low"
+    },
+    {
+      "name": "CMP — Sodium",
+      "value": "130",
+      "unit": "mmol/L",
+      "referenceRange": "135-145",
+      "flag": "low"
+    },
+    {
+      "name": "CMP — Creatinine",
+      "value": "1.5",
+      "unit": "mg/dL",
+      "referenceRange": "0.5-1.1",
+      "flag": "high"
+    },
+    {
+      "name": "CMP — Total bilirubin",
+      "value": "4.8",
+      "unit": "mg/dL",
+      "referenceRange": "0.1-1.2",
+      "flag": "high"
+    },
+    {
+      "name": "Coag — INR",
+      "value": "2.1",
+      "unit": "",
+      "referenceRange": "0.8-1.2",
+      "flag": "high"
+    },
+    {
+      "name": "ABG — pO2 (on FiO2 1.0, intubated)",
+      "value": "68",
+      "unit": "mmHg",
+      "referenceRange": "80-100",
+      "flag": "low"
+    }
   ],
-  "interpretation": "Acute hypoxemic respiratory failure with markedly elevated BNP, negative troponin, no leukocytosis, and afebrile — the picture favors VOLUME OVERLOAD (circulatory overload) rather than infection, TRALI, or ischemia. In context (repeated large-volume plasma transfusions during outpatient procedures), this is consistent with transfusion-associated circulatory overload. Liver parameters are near her chronic baseline."
+  "interpretation": "Acute hypoxemic respiratory failure with markedly elevated BNP, negative troponin, no leukocytosis, and afebrile. Liver parameters are near her chronic baseline."
 }
