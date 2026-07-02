@@ -117,11 +117,25 @@ const SupabaseSync = (() => {
       return;
     }
 
-    _client = supabase.createClient(url, key);
+    // Custom fetch: inject the participant code header on EVERY request, read
+    // fresh from localStorage at request time. Code-based RLS (migration 004)
+    // scopes SELECT/UPDATE of anonymous rows to this header. (Mutating
+    // client.rest.headers after creation does NOT work in supabase-js v2 —
+    // verified — so the wrapper is the reliable mechanism.)
+    _client = supabase.createClient(url, key, {
+      global: {
+        fetch: (input, init) => {
+          init = init || {};
+          const headers = new Headers(init.headers || {});
+          try {
+            const code = localStorage.getItem('user-code');
+            if (code) headers.set('x-participant-code', code);
+          } catch (e) { /* ignore */ }
+          return fetch(input, { ...init, headers });
+        },
+      },
+    });
     log('Client created for', url);
-    // Present any already-chosen participant code on every request (RLS for
-    // code-based rows is scoped to this header — migration 004).
-    _applyParticipantCodeHeader();
 
     // Check existing session
     try {
@@ -455,28 +469,11 @@ const SupabaseSync = (() => {
   }
 
   // ── Participant-code header ─────────────────────────────────────────
-  // Code-based RLS (migration 004) scopes SELECT/UPDATE of anonymous rows to
-  // the code presented in this header. Sets it on the underlying PostgREST
-  // client so every .from() request carries it.
-  function _applyParticipantCodeHeader() {
-    if (!_client) return;
-    let code = null;
-    try { code = localStorage.getItem('user-code') || null; } catch (e) { /* ignore */ }
-    try {
-      const rest = _client.rest;
-      if (rest && rest.headers) {
-        if (code) rest.headers['x-participant-code'] = code;
-        else delete rest.headers['x-participant-code'];
-      }
-    } catch (e) {
-      warn('Could not set participant-code header:', e.message);
-    }
-  }
-
-  // Called by UserCode.set()/clear() so the header tracks the current code.
-  function setParticipantCode() {
-    _applyParticipantCodeHeader();
-  }
+  // The x-participant-code header (code-based RLS, migration 004) is injected
+  // by the custom fetch wrapper in init(), which reads localStorage at request
+  // time — so there is nothing to sync here. Kept as a no-op because
+  // UserCode.set()/clear() call it.
+  function setParticipantCode() { /* header is read per-request in init()'s fetch wrapper */ }
 
   // ── Public API ──────────────────────────────────────────────────────
 
