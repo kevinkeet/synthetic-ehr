@@ -37,8 +37,12 @@
           "Treating the biopsy as an emergency that must precede anticoagulation"
         ]
       },
-      "weight": 0.9,
-      "sourceQuestion": "Questions 1a and 1b"
+      "weight": 17,
+      "sourceQuestion": "Questions 1a and 1b",
+      "scoringRubric": {
+        "maxPoints": 17,
+        "rubricText": "This question combines TWO sub-parts. Score both and sum.\n\nSUB-PART 1a — How long to anticoagulate before biopsy (5 points):\nAward 5 points for either: (a) \"4 weeks as long as no DVT on recheck at 4 weeks\", OR (b) \"4-6 weeks\". Either answer = 5/5.\n\nSUB-PART 1b — Rationale. Apply ONE branch based on the duration the resident chose.\n\nSHORT branch (short course, < 3 months): award 2 points each for up to SIX of the following (max 12):\na) ~50% of people have clot resolution at 4 weeks of anticoagulation\nb) The anticoagulation pause for the procedure is short and the patient resumes anticoagulation soon afterward\nc) Even if a solid cancer (not necessarily curable), treating early may still improve outcome (early diagnosis important)\nd) Most VTE will have improved by 4-6 weeks (even if not fully resolved)\ne) Even after only ~6 weeks total anticoagulation, most patients do well (despite higher recurrence risk with short duration)\nf) Risk the malignancy will progress if we don't biopsy promptly\ng) Risk the malignancy will have complications if we don't biopsy promptly\nh) The mass could be a curable condition (e.g., lymphoma), so prompt biopsy is important\n\nLONG branch (long course, > 3 months): award 2 points each for up to FOUR of the following (max 8):\na) Data show 6 months anticoagulation has lower recurrence than 6 weeks\nb) Especially high recurrence risk in cancer-associated clot vs non-cancer clot\nc) Likely not curable (likely metastatic), so less urgency to diagnose/treat the mass\nd) Patient has a heavy clot burden (distinct from heavily symptomatic)\n\nAPPLICABLE MAXIMUM: 5 + 12 = 17 for a short-branch answer; 5 + 8 = 13 for a long-branch answer. Use the maximum for the branch the resident actually took."
+      }
     },
     {
       "id": "AP1-Q2",
@@ -66,8 +70,12 @@
           "Claiming the biopsy must always precede or always follow anticoagulation regardless of context"
         ]
       },
-      "weight": 0.7,
-      "sourceQuestion": "Question 2"
+      "weight": 20,
+      "sourceQuestion": "Question 2",
+      "scoringRubric": {
+        "maxPoints": 20,
+        "rubricText": "Award 2 points for each distinct factor, up to 10 points for PROMPT factors and up to 10 for DELAY factors (maximum 20 total).\n\nFactors favoring PROMPT biopsy (2 pts each, up to 10):\na) There is a need for a biopsy (can't diagnose by imaging alone)\nb) Urgency to define the lesion to start treatment\nc) The patient has symptoms from the disease/mass\nd) Organ compromise from the presumed mass (e.g., biliary obstruction, tumor lysis)\ne) The VTE is limited to lower extremities or is a small-volume PE (lower-risk clot)\nf) Concern for a potentially curable condition (e.g., lymphoma)\ng) Concern for a rapidly progressive cancer where delay raises complication risk\nh) Rapid progression of the disease/mass already\ni) The DVT or PE is asymptomatic\nj) DVT is in upper rather than lower extremities\nk) Clot is distal rather than proximal lower-extremity DVT\n\nFactors favoring DELAY of biopsy (2 pts each, up to 10):\na) Radiology had lower suspicion for malignancy / suspicion for a non-malignant condition\nb) A way exists to make the diagnosis without biopsy\nc) Hemodynamically substantial PE\nd) Large clot burden\ne) Poor cardiopulmonary reserve\nf) Concern for a slow-growing (vs fast-growing) malignancy\ng) Concern for metastatic non-curable disease vs a curable condition like lymphoma\nh) Metastatic vs curable disease, with higher VTE-recurrence risk on short anticoagulation in high cancer burden\ni) The patient has recurrent clots\nj) Recurrent clots, especially after prior anticoagulation holds\nk) A necessary periprocedural anticoagulation hold would be longer\nl) The patient could not tolerate chemotherapy if a cancer were found\n\nAPPLICABLE MAXIMUM: 20."
+      }
     },
     {
       "id": "AP1-Q3",
@@ -96,8 +104,12 @@
           "Recommending heparin/LMWH bridging during the DOAC hold (not indicated for DOACs)"
         ]
       },
-      "weight": 0.7,
-      "sourceQuestion": "Questions 3 and 3b"
+      "weight": 5,
+      "sourceQuestion": "Questions 3 and 3b",
+      "scoringRubric": {
+        "maxPoints": 5,
+        "rubricText": "Award 5 points for either answer:\na) 48 hours, OR\nb) 48 hours (unless chronic kidney disease or dabigatran, then possibly 72 hours).\nEither answer = 5/5. APPLICABLE MAXIMUM: 5."
+      }
     },
     {
       "id": "AP1-Q4",
@@ -124,8 +136,12 @@
           "Confusing DOAC management with warfarin bridging protocols"
         ]
       },
-      "weight": 0.5,
-      "sourceQuestion": "Question 4"
+      "weight": 10,
+      "sourceQuestion": "Question 4",
+      "scoringRubric": {
+        "maxPoints": 10,
+        "rubricText": "Award 2 points for each distinct factor the resident names, up to 10 points (any 5 = 10/10):\na) The indication for anticoagulation\nb) Presence/absence of a high-risk hereditary or acquired thrombophilia (e.g., antiphospholipid syndrome, protein C/S deficiency, antithrombin III deficiency)\nc) Whether the patient has had recurrent thrombosis\nd) Recurrent thrombosis, especially during prior anticoagulation holds\ne) Whether the clot is recent or not\nf) The CHA2DS2-VASc score (only in patients with atrial fibrillation)\ng) Duration of anticoagulation already given for the current VTE\nh) Provoked vs unprovoked nature of the VTE\ni) The procedural bleeding risk\nj) The compressibility of the procedure site\nk) The danger of bleeding at that particular biopsy site\nl) Presence/suspicion of malignancy (higher clotting risk off anticoagulation)\nAPPLICABLE MAXIMUM: 10."
+      }
     }
   ],
   "totalWeight": 2.8,

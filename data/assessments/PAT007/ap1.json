@@ -35,8 +35,12 @@
           "No imaging/AFP plan for HCC despite cirrhosis"
         ]
       },
-      "weight": 0.6,
-      "sourceQuestion": "Question 1"
+      "weight": 19,
+      "sourceQuestion": "Question 1",
+      "scoringRubric": {
+        "maxPoints": 19,
+        "rubricText": "Award points for each appropriate work-up element the resident includes. CAP the total at 19 points.\n- CBC: 1\n- Metabolic panel: 1\n- UA / urine culture: 1\n- CT chest: 1\n- CT abdomen/pelvis: 1\n- Cancer biomarkers: 1\n- A1c: 0.5\n- Cortisol testing: 0.5\n- TSH: 1\n- TB evaluation: 1\n- HIV testing: 1\n- HCV testing: 1\n- Autoimmune serologic testing: 1\n- EGD: 0.5\n- Colonoscopy: 0.5\n- Pap smear: 0.5\n- Mammogram: 0.5\n- Examining dentition: 1\n- Evaluating for dysphagia: 1\n- Screening for food insecurity: 1\n- Screening for depression: 1\n- Screening for dementia: 1\nAPPLICABLE MAXIMUM: 19 (cap the earned total at 19)."
+      }
     },
     {
       "id": "AP1-Q2",
@@ -64,8 +68,25 @@
           "Omitting a diagnostic paracentesis in a febrile cirrhotic with ascites"
         ]
       },
-      "weight": 0.8,
-      "sourceQuestion": "Question 2"
+      "weight": 14,
+      "sourceQuestion": "Question 2",
+      "scoringRubric": {
+        "maxPoints": 14,
+        "rubricText": "Award 1 point for each of the following the resident includes. CAP the total at 14 points.\n- Repeat blood cultures\n- Repeat paracentesis\n- UA / urine culture\n- Respiratory viral panel\n- Sputum cultures (also acceptable: tracheal aspirate, respiratory culture, bronch/BAL - max 1 point for this line)\n- LP\n- Fungal cultures\n- Imaging (1 point EACH): CT chest, CT abdomen/pelvis, DVT ultrasound, brain MRI\n- HIV/HCV testing (1 point each)\n- Cancer biomarkers\nAPPLICABLE MAXIMUM: 14 (cap the earned total at 14)."
+      }
+    },
+    {
+      "id": "AP1-Q3",
+      "type": "differential",
+      "question": "What is your differential for what could be causing her fevers?",
+      "expectedResponseFormat": "free_text",
+      "minLength": 120,
+      "scoringRubric": {
+        "maxPoints": 11.5,
+        "rubricText": "Award 1 point for each of the following on the differential, except where noted:\n- Drug fever: 1\n- VTE: 1\n- Bacteremia: 1\n- SBP: 1\n- Aspiration pneumonia / pneumonitis: 1\n- Meningitis or encephalitis: 1\n- Ventilator-associated pneumonia (VAP): 1\n- Acalculous cholecystitis: 1\n- CAUTI: 1\n- Occult abscess: 1\n- Viral URI or pneumonia: 1\n- TB: 0.5\nThe following earn 0 points: malignancy, serotonin syndrome, stroke, pancreatitis, ischemic colitis, adrenal insufficiency, polyarticular gout.\nDEDUCT 1 point if the resident names \"transfusion reaction\" as a cause.\nAPPLICABLE MAXIMUM: 11.5 (sum of the positively-scored items). Never report a normalized score below 0 after the deduction."
+      },
+      "weight": 11.5,
+      "order": 3
     }
   ],
   "totalWeight": 1.4,

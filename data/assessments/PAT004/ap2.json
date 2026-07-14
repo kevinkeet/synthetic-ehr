@@ -37,8 +37,12 @@
           "Not recognizing that the recurrence was provoked by the anticoagulation interruption"
         ]
       },
-      "weight": 0.9,
-      "sourceQuestion": "Question 5"
+      "weight": 8,
+      "sourceQuestion": "Question 5",
+      "scoringRubric": {
+        "maxPoints": 8,
+        "rubricText": "Score the decision AND the reasoning for the stance the resident takes.\n\nDECISION (5 points): Award 5 points if the resident recommends YES, place an IVC filter. (The on-case answer is yes.)\n\nREASONING - apply the branch matching the resident's stance.\nIf YES, award up to 3 points for any 3 of (any-3 = 3/3):\na) This person needs a biopsy\nb) This person needs a pause of anticoagulation and can't safely pause it\nc) No prospective data answer the exact question, but the balance of benefits/harms suggests benefit here\nd) The patient had a large hemodynamically significant PE recently\ne) Recurrent clot would be dangerous\n\nIf NO, award up to 3 points for any 3 of (any-3 = 3/3):\na) No hard indication in this case based on existing data\nb) Data are limited (only compared anticoagulation alone vs anticoagulation plus filter)\nc) Data are absent for IVC use around anticoagulation pauses\nd) An anticoagulation pause is short (and therefore feasible here)\ne) The patient is extremely thrombogenic already and the filter increases thrombogenic risk\nf) Risks of IVC filter placement\ng) Risks of IVC filter retrieval\n\nAPPLICABLE MAXIMUM: 8 for a YES stance (5 + 3); 3 for a NO stance (reasoning only, since the decision points require YES)."
+      }
     },
     {
       "id": "AP2-Q6",
@@ -64,8 +68,12 @@
           "Omitting the major harms (increased DVT, mechanical complications) entirely"
         ]
       },
-      "weight": 0.5,
-      "sourceQuestion": "Question 6"
+      "weight": 8,
+      "sourceQuestion": "Question 6",
+      "scoringRubric": {
+        "maxPoints": 8,
+        "rubricText": "Score arguments FOR and AGAINST IVC filters in general.\n\nArguments FOR (any 3 = 3/3):\na) Can prevent some VTE morbidity when anticoagulation is impossible/contraindicated\nb) Can prevent some VTE morbidity when anticoagulation must be paused\nc) Prevent VTE morbidity when anticoagulation is contraindicated in poor cardiopulmonary reserve\nd) Prevent VTE morbidity when anticoagulation must be paused in poor cardiopulmonary reserve\ne) Probably a reduction in PE\nf) Low procedural risk in the short term for placement\ng) Filters are now more consistently retrieved than years ago\n\nArguments AGAINST (any 5 = 5/5):\na) IVC filters are prothrombotic\nb) A patient can still get PEs from clots forming on the filter\nc) Filters are often left in for too long\nd) Left in too long and then difficult to retrieve\ne) Lack of data relevant to real clinical situations (e.g., while unable to anticoagulate)\nf) Filters do not reduce VTE overall\ng) Outside poor cardiopulmonary reserve, no mortality benefit\nh) Low rate of retrieval\ni) Poor systems to ensure retrieval\nj) Adverse effects/procedural risks from placement\n\nAPPLICABLE MAXIMUM: 8 (3 for FOR + 5 for AGAINST)."
+      }
     }
   ],
   "totalWeight": 1.4,

@@ -40,8 +40,12 @@
           "Making the decision unilaterally without involving the patient's preferences"
         ]
       },
-      "weight": 1.2,
-      "sourceQuestion": "Questions #2a and #2b"
+      "weight": 9,
+      "sourceQuestion": "Questions #2a and #2b",
+      "scoringRubric": {
+        "maxPoints": 9,
+        "rubricText": "Total 9 points.\nDECISION:\n- Yes, start therapeutic anticoagulation: 2 points\n\nFACTORS influencing the decision:\n- Patient preference and/or risk tolerance: 2 points\n- CHA2DS2-VASc or CHADS2 score: 2 points (or 1 point if they list only 1-2 components of these scoring systems separately without naming the score itself)\n- Up to 3 of the following 5 factors (1 point each, max 3):\n  - HAS-BLED score\n  - Duration of a-fib episodes\n  - Number of post-op episodes\n  - Information potentially obtained from an echo\n  - A-fib burden (% of time in a-fib)\nAPPLICABLE MAXIMUM: 9."
+      }
     },
     {
       "id": "AP2-Q3",
@@ -71,8 +75,12 @@
           "Starting full therapeutic dosing the morning after major surgery without acknowledging the bleeding-risk/timing issue or coordinating with surgery"
         ]
       },
-      "weight": 0.8,
-      "sourceQuestion": "Question #3"
+      "weight": 3,
+      "sourceQuestion": "Question #3",
+      "scoringRubric": {
+        "maxPoints": 3,
+        "rubricText": "Total 3 points (best-answer - award the points for the single best option the resident endorses; never sum options):\n- Apixaban, rivaroxaban, edoxaban, dabigatran, or therapeutic enoxaparin: 3 points\n- Unfractionated heparin drip: 1 point\nAPPLICABLE MAXIMUM: 3."
+      }
     },
     {
       "id": "AP2-Q4",
@@ -102,8 +110,12 @@
           "Ordering a monitor with no closed-loop plan for who reviews and acts on the data"
         ]
       },
-      "weight": 0.8,
-      "sourceQuestion": "Questions #4a-#4d"
+      "weight": 7,
+      "sourceQuestion": "Questions #4a-#4d",
+      "scoringRubric": {
+        "maxPoints": 7,
+        "rubricText": "Total 7 points.\n- Would you discharge with an ambulatory ECG monitor? YES: 1 point\n- Type of monitor - Holter and/or Zio patch (e.g., \"14-day Holter\"): 1 point\n- Factors in the choice of monitor - up to 2 of (1 point each, max 2):\n  - Cost of monitor\n  - Ease of insurance approval\n  - Duration of monitoring period\n  - Likelihood of the patient experiencing a lethal arrhythmia\n- What to do with the information:\n  - Determine the anticoagulation plan (whether the patient needs anticoagulation, or its duration): 1 point\n  - Up to 2 of (1 point each, max 2): determine if the patient requires rate control; requires rhythm control; requires more diagnostic testing\nAPPLICABLE MAXIMUM: 7."
+      }
     }
   ],
   "totalWeight": 2.8,

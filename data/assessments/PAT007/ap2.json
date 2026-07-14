@@ -36,8 +36,12 @@
           "Not considering drug fever / non-infectious causes at all"
         ]
       },
-      "weight": 1.0,
-      "sourceQuestion": "Question 3"
+      "weight": 10,
+      "sourceQuestion": "Question 3",
+      "scoringRubric": {
+        "maxPoints": 10,
+        "rubricText": "Maximum 10 points (best-answer - award the points for the single best action the resident actually recommends; never sum competing options):\n- Assuming no infectious source after 48-72 h and the patient not improving, STOP antibiotics (all at once or sequentially): 10 points\n- Assuming no source after 48-72 h, de-escalate to SBP prophylaxis: 10 points\n- Assuming no source after 48-72 h and not improving, stop vancomycin but continue meropenem: 10 points\n- Continue empiric vanc/meropenem for 7 days: 5 points\n- Assuming no source after 48-72 h and not improving, change antibiotic classes but stay broad-spectrum: 0 points\n- Continue vanc/meropenem and add micafungin (or similar): 0 points\nAPPLICABLE MAXIMUM: 10."
+      }
     },
     {
       "id": "AP2-Q4",
@@ -64,8 +68,12 @@
           "Treating CMO as purely a prognosis calculation with no diagnostic re-examination"
         ]
       },
-      "weight": 0.9,
-      "sourceQuestion": "Question 4"
+      "weight": 12,
+      "sourceQuestion": "Question 4",
+      "scoringRubric": {
+        "maxPoints": 12,
+        "rubricText": "Total 12 points.\n- Patient wishes from prior advance-care-planning discussions/documents, OR preferences of the healthcare proxy if the patient's wishes were unclear: 3 points\n- Overall family preferences: 2 points\n- The patient's ESLD / MELD score: 2 points\n- Whether the patient is a transplant candidate: 2 points\n- Likelihood of meaningful functional recovery: 3 points\nAPPLICABLE MAXIMUM: 12."
+      }
     }
   ],
   "totalWeight": 1.9,

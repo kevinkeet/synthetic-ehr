@@ -36,8 +36,12 @@
           "Treating the coagulation numbers as a contraindication"
         ]
       },
-      "weight": 0.7,
-      "sourceQuestion": "Questions 1 and 1a"
+      "weight": 4,
+      "sourceQuestion": "Questions 1 and 1a",
+      "scoringRubric": {
+        "maxPoints": 4,
+        "rubricText": "Total 4 points.\n- Answered YES to paracentesis: 1 point\n- Answered YES to thoracentesis: 1 point\n- Two of the three of the following: 2 points\n  - The patient has shortness of breath\n  - The patient has abdominal discomfort\n  - There is a low likelihood to improve with diuretics\nAPPLICABLE MAXIMUM: 4."
+      }
     },
     {
       "id": "AP1-Q2",
@@ -66,8 +70,12 @@
           "Over-transfusing in a patient with limited capacity to handle the volume"
         ]
       },
-      "weight": 1.1,
-      "sourceQuestion": "Question 2 (before/after) + the FFP risk/benefit question"
+      "weight": 4,
+      "sourceQuestion": "Question 2 (before/after) + the FFP risk/benefit question",
+      "scoringRubric": {
+        "maxPoints": 4,
+        "rubricText": "Total 4 points.\n- Answered NO to blood products: 1 point\n- One of the two of the following: 1 point\n  - FFP does not reduce risk of bleeding\n  - Platelets do not reduce risk of bleeding\n- Two of the three of the following harms: 2 points\n  - Blood products cause harm with volume overload\n  - Blood products cause harm with portal hypertension\n  - Blood products cause harm with transfusion reaction\nAPPLICABLE MAXIMUM: 4."
+      }
     }
   ],
   "totalWeight": 1.8,

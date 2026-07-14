@@ -34,8 +34,12 @@
           "Pure medical jargon with no empathy or check for understanding"
         ]
       },
-      "weight": 0.5,
-      "sourceQuestion": "Question 5"
+      "weight": 12,
+      "sourceQuestion": "Question 5",
+      "scoringRubric": {
+        "maxPoints": 12,
+        "rubricText": "Maximum 12 points.\n- Provide an apology AND express empathy: 8 points if the response includes BOTH; 4 points if it includes only one.\n- Discussing the nature of drug-induced neurotoxicity: 4 points if ANY of these are included - that drug-induced neurotoxicity is relatively rare (likely contributing to the diagnostic delay); that it is presumed but not confirmed; that ESLD and/or renal dysfunction increases the likelihood of drug toxicities.\nAPPLICABLE MAXIMUM: 12."
+      }
     }
   ],
   "totalWeight": 0.5,

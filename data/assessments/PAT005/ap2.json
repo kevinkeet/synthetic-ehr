@@ -11,8 +11,21 @@
   },
   "prompts": [
     {
+      "id": "AP2-Q2B",
+      "type": "reasoning",
+      "question": "During each outpatient procedure she is now receiving 4 units of FFP because of her elevated INR. What are the possible risks and benefits of giving FFP in this patient?",
+      "expectedResponseFormat": "free_text",
+      "minLength": 120,
+      "scoringRubric": {
+        "maxPoints": 4,
+        "rubricText": "Total 4 points.\n- Recognizes there are NO benefits to giving FFP here: 1 point\n- Three of the five of the following risks: 3 points\n  - Portal hypertension (volume/pressure)\n  - Transfusion reaction\n  - Transfusion-related infection\n  - Transfusion-associated lung injury (TRALI)\n  - Waste of blood products\nAPPLICABLE MAXIMUM: 4."
+      },
+      "weight": 4,
+      "order": 1
+    },
+    {
       "id": "AP2-Q3",
-      "order": 1,
+      "order": 2,
       "type": "communication",
       "question": "After her ICU admission for flash pulmonary edema, you call her radiologist to ask that he stop giving FFP during her procedures. How would you approach that conversation?",
       "expectedResponseFormat": "free_text",
@@ -37,12 +50,16 @@
           "Not communicating the specific harm or the evidence behind the request"
         ]
       },
-      "weight": 0.7,
-      "sourceQuestion": "Question 2 (TP2): approach to the radiologist conversation"
+      "weight": 4,
+      "sourceQuestion": "Question 2 (TP2): approach to the radiologist conversation",
+      "scoringRubric": {
+        "maxPoints": 4,
+        "rubricText": "Total 4 points (measured out of the 7 elements below; 1 each up to 4).\nFour of the seven of the following communication elements: 4 points\n- Assume positive intent\n- Thank the proceduralist\n- Ask him why he is doing it\n- Explain the facts of the case\n- Request that they stop\n- Explain the negative outcome\n- Consider the medium of conversation (email vs phone)\nAPPLICABLE MAXIMUM: 4."
+      }
     },
     {
       "id": "AP2-Q4",
-      "order": 2,
+      "order": 3,
       "type": "management-decision",
       "question": "Should a PleurX (indwelling tunneled pleural) catheter be placed, and/or should a TIPS be considered, to manage her recurrent hydrothorax? Give the risks and benefits of each for THIS patient.",
       "expectedResponseFormat": "free_text",
@@ -67,8 +84,12 @@
           "Giving a generic risk/benefit list not applied to her specifics"
         ]
       },
-      "weight": 0.9,
-      "sourceQuestion": "Questions 3 and 4 (TP2): PleurX and TIPS"
+      "weight": 8,
+      "sourceQuestion": "Questions 3 and 4 (TP2): PleurX and TIPS",
+      "scoringRubric": {
+        "maxPoints": 8,
+        "rubricText": "This question covers BOTH a PleurX catheter and TIPS. Score each out of 4; sum (max 8).\n\nPleurX catheter (4 points):\n- One of the two contingencies pointing to yes: 1 point\n  - If truly diuretic refractory\n  - If not a candidate for TIPS\n- Two of three benefits: 2 points\n  - Reduces number of procedures\n  - Smaller amount drained more frequently\n  - Can be done at home\n- Increased likelihood of infection (risk): 1 point\n\nTIPS (4 points):\n- Yes, TIPS should be considered: 1 point\n- Risk of liver failure with an elevated MELD: 1 point\n- Risk of hepatic encephalopathy: 1 point\n- One of the two benefits: 1 point\n  - Improved nutrition\n  - Improved frailty status\n\nAPPLICABLE MAXIMUM: 8."
+      }
     }
   ],
   "totalWeight": 1.6,

@@ -39,8 +39,12 @@
           "Failing to recognize that no prior echocardiogram exists / not assessing for structural heart disease"
         ]
       },
-      "weight": 0.8,
-      "sourceQuestion": "Question #1"
+      "weight": 4,
+      "sourceQuestion": "Question #1",
+      "scoringRubric": {
+        "maxPoints": 4,
+        "rubricText": "Total 4 points.\n- Prophylactic anticoagulation to prevent VTE/DVT (e.g., enoxaparin 40 mg daily): 1 point. Credit for either correct labeling of the intervention OR a correct med + dose combination.\n- TSH: 1 point\n- Up to 2 of the following (1 point each, max 2):\n  - Echocardiogram\n  - Electrolyte assessment and/or repletion\n  - Evaluation for additional triggers (e.g., pain, constipation)\nAPPLICABLE MAXIMUM: 4."
+      }
     }
   ],
   "totalWeight": 0.8,

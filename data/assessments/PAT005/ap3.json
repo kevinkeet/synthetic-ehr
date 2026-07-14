@@ -32,8 +32,12 @@
           "Failing to connect the resolution to reversal of portal hypertension"
         ]
       },
-      "weight": 0.4,
-      "sourceQuestion": "Question 5 (TP3)"
+      "weight": 3,
+      "sourceQuestion": "Question 5 (TP3)",
+      "scoringRubric": {
+        "maxPoints": 3,
+        "rubricText": "Total 3 points. Three of the five of the following (1 each up to 3):\n- Reduction in total volume of blood products\n- Changed alcohol intake\n- Improved adherence to diuretics\n- Improved nutrition\n- Less salt in diet\nAPPLICABLE MAXIMUM: 3."
+      }
     }
   ],
   "totalWeight": 0.4,
