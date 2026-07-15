@@ -63,11 +63,13 @@ const AssessmentChatbot = (() => {
     const MAX_CONTEXT_CHARS = 60000;     // soft cap before truncation
     const MAX_RESPONSE_TOKENS = 1024;    // soft ceiling on length (a concise reply fits easily)
     const CHATBOT_MODEL = 'claude-haiku-4-5-20251001';  // fast + cheap; matches the chatbot's "answer concisely" UX
-    // Minimal system prompt — a length/format nudge ONLY. Per design decision we
-    // do NOT bake in clinical reasoning, ethics, "explain your work" rules, or
-    // refusal language; this must stay construct-neutral and held constant across
-    // RCT arms. We only constrain verbosity (Haiku otherwise over-answers).
-    const SYSTEM_PROMPT = 'Be concise. Answer in at most a few sentences or a short bulleted list. No preamble, no restating the question, and no summary at the end.';
+    // BLANK system prompt by design. The assessment AI must be maximally
+    // construct-neutral: no framing, no verbosity nudge, no reasoning/ethics
+    // rules — nothing that could substitute for the participant's own
+    // prompting skill (the construct being measured) or vary across RCT arms.
+    // The chart context is prefixed onto the first user message (see below);
+    // everything else is exactly what the participant types.
+    const SYSTEM_PROMPT = '';
 
     // ── Activate / deactivate ──────────────────────────────────────────
 
@@ -358,8 +360,8 @@ const AssessmentChatbot = (() => {
         try {
             const contextBlock = await _buildContextBlock();
 
-            // The model gets a MINIMAL system prompt — just "Be concise."
-            // No framing, no rules, no "help them reason" — that's
+            // The model gets a BLANK system prompt — no framing, no rules,
+            // no verbosity nudge, no "help them reason" — that's
             // deliberate. The chart context is provided as a prefix on
             // the FIRST user message; subsequent user messages are sent
             // as-typed. If the resident changes context mid-session,
