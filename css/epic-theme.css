@@ -13780,20 +13780,28 @@ body.access-gate-active { overflow: hidden; }
     color: #1a202c;
 }
 /* ── Assessment dock: persistent question/answer panel ─────────────────────
-   Fixed to the bottom of the viewport, on <body> (not #main-content), so the
-   resident can browse every chart tab without losing the question/answer. */
+   Sits in the RIGHT RAIL, directly below the AI chatbot, sharing the rail
+   width. The chart keeps the whole left area at full height. Attached to
+   <body> (not #main-content) so browsing chart tabs never destroys it.
+   --arail keeps the rail width in sync across the chatbot, the dock, and the
+   chart's right padding at every breakpoint. */
+body.assessment-dock-open { --arail: 420px; }
+@media (max-width: 1100px) { body.assessment-dock-open { --arail: 360px; } }
+@media (max-width: 900px)  { body.assessment-dock-open { --arail: 320px; } }
+
 .assessment-dock {
     position: fixed;
-    left: 0;
     right: 0;
     bottom: 0;
+    width: var(--arail, 420px);
+    height: 48vh;
     z-index: 900;
     display: flex;
     flex-direction: column;
-    max-height: 48vh;
     background: #ffffff;
     border-top: 3px solid #1a5276;
-    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.18);
+    border-left: 1px solid #cbd5e0;
+    box-shadow: -4px -6px 18px rgba(0, 0, 0, 0.10);
 }
 .assessment-dock .assessment-bar {
     position: static;
@@ -13803,28 +13811,26 @@ body.access-gate-active { overflow: hidden; }
 .assessment-dock-body {
     flex: 1 1 auto;
     overflow-y: auto;
-    padding: 12px 20px 16px;
+    padding: 12px 16px 16px;
 }
 .assessment-dock.collapsed {
-    max-height: none;
+    height: auto;
 }
 .assessment-dock.collapsed .assessment-dock-body {
     display: none;
 }
-/* Keep the chart's lower content clear of the dock. */
+/* The chart clears the right rail (full height, no bottom crowding). */
 body.assessment-dock-open #main-content {
-    padding-bottom: 50vh;
+    padding-right: calc(var(--arail, 420px) + 20px);
 }
-body.assessment-dock-open.assessment-dock-collapsed #main-content {
-    padding-bottom: 92px;
-}
-/* The AI chatbot is a fixed full-height right panel; shorten it so it sits
-   above the dock and its input stays reachable. */
+/* The chatbot takes the TOP of the rail; the dock takes the bottom.
+   52vh chatbot + 48vh dock = the full rail height below the header. */
 body.assessment-dock-open .assessment-chatbot-panel {
     height: calc(52vh - var(--header-height));
 }
+/* When the question panel is collapsed to its bar, give the chatbot the rail. */
 body.assessment-dock-open.assessment-dock-collapsed .assessment-chatbot-panel {
-    height: calc(100vh - var(--header-height) - 96px);
+    height: calc(100vh - var(--header-height) - 60px);
 }
 .assessment-bar {
     position: sticky;

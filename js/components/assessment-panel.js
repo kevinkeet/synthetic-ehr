@@ -3,9 +3,10 @@
  *
  * Layout: the chart occupies #main-content as a normal EHR page (all nav tabs
  * work), while the timer, progress, scenario, question, and answer box live in
- * a persistent bottom DOCK attached to <body>. Because the dock is outside
- * #main-content, browsing the chart (Problems, Meds, Labs…) never destroys the
- * question or the answer box. The dock can be collapsed to reveal the full chart.
+ * a persistent DOCK in the right rail, directly below the AI chatbot. Because
+ * the dock is attached to <body> (outside #main-content), browsing the chart
+ * (Problems, Meds, Labs…) never destroys the question or the answer box. The
+ * dock can be collapsed to its bar to give the chatbot the full rail.
  *
  * Controls:
  *   - Timer (per-assessment limit, auto-locks on expiry)
@@ -29,9 +30,10 @@ const AssessmentPanel = {
             return;
         }
         // The chart occupies #main-content (a normal EHR page); the question,
-        // answer box, timer and progress live in a persistent bottom dock on
-        // <body>. This lets the resident click any chart tab (Problems, Meds,
-        // Labs…) without ever losing the question or the answer box.
+        // answer box, timer and progress live in a persistent dock in the right
+        // rail (below the chatbot), attached to <body>. This lets the resident
+        // click any chart tab (Problems, Meds, Labs…) without ever losing the
+        // question or the answer box.
         this._ensureChart();
         this._mountDock();
         this._renderPromptArea();
@@ -278,7 +280,7 @@ const AssessmentPanel = {
                 <textarea class="assessment-response-input" id="assessment-response-input"
                           placeholder="Type your response here…"
                           minlength="${minLength}"
-                          rows="8">${this._escape(existingText)}</textarea>
+                          rows="6">${this._escape(existingText)}</textarea>
                 <div class="assessment-response-controls">
                     <div class="assessment-response-meta">
                         <span id="assessment-char-count">0</span> chars
