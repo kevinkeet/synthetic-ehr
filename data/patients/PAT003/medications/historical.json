@@ -1,0 +1,5 @@
+{
+  "medications": [],
+  "lastUpdated": "2027-04-12",
+  "_note": "No separately-tracked historical medications. Inpatient courses that were started and stopped during the admission (e.g., piperacillin-tazobactam, the heparin drip) are documented in the hospital-course notes rather than pre-marked here."
+}

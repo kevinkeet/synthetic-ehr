@@ -151,9 +151,12 @@ class DataLoader {
      */
     async loadMedications(patientId = this.currentPatientId) {
         const baseUrl = this.getBaseUrl();
+        // active.json is required; historical.json is optional — a patient with
+        // no historical meds simply may not have the file. Don't let its absence
+        // break the Medications tab.
         const [active, historical] = await Promise.all([
             this.fetchJSON(`${baseUrl}/${patientId}/medications/active.json`),
-            this.fetchJSON(`${baseUrl}/${patientId}/medications/historical.json`)
+            this.fetchJSON(`${baseUrl}/${patientId}/medications/historical.json`).catch(() => ({ medications: [] }))
         ]);
         return { active, historical };
     }
@@ -171,9 +174,12 @@ class DataLoader {
      */
     async loadProblems(patientId = this.currentPatientId) {
         const baseUrl = this.getBaseUrl();
+        // active.json is required; resolved.json is optional — a patient with no
+        // resolved problems may not have the file. Don't let its absence break
+        // the Problem List tab.
         const [active, resolved] = await Promise.all([
             this.fetchJSON(`${baseUrl}/${patientId}/problems/active.json`),
-            this.fetchJSON(`${baseUrl}/${patientId}/problems/resolved.json`)
+            this.fetchJSON(`${baseUrl}/${patientId}/problems/resolved.json`).catch(() => ({ problems: [] }))
         ]);
         return { active, resolved };
     }

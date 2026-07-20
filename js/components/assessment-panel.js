@@ -1,10 +1,11 @@
 /**
  * AssessmentPanel — the active test-taking UI at #/assessment/run
  *
- * Layout: a sticky "test bar" overlay that lives at the top of main-content
- * (the rest of main-content keeps the normal chart navigation so the resident
- * can browse the chart freely while answering). The current scenario brief
- * and prompt sit in a dedicated panel above the chart.
+ * Layout: the chart occupies #main-content as a normal EHR page (all nav tabs
+ * work), while the timer, progress, scenario, question, and answer box live in
+ * a persistent bottom DOCK attached to <body>. Because the dock is outside
+ * #main-content, browsing the chart (Problems, Meds, Labs…) never destroys the
+ * question or the answer box. The dock can be collapsed to reveal the full chart.
  *
  * Controls:
  *   - Timer (per-assessment limit, auto-locks on expiry)
@@ -27,9 +28,13 @@ const AssessmentPanel = {
             router.navigate('/assessment/start');
             return;
         }
-        this._renderShell();
+        // The chart occupies #main-content (a normal EHR page); the question,
+        // answer box, timer and progress live in a persistent bottom dock on
+        // <body>. This lets the resident click any chart tab (Problems, Meds,
+        // Labs…) without ever losing the question or the answer box.
+        this._ensureChart();
+        this._mountDock();
         this._renderPromptArea();
-        this._renderChartArea();
         this._startTicker();
         this._attachEngineListener();
         this._attachUnloadGuard();
@@ -88,25 +93,56 @@ const AssessmentPanel = {
         this._beforeUnloadHandler = null;
     },
 
-    _renderShell() {
-        const root = document.getElementById('main-content');
-        if (!root) return;
-        root.innerHTML = `
-            <div class="assessment-runner">
+    // Render the real chart into #main-content so every nav tab works and the
+    // resident can browse freely. Called on entry to the run route; individual
+    // chart tabs then re-render main-content themselves without touching the dock.
+    _ensureChart() {
+        try {
+            if (typeof ChartReview !== 'undefined' && ChartReview.render) ChartReview.render();
+        } catch (e) { /* non-fatal — the dock still mounts */ }
+    },
+
+    // Mount (or reuse) the persistent question/answer dock on <body>. Because it
+    // is NOT inside #main-content, navigating the chart never destroys it.
+    _mountDock() {
+        let dock = document.getElementById('assessment-dock');
+        if (!dock) {
+            dock = document.createElement('div');
+            dock.id = 'assessment-dock';
+            dock.className = 'assessment-dock';
+            dock.innerHTML = `
                 <div class="assessment-bar" id="assessment-bar"></div>
-                <div class="assessment-prompt-area" id="assessment-prompt-area"></div>
-                <div class="assessment-chart-area" id="assessment-chart-area">
-                    <div class="assessment-chart-note">
-                        <i data-lucide="info" class="lucide-inline"></i>
-                        The chart is available on the left. You may navigate freely; only
-                        information present in the chart up to the current point in the
-                        case timeline is visible.
-                    </div>
+                <div class="assessment-dock-body" id="assessment-dock-body">
+                    <div class="assessment-prompt-area" id="assessment-prompt-area"></div>
                 </div>
-            </div>
-        `;
+            `;
+            document.body.appendChild(dock);
+        }
+        document.body.classList.add('assessment-dock-open');
         App.refreshIcons();
         this._renderBar();
+    },
+
+    _unmountDock() {
+        const dock = document.getElementById('assessment-dock');
+        if (dock) dock.remove();
+        document.body.classList.remove('assessment-dock-open', 'assessment-dock-collapsed');
+    },
+
+    // Collapse the dock to just its bar (timer + progress) so the resident can
+    // read the full chart, then expand again to answer.
+    _toggleCollapse() {
+        const dock = document.getElementById('assessment-dock');
+        if (!dock) return;
+        const collapsed = dock.classList.toggle('collapsed');
+        document.body.classList.toggle('assessment-dock-collapsed', collapsed);
+        const btn = document.getElementById('assessment-collapse-btn');
+        if (btn) {
+            btn.innerHTML = collapsed
+                ? '<i data-lucide="chevron-up" class="lucide-inline"></i> Show question'
+                : '<i data-lucide="chevron-down" class="lucide-inline"></i> Hide';
+        }
+        App.refreshIcons();
     },
 
     _renderBar() {
@@ -140,6 +176,9 @@ const AssessmentPanel = {
                         <span id="assessment-timer-text">${this._fmtTime(timeRemaining)}</span>
                         ${isPaused ? '<span class="assessment-paused-pill">PAUSED</span>' : ''}
                     </div>
+                    <button class="btn btn-sm" id="assessment-collapse-btn" title="Show/hide the question panel">
+                        <i data-lucide="chevron-down" class="lucide-inline"></i> Hide
+                    </button>
                     <button class="btn btn-sm" id="assessment-pause-btn">
                         ${isPaused ? '<i data-lucide="play" class="lucide-inline"></i> Resume' : '<i data-lucide="pause" class="lucide-inline"></i> Pause'}
                     </button>
@@ -154,6 +193,7 @@ const AssessmentPanel = {
             </div>
         `;
         App.refreshIcons();
+        document.getElementById('assessment-collapse-btn').addEventListener('click', () => this._toggleCollapse());
         document.getElementById('assessment-pause-btn').addEventListener('click', () => this._togglePause());
         document.getElementById('assessment-abandon-btn').addEventListener('click', () => this._confirmAbandon());
         this._renderSyncPill(); // bar re-render wipes the pill — restore it
@@ -288,12 +328,6 @@ const AssessmentPanel = {
         counter.textContent = (input.value || '').length;
     },
 
-    _renderChartArea() {
-        // Intentionally minimal — the actual chart UI is the rest of the
-        // standard EHR pages via the sidebar. We just leave a small marker
-        // here so the resident knows they can navigate.
-    },
-
     async _loadAISample(promptId, slotId) {
         const bodyEl = document.getElementById(slotId + '-body');
         if (!bodyEl) return;
@@ -396,6 +430,7 @@ const AssessmentPanel = {
                 App.showLoading('Finalizing scores…');
                 const { attemptId } = await AssessmentEngine.complete();
                 this._detachUnloadGuard();
+                this._unmountDock();
                 router.navigate('/assessment/results/' + attemptId);
             } catch (err) {
                 App.showToast('Could not finalize: ' + err.message, 'error');
@@ -420,6 +455,7 @@ const AssessmentPanel = {
             await AssessmentEngine.abandon();
             this._stopTicker();
             this._detachUnloadGuard();
+            this._unmountDock();
             App.showToast('Attempt abandoned.', 'info');
             router.navigate('/assessment/start');
         } catch (err) {
