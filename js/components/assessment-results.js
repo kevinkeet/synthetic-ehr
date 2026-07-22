@@ -223,7 +223,7 @@ const AssessmentResults = {
                     </div>
                 ` : ''}
 
-                ${this._renderRubric(prompt.rubric)}
+                ${this._renderRubric(prompt)}
             </div>
         `;
     },
@@ -321,7 +321,17 @@ const AssessmentResults = {
         `;
     },
 
-    _renderRubric(rubric) {
+    _renderRubric(prompt) {
+        if (!prompt) return '';
+        // Prefer the points-based scoring rubric — it is the authoritative graded
+        // answer key. Only fall back to the legacy essential/bonus block when a
+        // prompt has no scoringRubric (e.g., PAT002).
+        const sr = prompt.scoringRubric;
+        if (sr && sr.rubricText) {
+            const max = sr.maxPoints != null ? ` (max ${sr.maxPoints} points)` : '';
+            return `<details class="assessment-prompt-result-rubric"><summary>Full rubric${max}</summary><pre class="assessment-rubric-text">${this._escape(sr.rubricText)}</pre></details>`;
+        }
+        const rubric = prompt.rubric;
         if (!rubric) return '';
         const lines = [];
         if (Array.isArray(rubric.essential) && rubric.essential.length) lines.push(`<strong>Essential:</strong> ${rubric.essential.map((x) => this._escape(x)).join('; ')}`);

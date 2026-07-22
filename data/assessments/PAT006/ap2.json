@@ -17,29 +17,6 @@
       "question": "Would you recommend to this patient that she be started on therapeutic anticoagulation? State your recommendation, and explain what factors would influence your decision.",
       "expectedResponseFormat": "free_text",
       "minLength": 0,
-      "rubric": {
-        "essential": [
-          "Calculates or cites CHA2DS2-VASc = 4 for this patient (age 65-74 = 1, female sex = 1, hypertension = 1, diabetes = 1; no prior stroke/TIA, no heart failure, no vascular disease) and recognizes this score generally favors anticoagulation by guideline",
-          "Weighs BLEEDING risk against stroke risk (e.g., HAS-BLED considerations — poorly-controlled hypertension, age; and especially RECENT MAJOR ABDOMINAL SURGERY on POD#4, which affects safety/timing of starting a therapeutic anticoagulant now)",
-          "Engages the central nuance that this is NEW atrial fibrillation in the setting of acute illness/recent surgery — i.e., distinguishes potentially transient/secondary post-operative AF from incident paroxysmal AF, and acknowledges the true long-term burden is still uncertain",
-          "Incorporates the patient into a shared decision: her values (strong desire to preserve independence/driving; wariness of aggressive intervention; her father's fatal stroke as a motivator), her ability/adherence, and current low fall risk",
-          "Reaches a CLEAR, defensible recommendation (either start anticoagulation — given CHA2DS2-VASc 4 with documented AF — once surgical bleeding risk is acceptable, OR defer with close monitoring to clarify whether AF is truly recurrent vs transient) and justifies it rather than leaving it open"
-        ],
-        "bonus": [
-          "Notes that paroxysmal AF carries the SAME stroke risk as persistent AF — being in sinus rhythm at the moment of discharge does NOT remove the indication to consider anticoagulation",
-          "Discusses that anticoagulation of brief/subclinical or short-burden AF is an area of evolving evidence (AF-burden threshold), adding nuance to a borderline case",
-          "Explicitly proposes optimizing her poorly-controlled blood pressure as part of both stroke- and bleeding-risk reduction",
-          "Connects the decision to the monitoring plan — i.e., the ambulatory monitor result can clarify recurrence and refine the long-term anticoagulation decision",
-          "Names the magnitude of benefit/risk (annual stroke risk at CHA2DS2-VASc 4 ~4%/yr) to anchor the conversation"
-        ],
-        "redFlags": [
-          "Withholding anticoagulation simply because she is in sinus rhythm now ('she converted, so no anticoagulation needed')",
-          "Failing to risk-stratify with CHA2DS2-VASc at all",
-          "Ignoring bleeding risk and the recent major surgery",
-          "Recommending aspirin as stroke prophylaxis for atrial fibrillation",
-          "Making the decision unilaterally without involving the patient's preferences"
-        ]
-      },
       "weight": 9,
       "sourceQuestion": "Questions #2a and #2b",
       "scoringRubric": {
@@ -54,27 +31,6 @@
       "question": "If the decision was made to start therapeutic anticoagulation on hospital day #4 (immediately after the asymptomatic 2-hour episode), what would be the best choice of anticoagulant for this patient, and why?",
       "expectedResponseFormat": "free_text",
       "minLength": 0,
-      "rubric": {
-        "essential": [
-          "Chooses a direct oral anticoagulant (DOAC) over warfarin for her non-valvular atrial fibrillation, with rationale (guideline-preferred; better safety/efficacy profile; no INR monitoring)",
-          "Names a specific reasonable agent — e.g., apixaban — and justifies it (favorable bleeding profile including lower GI-bleed risk; appropriate given her renal function eGFR ~68, weight >60 kg, and age <80, so STANDARD dose 5 mg BID — no dose-reduction criteria met)",
-          "Accounts for renal function in DOAC selection/dosing (eGFR ~68 supports full-dose DOAC; she is not severe-CKD/dialysis)",
-          "Addresses TIMING relative to surgery — starting a therapeutic anticoagulant on POD#4 after a recent major open abdominal operation carries bleeding risk and should be coordinated with the surgical team / contingent on acceptable hemostasis"
-        ],
-        "bonus": [
-          "Notes the absence of a mechanical valve or moderate-to-severe mitral stenosis, which is why a DOAC (not warfarin) is appropriate",
-          "Ensures GI protection (already on omeprazole) and flags the OTC fish oil for disclosure/consideration",
-          "Considers cost/coverage and adherence (she has Medicare + Part D, is health-literate, and can manage twice-daily dosing)",
-          "Mentions that warfarin remains an acceptable alternative if a DOAC is contraindicated or unaffordable, while noting its monitoring/interaction burden",
-          "Avoids combining the anticoagulant with an antiplatelet absent a separate indication"
-        ],
-        "redFlags": [
-          "Selecting aspirin or another antiplatelet as the 'anticoagulant' for AF",
-          "Defaulting to warfarin without rationale in a DOAC-eligible patient",
-          "Ignoring renal function when selecting/dosing the DOAC",
-          "Starting full therapeutic dosing the morning after major surgery without acknowledging the bleeding-risk/timing issue or coordinating with surgery"
-        ]
-      },
       "weight": 3,
       "sourceQuestion": "Question #3",
       "scoringRubric": {
@@ -89,27 +45,6 @@
       "question": "The patient is about to be discharged. Would you discharge her with an ambulatory ECG monitor? If so, what type would you choose, what factors should be considered in that choice, and what would you do with the information from the monitor?",
       "expectedResponseFormat": "free_text",
       "minLength": 0,
-      "rubric": {
-        "essential": [
-          "YES — recommends extended ambulatory ECG monitoring after discharge to clarify the atrial fibrillation burden once in-hospital telemetry ends (the long-term burden/recurrence is still unresolved)",
-          "Chooses a LONGER-DURATION monitor appropriate to INFREQUENT paroxysmal events (e.g., a 14-30 day continuous patch monitor or mobile cardiac telemetry, or an implantable loop recorder for prolonged monitoring) and recognizes that a 24-48 hour Holter is likely to MISS her infrequent episodes",
-          "Considers the key choice factors — episode FREQUENCY (infrequent → longer monitoring), the fact that her episodes are ASYMPTOMATIC (so a patient-/symptom-triggered event recorder is inadequate; needs continuous auto-detecting monitoring), required monitoring duration, patient factors (skin/adhesive tolerance, ability to manage the device — she is independent and health-literate), and cost/coverage",
-          "States what will be DONE with the data: use the AF burden/recurrence to inform the anticoagulation and rhythm-management decision, with CLOSED-LOOP outpatient follow-up (cardiology/PCP reviews the report, acts on it, and communicates results to the patient) rather than collecting data with no plan"
-        ],
-        "bonus": [
-          "Explicitly reasons that because her events are asymptomatic, a symptom-triggered/patient-activated loop recorder would be the WRONG choice — auto-detecting continuous monitoring is required",
-          "Ties monitor duration to pretest probability (low event frequency demands weeks of monitoring to capture)",
-          "Notes that the monitoring result could either support STOPPING anticoagulation (if truly no recurrence and AF was transient/post-op) or CONFIRM continuing it (if AF recurs) — i.e., the data changes management",
-          "Addresses counseling around her driving concern and gives a concrete follow-up plan (who reads it, when she follows up, how results are communicated in plain language)",
-          "Coordinates the monitor decision with the anticoagulation decision as one integrated plan"
-        ],
-        "redFlags": [
-          "Choosing a 24-48 hour Holter as adequate for infrequent paroxysmal AF (likely to miss it)",
-          "Choosing a symptom/patient-triggered event recorder for an ASYMPTOMATIC patient",
-          "Discharging with no monitoring at all when the AF burden and long-term management are unresolved",
-          "Ordering a monitor with no closed-loop plan for who reviews and acts on the data"
-        ]
-      },
       "weight": 7,
       "sourceQuestion": "Questions #4a-#4d",
       "scoringRubric": {

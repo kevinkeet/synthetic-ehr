@@ -17,26 +17,6 @@
       "question": "How long would you anticoagulate this patient before biopsying the liver lesion, and what is your rationale for choosing that amount of time?",
       "expectedResponseFormat": "free_text",
       "minLength": 0,
-      "rubric": {
-        "essential": [
-          "Recommends DEFERRING the biopsy to allow a meaningful period of uninterrupted anticoagulation first — on the order of about a month (roughly 3-4 weeks), rather than biopsying acutely",
-          "Anchors the rationale on the fact that the risk of recurrent VTE is HIGHEST in the first weeks (≈ first month) after an acute event, so interrupting anticoagulation that early is the most dangerous time",
-          "Recognizes the biopsy is NOT an emergency — establishing the tissue diagnosis will not change the immediate management (which is anticoagulation regardless), so it is safe to wait",
-          "Frames the decision as balancing the diagnostic need (possible malignancy) against the thrombotic risk of interrupting anticoagulation, i.e., a competing-risk judgment"
-        ],
-        "bonus": [
-          "Notes the extensive clot burden and the portal-vein thrombus as factors raising the cost of early anticoagulation interruption",
-          "Raises that an unprovoked VTE with a suspicious liver mass suggests possible malignancy-associated (occult-cancer) hypercoagulability, which further argues for robust, uninterrupted early anticoagulation",
-          "Acknowledges the tension explicitly — there is no single 'correct' number, but the reasoning (get past the highest-recurrence-risk window) is what matters",
-          "Mentions multidisciplinary coordination (hematology, interventional radiology, hepatology) in setting the timing"
-        ],
-        "redFlags": [
-          "Biopsying acutely (within days) while holding anticoagulation during the highest-recurrence-risk window",
-          "Indefinitely deferring or abandoning the biopsy despite a lesion highly concerning for malignancy",
-          "Stopping anticoagulation altogether to facilitate the biopsy",
-          "Treating the biopsy as an emergency that must precede anticoagulation"
-        ]
-      },
       "weight": 17,
       "sourceQuestion": "Questions 1a and 1b",
       "scoringRubric": {
@@ -51,25 +31,6 @@
       "question": "Thinking beyond this specific patient: which general factors would you weigh in deciding the timing of biopsy for a hepatic lesion in a patient with a new PE and DVT? Which factors would push you to biopsy PROMPTLY, and which would push you to DELAY until after a longer period of anticoagulation?",
       "expectedResponseFormat": "free_text",
       "minLength": 0,
-      "rubric": {
-        "essential": [
-          "Names factors favoring PROMPT biopsy — e.g., a result that would urgently change management (an aggressive or treatable malignancy needing time-sensitive therapy), high diagnostic uncertainty that anticoagulation alone doesn't resolve, low bleeding risk of the lesion/approach, and patient stability",
-          "Names factors favoring DELAY — e.g., recency of the acute VTE (within the high-recurrence window), large clot burden / proximal or visceral (portal) thrombus, the result not changing near-term management, and high peri-procedural bleeding risk",
-          "Explicitly weighs the competing risks (thrombosis from interrupting anticoagulation vs. the diagnostic value/urgency of tissue) rather than giving a one-sided list",
-          "Considers the bleeding risk of the specific procedure (a deep solid-organ liver biopsy is high-bleeding-risk) and the reversibility/half-life of the anticoagulant"
-        ],
-        "bonus": [
-          "Suggests multidisciplinary input (hematology, IR, hepatology, oncology)",
-          "Notes that less-invasive data (tumor markers, interval imaging) may refine the pretest probability and the urgency",
-          "Considers patient values/occupation and goals in the timing decision",
-          "Distinguishes how the answer changes for low- vs high-risk PE (hemodynamic status)"
-        ],
-        "redFlags": [
-          "A one-sided answer that ignores either the thrombotic or the bleeding/diagnostic side",
-          "Ignoring the recency-of-VTE recurrence window entirely",
-          "Claiming the biopsy must always precede or always follow anticoagulation regardless of context"
-        ]
-      },
       "weight": 20,
       "sourceQuestion": "Question 2",
       "scoringRubric": {
@@ -84,26 +45,6 @@
       "question": "When a patient on a direct oral anticoagulant (here, apixaban) is to undergo an invasive procedure such as a liver biopsy, how long before the procedure would you hold the anticoagulant, and what is your rationale?",
       "expectedResponseFormat": "free_text",
       "minLength": 0,
-      "rubric": {
-        "essential": [
-          "Recognizes a percutaneous liver biopsy is a HIGH-bleeding-risk procedure (deep solid-organ biopsy), which lengthens the required hold",
-          "Gives a concrete, defensible hold duration — approximately 48 hours (≈2 days) for apixaban before a high-bleeding-risk procedure with normal renal function (a 48-72 hour range is acceptable; the proceduralist may specify ~3 days)",
-          "Ties the duration to apixaban's pharmacokinetics (half-life ~12 hours; clearing several half-lives) and to the procedure's bleeding risk",
-          "Accounts for RENAL FUNCTION — impaired clearance (low CrCl) requires a longer hold; this patient's renal function is normal, supporting the standard hold"
-        ],
-        "bonus": [
-          "References a structured perioperative-DOAC approach (e.g., PAUSE-style: hold based on procedure bleeding risk and renal function, no bridging)",
-          "Notes routine DOAC level testing is generally not required",
-          "Specifies when to RESUME (after hemostasis, often 24-72h post-procedure depending on bleeding risk)",
-          "Contrasts the longer hold for a high-bleed-risk procedure vs the shorter (~24h) hold for low-bleed-risk procedures"
-        ],
-        "redFlags": [
-          "Holding for only ~24 hours (insufficient for a high-bleeding-risk procedure)",
-          "Treating a liver biopsy as a low-bleeding-risk procedure",
-          "Failing to account for renal function",
-          "Recommending heparin/LMWH bridging during the DOAC hold (not indicated for DOACs)"
-        ]
-      },
       "weight": 5,
       "sourceQuestion": "Questions 3 and 3b",
       "scoringRubric": {
@@ -118,24 +59,6 @@
       "question": "When a patient on a direct oral anticoagulant is to undergo an invasive procedure, what factors would help you decide whether or not to use bridging anticoagulation?",
       "expectedResponseFormat": "free_text",
       "minLength": 0,
-      "rubric": {
-        "essential": [
-          "Recognizes that DOACs generally do NOT require bridging — their rapid offset/onset and short half-life mean the interruption window is brief, so bridging is usually unnecessary (bridging is largely a warfarin-era concept)",
-          "Frames the general decision as balancing THROMBOTIC risk (e.g., how recent/severe the VTE) against the procedure's BLEEDING risk",
-          "Notes that the short DOAC hold itself limits the duration of subtherapeutic exposure, which is why routine bridging tends to add bleeding without benefit",
-          "Considers renal function (affects DOAC clearance and therefore the length of any gap)"
-        ],
-        "bonus": [
-          "Notes that for a patient at very high thrombotic risk with a very recent VTE, the better strategy is to DELAY the elective procedure rather than to bridge",
-          "Cites evidence that bridging increases bleeding without reducing thromboembolism (e.g., the BRIDGE trial, in the warfarin context)",
-          "Acknowledges narrow exceptions where a parenteral agent might be used (e.g., a mechanical valve on warfarin — not a DOAC scenario)"
-        ],
-        "redFlags": [
-          "Routinely bridging DOAC interruptions with LMWH/heparin",
-          "Ignoring the patient's thrombotic risk entirely",
-          "Confusing DOAC management with warfarin bridging protocols"
-        ]
-      },
       "weight": 10,
       "sourceQuestion": "Question 4",
       "scoringRubric": {

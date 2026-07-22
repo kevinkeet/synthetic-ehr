@@ -17,23 +17,6 @@
       "question": "How would you explain this diagnosis — and what happened — to the patient's family?",
       "expectedResponseFormat": "free_text",
       "minLength": 0,
-      "rubric": {
-        "essential": [
-          "Clear, jargon-free explanation: the fevers, low blood pressure, and unresponsiveness were ultimately caused by a reaction to her medications (the antibiotics) — a 'drug fever' with drug-related effects on the brain — not an infection, and stopping them is why she recovered",
-          "Honest, transparent acknowledgement that this was difficult to recognize and was not identified earlier (disclosure without defensiveness or blame)",
-          "Empathy for what the family experienced (they had been preparing for her death); invites their questions and rebuilds trust"
-        ],
-        "bonus": [
-          "Frames it as a learning/quality point without blaming individuals, and documents the drug reaction so it is flagged going forward",
-          "Re-addresses goals of care now that she is improving and can participate",
-          "Checks the family's understanding and emotional state rather than only delivering information"
-        ],
-        "redFlags": [
-          "Hiding, minimizing, or glossing over the missed diagnosis (lack of transparency)",
-          "Blaming language or projecting false certainty",
-          "Pure medical jargon with no empathy or check for understanding"
-        ]
-      },
       "weight": 12,
       "sourceQuestion": "Question 5",
       "scoringRubric": {

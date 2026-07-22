@@ -17,24 +17,6 @@
       "question": "How would you evaluate this patient's involuntary weight loss?",
       "expectedResponseFormat": "free_text",
       "minLength": 0,
-      "rubric": {
-        "essential": [
-          "Thorough history (dietary intake, GI symptoms, alcohol, mood/depression, social/functional barriers to eating) and a directed physical exam",
-          "In cirrhosis specifically, evaluate for HEPATOCELLULAR CARCINOMA — dedicated multiphase liver imaging (CT or MRI) and AFP",
-          "Pursue a broader malignancy / age-appropriate cancer screen (given smoking and family history) plus basic labs (CBC, CMP, TSH)",
-          "Assess nutrition/malnutrition (a major contributor in cirrhosis) and reversible contributors (alcohol, depression, medications)"
-        ],
-        "bonus": [
-          "Notes the mildly elevated AFP already on file → prioritize HCC-surveillance imaging",
-          "Organizes a structured differential (malignancy, malabsorption, chronic-disease cachexia, psychiatric/social, endocrine)",
-          "Reviews and builds on the outpatient workup already started rather than duplicating it"
-        ],
-        "redFlags": [
-          "Anchoring on a single explanation; omitting malignancy (especially HCC) in a cirrhotic with weight loss",
-          "Skipping the nutritional/social history",
-          "No imaging/AFP plan for HCC despite cirrhosis"
-        ]
-      },
       "weight": 19,
       "sourceQuestion": "Question 1",
       "scoringRubric": {
@@ -49,25 +31,6 @@
       "question": "What is your approach to evaluating her fevers?",
       "expectedResponseFormat": "free_text",
       "minLength": 0,
-      "rubric": {
-        "essential": [
-          "A systematic infectious workup appropriate to a post-procedure cirrhotic: blood cultures, DIAGNOSTIC PARACENTESIS to rule out SBP, urinalysis/culture, chest imaging, line/site evaluation, and consideration of procedure-related sources",
-          "Reasonable empiric broad-spectrum coverage WHILE culturing — explicitly coupled with a plan to RE-EVALUATE and de-escalate based on results",
-          "Keeps a BROAD differential that includes NON-INFECTIOUS causes of fever from the outset (drug fever, transfusion reaction, VTE, the recent procedure, alcoholic hepatitis) — not infection only",
-          "States that an unrevealing workup should prompt reconsidering the diagnosis rather than reflexively broadening antibiotics"
-        ],
-        "bonus": [
-          "Explicitly enumerates non-infectious fever causes alongside infection",
-          "Separates the altered mental status (e.g., hepatic encephalopathy, TIPS-related) from the fever workup",
-          "Sets de-escalation / stopping criteria up front",
-          "Considers the timeline (fevers began around the antibiotic broadening) as data"
-        ],
-        "redFlags": [
-          "An infection-only approach with no plan to reconsider if the workup is negative",
-          "Reflexively escalating antibiotics without a structured differential",
-          "Omitting a diagnostic paracentesis in a febrile cirrhotic with ascites"
-        ]
-      },
       "weight": 14,
       "sourceQuestion": "Question 2",
       "scoringRubric": {

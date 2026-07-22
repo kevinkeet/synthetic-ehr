@@ -17,25 +17,6 @@
       "question": "In this patient, would you perform a paracentesis and a thoracentesis? Why or why not?",
       "expectedResponseFormat": "free_text",
       "minLength": 0,
-      "rubric": {
-        "essential": [
-          "YES — perform both; they are indicated (symptomatic, diuretic-refractory ascites and hydrothorax) and are LOW-bleeding-risk procedures",
-          "The elevated INR (2.0) and thrombocytopenia (55 K) of cirrhosis do NOT contraindicate these bedside procedures — INR does not predict procedural bleeding in cirrhosis (rebalanced hemostasis)",
-          "Give albumin (e.g., ~8 g per liter) for the large-volume paracentesis to prevent post-paracentesis circulatory dysfunction",
-          "Send diagnostic ascitic-fluid studies (cell count/differential) to evaluate for spontaneous bacterial peritonitis"
-        ],
-        "bonus": [
-          "Notes these are among the LOWEST-bleeding-risk procedures and that routine coagulation 'correction' is not recommended before them",
-          "Uses ultrasound guidance",
-          "Explicitly connects the diuretic intolerance (AKI/hyperkalemia/hyponatremia on up-titration) to why mechanical drainage — not more diuretic — is the right path",
-          "Frames the procedures as both diagnostic and therapeutic"
-        ],
-        "redFlags": [
-          "Withholding or delaying the indicated procedures because of the INR or platelet count",
-          "Requiring 'correction' of the INR or platelets before proceeding",
-          "Treating the coagulation numbers as a contraindication"
-        ]
-      },
       "weight": 4,
       "sourceQuestion": "Questions 1 and 1a",
       "scoringRubric": {
@@ -50,26 +31,6 @@
       "question": "Would you provide any blood products to this patient, either before or after a procedure? Why or why not?",
       "expectedResponseFormat": "free_text",
       "minLength": 0,
-      "rubric": {
-        "essential": [
-          "NO — do not give prophylactic FFP (or platelets) before or after these low-bleeding-risk procedures",
-          "Rationale: the INR does NOT reflect bleeding risk in cirrhosis (rebalanced hemostasis — both pro- and anti-coagulant factors are reduced); FFP does not meaningfully or durably 'correct' it",
-          "Recognizes the real HARMS of FFP — especially volume/circulatory overload (TACO), plus TRALI and transfusion reactions — which are amplified by large volumes, recurrent transfusions, and limited reserve",
-          "Platelets of 55 K do not require transfusion for these low-risk procedures; albumin (for large-volume paracentesis) — not FFP — is the appropriate peri-procedural product"
-        ],
-        "bonus": [
-          "Cites guideline support (e.g., AGA/AASLD/SIR) against prophylactic transfusion for low-risk procedures in cirrhosis",
-          "Anticipates that REPEATED prophylactic FFP would be cumulatively dangerous (foreshadows volume overload)",
-          "Notes that the INR/standard coagulation tests are poor transfusion triggers in cirrhosis (and that viscoelastic testing, if anything, guides better)",
-          "Plans to explain the reasoning to the patient / shared decision-making"
-        ],
-        "redFlags": [
-          "Giving prophylactic FFP or platelets to 'correct' the INR/platelets before the procedure",
-          "Treating the INR of 2.0 as a mandate to transfuse",
-          "Anchoring on the practice of correcting coagulation numbers rather than the bleeding-risk evidence in cirrhosis",
-          "Over-transfusing in a patient with limited capacity to handle the volume"
-        ]
-      },
       "weight": 4,
       "sourceQuestion": "Question 2 (before/after) + the FFP risk/benefit question",
       "scoringRubric": {

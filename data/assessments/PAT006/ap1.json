@@ -17,28 +17,6 @@
       "question": "In addition to continuing telemetry monitoring, would you recommend any additional monitoring, testing, or treatment at this time? If so, what?",
       "expectedResponseFormat": "free_text",
       "minLength": 0,
-      "rubric": {
-        "essential": [
-          "Affirms continuing telemetry AND systematically looks for / addresses reversible or secondary triggers of post-operative AF (at least two of: electrolytes especially potassium and magnesium — verify/replete; volume status; pain control; hypoxia; anemia; ongoing inflammation/infection from the recent perforated cholecystitis)",
-          "Recommends checking thyroid function (TSH) — note none is on file in the chart",
-          "Recommends a transthoracic echocardiogram to evaluate for structural heart disease / LV function / left atrial size — explicitly recognizing she has NO prior echocardiogram",
-          "Does NOT start therapeutic anticoagulation at this point for brief (15-20 second), self-terminating, asymptomatic runs on POD#1 (recognizes it is premature / burden is minimal / she is early post-op)",
-          "Does NOT start a rate- or rhythm-control drug or attempt cardioversion for asymptomatic, self-terminating, rate-controlled runs"
-        ],
-        "bonus": [
-          "Quantifies the actual AF burden by reading the telemetry EVENT note (3 runs, each 15-20 seconds, asymptomatic, self-limited) rather than relying on the brief daily progress-note summary",
-          "Frames the key uncertainty up front: new AF in the setting of acute illness/recent surgery is often transient/secondary and may not reflect a chronic substrate — this is what ongoing monitoring will clarify",
-          "Notes that very brief self-terminating runs generally do not by themselves cross a threshold mandating anticoagulation, but do warrant continued monitoring and risk-factor optimization",
-          "Specifically addresses magnesium optimization (even toward high-normal) and treating pain/volume as AF triggers",
-          "Mentions reviewing the medication list for proarrhythmic agents and confirming adequate oxygenation"
-        ],
-        "redFlags": [
-          "Starting therapeutic anticoagulation immediately for 15-20 second self-terminating runs on POD#1",
-          "Starting an antiarrhythmic or aggressive rate control, or cardioverting, an asymptomatic self-terminating brief run",
-          "Ignoring reversible/secondary causes (no electrolyte or thyroid assessment)",
-          "Failing to recognize that no prior echocardiogram exists / not assessing for structural heart disease"
-        ]
-      },
       "weight": 4,
       "sourceQuestion": "Question #1",
       "scoringRubric": {

@@ -30,26 +30,6 @@
       "question": "After her ICU admission for flash pulmonary edema, you call her radiologist to ask that he stop giving FFP during her procedures. How would you approach that conversation?",
       "expectedResponseFormat": "free_text",
       "minLength": 0,
-      "rubric": {
-        "essential": [
-          "Collegial, non-judgmental tone — the radiologist followed a common (if outdated) practice; the goal is collaboration, not blame",
-          "Shares the specific harm that occurred (ICU admission / flash pulmonary edema from volume overload) and the evidence: an elevated INR in cirrhosis does not predict bleeding, prophylactic FFP is not indicated for these low-risk procedures, and FFP carries real volume-overload risk",
-          "Proposes a concrete alternative going forward: continue the drainage WITHOUT prophylactic FFP (albumin for large-volume paracentesis is fine); offer to share guidelines and serve as a resource",
-          "Explicitly preserves her LOCAL ACCESS — she lives 90 minutes away and depends on this radiologist; the aim is to keep her getting safe care close to home, not to end the arrangement"
-        ],
-        "bonus": [
-          "Offers a written shared protocol / follow-up and hepatology backup for questions",
-          "Frames it as two clinicians jointly problem-solving for a shared patient",
-          "Anticipates and respectfully addresses the radiologist's bleeding-risk concern with specifics rather than dismissing it",
-          "Confirms the plan in writing and closes the loop"
-        ],
-        "redFlags": [
-          "A blaming, condescending, or accusatory approach that risks the relationship and her local access",
-          "Simply telling the patient to stop going there (ignores the 90-minute access barrier)",
-          "Failing to offer a concrete, safe alternative protocol",
-          "Not communicating the specific harm or the evidence behind the request"
-        ]
-      },
       "weight": 4,
       "sourceQuestion": "Question 2 (TP2): approach to the radiologist conversation",
       "scoringRubric": {

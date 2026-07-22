@@ -59,23 +59,6 @@
       "question": "More generally, what are the arguments for and against placing an IVC filter?",
       "expectedResponseFormat": "free_text",
       "minLength": 0,
-      "rubric": {
-        "essential": [
-          "Gives valid arguments FOR — at least: a contraindication to anticoagulation (e.g., active or high-risk bleeding), and recurrent VTE DESPITE therapeutic anticoagulation; (may also mention as a temporary measure when anticoagulation must be interrupted in a very high-risk patient)",
-          "Gives valid arguments AGAINST — at least two of: filters do not treat existing clot or replace anticoagulation; they increase the risk of (recurrent) DVT; mechanical complications (migration, fracture, IVC perforation/thrombosis, retrieval failure); retrievable filters are frequently never retrieved",
-          "Conveys that a filter addresses only embolization of lower-extremity clot to the lungs — it is not a treatment for thrombosis itself"
-        ],
-        "bonus": [
-          "Cites the evidence base (e.g., PREPIC / PREPIC2): filters reduce PE recurrence but increase DVT, with NO mortality benefit",
-          "Distinguishes retrievable vs permanent filters and stresses planned retrieval",
-          "Notes appropriate-use considerations and avoidance of routine filter placement for PE"
-        ],
-        "redFlags": [
-          "Claiming IVC filters provide a mortality benefit",
-          "Recommending filters broadly/routinely for PE",
-          "Omitting the major harms (increased DVT, mechanical complications) entirely"
-        ]
-      },
       "weight": 8,
       "sourceQuestion": "Question 6",
       "scoringRubric": {
