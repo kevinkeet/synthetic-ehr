@@ -46,7 +46,7 @@ const Navigation = {
             // case-marker prefix so the assessment cases visually group at the
             // top.
             const rows = patients.map((p) => {
-                const ageStr = p.dob ? this._ageFromDob(p.dob) : '?';
+                const ageStr = p.dob ? this._ageFromDob(p.dob, p.id) : '?';
                 const isCase = p.caseType === 'assessment';
                 return {
                     id: p.id,
@@ -82,10 +82,14 @@ const Navigation = {
         }
     },
 
-    _ageFromDob(dob) {
+    _ageFromDob(dob, patientId) {
         try {
-            const d = new Date(dob);
-            const now = new Date();
+            const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(dob) ? dob + 'T12:00:00' : dob);
+            // Case patients live at in-case dates — show the in-case age
+            // (each patient against its own default chart anchor).
+            let now = new Date();
+            const anchors = (typeof App !== 'undefined') && App._DEFAULT_GATE_ANCHORS;
+            if (anchors && patientId && anchors[patientId]) now = new Date(anchors[patientId]);
             let age = now.getFullYear() - d.getFullYear();
             const m = now.getMonth() - d.getMonth();
             if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age--;

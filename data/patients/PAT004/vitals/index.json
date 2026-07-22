@@ -1,11 +1,81 @@
 {
   "vitals": [
-    { "date": "2027-08-10T11:30:00.000Z", "bloodPressure": "118/74", "heartRate": 115, "heartRhythm": "Sinus tachycardia", "temperature": 98.6, "respiratoryRate": 24, "oxygenSaturation": 93, "oxygenSupport": "4 L nasal cannula", "weight": 98.5, "height": 185, "bmi": 28.8, "context": "Readmission (8/10) — recurrent dyspnea and pleuritic chest pain at the scheduled biopsy appointment. Tachycardic, hypoxic on 4 L NC. Now intermediate-risk PE." },
-    { "date": "2027-07-11T08:00:00.000Z", "bloodPressure": "124/78", "heartRate": 78, "heartRhythm": "Regular (sinus)", "temperature": 98.2, "respiratoryRate": 16, "oxygenSaturation": 97, "oxygenSupport": "Room air", "weight": 99.0, "context": "HD6, discharge day — symptoms resolved, ambulating, off oxygen. Transitioned to apixaban." },
-    { "date": "2027-07-10T07:30:00.000Z", "bloodPressure": "122/76", "heartRate": 80, "heartRhythm": "Regular (sinus)", "temperature": 98.1, "respiratoryRate": 16, "oxygenSaturation": 97, "oxygenSupport": "Room air", "weight": 99.0, "context": "HD5 — clinically improved; chest pain much reduced; off supplemental oxygen." },
-    { "date": "2027-07-08T07:30:00.000Z", "bloodPressure": "126/80", "heartRate": 86, "heartRhythm": "Regular (sinus)", "temperature": 98.3, "respiratoryRate": 18, "oxygenSaturation": 96, "oxygenSupport": "Room air", "weight": 99.4, "context": "HD3 — day of dedicated liver MRI; hemodynamically stable." },
-    { "date": "2027-07-06T14:00:00.000Z", "bloodPressure": "128/82", "heartRate": 96, "heartRhythm": "Sinus", "temperature": 98.7, "respiratoryRate": 20, "oxygenSaturation": 94, "oxygenSupport": "Room air", "weight": 99.6, "height": 185, "bmi": 29.1, "context": "ED arrival (7/6) — 6 hours of pleuritic left chest pain, dyspnea, dizziness. Mildly tachycardic; SpO2 94% RA. Hemodynamically stable (low-risk PE)." },
-    { "date": "2026-09-18T10:00:00.000Z", "bloodPressure": "126/80", "heartRate": 72, "heartRhythm": "Regular (sinus)", "temperature": 98.2, "respiratoryRate": 14, "oxygenSaturation": 99, "oxygenSupport": "Room air", "weight": 98.0, "context": "Routine work physical (PCP) — well; no complaints. Pre-illness baseline." }
+    {
+      "date": "2027-08-10T11:30:00.000Z",
+      "bloodPressure": "118/74",
+      "heartRate": 115,
+      "heartRhythm": "Sinus tachycardia",
+      "temperature": 98.6,
+      "respiratoryRate": 24,
+      "oxygenSaturation": 93,
+      "oxygenSupport": "4 L nasal cannula",
+      "weight": 98.5,
+      "height": 185,
+      "bmi": 28.8,
+      "context": "Readmission (8/10) — recurrent dyspnea and pleuritic chest pain at the scheduled biopsy appointment. Tachycardic, hypoxic on 4 L NC. Now intermediate-risk PE."
+    },
+    {
+      "date": "2027-07-11T08:00:00.000Z",
+      "bloodPressure": "124/78",
+      "heartRate": 78,
+      "heartRhythm": "Regular (sinus)",
+      "temperature": 98.2,
+      "respiratoryRate": 16,
+      "oxygenSaturation": 97,
+      "oxygenSupport": "Room air",
+      "weight": 99.0,
+      "context": "HD6, discharge day — symptoms resolved, ambulating, off oxygen. Transitioned to apixaban."
+    },
+    {
+      "date": "2027-07-10T07:30:00.000Z",
+      "bloodPressure": "122/76",
+      "heartRate": 80,
+      "heartRhythm": "Regular (sinus)",
+      "temperature": 98.1,
+      "respiratoryRate": 16,
+      "oxygenSaturation": 97,
+      "oxygenSupport": "Room air",
+      "weight": 99.0,
+      "context": "HD5 — clinically improved; chest pain much reduced; off supplemental oxygen."
+    },
+    {
+      "date": "2027-07-08T07:30:00.000Z",
+      "bloodPressure": "126/80",
+      "heartRate": 86,
+      "heartRhythm": "Regular (sinus)",
+      "temperature": 98.3,
+      "respiratoryRate": 18,
+      "oxygenSaturation": 96,
+      "oxygenSupport": "Room air",
+      "weight": 99.4,
+      "context": "HD3 — day of dedicated liver MRI; hemodynamically stable."
+    },
+    {
+      "date": "2027-07-06T08:15:00.000Z",
+      "bloodPressure": "128/82",
+      "heartRate": 96,
+      "heartRhythm": "Sinus",
+      "temperature": 98.7,
+      "respiratoryRate": 20,
+      "oxygenSaturation": 94,
+      "oxygenSupport": "Room air",
+      "weight": 99.6,
+      "height": 185,
+      "bmi": 29.1,
+      "context": "ED arrival (7/6) — 6 hours of pleuritic right chest pain, dyspnea, dizziness. Mildly tachycardic; SpO2 94% RA. Hemodynamically stable (low-risk PE)."
+    },
+    {
+      "date": "2026-09-18T10:00:00.000Z",
+      "bloodPressure": "126/80",
+      "heartRate": 72,
+      "heartRhythm": "Regular (sinus)",
+      "temperature": 98.2,
+      "respiratoryRate": 14,
+      "oxygenSaturation": 99,
+      "oxygenSupport": "Room air",
+      "weight": 98.0,
+      "context": "Routine work physical (PCP) — well; no complaints. Pre-illness baseline."
+    }
   ],
   "lastUpdated": "2027-08-10"
 }

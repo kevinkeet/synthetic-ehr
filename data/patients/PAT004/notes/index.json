@@ -12,7 +12,7 @@
     {
       "id": "NOTE008",
       "type": "ED Re-presentation H&P (readmission)",
-      "date": "2027-08-10T11:00:00.000Z",
+      "date": "2027-08-10T14:00:00.000Z",
       "author": "Dr. Olivia Reyes (Emergency Medicine)",
       "department": "Emergency Department",
       "encounter": "ENC002",
@@ -75,11 +75,11 @@
     {
       "id": "NOTE001",
       "type": "ED Visit / Admission H&P",
-      "date": "2027-07-06T10:00:00.000Z",
+      "date": "2027-07-06T17:30:00.000Z",
       "author": "Dr. Olivia Reyes (ED) / Dr. Daniel Okafor (Medicine)",
       "department": "Emergency Department / Internal Medicine",
       "encounter": "ENC001",
-      "preview": "43M previously healthy with 6 hours of pleuritic left chest pain and dyspnea. CTPA: segmental PE + incidental heterogeneous liver enhancement. RLE duplex: extensive DVT. Troponin negative, TTE no RV strain (low-risk PE). Essentially unprovoked. Anticoagulation started; admitted."
+      "preview": "43M previously healthy with 6 hours of pleuritic right chest pain and dyspnea. CTPA: segmental PE + incidental heterogeneous liver enhancement. RLE duplex: extensive DVT. Troponin negative, TTE no RV strain (low-risk PE). Essentially unprovoked. Anticoagulation started; admitted."
     },
     {
       "id": "NOTE_HX_001",

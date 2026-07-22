@@ -4,11 +4,23 @@
 
 const DateUtils = {
     /**
+     * Parse a date string. Date-only strings ("1983-11-22") are treated as
+     * LOCAL dates — new Date() would parse them as UTC midnight, shifting
+     * them back a day in US timezones (DOB Nov 22 rendering as Nov 21).
+     */
+    parseLocal(dateString) {
+        if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+            return new Date(dateString + 'T12:00:00');
+        }
+        return new Date(dateString);
+    },
+
+    /**
      * Format date for display (e.g., "Jan 15, 2024")
      */
     formatDate(dateString) {
         if (!dateString) return '';
-        const date = new Date(dateString);
+        const date = this.parseLocal(dateString);
         return date.toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
@@ -21,7 +33,7 @@ const DateUtils = {
      */
     formatDateTime(dateString) {
         if (!dateString) return '';
-        const date = new Date(dateString);
+        const date = this.parseLocal(dateString);
         return date.toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
@@ -50,7 +62,7 @@ const DateUtils = {
      */
     formatShortDate(dateString) {
         if (!dateString) return '';
-        const date = new Date(dateString);
+        const date = this.parseLocal(dateString);
         return date.toLocaleDateString('en-US', {
             month: '2-digit',
             day: '2-digit',
@@ -63,8 +75,17 @@ const DateUtils = {
      */
     calculateAge(dob) {
         if (!dob) return '';
-        const birthDate = new Date(dob);
-        const today = new Date();
+        const birthDate = this.parseLocal(dob);
+        // Case charts are anchored to in-case dates (e.g., 2027) — age must
+        // reflect the chart gate's "today", not the wall clock, or the header
+        // contradicts the notes.
+        let today = new Date();
+        try {
+            if (window.AssessmentChartGate && AssessmentChartGate.isActive()) {
+                const anchor = AssessmentChartGate.getAnchor();
+                if (anchor) today = new Date(anchor);
+            }
+        } catch (e) { /* fall back to wall clock */ }
         let age = today.getFullYear() - birthDate.getFullYear();
         const monthDiff = today.getMonth() - birthDate.getMonth();
         if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {

@@ -128,12 +128,13 @@ const App = {
      * Load a patient and their data
      */
     async loadPatient(patientId) {
-        await PatientHeader.init(patientId);
-
-        // Apply the default chart gate for this patient (if any). Done early
-        // so the first chart render is already filtered. The assessment
-        // engine will override the anchor if an assessment is in progress.
+        // Apply the default chart gate for this patient (if any) BEFORE the
+        // header renders, so the header's age is computed against the case
+        // anchor. The assessment engine will override the anchor if an
+        // assessment is in progress.
         this._applyDefaultGate(patientId);
+
+        await PatientHeader.init(patientId);
 
         // Tag the body with the current patient id so CSS can hide
         // distractions (AI panel, Sim controls) on case patients where we

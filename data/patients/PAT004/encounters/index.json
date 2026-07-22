@@ -24,7 +24,7 @@
       "type": "Inpatient Admission",
       "department": "Internal Medicine (UMMC)",
       "provider": "Dr. Daniel Okafor (Medicine PGY-2), Dr. Marisol Vega (Medicine attending), Dr. Allyson Pishko (Hematology), Dr. Brett Carroll (Vascular)",
-      "chiefComplaint": "Pleuritic left chest pain and dyspnea",
+      "chiefComplaint": "Pleuritic right chest pain and dyspnea",
       "diagnoses": [
         "Acute segmental pulmonary embolism (low-risk)",
         "Acute extensive right lower extremity DVT",
@@ -41,7 +41,10 @@
       "department": "Dundalk Family Medicine",
       "provider": "Dr. Anita Joshi",
       "chiefComplaint": "Routine work physical",
-      "diagnoses": ["Healthy adult male", "Overweight (BMI ~29)"],
+      "diagnoses": [
+        "Healthy adult male",
+        "Overweight (BMI ~29)"
+      ],
       "status": "Completed",
       "interpreterUsed": "None"
     }
