@@ -234,6 +234,13 @@ const ChartReview = {
     renderVitalsWidget(data) {
         const vitals = data.vitals || [];
         const mostRecent = vitals[0];
+        // Vitals come in two shapes: legacy {systolic, diastolic, spO2} and
+        // newer {bloodPressure: "112/70", oxygenSaturation} (all study cases).
+        const bp = mostRecent && (mostRecent.bloodPressure
+            || (mostRecent.systolic != null && mostRecent.diastolic != null
+                ? `${mostRecent.systolic}/${mostRecent.diastolic}` : null));
+        const spo2 = mostRecent && (mostRecent.oxygenSaturation != null
+            ? mostRecent.oxygenSaturation : mostRecent.spO2);
 
         return `
             <div class="dashboard-widget">
@@ -252,7 +259,7 @@ const ChartReview = {
                         </div>
                         <div class="widget-item">
                             <span class="widget-item-label">Blood Pressure</span>
-                            <span class="widget-item-value" id="vitals-widget-bp">${mostRecent.systolic}/${mostRecent.diastolic} mmHg</span>
+                            <span class="widget-item-value" id="vitals-widget-bp">${bp || '—'} mmHg</span>
                         </div>
                         <div class="widget-item">
                             <span class="widget-item-label">Heart Rate</span>
@@ -268,7 +275,7 @@ const ChartReview = {
                         </div>
                         <div class="widget-item">
                             <span class="widget-item-label">SpO2</span>
-                            <span class="widget-item-value" id="vitals-widget-spo2">${mostRecent.spO2}%</span>
+                            <span class="widget-item-value" id="vitals-widget-spo2">${spo2 != null ? spo2 : '—'}%</span>
                         </div>
                         ${mostRecent.weight ? `
                         <div class="widget-item">

@@ -6,7 +6,7 @@ Living status doc so work can resume in a fresh session. Repo:
 ## How the app works (fast facts)
 - Vanilla HTML/JS/CSS, **no build system**. `index.html` loads all scripts; `js/router.js` hash routing.
 - **Two git remotes — push BOTH after every commit:** `git push origin main && git push shared main`.
-- **Cache busting:** every `<script>/<link>` in `index.html` uses `?v=YYYYMMDD[suffix]`. Bump it (search/replace all + `window.__CACHE_V`) whenever you change **JS or CSS**. **Data JSON under `data/` is NOT cache-busted** — edits take effect on reload. Current version: **`20260604ac`**.
+- **Cache busting:** every `<script>/<link>` in `index.html` uses `?v=YYYYMMDD[suffix]`. Bump it (search/replace all + `window.__CACHE_V`) whenever you change **JS or CSS**. **Data JSON under `data/` is NOT cache-busted** — edits take effect on reload. Current version: **`20260722`**.
 - **Access gate password:** `0slerian` → PBKDF2 → decrypts the embedded Anthropic key into localStorage. Never log/commit the decrypted key.
 - **The shared Anthropic API key repeatedly runs OUT OF CREDITS** (Opus runs burn it fast). When it does, the live assessment (chat + grading) is DOWN. Only the user can top it up.
 - **Supabase** project (`piwoinyrlicvndpsmtde`) auto-pauses on free tier; resume from the dashboard before use.
@@ -48,9 +48,13 @@ PAT002 (Sandoval, SLE/NEJM) has NO source docx rubric — graded by the older es
   - Left faithful as-is: PAT006 monitor sub-parts and PAT004 1a/1b (sub-parts of a single docx question).
   - Verified point totals: PAT003=36, PAT004=71, PAT005=27, PAT006=23, PAT007=78.5; all Qs points-graded.
 
+## DONE 2026-07-22
+- **Chart Review "Latest Vitals" widget fix:** it only read the legacy `{systolic, diastolic, spO2}` vitals shape, but ALL study cases (PAT003–007) use `{bloodPressure: "112/70", oxygenSaturation}` — so every assessment case's chart landing page showed "undefined/undefined mmHg" / "undefined%". `chart-review.js renderVitalsWidget` now normalizes both shapes (mirrors `vitals.js`). Verified live on PAT005 (116/72 mmHg, 99%). Cache bumped to `20260722`.
+- Note: two abandoned test attempts under participant code `CLAUDEVERIFY` may exist in Supabase (or died in the offline queue) from the live verification — ignore/delete.
+
 ## PENDING / NEXT
 1. **Cleanup pass — DONE.** `assessment-results.js._renderRubric` now prefers `scoringRubric.rubricText` (falls back to essential/bonus only when there's no scoringRubric). Deleted the stale `rubric` block from all 22 points-graded prompts (PAT003–007). PAT002 keeps its 5 essential/bonus rubrics (they ARE its grader). `admin-dashboard.js` does not render rubrics. Final: PAT003=5, PAT004=8, PAT005=7, PAT006=4, PAT007=6 scoringRubrics, 0 legacy blocks; PAT002=5 legacy.
-2. **Live-verify the rubric-fidelity fixes** (preview was down / out of credits when they were made): PAT003 scores via the points path; the PAT004 3-part IVC split renders/flows; **PAT005 AP3 at anchor 7/05 shows NOTE010 and HIDES the 7/19 transplant** (most moving parts).
+2. **Live-verify the rubric-fidelity fixes — DONE (2026-07-22)** except one piece: verified live that the PAT004 3-part IVC split (Q5a 5 / Q5b 3 / Q5c 3 / Q6 8) renders and flows end-to-end; PAT005 AP2-Q4→Q4b→AP3 flows; **PAT005 AP3 at anchor 7/05 shows NOTE010 (6/25) and hides NOTE008 (7/19 transplant) + NOTE009**; AP3 stem shows the pre-transplant rewrite. Point totals re-verified from data: 36/71/27/23/78.5, 0 legacy rubric blocks on PAT003–007. PAT003 points-path grading confirmed statically (grader branches on `scoringRubric.rubricText`, present on all 5 Qs) — **an actual end-to-end grade call still needs the access gate unlocked + API credits** (tooling can't enter the password).
 3. **Bell (PAT004) content audit** — the user was mid-audit of Case 2 (we'd only reviewed Q1 clinically). Continue Q2–Q6 + chart consistency.
 4. **Human-synthesizer re-test** (needs credits): the "does skilled multi-turn help" question is confounded because the simulated resident was an LLM. Real answer needs a human (or the recorded transcripts) writing the final answer — especially on PAT007 (the drug-fever trap case, the missing data point).
 5. **Hide the non-assessment modes for study deployment:** the landing chooser + top-bar switcher (`js/services/mode-manager.js`, MODES/ORDER) offer Assessment / AI Tutor / AI Assistant. For the study, show ONLY Assessment (hide the other two cards/switcher entries, and ideally lock the app into assessment mode). Not yet done.
